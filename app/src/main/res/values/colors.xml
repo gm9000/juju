@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="portrait">
+        <attr name="border_thickness" format="dimension"/>
+        <attr name="border_inside_color" format="color" />
+        <attr name="border_outside_color" format="color"/>
+    </declare-styleable>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+    <color name="white">#FFFFFB</color>
+
+    <!-- 公共部分 -->
+    <!--蓝色：#0082E3-->
+    <!--红色：#FF0000-->
+    <!--底色：#ECF0F1-->
+    <!--橙色：#FF9500-->
+    <!--绿色：#27AE60 #37EA37-->
+    <!--灰色：#8E8E93 #AAAAAA-->
+    <!--浅灰：#D3D7CF-->
+    <!--棕色：#795548-->
+
+    <color name="blue">#0082E3</color>
+    <color name="red">#FF0000</color>
+    <color name="background">#ECF0F1</color>
+
+
+
+    <color name="bar_color">#232325</color>
+
+    <!-- 群聊-->
+    <color name="black">#ff000000</color>
+    <color name="black1">#7A7E83</color>
+
+    <!--我 -->
+    <color name="black2">#ffeeeeee</color>
+
+
+</resources>

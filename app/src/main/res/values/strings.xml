@@ -1,0 +1,46 @@
+<resources>
+    <string name="app_name">挚亲宝</string>
+    <string name="action_settings">Settings</string>
+
+    <!--登陆、注册管理-->
+    <string name="userNo">请输入挚亲号/手机号</string>
+    <string name="password">请输入密码</string>
+    <string name="action_login_in">登&#160;&#160;录</string>
+    <string name="action_regist">注册新用户</string>
+    <string name="user_no_null">账号不能为空</string>
+    <string name="password_no_null">密码不能为空</string>
+    <string name="remember_pwd">记住密码</string>
+    <string name="auto_login">自动登录</string>
+
+
+
+
+    <!-- 公共 -->
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_activity_group">GroupActivity</string>
+    <string name="title_activity_chat">ChatActivity</string>
+    <string name="title_activity_login">LoginActivity</string>
+    <string name="group_chat">群聊</string>
+    <string name="group_party">聚会</string>
+    <string name="me">我</string>
+
+    <!-- 群聊 -->
+    <string name="no_msg">暂时没有新消息</string>
+
+    <!-- 我 -->
+    <string name="my_posts">相册</string>
+    <string name="collection">收藏</string>
+    <string name="wallet">钱包</string>
+    <string name="card_bag">卡包</string>
+    <string name="expression2">表情</string>
+    <string name="settings">设置</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- 自定义组建 -->
+    <string name="menu_group">创建群</string>
+    <string name="menu_qrcode">扫一扫加群</string>
+    <string name="menu_invitecode">邀请码加群</string>
+
+</resources>
