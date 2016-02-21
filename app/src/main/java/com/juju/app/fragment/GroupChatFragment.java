@@ -22,6 +22,7 @@ import com.juju.app.utils.NetWorkUtil;
  * 创建人：gm
  * 日期：2016/2/18 15:09
  * 版本：V1.0.0
+ *
  */
 public class GroupChatFragment extends BaseFragment  implements View.OnClickListener,
         AdapterView.OnItemClickListener {
