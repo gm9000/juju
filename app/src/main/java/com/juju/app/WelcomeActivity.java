@@ -9,6 +9,7 @@ import android.widget.LinearLayout;
 import com.juju.app.activity.LoginActivity;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.utils.ActivityUtil;
 import com.lidroid.xutils.ViewUtils;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
@@ -59,8 +60,7 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
         aa.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationEnd(Animation arg0) {
-                Intent intent = new Intent(WelcomeActivity.this, LoginActivity.class);
-                startActivity(intent);
+                ActivityUtil.startActivity(WelcomeActivity.this, LoginActivity.class);
                 finish();
             }
 

@@ -18,6 +18,7 @@ import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
@@ -110,8 +111,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
                     System.out.println("loginBean state:"+loginBean.getStatus());
                 }
                 saveUserInfo();
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
+                ActivityUtil.startActivity(LoginActivity.this, MainActivity.class);
                 break;
         }
     }
