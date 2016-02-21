@@ -26,7 +26,8 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ViewUtils.inject(this);
-       //TODO 加载配置文件
+
+       //TODO 增加加载配置文件
 //        try {
 //            Thread.currentThread().sleep(1000);
 //        } catch (InterruptedException e) {
