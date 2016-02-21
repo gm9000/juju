@@ -90,6 +90,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 //            LoginReqBean reqBean = new LoginReqBean(userNo, password);
 //            JlmHttpClient<LoginReqBean> client = new JlmHttpClient<LoginReqBean>(0,
 //                    HttpConstants.getUserUrl() + "/login", this, reqBean, LoginResBean.class);
+            //增加注释
             try {
                 client.sendPost();
             } catch (UnsupportedEncodingException e) {
