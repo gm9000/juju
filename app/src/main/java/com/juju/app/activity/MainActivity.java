@@ -91,13 +91,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     groupChatFragment.refresh();
                 }
                 txt_title.setText(R.string.group_chat);
-                img_right.setImageResource(R.drawable.icon_add);
+                img_right.setImageResource(R.mipmap.icon_add);
                 break;
             case R.id.re_group_party:
                 index = 1;
                 txt_title.setText(R.string.group_party);
                 img_right.setVisibility(View.VISIBLE);
-                img_right.setImageResource(R.drawable.icon_titleaddfriend);
+                img_right.setImageResource(R.mipmap.icon_titleaddfriend);
                 break;
             case R.id.re_profile:
                 index = 2;
@@ -145,11 +145,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         titlePopup.setItemOnClickListener(onitemClick);
         // 给标题栏弹窗添加子类
         titlePopup.addAction(new ActionItem(this, R.string.menu_group,
-                R.drawable.icon_menu_group));
+                R.mipmap.icon_menu_group));
         titlePopup.addAction(new ActionItem(this, R.string.menu_qrcode,
-                R.drawable.icon_menu_qrcode));
+                R.mipmap.icon_menu_qrcode));
         titlePopup.addAction(new ActionItem(this, R.string.menu_invitecode,
-                R.drawable.icon_menu_invitecode));
+                R.mipmap.icon_menu_invitecode));
 
     }
 

@@ -55,7 +55,7 @@
                     android:layout_centerVertical="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:src="@drawable/right" />
+                    android:src="@mipmap/right" />
 
                 <ImageView
                     android:id="@+id/iv_sex"
@@ -64,7 +64,7 @@
                     android:layout_height="20dp"
                     android:layout_marginTop="22dp"
                     android:layout_marginLeft="5dp"
-                    android:src="@drawable/ic_sex_female" />
+                    android:src="@mipmap/ic_sex_female" />
             </RelativeLayout>
             <View
                 android:background="@color/black2"
@@ -84,8 +84,8 @@
                 android:paddingRight="16dp"
                 android:layout_marginTop="20dp"
                 android:drawablePadding="10dp"
-                android:drawableLeft="@drawable/icon_me_photo"
-                android:drawableRight="@drawable/right"
+                android:drawableLeft="@mipmap/icon_me_photo"
+                android:drawableRight="@mipmap/right"
                 android:text="@string/my_posts" />
             <View
                 android:background="@color/black2"
@@ -102,8 +102,8 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:drawablePadding="10dp"
-                android:drawableLeft="@drawable/icon_me_collect"
-                android:drawableRight="@drawable/right"
+                android:drawableLeft="@mipmap/icon_me_collect"
+                android:drawableRight="@mipmap/right"
                 android:text="@string/collection" />
             <View
                 android:background="@color/black2"
@@ -121,8 +121,8 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:drawablePadding="10dp"
-                android:drawableLeft="@drawable/icon_me_money"
-                android:drawableRight="@drawable/right"
+                android:drawableLeft="@mipmap/icon_me_money"
+                android:drawableRight="@mipmap/right"
                 android:text="@string/wallet" />
             <View
                 android:background="@color/black2"
@@ -139,8 +139,8 @@
                 android:paddingLeft="16dp"
                 android:paddingRight="16dp"
                 android:drawablePadding="10dp"
-                android:drawableLeft="@drawable/icon_me_card"
-                android:drawableRight="@drawable/right"
+                android:drawableLeft="@mipmap/icon_me_card"
+                android:drawableRight="@mipmap/right"
                 android:text="@string/card_bag" />
             <View
                 android:background="@color/black2"
@@ -160,8 +160,8 @@
                 android:paddingRight="16dp"
                 android:layout_marginTop="20dp"
                 android:drawablePadding="10dp"
-                android:drawableLeft="@drawable/icon_me_smail"
-                android:drawableRight="@drawable/right"
+                android:drawableLeft="@mipmap/icon_me_smail"
+                android:drawableRight="@mipmap/right"
                 android:text="@string/expression2" />
             <View
                 android:background="@color/black2"
@@ -180,8 +180,8 @@
                 android:paddingRight="10dp"
                 android:layout_marginTop="20dp"
                 android:drawablePadding="10dp"
-                android:drawableLeft="@drawable/icon_me_setting"
-                android:drawableRight="@drawable/right"
+                android:drawableLeft="@mipmap/icon_me_setting"
+                android:drawableRight="@mipmap/right"
                 android:text="@string/settings" />
             <View
                 android:background="@color/black2"
