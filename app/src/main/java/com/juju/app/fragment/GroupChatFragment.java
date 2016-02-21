@@ -13,7 +13,9 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.activity.MainActivity;
+import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.ui.base.BaseFragment;
+import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.NetWorkUtil;
 
 /**
@@ -24,38 +26,24 @@ import com.juju.app.utils.NetWorkUtil;
  * 版本：V1.0.0
  *
  */
-public class GroupChatFragment extends BaseFragment  implements View.OnClickListener,
-        AdapterView.OnItemClickListener {
+@CreateFragmentUI(viewId = R.layout.fragment_group_chat)
+public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
+        View.OnClickListener, AdapterView.OnItemClickListener {
 
-    private Activity ctx;
-    private View rootView;
     private MainActivity parentActivity;
+
     public RelativeLayout errorItem;
+
     /**
      * 异常提示文本组建
      */
     public TextView errorText;
+
     /**
      * 群组列表
      */
     private ListView lvContact;
 
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        if (rootView == null) {
-            ctx = this.getActivity();
-            rootView = ctx.getLayoutInflater().inflate(R.layout.fragment_group_chat, null);
-                initView(rootView);
-                setOnListener();
-            } else {
-                ViewGroup parent = (ViewGroup) rootView.getParent();
-                if (parent != null) {
-                    parent.removeView(rootView);
-            }
-        }
-        return rootView;
-    }
 
     @Override
     public void onClick(View v) {
@@ -68,7 +56,8 @@ public class GroupChatFragment extends BaseFragment  implements View.OnClickList
         }
     }
 
-    private void setOnListener() {
+    @Override
+    public void setOnListener() {
         lvContact.setOnItemClickListener(this);
         errorItem.setOnClickListener(this);
     }
@@ -79,19 +68,30 @@ public class GroupChatFragment extends BaseFragment  implements View.OnClickList
 
     }
 
-    private void initView(View view) {
-        parentActivity = (MainActivity) getActivity();
-        lvContact = (ListView) view.findViewById(R.id.listview);
-        errorItem = (RelativeLayout) view
-                .findViewById(R.id.rl_error_item);
-        errorText = (TextView) errorItem
-                .findViewById(R.id.tv_connect_errormsg);
-    }
 
     /**
      * 刷新页面
      */
     public void refresh() {
+
+    }
+
+    @Override
+    protected void findViews() {
+        super.findViews();
+        parentActivity = (MainActivity) getActivity();
+        lvContact = (ListView) findViewById(R.id.listview);
+        errorItem = (RelativeLayout) findViewById(R.id.rl_error_item);
+        errorText = (TextView) errorItem.findViewById(R.id.tv_connect_errormsg);
+    }
+
+    @Override
+    public void loadData() {
+
+    }
+
+    @Override
+    public void initView() {
 
     }
 }
