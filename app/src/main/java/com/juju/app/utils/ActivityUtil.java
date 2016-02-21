@@ -23,7 +23,7 @@ public class ActivityUtil {
      * @param cls
      * @param name
      */
-    public static void start_Activity(Activity activity, Class<?> cls,
+    public static void startActivity(Activity activity, Class<?> cls,
                                       BasicNameValuePair... name) {
         Intent intent = new Intent();
         intent.setClass(activity, cls);
