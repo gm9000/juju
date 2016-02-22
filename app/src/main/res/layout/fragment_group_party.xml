@@ -1,14 +1,80 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent" android:background="@color/background">
 
+    <RadioGroup
+        android:id="@+id/radiogroup"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:orientation="horizontal"
+        android:layout_marginTop="5dp">
 
-    <TextView
-        android:layout_width="wrap_content"
+        <RadioButton
+            android:id="@+id/party_all"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:button="@null"
+            android:text="所有的"
+            android:textSize="20dp"
+            android:textColor="@color/blue"
+            android:textAlignment="center"
+            android:checked="true"
+            android:drawableBottom="@drawable/selected_line"
+            android:layout_alignParentLeft="true"
+            android:layout_marginRight="5dp"
+            android:layout_marginLeft="5dp"
+            />
+        <RadioButton
+            android:id="@+id/party_attend"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:button="@null"
+            android:text="参加的"
+            android:textSize="20dp"
+            android:textAlignment="center"
+            android:textColor="@color/gray"
+            android:drawableBottom="@drawable/un_selected_line"
+            android:layout_centerInParent="true"
+            android:layout_marginRight="5dp"/>
+        <RadioButton
+            android:id="@+id/party_follow"
+            android:layout_width="120dp"
+            android:layout_height="wrap_content"
+            android:button="@null"
+            android:text="关注的"
+            android:textSize="20dp"
+            android:layout_marginRight="5dp"
+            android:textAlignment="center"
+            android:textColor="@color/gray"
+            android:drawableBottom="@drawable/un_selected_line"
+            android:layout_alignParentRight="true"/>
+
+    </RadioGroup>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    <com.juju.app.view.ClearEditText
+        android:id="@+id/passwordTxt"
+        android:layout_width="fill_parent"
+        android:layout_height="25dip"
+        android:layout_gravity="center"
+        android:layout_centerInParent="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="30dp"
+        android:layout_centerHorizontal="true"
+        android:background="@null"
+        android:gravity="center_vertical"
+        android:hint="查询"
+        android:textColorHint="@color/gray"
+        android:singleLine="true"
+        android:textSize="18sp"/>
+    </RelativeLayout>
+    <ListView
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="聚会"
-        android:id="@+id/textView"
-        android:layout_gravity="center_horizontal" />
+        android:id="@+id/listPartyView"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="2dp" />
+
 </LinearLayout>
