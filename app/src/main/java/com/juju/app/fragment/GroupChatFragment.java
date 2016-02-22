@@ -13,10 +13,15 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.activity.MainActivity;
+import com.juju.app.adapter.base.GroupChatListAdpter;
 import com.juju.app.annotation.CreateFragmentUI;
+import com.juju.app.entity.http.GroupChat;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.NetWorkUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 项目名称：juju
@@ -29,6 +34,7 @@ import com.juju.app.utils.NetWorkUtil;
 @CreateFragmentUI(viewId = R.layout.fragment_group_chat)
 public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
         View.OnClickListener, AdapterView.OnItemClickListener {
+
 
     private MainActivity parentActivity;
 
@@ -43,6 +49,8 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
      * 群组列表
      */
     private ListView lvContact;
+
+    private List<GroupChat> groupChats;
 
 
     @Override
@@ -87,11 +95,29 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
 
     @Override
     public void loadData() {
-
+        initTestData();
     }
 
     @Override
     public void initView() {
+        GroupChatListAdpter adpter = new GroupChatListAdpter(getActivity(), groupChats);
+        lvContact.setAdapter(adpter);
+    }
 
+    /**
+     * 测试数据
+     */
+    private void initTestData() {
+        groupChats = new ArrayList<GroupChat>();
+        GroupChat gc1 = new GroupChat();
+        gc1.setId(1l);
+        gc1.setName("休闲娱乐");
+
+        GroupChat gc2 = new GroupChat();
+        gc2.setId(2l);
+        gc2.setName("学术交流");
+
+        groupChats.add(gc1);
+        groupChats.add(gc2);
     }
 }

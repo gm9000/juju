@@ -20,13 +20,13 @@ import com.lidroid.xutils.bitmap.BitmapDisplayConfig;
 
 
 public class PartyListAdapter extends BaseAdapter {
-    private Context context;
+    private LayoutInflater inflater;
     private List<Party> list = new ArrayList<Party>();
     private BitmapUtils bitmapUtils;
     private BitmapDisplayConfig bdCofig;
 
-    public PartyListAdapter(Context context,BitmapUtils bitmapUtils,BitmapDisplayConfig bdCofig,List<Party> list){
-        this.context = context;
+    public PartyListAdapter(LayoutInflater inflater,BitmapUtils bitmapUtils,BitmapDisplayConfig bdCofig,List<Party> list){
+        this.inflater = inflater;
         this.list = list;
         this.bitmapUtils = bitmapUtils;
         this.bdCofig = bdCofig;
@@ -55,7 +55,7 @@ public class PartyListAdapter extends BaseAdapter {
         H h = null;
         if(view==null){
             h = new H();
-            view = LayoutInflater.from(context).inflate(R.layout.party_item, parent, false);
+            view = inflater.inflate(R.layout.party_item, parent, false);
             h.pic = (RoundImageView)view.findViewById(R.id.creatorImage);
             h.name = (TextView)view.findViewById(R.id.party_name);
             h.time = (TextView)view.findViewById(R.id.time);

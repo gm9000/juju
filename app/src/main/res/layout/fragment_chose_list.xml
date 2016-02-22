@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:background="@color/background">
+
+  <RelativeLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content">
+    <com.juju.app.view.ClearEditText
+        android:id="@+id/passwordTxt"
+        android:layout_width="fill_parent"
+        android:layout_height="25dip"
+        android:layout_gravity="center"
+        android:layout_centerInParent="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginRight="30dp"
+        android:layout_centerHorizontal="true"
+        android:background="@null"
+        android:gravity="center_vertical"
+        android:hint="查询"
+        android:textColorHint="@color/gray"
+        android:singleLine="true"
+        android:textSize="18sp"/>
+  </RelativeLayout>
+  <ListView
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:id="@+id/listPartyView"
+      android:layout_centerHorizontal="true"
+      android:layout_marginTop="2dp" />
+
+</LinearLayout>
