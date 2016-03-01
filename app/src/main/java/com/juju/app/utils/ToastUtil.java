@@ -71,7 +71,7 @@ public class ToastUtil {
 		toast.show();
 	}
 	
-	public static void showshortToast(Context context,String text, int grayity) {
+	public static void showShortToast(Context context,String text, int grayity) {
 		toast(context,text,grayity,Toast.LENGTH_SHORT);
 	}
 

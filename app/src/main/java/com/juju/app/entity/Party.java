@@ -26,8 +26,8 @@ public class Party extends BaseEntity {
     @Column(column = "status")
     private int status;
 
-    @Column(column = "followStatus")
-    private int followStatus;
+    @Column(column = "followFlag")
+    private int followFlag;
 
     @Column(column = "attendFlag")
     private int attendFlag;
@@ -81,12 +81,12 @@ public class Party extends BaseEntity {
         this.status = status;
     }
 
-    public int getFollowStatus() {
-        return followStatus;
+    public int getFollowFlag() {
+        return followFlag;
     }
 
-    public void setFollowStatus(int followStatus) {
-        this.followStatus = followStatus;
+    public void setFollowFlag(int followFlag) {
+        this.followFlag = followFlag;
     }
 
     public int getAttendFlag() {

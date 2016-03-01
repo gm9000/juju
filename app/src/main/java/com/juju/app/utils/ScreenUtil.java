@@ -15,7 +15,26 @@ public class ScreenUtil {
         context.getWindowManager().getDefaultDisplay().getMetrics(dm); 
 		return dm.widthPixels;
 	}
-	
+	/**
+	 * 获得屏幕高度
+	 */
+	public static int getScreenHeight(Activity context){
+		DisplayMetrics  dm = new DisplayMetrics();
+		context.getWindowManager().getDefaultDisplay().getMetrics(dm);
+		return dm.heightPixels;
+	}
+
+	/**
+	 * 获得屏幕宽高比
+	 */
+	public static float getScreenRate(Activity context){
+		DisplayMetrics  dm = new DisplayMetrics();
+		context.getWindowManager().getDefaultDisplay().getMetrics(dm);
+		Float width = Float.intBitsToFloat(dm.widthPixels);
+		Float height = Float.intBitsToFloat(dm.heightPixels);
+		return (height/width);
+	}
+
 	public static int ViewgetScreenWidth(Context context){
 		WindowManager wm = (WindowManager) context
 				.getSystemService(Context.WINDOW_SERVICE);

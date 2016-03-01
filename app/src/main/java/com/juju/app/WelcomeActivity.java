@@ -42,8 +42,8 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
     @Override
     public void run() {
         try {
-            Log.i(tag, "等待3秒切换到登陆界面。。。");
-            Thread.sleep(3000);
+            Log.i(tag, "等待1秒切换到登陆界面。。。");
+            Thread.sleep(1000);
             startActivity(new Intent(WelcomeActivity.this, LoginActivity.class));
         } catch (InterruptedException e) {
             e.printStackTrace();
