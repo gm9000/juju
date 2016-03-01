@@ -152,7 +152,7 @@ public class PlayVideoActivity extends AppCompatActivity implements View.OnClick
                 ToastUtil.showShortToast(this, "点击抓拍", 1);
                 break;
             case R.id.menu_play:
-                if (vieoIsPlaying) {
+                if (vieoIsPlaying || isUploading) {
                     ToastUtil.showShortToast(this, "点击停止", 1);
                     //TODO  增加视频停止播放或者上传的业务处理
 
@@ -160,6 +160,7 @@ public class PlayVideoActivity extends AppCompatActivity implements View.OnClick
                         stopPlay();
                     }else{
                         isUploading = false;
+                        playBtn.setImageResource(R.mipmap.play);
                         avcCodec.StopThread();
                     }
                 } else {
@@ -169,6 +170,7 @@ public class PlayVideoActivity extends AppCompatActivity implements View.OnClick
                         playVide();
                     }else{
                         isUploading = true;
+                        playBtn.setImageResource(R.mipmap.stop);
                         avcCodec = new AvcEncoder(width,height,framerate,biterate);
                         avcCodec.StartEncoderThread();
                     }
@@ -296,6 +298,8 @@ public class PlayVideoActivity extends AppCompatActivity implements View.OnClick
                 parameters.setPictureSize(pictureSize.width, pictureSize.height);
                 //设置PreviewSize
                 Camera.Size previewSize = getPropPreviewSize(parameters.getSupportedPreviewSizes(), previewRate, 352);
+                width = previewSize.width;
+                height = previewSize.height;
                 parameters.setPreviewSize(previewSize.width, previewSize.height);
 
                 RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ScreenUtil.ViewgetScreenWidth(this),(int)(ScreenUtil.ViewgetScreenWidth(this) / ScreenUtil.getScreenRate(this)));

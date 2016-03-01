@@ -18,5 +18,12 @@ public class LocationFragment extends BaseFragment{
         parentActivity = (PartyActivity) getActivity();
     }
 
+    /**
+     * 刷新页面
+     */
+    public void refresh() {
+
+    }
+
 
 }

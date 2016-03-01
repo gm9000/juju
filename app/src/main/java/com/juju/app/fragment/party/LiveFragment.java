@@ -56,9 +56,10 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        VideoProgram videoProgram = (VideoProgram) listView.getItemAtPosition(position);
+        VideoProgram videoProgram = videoProgramList.get(position);
         ToastUtil.showShortToast(getActivity(), videoProgram.getCreatorName() + "的直播节目", 1);
         videoProgram.getVideoUrl();
+        //  TODO 获取视频请求的URL参数，传入播放界面
         ActivityUtil.startActivity(getActivity(), PlayVideoActivity.class);
     }
 
