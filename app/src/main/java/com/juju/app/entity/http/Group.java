@@ -7,13 +7,17 @@ package com.juju.app.entity.http;
  * 日期：2016/2/22 11:14
  * 版本：V1.0.0
  */
-public class GroupChat {
+public class Group {
 
 
     private long id;
 
     private String name;
 
+    /**
+     * 群成员数
+     */
+    private int memberNum;
 
     public long getId() {
         return id;
@@ -29,5 +33,13 @@ public class GroupChat {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public int getMemberNum() {
+        return memberNum;
+    }
+
+    public void setMemberNum(int memberNum) {
+        this.memberNum = memberNum;
     }
 }

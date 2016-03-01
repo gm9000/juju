@@ -7,6 +7,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
@@ -19,17 +20,21 @@ import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
 import com.lidroid.xutils.ViewUtils;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.apache.http.message.BasicNameValuePair;
 
 @ContentView(R.layout.activity_main)
-public class MainActivity extends AppCompatActivity implements View.OnClickListener {
+public class MainActivity extends AppCompatActivity {
 
     @ViewInject(R.id.img_right)
     private ImageView img_right;
 
     @ViewInject(R.id.txt_title)
     private TextView txt_title;
+
+    @ViewInject(R.id.layout_bar)
+    private RelativeLayout layout_bar;
 
     private GroupChatFragment groupChatFragment;
     private GroupPartyFragment groupPartyFragment;
@@ -154,18 +159,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.img_right:
-                if (index == 0) {
-                    titlePopup.show(findViewById(R.id.layout_bar));
-                } else {
-
-                }
-                break;
-            default:
-                break;
-        }
+    @OnClick(R.id.img_right)
+    public void onClick4ImgRight(View v) {
+        titlePopup.show(layout_bar);
     }
 }

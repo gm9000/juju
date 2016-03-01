@@ -31,6 +31,8 @@
     <!-- 群聊-->
     <color name="black">#ff000000</color>
     <color name="black1">#7A7E83</color>
+    <color name="greeny">#ff11aca6</color>
+
 
     <!--我 -->
     <color name="black2">#ffeeeeee</color>
