@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
+
+    <!--标题 -->
+    <include
+        android:id="@+id/layout_play_bar"
+        layout="@layout/layout_title" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="60dp"
+        android:layout_marginTop="50dp"
+        android:background="@color/white"
+        android:orientation="vertical">
+
+        <SurfaceView
+            android:id="@+id/video_play_view"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"/>
+
+        <com.juju.app.view.CustomerVideoView
+            android:id="@+id/video_play_win"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_alignParentTop="true" />
+
+        <ListView
+            android:id="@+id/live_discuss_listView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true">
+
+        </ListView>
+    </RelativeLayout>
+
+    <!--底部菜单 -->
+    <include
+        android:id="@+id/layout_play_bottom"
+        layout="@layout/layout_play_bottom" />
+</RelativeLayout>

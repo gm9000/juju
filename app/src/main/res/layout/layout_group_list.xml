@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    android:orientation="vertical">
+
+    <RadioGroup
+        android:id="@+id/party_type"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="10dp">
+
+        <RadioButton
+            android:id="@+id/all_party"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:layout_weight="1"
+            android:button="@null"
+            android:checked="true"
+            android:drawableBottom="@drawable/menu_bottom_line"
+            android:drawablePadding="5dp"
+            android:text="所有的"
+            android:textAlignment="center"
+            android:textColor="@drawable/menu_text_color"
+            android:textSize="14dp" />
+
+        <RadioButton
+            android:id="@+id/attend_party"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="1dp"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawableBottom="@drawable/menu_bottom_line"
+            android:drawablePadding="5dp"
+            android:text="参与的"
+            android:textAlignment="center"
+            android:textColor="@drawable/menu_text_color"
+            android:textSize="14dp" />
+
+        <RadioButton
+            android:id="@+id/follow_party"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="1dp"
+            android:layout_marginRight="5dp"
+            android:layout_weight="1"
+            android:button="@null"
+            android:drawableBottom="@drawable/menu_bottom_line"
+            android:drawablePadding="5dp"
+            android:text="关注的"
+            android:textAlignment="center"
+            android:textColor="@drawable/menu_text_color"
+            android:textSize="14dp" />
+    </RadioGroup>
+
+    <include
+        android:id="@+id/party_search"
+        layout="@layout/top_search_input" />
+
+    <ListView
+        android:id="@+id/listPartyView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="2dp" />
+
+</LinearLayout>

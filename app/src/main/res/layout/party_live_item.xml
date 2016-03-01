@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+    <RelativeLayout
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        android:id="@+id/view_user"
+        android:layout_marginTop="1dp"
+        android:background="@drawable/setting_item_selector">
+        <ImageView
+            android:id="@+id/live_capture"
+            android:layout_marginRight="5dp"
+            android:layout_marginLeft="10dp"
+            android:layout_width="80dip"
+            android:layout_height="80dip"
+            android:layout_centerVertical="true"
+            android:src="@mipmap/head" />
+        <TextView
+            android:textSize="14dp"
+            android:id="@+id/live_user_name"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="5dp"
+            android:layout_toRightOf="@+id/live_capture"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="聚龙小子"/>
+        <TextView
+            android:id="@+id/live_type_txt"
+            android:textSize="16dp"
+            style="@style/txt_ContextStyle1"
+            android:layout_marginTop="12dp"
+            android:layout_marginLeft="20dp"
+            android:layout_below="@+id/live_user_name"
+            android:layout_toRightOf="@+id/live_capture"
+            android:text="视频直播"
+            android:textColor="@color/black"/>
+
+
+        <ImageView
+            android:id="@+id/img_right"
+            android:layout_marginRight="20dp"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@mipmap/right" />
+
+        <TextView
+            android:id="@+id/live_time_txt"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="10dp"
+            android:text="正在直播..."
+            android:textSize="12dp"
+            android:textColor="@color/red"/>
+    </RelativeLayout>
+
+</LinearLayout>
