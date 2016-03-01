@@ -35,27 +35,6 @@
             android:layout_height="65.0dip"
             android:background="@color/white"
             android:paddingLeft="5dip">
-            <!--<RelativeLayout-->
-                <!--android:id="@+id/avatar_container1"-->
-                <!--android:layout_width="59dp"-->
-                <!--android:layout_marginTop="4dp"-->
-                <!--android:layout_height="match_parent"-->
-                <!--android:layout_alignParentLeft="true">-->
-                <!--<ImageView-->
-                    <!--android:id="@+id/contactitem_avatar_iv"-->
-                    <!--android:layout_width="50.0dip"-->
-                    <!--android:layout_height="50.0dip"-->
-                    <!--android:src="@mipmap/head" />-->
-                <!--<TextView-->
-                    <!--android:id="@+id/unread_msg_number"-->
-                    <!--android:layout_width="wrap_content"-->
-                    <!--android:layout_height="wrap_content"-->
-                    <!--android:layout_alignParentRight="true"-->
-                    <!--android:background="@mipmap/aii"-->
-                    <!--android:gravity="center"-->
-                    <!--android:textColor="@android:color/white"-->
-                    <!--android:textSize="12sp" />-->
-            <!--</RelativeLayout>-->
 
             <RelativeLayout
                 android:id="@+id/image_container"
@@ -64,18 +43,103 @@
                 android:layout_centerInParent="true">
 
                 <RelativeLayout
-                    android:id="@+id/avatar_container1"
+                    android:id="@+id/avatar_container"
                     android:layout_width="59dp"
                     android:layout_height="match_parent"
-                    android:layout_centerInParent="true">
+                    android:layout_centerInParent="true"
+                    android:background="#DBDFE0"
+                    android:padding="0.5dp" >
+
+                    <ImageView
+                        android:id="@+id/iv_avatar2"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginTop="3dp"
+                        android:layout_centerHorizontal="true"
+                        android:src="@mipmap/head" />
 
                     <ImageView
                         android:id="@+id/iv_avatar1"
-                        android:layout_width="59dp"
-                        android:layout_height="59dp"
-                        android:layout_alignParentTop="true"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginRight="1dp"
+                        android:src="@mipmap/head"
+                        android:layout_toLeftOf="@id/iv_avatar2"/>
+
+
+
+                    <ImageView
+                        android:id="@+id/iv_avatar3"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginTop="3dp"
+                        android:layout_marginLeft="1dp"
+                        android:src="@mipmap/head"
+                        android:layout_toRightOf="@id/iv_avatar2"/>
+
+
+                    <ImageView
+                        android:id="@+id/iv_avatar5"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginTop="1dp"
+                        android:layout_below="@id/iv_avatar2"
                         android:layout_centerHorizontal="true"
                         android:src="@mipmap/head" />
+
+                    <ImageView
+                        android:id="@+id/iv_avatar4"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_below="@id/iv_avatar1"
+                        android:layout_marginRight="1dp"
+                        android:layout_marginTop="1dp"
+                        android:src="@mipmap/head"
+                        android:layout_toLeftOf="@id/iv_avatar5"/>
+
+
+
+                    <ImageView
+                        android:id="@+id/iv_avatar6"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginTop="1dp"
+                        android:layout_marginLeft="1dp"
+                        android:layout_below="@+id/iv_avatar3"
+                        android:src="@mipmap/head"
+                        android:layout_toRightOf="@id/iv_avatar5"/>
+
+                    <ImageView
+                        android:id="@+id/iv_avatar8"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_below="@id/iv_avatar5"
+                        android:layout_marginTop="1dp"
+                        android:layout_centerHorizontal="true"
+                        android:src="@mipmap/head" />
+
+
+                    <ImageView
+                        android:id="@+id/iv_avatar7"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_below="@id/iv_avatar4"
+                        android:layout_marginTop="1dp"
+                        android:layout_marginRight="1dp"
+                        android:src="@mipmap/head"
+                        android:layout_toLeftOf="@id/iv_avatar8"/>
+
+
+                    <ImageView
+                        android:id="@+id/iv_avatar9"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_below="@id/iv_avatar6"
+                        android:layout_marginLeft="1dp"
+                        android:layout_marginTop="1dp"
+                        android:src="@mipmap/head"
+                        android:layout_toRightOf="@id/iv_avatar8"/>
 
 
                 </RelativeLayout>
@@ -105,7 +169,7 @@
                 <TextView
                     android:id="@+id/txt_state"
                     style="@style/MMFontTag"
-                    android:layout_below="@id/txt_name"
+                    android:layout_below="@+id/txt_name"
                     android:text="已读"
                     android:visibility="gone"
                     android:background="@drawable/btn_bg_blue"
@@ -113,7 +177,7 @@
                 <TextView
                     android:id="@+id/txt_content"
                     style="@style/MMFontTitleInList"
-                    android:layout_below="@id/txt_name"
+                    android:layout_below="@+id/txt_name"
                     android:layout_toRightOf="@+id/txt_state"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"

@@ -12,12 +12,15 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.ChatActivity;
 import com.juju.app.activity.MainActivity;
-import com.juju.app.adapter.base.GroupChatListAdpter;
+import com.juju.app.adapter.base.GroupChatListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
-import com.juju.app.entity.http.GroupChat;
+import com.juju.app.bean.groupchat.GroupChatInitBean;
+import com.juju.app.entity.http.Group;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.NetWorkUtil;
 
 import java.util.ArrayList;
@@ -50,7 +53,9 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
      */
     private ListView lvContact;
 
-    private List<GroupChat> groupChats;
+    private List<GroupChatInitBean> groupChats;
+
+    private GroupChatListAdapter adapter = null;
 
 
     @Override
@@ -73,7 +78,10 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
+        //TODO 获取未读信息
+        if(adapter.getGroupChats().size() > 0) {
+            ActivityUtil.startActivity(getActivity(), ChatActivity.class);
+        }
     }
 
 
@@ -100,24 +108,31 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
 
     @Override
     public void initView() {
-        GroupChatListAdpter adpter = new GroupChatListAdpter(getActivity(), groupChats);
-        lvContact.setAdapter(adpter);
+        adapter = new GroupChatListAdapter(getActivity(), groupChats);
+        lvContact.setAdapter(adapter);
     }
 
     /**
      * 测试数据
      */
     private void initTestData() {
-        groupChats = new ArrayList<GroupChat>();
-        GroupChat gc1 = new GroupChat();
-        gc1.setId(1l);
-        gc1.setName("休闲娱乐");
-
-        GroupChat gc2 = new GroupChat();
-        gc2.setId(2l);
-        gc2.setName("学术交流");
-
-        groupChats.add(gc1);
-        groupChats.add(gc2);
+        groupChats = new ArrayList<GroupChatInitBean>();
+        for(int i = 1; i<=9 ; i++) {
+            Group group = new Group();
+            group.setId(i);
+            group.setName("休闲娱乐");
+            group.setMemberNum(i);
+            GroupChatInitBean groupChat = new GroupChatInitBean(group, "送达", "今天晚上我请客，" +
+                    "暂定苏州桥同一首歌碰面。", "刚刚", String.valueOf(i));
+            groupChats.add(groupChat);
+        }
+//        Group group2 = new Group();
+//        group2.setId(2l);
+//        group2.setName("学术交流");
+//
+//        GroupChatInitBean groupChat2 = new GroupChatInitBean(group2, "已读", "明天上午去国家" +
+//                "图书馆碰面!", "12:11", "1");
+//        groupChats.add(groupChat1);
+//        groupChats.add(groupChat2);
     }
 }
