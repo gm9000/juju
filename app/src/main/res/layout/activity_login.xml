@@ -12,7 +12,7 @@
             xmlns:imagecontrol="http://schemas.android.com/apk/res-auto"
             android:id="@+id/lay_person_info"
             android:layout_width="match_parent"
-            android:layout_marginTop="15dp"
+            android:layout_marginTop="30dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:layout_height="wrap_content"
@@ -109,43 +109,43 @@
                 android:singleLine="true"/>
         </LinearLayout>
 
-        <RelativeLayout
-            android:id="@+id/lay_chk_info"
-            android:layout_below="@id/lay_pwd_info"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="horizontal">
+        <!--<RelativeLayout-->
+            <!--android:id="@+id/lay_chk_info"-->
+            <!--android:layout_below="@id/lay_pwd_info"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginTop="16dp"-->
+            <!--android:orientation="horizontal">-->
 
-            <CheckBox
-                android:id="@+id/rememberPwdChk"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textSize="16sp"
-                style="@style/CustomCheckboxTheme"
-                android:background="@null"
-                android:gravity="left|center_vertical"
-                android:layout_marginLeft="30dp"
-                android:text="@string/remember_pwd"
-                android:checked="false" />
+            <!--<CheckBox-->
+                <!--android:id="@+id/rememberPwdChk"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textSize="16sp"-->
+                <!--style="@style/CustomCheckboxTheme"-->
+                <!--android:background="@null"-->
+                <!--android:gravity="left|center_vertical"-->
+                <!--android:layout_marginLeft="30dp"-->
+                <!--android:text="@string/remember_pwd"-->
+                <!--android:checked="false" />-->
 
-            <CheckBox
-                android:id="@+id/autoLoginChk"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="left|center_vertical"
-                android:layout_alignParentRight="true"
-                android:layout_marginRight="30dp"
-                android:textSize="16sp"
-                style="@style/CustomCheckboxTheme"
-                android:background="@null"
-                android:text="@string/auto_login" />
-        </RelativeLayout>
+            <!--<CheckBox-->
+                <!--android:id="@+id/autoLoginChk"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:gravity="left|center_vertical"-->
+                <!--android:layout_alignParentRight="true"-->
+                <!--android:layout_marginRight="30dp"-->
+                <!--android:textSize="16sp"-->
+                <!--style="@style/CustomCheckboxTheme"-->
+                <!--android:background="@null"-->
+                <!--android:text="@string/auto_login" />-->
+        <!--</RelativeLayout>-->
 
         <Button
             android:id="@+id/loginBtn"
             style="?android:textAppearanceSmall"
-            android:layout_below="@id/lay_chk_info"
+            android:layout_below="@id/lay_pwd_info"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:layout_width="match_parent"

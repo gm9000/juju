@@ -62,11 +62,11 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     @ViewInject(R.id.passwordTxt)
     private ClearEditText txt_password;
 
-    @ViewInject(R.id.rememberPwdChk)
-    private CheckBox chk_rememberPwd;
-
-    @ViewInject(R.id.autoLoginChk)
-    private CheckBox chk_autoLogin;
+//    @ViewInject(R.id.rememberPwdChk)
+//    private CheckBox chk_rememberPwd;
+//
+//    @ViewInject(R.id.autoLoginChk)
+//    private CheckBox chk_autoLogin;
 
     @ViewInject(R.id.login_main)
     private RelativeLayout layout_login_main;
@@ -85,8 +85,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
      */
     private String userNo;
     private String pwd;
-    private boolean pwdChecked;
-    private boolean autoLoginChecked;
+//    private boolean pwdChecked;
+//    private boolean autoLoginChecked;
 
 
     /**
@@ -101,21 +101,22 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     @Override
     public void loadData() {
         Map<Object, View> viewMap = new HashMap<Object, View>();
-        pwdChecked = (boolean) SpfUtil.get(LoginActivity.this, "pwdChecked", false);
-        autoLoginChecked = (boolean) SpfUtil.get(LoginActivity.this,
-                "autoLoginChecked", false);
+//        pwdChecked = (boolean) SpfUtil.get(LoginActivity.this, "pwdChecked", false);
+//        autoLoginChecked = (boolean) SpfUtil.get(LoginActivity.this,
+//                "autoLoginChecked", false);
         userNo = (String)SpfUtil.get(LoginActivity.this, "userNo", "");
-        if(pwdChecked) {
-            pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
-        }
+        pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
+//        if(pwdChecked) {
+//            pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
+//        }
     }
 
     @Override
     public void initView() {
         txt_userNo.setText(userNo);
         txt_password.setText(pwd);
-        chk_rememberPwd.setChecked(pwdChecked);
-        chk_autoLogin.setChecked(autoLoginChecked);
+//        chk_rememberPwd.setChecked(pwdChecked);
+//        chk_autoLogin.setChecked(autoLoginChecked);
         setLoginBtnBackgroud();
         layout_login_main.setFocusableInTouchMode(true);
     }
@@ -228,8 +229,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     private void initGlobalVariable() {
         userNo = txt_userNo.getText().toString();
         pwd = txt_password.getText().toString();
-        pwdChecked = chk_rememberPwd.isChecked();
-        autoLoginChecked = chk_autoLogin.isChecked();
+//        pwdChecked = chk_rememberPwd.isChecked();
+//        autoLoginChecked = chk_autoLogin.isChecked();
     }
 
     /**
@@ -258,13 +259,14 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     private void saveUserInfo() {
         //将登录信息保存到SharedPreferences
         SpfUtil.put(this, "userNo", userNo);
-        SpfUtil.put(this, "pwdChecked", pwdChecked);
-        SpfUtil.put(this, "autoLoginChecked", autoLoginChecked);
-        if(pwdChecked) {
-            SpfUtil.put(this, "pwd", pwd);
-        } else {
-            SpfUtil.put(this, "pwd", "");
-        }
+        SpfUtil.put(this, "pwd", pwd);
+//        SpfUtil.put(this, "pwdChecked", pwdChecked);
+//        SpfUtil.put(this, "autoLoginChecked", autoLoginChecked);
+//        if(pwdChecked) {
+//            SpfUtil.put(this, "pwd", pwd);
+//        } else {
+//            SpfUtil.put(this, "pwd", "");
+//        }
     }
 
     /**
@@ -281,8 +283,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         }
         SpfUtil.remove(this, "pwdChecked");
         SpfUtil.remove(this, "autoLoginChecked");
-        chk_rememberPwd.setChecked(false);
-        chk_autoLogin.setChecked(false);
+//        chk_rememberPwd.setChecked(false);
+//        chk_autoLogin.setChecked(false);
         //获取焦点
         if(clearUserNo) {
             txt_userNo.setFocusable(true);
