@@ -4,9 +4,14 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
 
+    aaptOptions {
+        cruncherEnabled = false
+        useNewCruncher = false
+    }
+
     defaultConfig {
         applicationId "com.juju.app"
-        minSdkVersion 17
+        minSdkVersion 10
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -41,4 +46,12 @@ dependencies {
     compile files('libs/jackson-databind-2.6.0.jar')
     compile files('libs/httpclient-4.0.1.jar')
     compile files('libs/httpcore-4.0.1.jar')
+    compile project(':mgimlibs')
+    compile files('libs/MobCommons.jar')
+    compile name: 'SMSSDK-2.0.1', ext: 'aar'
+
+}
+
+repositories {
+    flatDir { dirs 'libs' }
 }

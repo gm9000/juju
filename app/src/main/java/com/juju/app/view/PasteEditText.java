@@ -11,7 +11,7 @@ import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.widget.EditText;
 
-import com.juju.app.activity.ChatActivity;
+import com.juju.app.activity.chat.ChatActivity;
 
 /**
  * 项目名称：juju

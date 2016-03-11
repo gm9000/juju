@@ -11,9 +11,12 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.annotation.CreateUI;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
+import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
@@ -25,7 +28,8 @@ import com.lidroid.xutils.view.annotation.event.OnClick;
 import org.apache.http.message.BasicNameValuePair;
 
 @ContentView(R.layout.activity_main)
-public class MainActivity extends AppCompatActivity {
+@CreateUI
+public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     @ViewInject(R.id.img_right)
     private ImageView img_right;
@@ -51,10 +55,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewUtils.inject(this);
+    }
+
+    @Override
+    public void loadData() {
+
+    }
+
+    @Override
+    public void initView() {
         initTabView();
         initPopWindow();
-
     }
 
     /**
@@ -126,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
         currentTabIndex = index;
     }
 
+
     private OnItemOnClickListener onitemClick = new OnItemOnClickListener() {
 
         @Override
@@ -163,4 +175,6 @@ public class MainActivity extends AppCompatActivity {
     public void onClick4ImgRight(View v) {
         titlePopup.show(layout_bar);
     }
+
+
 }

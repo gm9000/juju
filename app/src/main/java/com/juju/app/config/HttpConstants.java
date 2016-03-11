@@ -16,14 +16,26 @@ public class HttpConstants {
 
     private static String USER_URL = "";
 
+    private static String A_USER_URL = "";
+
+
     public static synchronized void initURL() {
         USER_URL = "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort
                 + "/juju/bServer/user";
     }
 
+    public static synchronized void initURL_A() {
+        A_USER_URL = "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort
+                + "/juju/aServer/user";
+    }
+
     public static String getUserUrl() {
         return USER_URL;
     }
+    public static String getAUserUrl() {
+        return A_USER_URL;
+    }
+
 
 
 

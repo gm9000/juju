@@ -12,6 +12,11 @@ public class Group {
 
     private long id;
 
+    /**
+     * 标示id,预留
+     */
+    private String markerId;
+
     private String name;
 
     /**
@@ -41,5 +46,13 @@ public class Group {
 
     public void setMemberNum(int memberNum) {
         this.memberNum = memberNum;
+    }
+
+    public String getMarkerId() {
+        return markerId;
+    }
+
+    public void setMarkerId(String markerId) {
+        this.markerId = markerId;
     }
 }

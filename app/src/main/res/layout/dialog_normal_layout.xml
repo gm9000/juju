@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dip"
+    android:layout_height="wrap_content"
+    android:layout_gravity="center"
+    android:background="@drawable/tishi_dialog_bg"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center"
+        android:layout_marginTop="10dp"
+        android:text="提示"
+        android:textColor="@color/black"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:gravity="center"
+        android:text="@string/app_name"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1.0px"
+        android:layout_marginTop="10dp"
+        android:background="#ffd0d0d0" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dip"
+        android:gravity="center"
+        android:orientation="horizontal" >
+
+        <Button
+            android:id="@+id/positiveButton"
+            style="@style/dialog_btn"
+            android:layout_width="150.0dip"
+            android:layout_height="45dip"
+            android:layout_gravity="center"
+            android:layout_marginLeft="1dip"
+            android:background="@null"
+            android:text="@string/confirm" />
+
+        <View
+            android:id="@+id/viewButton"
+            android:layout_width="1.0px"
+            android:layout_height="wrap_content"
+            android:background="#ffd0d0d0" />
+
+        <Button
+            android:id="@+id/negativeButton"
+            style="@style/dialog_btn"
+            android:layout_width="150.0dip"
+            android:layout_height="45dip"
+            android:layout_gravity="center"
+            android:background="@null"
+            android:text="@string/negative" />
+    </LinearLayout>
+
+</LinearLayout>

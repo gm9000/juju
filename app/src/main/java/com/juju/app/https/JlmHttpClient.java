@@ -31,6 +31,8 @@ import java.util.Set;
  */
 public class JlmHttpClient<Req> {
 
+    private final String TAG = getClass().getName();
+
     /**
      * 请求资源ID
      */
@@ -200,6 +202,14 @@ public class JlmHttpClient<Req> {
                     public void onSuccess(ResponseInfo<String> responseInfo) {
                         if (res == null || res.isAssignableFrom(String.class)) {
                             callBack.onSuccess(responseInfo, accessId);
+                        } else if (res.isAssignableFrom(JSONObject.class)) {
+                            try {
+                                callBack.onSuccess(responseInfo, accessId,
+                                        new JSONObject(responseInfo.result));
+                            } catch (JSONException e) {
+                                Log.e(TAG, "转换JSONObject对象失败", e);
+                                callBack.onSuccess(responseInfo, accessId);
+                            }
                         } else {
                             callBack.onSuccess(responseInfo, accessId,
                                     JacksonUtil.turnString2Obj(responseInfo.result, res));

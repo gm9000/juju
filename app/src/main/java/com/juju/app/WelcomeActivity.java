@@ -36,6 +36,7 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
 //        startAnimation();
         //初始化配置URL
         HttpConstants.initURL();
+        HttpConstants.initURL_A();
         new Thread(this).start();
     }
 

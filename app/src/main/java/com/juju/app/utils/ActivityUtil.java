@@ -47,4 +47,26 @@ public class ActivityUtil {
         activity.overridePendingTransition(R.anim.push_right_in,
                 R.anim.push_right_out);
     }
+
+
+    /**
+     * 打开Activity
+     *
+     * @param activity
+     * @param cls
+     * @param name
+     */
+    public static void startActivityForResult(Activity activity, Class<?> cls, int requestCode,
+                                     BasicNameValuePair... name) {
+        Intent intent = new Intent();
+        intent.setClass(activity, cls);
+        if (name != null)
+            for (int i = 0; i < name.length; i++) {
+                intent.putExtra(name[i].getName(), name[i].getValue());
+            }
+        activity.startActivityForResult(intent, requestCode);
+        activity.overridePendingTransition(R.anim.push_left_in,
+                R.anim.push_left_out);
+
+    }
 }
