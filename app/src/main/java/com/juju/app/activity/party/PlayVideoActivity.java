@@ -59,7 +59,7 @@ public class PlayVideoActivity extends AppCompatActivity implements View.OnClick
     private SurfaceHolder surfaceHolder;
     private Camera camera;
     private Camera.Parameters parameters;
-    private static int yuvqueuesize = 10;
+    private static int yuvqueuesize = 25;
     public static ArrayBlockingQueue<byte[]> YUVQueue = new ArrayBlockingQueue<byte[]>(yuvqueuesize);
     private int width = 1280;
     private int height = 720;
@@ -134,19 +134,17 @@ public class PlayVideoActivity extends AppCompatActivity implements View.OnClick
         txt_left.setVisibility(View.VISIBLE);
         txt_left.setText(R.string.live);
 
-        img_right.setImageResource(R.mipmap.camera);
-        img_right.setVisibility(View.VISIBLE);
-
         txt_title.setText("节目");
         if(playMode.equals("upload")){
             videoView.setVisibility(View.GONE);
+            img_right.setImageResource(R.mipmap.camera);
+            img_right.setVisibility(View.VISIBLE);
         }
 
 
     }
 
     public void onTabClicked(View view) throws IOException {
-        img_right.setVisibility(View.GONE);
         switch (view.getId()) {
             case R.id.menu_capture:
                 ToastUtil.showShortToast(this, "点击抓拍", 1);
@@ -266,7 +264,7 @@ public class PlayVideoActivity extends AppCompatActivity implements View.OnClick
     }
 
     public void putYUVData(byte[] buffer, int length) {
-        if (YUVQueue.size() >= 10) {
+        if (YUVQueue.size() >= yuvqueuesize) {
             YUVQueue.poll();
         }
         YUVQueue.add(buffer);
@@ -293,18 +291,20 @@ public class PlayVideoActivity extends AppCompatActivity implements View.OnClick
                     parameters.setRotation(0);
                 }
                 parameters.setPreviewFormat(ImageFormat.NV21);
+//                parameters.setPictureFormat(ImageFormat.NV21);
                 //设置PictureSize
                 Camera.Size pictureSize = getPropPictureSize(parameters.getSupportedPictureSizes(), previewRate, 352);
                 parameters.setPictureSize(pictureSize.width, pictureSize.height);
+                width = pictureSize.width;
+                height = pictureSize.height;
                 //设置PreviewSize
                 Camera.Size previewSize = getPropPreviewSize(parameters.getSupportedPreviewSizes(), previewRate, 352);
-                width = previewSize.width;
-                height = previewSize.height;
+
                 parameters.setPreviewSize(previewSize.width, previewSize.height);
-
-                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ScreenUtil.ViewgetScreenWidth(this),(int)(ScreenUtil.ViewgetScreenWidth(this) / ScreenUtil.getScreenRate(this)));
+                width = pictureSize.width;
+                height = pictureSize.height;
+                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ScreenUtil.ViewgetScreenWidth(this),ScreenUtil.ViewgetScreenWidth(this) * height/width);
                 videoPlayView.setLayoutParams(layoutParams);
-
                 mCamera.setParameters(parameters);
                 mCamera.setPreviewDisplay(surfaceHolder);
                 mCamera.startPreview();
