@@ -49,6 +49,7 @@ dependencies {
     compile project(':mgimlibs')
     compile files('libs/MobCommons.jar')
     compile name: 'SMSSDK-2.0.1', ext: 'aar'
+    compile 'org.greenrobot:eventbus:3.0.0'
 
 }
 
