@@ -38,8 +38,6 @@
     <string name="move_up_to_cancel">手指上滑，取消发送</string>
 
 
-
-
     <!--聚会-->
     <string name="location">位置</string>
     <string name="live">直播</string>
@@ -69,5 +67,6 @@
     <item name="tag_index" type="id"></item>
     <string name="title_activity_party">PartyActivity</string>
     <string name="title_activity_play_video">PlayVideoActivity</string>
+    <string name="title_activity_upload_video">UploadVideoActivity</string>
 
 </resources>

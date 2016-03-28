@@ -65,7 +65,6 @@ public class VideoProgramListAdpter extends BaseAdapter {
         final VideoProgram videoProgram = videoProgramList.get(position);
         creatorName.setText(videoProgram.getCreatorName());
         if(videoProgram.getStatus() == 0){
-            liveTypeTxt.setText("视频直播");
             liveTimeTxt.setText("正在直播...");
             liveTimeTxt.setTextColor(0xFFFF0000);
         }else{

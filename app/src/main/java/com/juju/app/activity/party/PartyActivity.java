@@ -21,9 +21,6 @@ import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
 import com.lidroid.xutils.ViewUtils;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
-
-import org.apache.http.message.BasicNameValuePair;
 
 @ContentView(R.layout.activity_party)
 public class PartyActivity extends AppCompatActivity implements View.OnClickListener {
@@ -179,10 +176,8 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
             case R.id.img_right:
                 //  单击“发起直播”选项
                 if(currentTabIndex == 1) {
-                    ToastUtil.showShortToast(PartyActivity.this, "发起直播菜单", 1);
                     //  初始化 发起直播节目的参数
-                    BasicNameValuePair playMode = new BasicNameValuePair("playMode","upload");
-                    ActivityUtil.startActivity(PartyActivity.this,PlayVideoActivity.class,playMode);
+                    ActivityUtil.startActivity(PartyActivity.this,UploadVideoActivity.class);
                 }
                 //  单击“照片菜单”项
                 if(currentTabIndex == 2){

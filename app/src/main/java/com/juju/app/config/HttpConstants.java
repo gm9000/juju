@@ -15,17 +15,21 @@ public class HttpConstants {
     public static final String CONTENT_TYPE = "application/json";
 
     private static String USER_URL = "";
+    private static String LIVE_SERVER_URL = "";
 
     public static synchronized void initURL() {
         USER_URL = "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort
                 + "/juju/bServer/user";
+        LIVE_SERVER_URL = "http://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/stream";
     }
 
     public static String getUserUrl() {
         return USER_URL;
     }
 
-
+    public static String getLiveServerUrl() {
+        return LIVE_SERVER_URL;
+    }
 
 
 }

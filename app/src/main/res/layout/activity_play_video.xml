@@ -15,26 +15,45 @@
         android:layout_marginTop="50dp"
         android:background="@color/white"
         android:orientation="vertical">
-
+        <VideoView
+            android:id="@+id/video_play_win"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true" />
         <SurfaceView
             android:id="@+id/video_play_view"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
-
-        <com.juju.app.view.CustomerVideoView
-            android:id="@+id/video_play_win"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_alignParentTop="true" />
-
-        <ListView
-            android:id="@+id/live_discuss_listView"
-            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true">
-
-        </ListView>
+            />
+        <TextView
+            android:id="@+id/statusText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_alignParentTop="true"
+            android:layout_marginRight="10dp"
+            android:layout_alignParentRight="true"
+            android:textColor="@color/white"
+            android:padding="5dp"
+            />
     </RelativeLayout>
+
+    <ListView
+        android:id="@+id/live_discuss_listView"
+        android:layout_marginBottom="100dp"
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_alignParentBottom="true"
+        android:background="@color/background">
+
+    </ListView>
+    <TextView
+        android:id="@+id/videoUrlText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="60dp"
+        android:layout_alignParentBottom="true"
+        />
 
     <!--底部菜单 -->
     <include

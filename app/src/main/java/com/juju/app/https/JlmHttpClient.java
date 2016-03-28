@@ -89,6 +89,18 @@ public class JlmHttpClient<Req> {
 
     /**
      *
+     * 方法名： sendGet
+     * 方法描述：发送Get请求
+     *
+     */
+    public void sendGetNoCache() throws UnsupportedEncodingException, JSONException {
+        RequestParams params = new RequestParams();
+        initGetRequestParams(req, params);
+        doSendNoCache(params, HttpRequest.HttpMethod.GET);
+    }
+
+    /**
+     *
      * 方法名： sendPost
      * 方法描述：发送Post请求
      *
@@ -194,6 +206,28 @@ public class JlmHttpClient<Req> {
 
     private void doSend(RequestParams params, HttpRequest.HttpMethod httpMethod) {
         HttpUtils http = new HttpUtils();
+        http.send(httpMethod, url, params,
+                new RequestCallBack<String>() {
+                    @Override
+                    public void onSuccess(ResponseInfo<String> responseInfo) {
+                        if (res == null || res.isAssignableFrom(String.class)) {
+                            callBack.onSuccess(responseInfo, accessId);
+                        } else {
+                            callBack.onSuccess(responseInfo, accessId,
+                                    JacksonUtil.turnString2Obj(responseInfo.result, res));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(HttpException error, String msg) {
+                        callBack.onFailure(error, msg, accessId);
+                    }
+                });
+    }
+
+    private void doSendNoCache(RequestParams params, HttpRequest.HttpMethod httpMethod) {
+        HttpUtils http = new HttpUtils();
+        http.configCurrentHttpCacheExpiry(0);
         http.send(httpMethod, url, params,
                 new RequestCallBack<String>() {
                     @Override

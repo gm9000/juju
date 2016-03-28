@@ -121,6 +121,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     public void onFailure(HttpException error, String msg, int accessId) {
         System.out.println("accessId:"+accessId+"\r\n msg:"+msg+"\r\n code:"+
                 error.getExceptionCode());
+        saveUserInfo();
+        ActivityUtil.startActivity(LoginActivity.this, MainActivity.class);
     }
 
     @Override
