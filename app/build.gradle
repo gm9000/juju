@@ -4,9 +4,14 @@ android {
     compileSdkVersion 23
     buildToolsVersion "23.0.1"
 
+    aaptOptions {
+        cruncherEnabled = false
+        useNewCruncher = false
+    }
+
     defaultConfig {
         applicationId "com.juju.app"
-        minSdkVersion 14
+        minSdkVersion 13
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -28,12 +33,14 @@ android {
     }
 }
 
+ext {
+    smackVersion = '4.1.5'
+}
+
+
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
-    compile 'com.android.support:support-annotations:23.1.1'
     compile files('libs/commons-lang-2.4.jar')
     compile files('libs/xUtils-2.6.14.jar')
     compile files('libs/jackson-annotations-2.6.0.jar')
@@ -41,5 +48,19 @@ dependencies {
     compile files('libs/jackson-databind-2.6.0.jar')
     compile files('libs/httpclient-4.0.1.jar')
     compile files('libs/httpcore-4.0.1.jar')
+    compile files('libs/MobCommons.jar')
+    compile name: 'SMSSDK-2.0.1', ext: 'aar'
     compile 'org.greenrobot:eventbus:3.0.0'
+    compile 'com.kaopiz:kprogresshud:1.0.5'
+    compile 'com.android.support:design:23.2.0'
+    compile 'com.android.support:support-annotations:23.2.0'
+    compile 'com.android.support:appcompat-v7:23.2.0'
+    compile "org.igniterealtime.smack:smack-android-extensions:$smackVersion"
+    compile "org.igniterealtime.smack:smack-experimental:$smackVersion"
+    compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
+    compile project(':mgimlibs')
+}
+
+repositories {
+    flatDir { dirs 'libs' }
 }
