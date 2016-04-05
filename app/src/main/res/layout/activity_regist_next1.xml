@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout style="@style/NavPage"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <include
+        android:id="@+id/top_bar"
+        layout="@layout/layout_title" />
+
+    <ScrollView android:id="@+id/ams" android:scrollbars="none" style="@style/MMScroll"
+        android:fillViewport="false">
+        <LinearLayout
+            android:orientation="vertical"
+            android:paddingLeft="16dp"
+            android:paddingTop="16dp"
+            android:paddingRight="16dp"
+            android:paddingBottom="16dp"
+            android:fadingEdge="@null"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content">
+            <TextView
+                android:id="@+id/tv_tishi"
+                android:gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:text="我们已经发了验证码到你的手机："
+                style="@style/MMBriefText" />
+
+            <TextView
+                android:id="@+id/tv_phone"
+                android:textSize="30dp"
+                android:textStyle="bold"
+                android:textColor="#ff353535"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:layout_gravity="center_horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:maxLines="2" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_marginTop="20dp"
+                android:layout_height="48dp" >
+
+                <EditText
+                    android:id="@+id/et_yzm"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
+                    android:background="@drawable/edittext_login"
+                    android:hint="@string/et_yzm"
+                    android:inputType="phone"
+                    android:paddingLeft="90dp"
+                    android:singleLine="true"
+                    android:textColorHint="#DDDDDD"
+                    android:textSize="16sp" />
+
+                <TextView
+                    android:layout_width="90dp"
+                    android:layout_height="wrap_content"
+                    android:layout_alignLeft="@id/et_usertel"
+                    android:layout_centerVertical="true"
+                    android:layout_marginLeft="24dp"
+                    android:text="验证码"
+                    android:textColor="#353535"
+                    android:textSize="16sp" />
+            </RelativeLayout>
+
+
+            <TextView
+                android:id="@+id/tv_djs"
+                android:gravity="center_horizontal"
+                android:layout_marginBottom="12dp"
+                android:layout_marginTop="10dp"
+                android:clickable="false"
+                style="@style/MMBriefText" />
+
+            <Button
+                android:id="@+id/btn_register_next"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/btn_register_bg"
+                android:enabled="false"
+                android:paddingBottom="7dp"
+                android:paddingTop="7dp"
+                android:text="@string/btn_register_next"
+                android:textColor="@android:color/white"
+                android:textSize="18sp" />
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
