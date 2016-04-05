@@ -1,7 +1,11 @@
 package com.juju.app.activity;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -23,7 +27,11 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.SessionConstants;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.manager.IMLoginManager;
+import com.juju.app.service.im.manager.IMManager;
 import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.MD5Util;
@@ -37,6 +45,8 @@ import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
 
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -85,8 +95,9 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
      */
     private String userNo;
     private String pwd;
-//    private boolean pwdChecked;
-//    private boolean autoLoginChecked;
+
+    private IMService iMService;
+
 
 
     /**
@@ -109,6 +120,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 //        if(pwdChecked) {
 //            pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
 //        }
+
+
     }
 
     @Override
@@ -119,6 +132,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 //        chk_autoLogin.setChecked(autoLoginChecked);
         setLoginBtnBackgroud();
         layout_login_main.setFocusableInTouchMode(true);
+//        bindXMPPService();
     }
 
     @Override
@@ -137,6 +151,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     @Override
     protected void onDestroy() {
         super.onDestroy();
+//        unbindXMPPService();
         Log.d(TAG, "onDestroy");
 
     }
@@ -153,6 +168,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
      */
     @OnClick(R.id.loginBtn)
     private void onClickBtnLogin(Button btn) {
+        Log.d(TAG, "threadId" + Thread.currentThread().getId());
         initGlobalVariable();
         boolean vsBool = validateLogin();
         if(vsBool) {
@@ -194,6 +210,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
                     if(status == 0) {
                         saveUserInfo();
                         startActivity(LoginActivity.this, MainActivity.class);
+                        IMLoginManager.instance().login();
                     } else {
                         showMsgDialog(R.string.error_login_psw);
                         clearUserInfo(true, true);
@@ -214,6 +231,23 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         completeLoading();
     }
 
+
+    ServiceConnection mServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+//            iMService = ((IMService.IMServiceBinder) service).getService();
+//            iMService.getLoginManager().onStartIMManager(BaseApplication.getInstance());
+//            Log.d(TAG, "开始连接XMPP服务器"+iMService.toString());
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+//            mXxService.unRegisterConnectionStatusCallback();
+//            iMService = null;
+//            Log.d(TAG, "断开XMPP服务器"+iMService.toString());
+        }
+
+    };
 
     /**
      *******************************************私有函数******************************************
@@ -307,6 +341,26 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         }
     }
 
+    private void bindXMPPService() {
+        Intent mServiceIntent = new Intent(this, IMService.class);
+        mServiceIntent.setAction("com.juju.app.service.XMMP");
+        bindService(mServiceIntent, mServiceConnection,
+                Context.BIND_AUTO_CREATE + Context.BIND_DEBUG_UNBIND);
+
+    }
+
+    private void unbindXMPPService() {
+//        try {
+//            unbindService(mServiceConnection);
+//        } catch (IllegalArgumentException e) {
+//            e.printStackTrace();
+//        }
+    }
+
+    private void unBindService() {
+
+    }
+
 
     /**
      *******************************************内部类******************************************
@@ -328,5 +382,10 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
             setLoginBtnBackgroud();
         }
     }
+
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onMessageEvent(String event){
+//        System.out.println("线程ID=" + Thread.currentThread().getId());
+//    }
 
 }

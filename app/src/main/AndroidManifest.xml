@@ -19,12 +19,16 @@
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
+        android:name=".ui.base.BaseApplication"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:screenOrientation="portrait"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar" >
+
+
+
         <activity
             android:name=".WelcomeActivity"
             android:label="@string/app_name"
@@ -36,41 +40,47 @@
             </intent-filter>
         </activity>
         <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".activity.LoginActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_login"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".activity.MainActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".activity.party.PartyActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_party"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".activity.party.PlayVideoActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_play_video"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
             android:name=".activity.chat.ChatActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_chat"
             android:theme="@style/AppTheme.NoActionBar" >
         </activity>
         <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:name=".activity.user.RegistActivity" >
+            android:name=".activity.user.RegistActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize" >
         </activity>
         <activity
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:name=".activity.user.RegistNext1Activity" >
+            android:name=".activity.user.RegistNext1Activity"
+            android:configChanges="keyboardHidden|orientation|screenSize" >
         </activity>
+
+        <service
+            android:name=".service.im.IMService"
+            android:exported="false" >
+        </service>
+
     </application>
 
 </manifest>

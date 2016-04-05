@@ -1,9 +1,12 @@
 package com.juju.app.activity;
 
+import android.app.ActivityManager;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -15,6 +18,7 @@ import com.juju.app.annotation.CreateUI;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
+import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
@@ -26,6 +30,10 @@ import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.jivesoftware.smack.packet.Message;
+
+import java.util.Iterator;
+import java.util.List;
 
 @ContentView(R.layout.activity_main)
 @CreateUI
@@ -59,7 +67,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     @Override
     public void loadData() {
-
+        joinChatRoom();
+//        Log.d("MainActivity", getRunningServicesInfo(MainActivity.this));
+//        sendMessage();
     }
 
     @Override
@@ -177,4 +187,39 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
     }
 
 
+    private void sendMessage() {
+        int i = 0;
+        IMLoginManager.instance().sendMessage("ceshi@conference.juju", "在线吗？" + i);
+    }
+
+    //加入聊天室
+    private void joinChatRoom() {
+        try {
+            Thread.sleep(2000l);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        IMLoginManager.instance().joinChatRoom();
+    }
+
+//    public String getRunningServicesInfo(Context context) {
+//        StringBuffer serviceInfo = new StringBuffer();
+//        final ActivityManager activityManager = (ActivityManager) context
+//                .getSystemService(Context.ACTIVITY_SERVICE);
+//        List<ActivityManager.RunningServiceInfo> services = activityManager.getRunningServices(100);
+//
+//        Iterator<ActivityManager.RunningServiceInfo> l = services.iterator();
+//        while (l.hasNext()) {
+//            ActivityManager.RunningServiceInfo si = (ActivityManager.RunningServiceInfo) l.next();
+//            serviceInfo.append("pid: ").append(si.pid);
+//            serviceInfo.append("\nprocess: "+si.process);
+//            serviceInfo.append("\nservice: ").append(si.service);
+//            serviceInfo.append("\ncrashCount: ").append(si.crashCount);
+//            serviceInfo.append("\nclientCount: ").append(si.clientCount);
+//            serviceInfo.append("\nactiveSince: ").append(si.activeSince);
+//            serviceInfo.append("\nlastActivityTime: ").append(si.activeSince);
+//            serviceInfo.append(";");
+//        }
+//        return serviceInfo.toString();
+//    }
 }

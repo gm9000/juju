@@ -12,6 +12,7 @@ public class StringUtils {
 	private static final String URLSTR2 = "网页链接";
 	private static final Pattern URL = Pattern.compile(URLSTR);
 	private static final Pattern URL2 = Pattern.compile(URLSTR2);
+
 	/**
 	 * 判断是不是手机号
 	 * @param mobiles
@@ -25,11 +26,11 @@ public class StringUtils {
 	}
 	
 	public static boolean isEmail(String email)
-	  {
-	    if ((email == null) || (email.trim().length() == 0))
-	      return false;
-	    return emailer.matcher(email).matches();
-	  }
+	{
+		if ((email == null) || (email.trim().length() == 0))
+			return false;
+		return emailer.matcher(email).matches();
+	}
 	
 	public static boolean notEmpty(Object obj){
 		if(obj!=null && !obj.toString().trim().equals("")){
