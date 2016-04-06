@@ -4,7 +4,7 @@ import android.os.Environment;
 
 /**
  * 项目名称：juju
- * 类描述：
+ * 类描述：系统通用常量
  * 创建人：gm
  * 日期：2016/2/16 16:00
  * 版本：V1.0.0
@@ -36,6 +36,64 @@ public class Constants {
     /**
      ******************************************* 参数设置信息结束 ******************************************
      */
+
+    /**
+     ******************************************* 群聊参数设置信息******************************************
+     */
+    public static final String TYPE = "TYPE";
+    public static final int MESSAGE_STATE_UNLOAD = 0X0000;
+    public static final int MESSAGE_STATE_LOADDING = 0X0001;
+    public static final int MESSAGE_STATE_FINISH_SUCCESSED = 0X0002;
+    public static final int MESSAGE_STATE_FINISH_FAILED = 0X0003;
+    public static final int STOP_PLAY_VOICE = 0X0004;
+    public static final int pageSize = 21;
+    public static final String SESSION_ID_KEY = "session_id";
+    public static final String GROUP_NAME_KEY = "group_name";
+
+
+    /**
+     * 消息状态
+     */
+    public static final int UPLOAD_FAILED = 0X0005;
+    public static final int UPLOAD_SUCCESSED = 0X0006;
+
+    /**
+     * 消息类型
+     */
+    public static final int DISPLAY_TYPE_TEXT = 0X0007;
+    public static final int DISPLAY_TYPE_AUDIO = 0X0008;
+    public static final int DISPLAY_TYPE_IMAGE = 0X0009;
+    public static final String MSG_OVERVIEW_DISPLAY_TYPE_AUDIO = "[ 语音 ]";
+    public static final String MSG_OVERVIEW_DISPLAY_TYPE_IMAGE = "[ 图片 ]";
+    public static final String MSG_OVERVIEW_DISPLAY_TYPE_OTHERS = "[ 其它消息 ]";
+
+
+    // 消息是否已读
+    public static final int MESSAGE_UNREAD = 0X0000; // 消息未读
+    public static final int MESSAGE_ALREADY_READ = 0X0001; // 消息已读
+    public static final int MESSAGE_DISPLAYED = 0X0002;// 消息已展现
+
+    public static final byte MESSAGE_TYPE_TELETEXT = 1; // 消息类型 1:// 图文消息（文本或图片）；
+
+    public static final int POPUP_MENU_TYPE_TEXT = 1;
+    public static final int POPUP_MENU_TYPE_IMAGE = 2;
+    public static final int POPUP_MENU_TYPE_AUDIO = 3;
+
+    public final static int REQUEST_CODE = 0;
+
+
+    /**
+     ******************************************* 注册设置信息******************************************
+     */
+    //SMSSDK
+    public static final String APPKEY = "10393216186c8";
+    public static final String APPSECRET = "692210dce5d5a712d1b4416467664471";
+
+    public static final String PHONE = "phone";
+    public static final String NICKNAME = "nickName";
+    public static final String PASSWORD = "password";
+
+
 
 
 

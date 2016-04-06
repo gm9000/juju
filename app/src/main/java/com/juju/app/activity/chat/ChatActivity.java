@@ -39,6 +39,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.juju.app.R;
@@ -55,6 +56,7 @@ import com.juju.app.utils.Logger;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.EmoGridView;
 import com.juju.app.view.MGProgressbar;
+
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;

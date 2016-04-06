@@ -10,6 +10,7 @@
     <color name="colorAccent">#FF4081</color>
     <color name="white">#FFFFFB</color>
 
+
     <!-- 公共部分 -->
     <!--蓝色：#0082E3-->
     <!--红色：#FF0000-->
@@ -19,29 +20,36 @@
     <!--灰色：#8E8E93 #AAAAAA-->
     <!--浅灰：#D3D7CF-->
     <!--棕色：#795548-->
-
+    <!--7EA4B2-->
     <color name="blue">#0082E3</color>
+    <color name="disenble_blue">#CFDBE0</color>
     <color name="red">#FF0000</color>
     <color name="background">#ECF0F1</color>
-
-
-
     <color name="bar_color">#232325</color>
+    <color name="half_transparent_light">#AA000000</color>
+
 
     <!-- 群聊-->
     <color name="black">#ff000000</color>
     <color name="black1">#7A7E83</color>
     <color name="greeny">#ff11aca6</color>
+    <color name="default_light_black_color">#424242</color>
+    <color name="txt_hint_color">#999999</color>
+    <color name="emo_bk_color">#ffe6e6e6</color>
+    <color name="default_blue_color">#01aff4</color>
+
 
 
     <!--我 -->
     <color name="black2">#ffeeeeee</color>
-
     <color name="orange">#FF9500</color>
     <color name="green">#27AE60</color>
     <color name="gray">#8E8E93</color>
     <color name="lightGray">#D3D7CF</color>
     <color name="brown">#795548</color>
+
+    <!--注册 -->
+    <color name="common_top_bar_blue">#22292c</color>
 
 
 </resources>

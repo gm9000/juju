@@ -3,7 +3,6 @@ package com.juju.app.activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -11,21 +10,23 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.annotation.CreateUI;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
+import com.juju.app.service.im.manager.IMLoginManager;
+import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
-import com.lidroid.xutils.ViewUtils;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
 
-import org.apache.http.message.BasicNameValuePair;
-
 @ContentView(R.layout.activity_main)
-public class MainActivity extends AppCompatActivity {
+@CreateUI
+public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     @ViewInject(R.id.img_right)
     private ImageView img_right;
@@ -51,10 +52,19 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewUtils.inject(this);
+    }
+
+    @Override
+    public void loadData() {
+        joinChatRoom();
+//        Log.d("MainActivity", getRunningServicesInfo(MainActivity.this));
+//        sendMessage();
+    }
+
+    @Override
+    public void initView() {
         initTabView();
         initPopWindow();
-
     }
 
     /**
@@ -126,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
         currentTabIndex = index;
     }
 
+
     private OnItemOnClickListener onitemClick = new OnItemOnClickListener() {
 
         @Override
@@ -163,4 +174,41 @@ public class MainActivity extends AppCompatActivity {
     public void onClick4ImgRight(View v) {
         titlePopup.show(layout_bar);
     }
+
+
+    private void sendMessage() {
+        int i = 0;
+        IMLoginManager.instance().sendMessage("ceshi@conference.juju", "在线吗？" + i);
+    }
+
+    //加入聊天室
+    private void joinChatRoom() {
+        try {
+            Thread.sleep(2000l);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        IMLoginManager.instance().joinChatRoom();
+    }
+
+//    public String getRunningServicesInfo(Context context) {
+//        StringBuffer serviceInfo = new StringBuffer();
+//        final ActivityManager activityManager = (ActivityManager) context
+//                .getSystemService(Context.ACTIVITY_SERVICE);
+//        List<ActivityManager.RunningServiceInfo> services = activityManager.getRunningServices(100);
+//
+//        Iterator<ActivityManager.RunningServiceInfo> l = services.iterator();
+//        while (l.hasNext()) {
+//            ActivityManager.RunningServiceInfo si = (ActivityManager.RunningServiceInfo) l.next();
+//            serviceInfo.append("pid: ").append(si.pid);
+//            serviceInfo.append("\nprocess: "+si.process);
+//            serviceInfo.append("\nservice: ").append(si.service);
+//            serviceInfo.append("\ncrashCount: ").append(si.crashCount);
+//            serviceInfo.append("\nclientCount: ").append(si.clientCount);
+//            serviceInfo.append("\nactiveSince: ").append(si.activeSince);
+//            serviceInfo.append("\nlastActivityTime: ").append(si.activeSince);
+//            serviceInfo.append(";");
+//        }
+//        return serviceInfo.toString();
+//    }
 }

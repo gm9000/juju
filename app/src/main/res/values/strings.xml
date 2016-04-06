@@ -52,6 +52,8 @@
     <string name="group_chat">群聊</string>
     <string name="group_party">聚会</string>
     <string name="me">我</string>
+    <string name="confirm">确定</string>
+    <string name="negative">取消</string>
 
 
     <!-- 群聊 -->

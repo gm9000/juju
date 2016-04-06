@@ -1,4 +1,4 @@
-package com.juju.app.adapter.base;
+package com.juju.app.adapter;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
@@ -40,7 +40,6 @@ public class GroupChatListAdapter extends BaseAdapter {
     private Context context;
     private List<GroupChatInitBean> groupChats;
     private LayoutInflater layoutInflater;
-
 
 
     public GroupChatListAdapter(Context context, List<GroupChatInitBean> groupChats) {

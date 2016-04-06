@@ -1,27 +1,25 @@
 package com.juju.app.fragment;
 
-import android.app.Activity;
-import android.net.NetworkInfo;
-import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
-import com.juju.app.activity.ChatActivity;
 import com.juju.app.activity.MainActivity;
-import com.juju.app.adapter.base.GroupChatListAdapter;
+import com.juju.app.activity.chat.ChatActivity;
+import com.juju.app.adapter.GroupChatListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.groupchat.GroupChatInitBean;
 import com.juju.app.entity.http.Group;
+import com.juju.app.golobal.Constants;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.NetWorkUtil;
+
+import org.apache.http.message.BasicNameValuePair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,9 +76,18 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        //TODO 获取未读信息
+        //点击群聊列表，跳转到群聊面板
         if(adapter.getGroupChats().size() > 0) {
-            ActivityUtil.startActivity(getActivity(), ChatActivity.class);
+            GroupChatInitBean bean = adapter.getGroupChats().get(position);
+            List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
+            BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
+                    bean.getSessionId());
+            BasicNameValuePair nameValue = new BasicNameValuePair(Constants.GROUP_NAME_KEY,
+                    bean.getGroup().getName());
+            valuePairs.add(markerIdValue);
+            valuePairs.add(nameValue);
+            ActivityUtil.startActivity(getActivity(), ChatActivity.class,
+                    valuePairs.toArray(new BasicNameValuePair[]{}));
         }
     }
 
@@ -120,9 +127,9 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
         for(int i = 1; i<=9 ; i++) {
             Group group = new Group();
             group.setId(i);
-            group.setName("休闲娱乐");
+            group.setName("休闲娱乐"+i);
             group.setMemberNum(i);
-            GroupChatInitBean groupChat = new GroupChatInitBean(group, "送达", "今天晚上我请客，" +
+            GroupChatInitBean groupChat = new GroupChatInitBean(String.valueOf(i), group, "送达", "今天晚上我请客，" +
                     "暂定苏州桥同一首歌碰面。", "刚刚", String.valueOf(i));
             groupChats.add(groupChat);
         }

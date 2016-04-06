@@ -1,227 +1,191 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<merge xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/login_main"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@mipmap/background"
-    android:gravity="center_horizontal"
-    android:orientation="vertical"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    android:paddingLeft="@dimen/activity_horizontal_margin"
-    android:paddingRight="@dimen/activity_horizontal_margin"
-    android:paddingTop="@dimen/activity_vertical_margin"
-    android:weightSum="1"
-    tools:context=".activity.LoginActivity">
+    tools:context=".activity.LoginActivity" >
 
-    <!-- Login progress -->
-    <ProgressBar
-        android:id="@+id/login_progress"
-        style="?android:attr/progressBarStyleLarge"
-        android:layout_width="268dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="8dp"
-        android:layout_weight="0.84"
-        android:visibility="gone" />
-
-    <LinearLayout xmlns:imagecontrol="http://schemas.android.com/apk/res-auto"
-        android:layout_width="311dp"
-        android:layout_height="133dp"
-        android:layout_gravity="center_horizontal"
-        android:layout_weight="0.16"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:weightSum="1">
-
-        <com.juju.app.view.RoundImageView
-            android:id="@+id/portrait"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
-            android:src="@mipmap/head"
-            imagecontrol:border_inside_color="#ffffff"
-            imagecontrol:border_outside_color="#ffffff"
-            imagecontrol:border_thickness="1dp" />
-
-        <TextView
-            android:id="@+id/nickName"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="聚龙小子"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:textColor="@color/white" />
-
-    </LinearLayout>
-
-    <LinearLayout
-        android:id="@+id/user_login_form"
+    <RelativeLayout
+        android:id="@+id/login_main"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:weightSum="1">
-
-        <!--<android.support.design.widget.TextInputLayout-->
-        <!--android:layout_width="wrap_content"-->
-        <!--android:layout_height="wrap_content">-->
-
-        <!--<AutoCompleteTextView-->
-        <!--android:id="@+id/userNo"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:hint="@string/prompt_userNo"-->
-        <!--android:inputType="textEmailAddress"-->
-        <!--android:maxLines="1"-->
-        <!--android:singleLine="true"-->
-        <!--android:width="170dp" />-->
-
-        <!--</android.support.design.widget.TextInputLayout>-->
-
-        <!--<EditText-->
-        <!--android:id="@+id/password"-->
-        <!--android:layout_width="170dp"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:hint="@string/prompt_password"-->
-        <!--android:imeActionId="@+id/login"-->
-        <!--android:imeActionLabel="@string/action_login_in"-->
-        <!--android:imeOptions="actionUnspecified"-->
-        <!--android:inputType="textPassword"-->
-        <!--android:maxLines="1"-->
-        <!--android:singleLine="true" />-->
-
-
-        <!--<android.support.design.widget.TextInputLayout-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content">-->
-
-        <!--</android.support.design.widget.TextInputLayout>-->
+        android:layout_height="match_parent"
+        android:background="@mipmap/background">
 
         <LinearLayout
-            android:id="@+id/login_main_layout"
+            xmlns:imagecontrol="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/lay_person_info"
             android:layout_width="match_parent"
+            android:layout_marginTop="30dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:layout_height="wrap_content"
-            android:background="@drawable/login_backgroud"
-            android:focusable="true"
-            android:focusableInTouchMode="true"
-            android:orientation="vertical">
+            android:layout_gravity="center_horizontal"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:weightSum="1">
 
-            <LinearLayout
-                android:layout_width="match_parent"
+            <com.juju.app.view.RoundImageView
+                android:id="@+id/portrait"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:src="@mipmap/head"
+                imagecontrol:border_inside_color="#ffffff"
+                imagecontrol:border_outside_color="#ffffff"
+                imagecontrol:border_thickness="1dp" />
+
+            <TextView
+                android:id="@+id/nickName"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:layout_marginTop="3dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginLeft="15dp"
-                    android:src="@mipmap/yonghu" />
-
-                <com.juju.app.view.ClearEditText
-                    android:id="@+id/userNoTxt"
-                    android:layout_width="fill_parent"
-                    android:layout_height="25dip"
-                    android:layout_gravity="center"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="30dp"
-                    android:background="@null"
-                    android:completionThreshold="1"
-                    android:dropDownHeight="100dp"
-                    android:gravity="center_vertical"
-                    android:hint="@string/userNo"
-                    android:popupBackground="@null"
-                    android:singleLine="true"
-                    android:textSize="18sp"></com.juju.app.view.ClearEditText>
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="3dp"
-                android:layout_marginTop="3dp"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginLeft="15dp"
-                    android:src="@mipmap/mima" />
-
-                <com.juju.app.view.ClearEditText
-                    android:id="@+id/passwordTxt"
-                    android:layout_width="fill_parent"
-                    android:layout_height="25dip"
-                    android:layout_gravity="center"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="30dp"
-                    android:background="@null"
-                    android:gravity="center_vertical"
-                    android:hint="@string/password"
-                    android:inputType="textPassword"
-                    android:singleLine="true"
-                    android:textSize="18sp"/>
-            </LinearLayout>
+                android:layout_gravity="center_horizontal"
+                android:text="@string/nickName"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:textColor="@color/white" />
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/lay_pwd_info"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_weight="1.53"
-            android:layout_marginTop="16dp"
-            android:gravity="center"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_centerInParent="true"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:background="@drawable/login_backgroud"
             android:orientation="horizontal">
 
-            <CheckBox
-                android:id="@+id/rememberPwdChk"
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textSize="16sp"
-                style="@style/CustomCheckboxTheme"
-                android:text="@string/remember_pwd"
-                android:checked="false" />
+                android:layout_gravity="center"
+                android:layout_marginLeft="15dp"
+                android:src="@mipmap/mima" />
 
-            <CheckBox
-                android:id="@+id/autoLoginChk"
+            <com.juju.app.view.ClearEditText
+                android:id="@+id/passwordTxt"
+                android:layout_width="fill_parent"
+                android:layout_height="35dip"
+                android:layout_gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="30dp"
+                android:background="@null"
+                android:gravity="center_vertical"
+                android:hint="@string/password"
+                android:inputType="textPassword"
+                android:singleLine="true"
+                android:textSize="18sp"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/lay_phone_info"
+            android:layout_above="@id/lay_pwd_info"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/login_backgroud"
+            android:orientation="horizontal">
+
+            <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="40dp"
-                android:textSize="16sp"
-                style="@style/CustomCheckboxTheme"
-                android:text="@string/auto_login" />
+                android:layout_gravity="center"
+                android:layout_marginLeft="15dp"
+                android:src="@mipmap/yonghu" />
+
+            <com.juju.app.view.ClearEditText
+                android:id="@+id/userNoTxt"
+                android:layout_width="fill_parent"
+                android:layout_height="35dip"
+                android:layout_gravity="center"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="30dp"
+                android:background="@null"
+                android:completionThreshold="1"
+                android:dropDownHeight="100dp"
+                android:gravity="center_vertical"
+                android:hint="@string/userNo"
+                android:popupBackground="@null"
+                android:inputType="number"
+                android:singleLine="true"/>
         </LinearLayout>
+
+        <!--<RelativeLayout-->
+            <!--android:id="@+id/lay_chk_info"-->
+            <!--android:layout_below="@id/lay_pwd_info"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_marginTop="16dp"-->
+            <!--android:orientation="horizontal">-->
+
+            <!--<CheckBox-->
+                <!--android:id="@+id/rememberPwdChk"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:textSize="16sp"-->
+                <!--style="@style/CustomCheckboxTheme"-->
+                <!--android:background="@null"-->
+                <!--android:gravity="left|center_vertical"-->
+                <!--android:layout_marginLeft="30dp"-->
+                <!--android:text="@string/remember_pwd"-->
+                <!--android:checked="false" />-->
+
+            <!--<CheckBox-->
+                <!--android:id="@+id/autoLoginChk"-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:gravity="left|center_vertical"-->
+                <!--android:layout_alignParentRight="true"-->
+                <!--android:layout_marginRight="30dp"-->
+                <!--android:textSize="16sp"-->
+                <!--style="@style/CustomCheckboxTheme"-->
+                <!--android:background="@null"-->
+                <!--android:text="@string/auto_login" />-->
+        <!--</RelativeLayout>-->
 
         <Button
             android:id="@+id/loginBtn"
             style="?android:textAppearanceSmall"
-            android:layout_width="230dp"
+            android:layout_below="@id/lay_pwd_info"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@color/blue"
+            android:enabled="false"
+            android:background="@drawable/btn_register_bg"
             android:text="@string/action_login_in"
             android:textColor="@color/white"
             android:textSize="18sp"/>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.84"
-        android:gravity="bottom"
-        android:orientation="vertical">
 
 
-        <TextView
-            android:id="@+id/userRegistTxt"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            android:text="@string/action_regist"
-            android:textSize="16sp"
-            android:textAppearance="?android:attr/textAppearanceSmall" />
-    </LinearLayout>
+            <TextView
+                android:id="@+id/txt_foreget_psw"
+                android:layout_below="@id/loginBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:text="@string/foreget_psw"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:layout_marginLeft="25dp"
+                android:layout_gravity="left"
+                android:layout_marginTop="5dp"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
 
-</LinearLayout>
+            <TextView
+                android:id="@+id/txt_regist_newuser"
+                android:layout_below="@id/loginBtn"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+                android:layout_gravity="right"
+                android:textColor="@color/white"
+                android:text="@string/action_regist"
+                android:textSize="16sp"
+                android:layout_alignParentRight="true"
+                android:layout_marginRight="25dp"
+                android:layout_marginTop="5dp"
+                android:textAppearance="?android:attr/textAppearanceSmall" />
+
+    </RelativeLayout>
+
+    <include  layout="@layout/layout_loading"/>
+</merge>
