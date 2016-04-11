@@ -14,6 +14,10 @@ public class HttpConstants {
     //HTTP请求、响应类型
     public static final String CONTENT_TYPE = "application/json";
 
+    public static final String UPLOAD_TYPE = "multipart/form-data";
+
+
+
     private static String USER_URL = "";
 
     private static String A_USER_URL = "";

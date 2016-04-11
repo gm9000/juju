@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/background">
+
+    <!--标题 -->
+    <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>
+
+    <!--内容 -->
+    <ScrollView
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:scrollbars="none">
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal">
+            <com.juju.app.view.RoundImageView
+                android:id="@+id/head"
+                android:layout_marginTop="10dp"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
+                android:scaleType="centerInside"
+                android:src="@mipmap/head" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="100dp"
+                    android:paddingLeft="16dp"
+                    android:drawablePadding="10dp"
+                    android:text="@string/phoneNo" />
+                <TextView
+                    android:id="@+id/txt_phoneNo"
+                    style="@style/TxtContent"
+                    android:textSize="14sp"
+                    android:gravity="center_vertical|right"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:drawablePadding="10dp"
+                    android:drawableRight="@mipmap/right"
+                    android:text="13811000001" />
+
+            </LinearLayout>
+            <View
+                android:background="@color/black2"
+                android:layout_width="match_parent"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_height="1.0dip" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="100dp"
+                    android:paddingLeft="16dp"
+                    android:drawablePadding="10dp"
+                    android:text="@string/nickName" />
+                <TextView
+                    android:id="@+id/txt_nick_name"
+                    style="@style/TxtContent"
+                    android:textSize="14sp"
+                    android:gravity="center_vertical|right"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:drawablePadding="10dp"
+                    android:drawableRight="@mipmap/right"
+                    android:text="聚龙小子" />
+            </LinearLayout>
+
+           <View
+                android:background="@color/black2"
+                android:layout_width="match_parent"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_height="1.0dip" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="100dp"
+                    android:paddingLeft="16dp"
+                    android:drawablePadding="10dp"
+                    android:text="@string/jujuNo" />
+                <TextView
+                    android:id="@+id/txt_jujuNo"
+                    style="@style/TxtContent"
+                    android:textSize="14sp"
+                    android:gravity="center_vertical|right"
+                    android:background="@drawable/setting_item_selector"
+                    android:paddingRight="32dp"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:text="100000001" />
+            </LinearLayout>
+
+            <View
+                android:background="@color/black2"
+                android:layout_width="match_parent"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_height="1.0dip" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="100dp"
+                    android:paddingLeft="16dp"
+                    android:drawablePadding="10dp"
+                    android:text="@string/gender" />
+                <TextView
+                    android:id="@+id/txt_gender"
+                    style="@style/TxtContent"
+                    android:textSize="14sp"
+                    android:gravity="center_vertical|right"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:drawablePadding="10dp"
+                    android:drawableRight="@mipmap/right"
+                    android:text="男" />
+            </LinearLayout>
+
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="25dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/setting_item_selector">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:layout_marginRight="100dp"
+                    android:layout_height="50dp"
+                    android:paddingLeft="16dp"
+                    android:text="@string/remember_pwd" />
+                <ImageView
+                    android:id="@+id/img_rememberPwd"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentRight="true"
+                    android:src="@mipmap/switch_on"/>
+            </RelativeLayout>
+
+            <View
+                android:background="@color/black2"
+                android:layout_width="match_parent"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_height="1.0dip" />
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/setting_item_selector">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:layout_marginRight="100dp"
+                    android:layout_height="50dp"
+                    android:paddingLeft="16dp"
+                    android:text="@string/auto_login" />
+                <ImageView
+                    android:id="@+id/img_autoLogin"
+                    android:layout_width="80dp"
+                    android:layout_height="40dp"
+                    android:layout_centerVertical="true"
+                    android:layout_alignParentRight="true"
+                    android:src="@mipmap/switch_on"/>
+            </RelativeLayout>
+            <Button
+                android:id="@+id/logoutBtn"
+                style="?android:textAppearanceSmall"
+                android:layout_width="200dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:enabled="true"
+                android:background="@drawable/btn_register_bg"
+                android:text="@string/logout"
+                android:textColor="@color/white"
+                android:textSize="18sp"/>
+
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

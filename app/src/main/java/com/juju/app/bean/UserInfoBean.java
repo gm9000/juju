@@ -45,6 +45,16 @@ public class UserInfoBean {
     //聚聚号
     private String jujuNo;
 
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
+
+    private String token;
+
     public String getmAccount() {
         return mAccount;
     }

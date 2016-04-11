@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    android:gravity="center_horizontal"
+    android:orientation="vertical"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:background="@color/background">
+
+    <!--标题 -->
+    <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>
+
+    <com.juju.app.view.XEditText
+        android:id="@+id/txt_property"
+        style="@style/TxtTitle"
+        android:gravity="center_vertical"
+        android:background="@drawable/setting_item_selector"
+        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_marginTop="10dp"
+        android:paddingLeft="15dp"
+        android:drawablePadding="10dp"
+        android:drawableRight="@mipmap/clear"
+        android:text=""
+        android:focusable="true"
+        android:inputType="text"/>
+
+    <TextView
+        android:id="@+id/txt_male"
+        style="@style/TxtTitle"
+        android:gravity="center_vertical"
+        android:background="@drawable/setting_item_selector"
+        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_marginTop="5dp"
+        android:paddingLeft="15dp"
+        android:drawablePadding="10dp"
+        android:visibility="gone"
+        android:text="@string/male"/>
+
+    <TextView
+        android:id="@+id/txt_female"
+        style="@style/TxtTitle"
+        android:gravity="center_vertical"
+        android:background="@drawable/setting_item_selector"
+        android:layout_height="50dp"
+        android:layout_width="match_parent"
+        android:layout_marginTop="1dp"
+        android:visibility="gone"
+        android:paddingLeft="15dp"
+        android:drawablePadding="10dp"
+        android:text="@string/female"/>
+
+</LinearLayout>

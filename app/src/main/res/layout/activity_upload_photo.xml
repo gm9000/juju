@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/black"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <com.juju.app.view.RoundImageView
+        android:id="@+id/head"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerVertical="true"
+        />
+
+    <com.juju.app.view.CircleCopperImageView
+        android:id="@+id/upload_head"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerVertical="true"
+        android:visibility="gone"
+        android:layout_marginBottom="60dp"
+        />
+    <RelativeLayout
+        android:id="@+id/menu_layout"
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@color/gray"
+        android:layout_centerVertical="true"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/cancel"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:text="@string/cancel"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:textSize="16dp"
+            />
+        <TextView
+            android:id="@+id/confirm"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:gravity="center"
+            android:textStyle="bold"
+            android:text="@string/confirm"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:textSize="16dp"
+            />
+    </RelativeLayout>
+    <include  layout="@layout/layout_loading"/>
+</RelativeLayout>

@@ -1,12 +1,12 @@
 package com.juju.app.https;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.juju.app.bean.json.BaseReqBean;
-import com.juju.app.bean.json.BaseResBean;
-import com.juju.app.bean.json.LoginResBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.utils.JacksonUtil;
+import com.juju.app.view.imagezoom.utils.BitmapUtils;
 import com.lidroid.xutils.HttpUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.RequestParams;
@@ -18,6 +18,8 @@ import org.apache.http.entity.StringEntity;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.Map;
 import java.util.Set;
@@ -69,7 +71,7 @@ public class JlmHttpClient<Req> {
     }
 
     public JlmHttpClient(int accessId, String url,
-            HttpCallBack callBack, Req req, Class resClass) {
+                         HttpCallBack callBack, Req req, Class resClass) {
         this.accessId = accessId;
         this.url = url;
         this.callBack = callBack;
@@ -110,6 +112,18 @@ public class JlmHttpClient<Req> {
     public void sendPost() throws UnsupportedEncodingException, JSONException {
         RequestParams params = new RequestParams();
         initPostRequestParams(req, params);
+        doSend(params, HttpRequest.HttpMethod.POST);
+    }
+
+    /**
+     *
+     * 方法名： sendPost
+     * 方法描述：发送Post请求
+     *
+     */
+    public void sendUpload() throws UnsupportedEncodingException, JSONException {
+        RequestParams params = new RequestParams();
+        initPostUploadParams(req, params);
         doSend(params, HttpRequest.HttpMethod.POST);
     }
 
@@ -176,6 +190,34 @@ public class JlmHttpClient<Req> {
      * 返回类型： void
      *
      */
+    private void initPostUploadParams(Req req, RequestParams params)
+            throws JSONException, UnsupportedEncodingException {
+//        params.addHeader("content-type", HttpConstants.UPLOAD_TYPE);
+        JSONObject paramJson = new JSONObject();
+        Map<String, Object> valueMap = (Map<String, Object>) req;
+        if(valueMap != null && valueMap.size() > 0) {
+            Set<Map.Entry<String, Object>> entrySet =  valueMap.entrySet();
+            for(Map.Entry<String, Object> entry : entrySet) {
+                String key = entry.getKey();
+                Object obj = entry.getValue();
+                if(obj instanceof String) {
+                    String valueStr = (String) obj;
+                    params.addBodyParameter(key,valueStr);
+                } else if (obj instanceof Integer) {
+                    Integer valueInt = (Integer) obj;
+                    params.addBodyParameter(key, valueInt.toString());
+                }else if(obj instanceof Bitmap){
+                    Object[] inputArray = BitmapUtils.bitmap2InputStream((Bitmap) obj);
+                    long size = (int)inputArray[0];
+                    params.addBodyParameter(key,(InputStream)inputArray[1], size);
+                }else if(obj instanceof File){
+                    params.addBodyParameter(key,(File)obj);
+                }
+            }
+        }
+    }
+
+
     private void initPostRequestParams(Req req, RequestParams params)
             throws JSONException, UnsupportedEncodingException {
         params.addHeader("content-type", HttpConstants.CONTENT_TYPE);

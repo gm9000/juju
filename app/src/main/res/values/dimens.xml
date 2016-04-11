@@ -14,6 +14,9 @@
 
     <dimen name="height_top_bar">48dp</dimen>
 
+    <dimen name="border_thickness">1dp</dimen>
+    <dimen name="corner_thickness">5dp</dimen>
+    <dimen name="guideline_thickness">1px</dimen>
 
 
 </resources>

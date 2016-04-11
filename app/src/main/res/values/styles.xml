@@ -47,6 +47,14 @@
         <item name="android:focusable">false</item>
     </style>
 
+    <style name="TxtContent" parent="@style/img_Style">
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">#999999</item>
+        <item name="android:paddingLeft">6.0dip</item>
+        <item name="android:paddingRight">16dp</item>
+        <item name="android:focusable">false</item>
+    </style>
+
 
     <style name="AnimHead" parent="@android:style/Animation">
         <item name="android:windowEnterAnimation">@anim/head_in</item>
@@ -112,7 +120,7 @@
     </style>
 
     <style name="SoundVolumeStyle" parent="@android:style/Theme.Dialog">
-        <item name="android:windowBackground"> @android:color/transparent </item>
+        <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:backgroundDimEnabled">false</item>
     </style>
 
@@ -143,6 +151,10 @@
     <style name="lp" parent="@style/MMBriefText">
         <item name="android:gravity">center_vertical</item>
     </style>
+
+    <style name="AppTheme.NoActionBar.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
+
+    <style name="AppTheme.NoActionBar.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
 
 
 </resources>

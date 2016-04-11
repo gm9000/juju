@@ -12,7 +12,7 @@
             xmlns:imagecontrol="http://schemas.android.com/apk/res-auto"
             android:id="@+id/lay_person_info"
             android:layout_width="match_parent"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="50dp"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:layout_height="wrap_content"
@@ -23,11 +23,10 @@
 
             <com.juju.app.view.RoundImageView
                 android:id="@+id/portrait"
-                android:layout_width="100dp"
-                android:layout_height="100dp"
+                android:layout_width="120dp"
+                android:layout_height="120dp"
                 android:src="@mipmap/head"
-                imagecontrol:border_inside_color="#ffffff"
-                imagecontrol:border_outside_color="#ffffff"
+                imagecontrol:border_outside_color="#000000"
                 imagecontrol:border_thickness="1dp" />
 
             <TextView
@@ -44,8 +43,8 @@
             android:id="@+id/lay_pwd_info"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
             android:layout_centerInParent="true"
             android:layout_centerHorizontal="true"
             android:layout_centerVertical="true"
@@ -79,8 +78,8 @@
             android:layout_above="@id/lay_pwd_info"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
             android:layout_marginBottom="5dp"
             android:background="@drawable/login_backgroud"
             android:orientation="horizontal">
@@ -146,8 +145,8 @@
             android:id="@+id/loginBtn"
             style="?android:textAppearanceSmall"
             android:layout_below="@id/lay_pwd_info"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
+            android:layout_marginLeft="30dp"
+            android:layout_marginRight="30dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
@@ -166,9 +165,9 @@
                 android:text="@string/foreget_psw"
                 android:textColor="@color/white"
                 android:textSize="16sp"
-                android:layout_marginLeft="25dp"
+                android:layout_marginLeft="30dp"
                 android:layout_gravity="left"
-                android:layout_marginTop="5dp"
+                android:layout_marginTop="10dp"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
             <TextView
@@ -181,8 +180,8 @@
                 android:text="@string/action_regist"
                 android:textSize="16sp"
                 android:layout_alignParentRight="true"
-                android:layout_marginRight="25dp"
-                android:layout_marginTop="5dp"
+                android:layout_marginRight="30dp"
+                android:layout_marginTop="10dp"
                 android:textAppearance="?android:attr/textAppearanceSmall" />
 
     </RelativeLayout>

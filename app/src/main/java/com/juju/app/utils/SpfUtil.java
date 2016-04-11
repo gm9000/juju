@@ -85,9 +85,9 @@ public class SpfUtil {
         } else if (defaultObject instanceof Long)
         {
             return sp.getLong(key, (Long) defaultObject);
+        }else{
+             return sp.getString(key, (String) defaultObject);
         }
-
-        return null;
     }
 
     /**

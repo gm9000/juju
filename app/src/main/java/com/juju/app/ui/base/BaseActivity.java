@@ -1,5 +1,6 @@
 package com.juju.app.ui.base;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;

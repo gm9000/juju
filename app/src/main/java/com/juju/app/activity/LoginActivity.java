@@ -10,52 +10,40 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewStructure;
 import android.widget.Button;
-import android.widget.CheckBox;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.activity.user.RegistActivity;
 import com.juju.app.annotation.CreateUI;
-import com.juju.app.bean.json.LoginReqBean;
-import com.juju.app.bean.json.LoginResBean;
+import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
-import com.juju.app.golobal.Constants;
-import com.juju.app.golobal.SessionConstants;
+import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.manager.IMLoginManager;
-import com.juju.app.service.im.manager.IMManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
-import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.ClearEditText;
-import com.lidroid.xutils.ViewUtils;
+import com.juju.app.view.RoundImageView;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
 
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @ContentView(R.layout.activity_login)
 @CreateUI(isLoadData = true, isInitView = true)
@@ -69,8 +57,18 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     @ViewInject(R.id.userNoTxt)
     private ClearEditText txt_userNo;
 
+    private String jujuNo;
+    private String token;
+
     @ViewInject(R.id.passwordTxt)
     private ClearEditText txt_password;
+
+    @ViewInject(R.id.portrait)
+    private RoundImageView portrait;
+
+    @ViewInject(R.id.nickName)
+    private TextView nickName;
+
 
 //    @ViewInject(R.id.rememberPwdChk)
 //    private CheckBox chk_rememberPwd;
@@ -132,6 +130,17 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 //        chk_autoLogin.setChecked(autoLoginChecked);
         setLoginBtnBackgroud();
         layout_login_main.setFocusableInTouchMode(true);
+
+        if(BaseApplication.getInstance().getUserInfoBean().getJujuNo()!=null){
+            BitmapUtilFactory.getInstance(this).display(portrait, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+        }
+
+        if(BaseApplication.getInstance().getUserInfoBean().getUserName()!=null){
+            nickName.setText(BaseApplication.getInstance().getUserInfoBean().getUserName());
+        }
+
+
+
 //        bindXMPPService();
     }
 
@@ -207,6 +216,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
                 JSONObject jsonRoot = (JSONObject)obj[0];
                 try {
                     int status = jsonRoot.getInt("status");
+                    jujuNo = jsonRoot.getString("userNo");
+                    token = jsonRoot.getString("token");
                     if(status == 0) {
                         saveUserInfo();
                         startActivity(LoginActivity.this, MainActivity.class);
@@ -294,6 +305,10 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         //将登录信息保存到SharedPreferences
         SpfUtil.put(this, "userNo", userNo);
         SpfUtil.put(this, "pwd", pwd);
+
+        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean.setJujuNo(jujuNo);
+        userInfoBean.setToken(token);
 //        SpfUtil.put(this, "pwdChecked", pwdChecked);
 //        SpfUtil.put(this, "autoLoginChecked", autoLoginChecked);
 //        if(pwdChecked) {

@@ -1,9 +1,7 @@
 package com.juju.app.activity.user;
 
-import android.content.DialogInterface;
-import android.os.CountDownTimer;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -15,7 +13,6 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.activity.LoginActivity;
-import com.juju.app.activity.MainActivity;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.golobal.Constants;
@@ -27,8 +24,6 @@ import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.StringUtils;
-import com.juju.app.utils.ToastUtil;
-import com.juju.app.view.CustomDialog;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;

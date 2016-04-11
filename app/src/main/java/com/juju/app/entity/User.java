@@ -1,6 +1,7 @@
 package com.juju.app.entity;
 
 import com.juju.app.entity.base.BaseEntity;
+import com.juju.app.utils.JacksonUtil;
 import com.lidroid.xutils.db.annotation.Column;
 
 /**
@@ -37,6 +38,27 @@ public class User extends BaseEntity {
     @Column(column = "updateTime")
     private long updateTime;
 
+    private int gender;
+
+    private String nickName;
+
+    private boolean update;
+
+    public int getGender() {
+        return gender;
+    }
+
+    public void setGender(int gender) {
+        this.gender = gender;
+    }
+
+    public String getNickName() {
+        return nickName;
+    }
+
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
+    }
 
     public String getUserNo() {
         return userNo;
@@ -69,5 +91,17 @@ public class User extends BaseEntity {
 
     public void setUpdateTime(long updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String toString(){
+        return JacksonUtil.turnObj2String(this);
+    }
+
+    public boolean isUpdate() {
+        return update;
+    }
+
+    public void setUpdate(boolean update) {
+        this.update = update;
     }
 }

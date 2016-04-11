@@ -93,6 +93,14 @@ public class Constants {
     public static final String NICKNAME = "nickName";
     public static final String PASSWORD = "password";
 
+    public static final String REMEMBER_PWD = "rememberPwd";    //  是否记住密码
+    public static final String AUTO_LOGIN = "autoLogin";        //  是否自动登录
+
+    public static final String USER_INFO = "userInfo";        //  是否自动登录
+
+    public static final String PROPERTY_TYPE = "propertyType";  //  属性类型
+    public static final String PROPERTY_VALUE = "propertyValue";  //  属性名称
+
 
 
 

@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.PixelFormat;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
 import android.graphics.Rect;
@@ -16,6 +17,7 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 import com.juju.app.R;
+import com.lidroid.xutils.bitmap.core.AsyncDrawable;
 
 
 /**
@@ -27,7 +29,7 @@ public class RoundImageView extends ImageView {
 
     private int mBorderThickness = 0;
     private Context mContext;
-    private int defaultColor = 0xFFFFFFFF;
+    private int defaultColor = 0xFF000000;
     // 如果只有其中一个有值，则只画一个圆形边框
     private int mBorderOutsideColor = 0;
     private int mBorderInsideColor = 0;
@@ -75,7 +77,25 @@ public class RoundImageView extends ImageView {
         if(drawable.getClass() == NinePatchDrawable.class)
             return;
 
-        Bitmap b = ((BitmapDrawable) drawable).getBitmap();
+        Bitmap b = null;
+
+
+        if(drawable instanceof BitmapDrawable){
+            b =  ((BitmapDrawable)drawable).getBitmap() ;
+        }else if(drawable instanceof AsyncDrawable){
+            b = Bitmap
+                    .createBitmap(
+                            getWidth(),
+                            getHeight(),
+                            drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888
+                                    : Bitmap.Config.RGB_565);
+            Canvas canvas1 = new Canvas(b);
+            // canvas.setBitmap(bitmap);
+            drawable.setBounds(0, 0, getWidth(),
+                    getHeight());
+            drawable.draw(canvas1);
+        }
+
         Bitmap bitmap = b.copy(Config.ARGB_8888, true);
 
         if(defaultWidth == 0) {
