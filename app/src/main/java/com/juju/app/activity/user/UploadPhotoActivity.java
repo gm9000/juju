@@ -157,7 +157,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
                     headImg.setVisibility(View.VISIBLE);
                     menuLayout.setVisibility(View.VISIBLE);
                     Bitmap bitmap = DecodeUtils.decode(this, Uri.parse(Environment.getExternalStorageDirectory()+"/juju/"+imageName), size, size);
-                    headImg.setImageBitmap(bitmap,null,-1,-1);
+                    headImg.setImageBitmap(bitmap);
                     break;
 
                 case PHOTO_REQUEST_GALLERY:
@@ -166,7 +166,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
                     menuLayout.setVisibility(View.VISIBLE);
                     if (data != null) {
                         Bitmap bitmap1 = DecodeUtils.decode(this, data.getData(), size, size);
-                        headImg.setImageBitmap(bitmap1, null, -1, -1);
+                        headImg.setImageBitmap(bitmap1);
                     }
                     break;
             }
