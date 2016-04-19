@@ -34,7 +34,7 @@ public class CircleCopperImageView extends ImageViewTouch{
 
     private int cutTop;
     private int cutEdgeSize;
-    private float originRatio=0.0f;
+    private float originRatio = 0.0f;
 
 
     public CircleCopperImageView(Context context, AttributeSet attrs) {
@@ -52,9 +52,14 @@ public class CircleCopperImageView extends ImageViewTouch{
         super.onDraw(canvas);
         if(originRatio==0.0f && getScale()==1.0f){
             originRatio = (float)((FastBitmapDrawable) getDrawable()).getBitmap().getWidth()/canvas.getWidth();
-            System.out.println("orginRatio========================="+originRatio);
         }
         drawCircleShape(canvas);
+    }
+
+    @Override
+    public void setImageBitmap(Bitmap bm) {
+        super.setImageBitmap(bm);
+        originRatio = 0.0f;
     }
 
 
@@ -123,13 +128,25 @@ public class CircleCopperImageView extends ImageViewTouch{
 
 
         // Calculate the top-left corner of the crop window relative to the ~original~ bitmap size.
-        final float cropX = -getBitmapRect().left*curRadio;
-        final float cropY = (cutTop-getBitmapRect().top)*curRadio;
+        float cropX = -getBitmapRect().left*curRadio;
+        if(cropX > originWidth){
+            cropX = originWidth;
+        }
+        float cropY = (cutTop-getBitmapRect().top)*curRadio;
+        if(cropY > originHeight){
+            cropY = originHeight;
+        }
 
         // Calculate the crop window size relative to the ~original~ bitmap size.
         // Make sure the right and bottom edges are not outside the ImageView bounds (this is just to address rounding discrepancies).
-        final float cropWidth = cutEdgeSize*curRadio;
-        final float cropHeight = cutEdgeSize*curRadio;
+        float cropWidth = cutEdgeSize*curRadio;
+        if(cropWidth > originWidth-cropX){
+            cropWidth = (float)originWidth-cropX;
+        }
+        float cropHeight = cutEdgeSize*curRadio;
+        if(cropHeight > originHeight-cropY){
+            cropHeight = (float)originHeight-cropY;
+        }
 
         // Crop the subset from the original Bitmap.
         return Bitmap.createBitmap(originalBitmap,

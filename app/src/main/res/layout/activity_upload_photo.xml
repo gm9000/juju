@@ -4,22 +4,24 @@
     android:layout_height="fill_parent"
     android:background="@color/black"
     xmlns:android="http://schemas.android.com/apk/res/android">
-
-    <com.juju.app.view.RoundImageView
-        android:id="@+id/head"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_centerVertical="true"
-        />
-
-    <com.juju.app.view.CircleCopperImageView
-        android:id="@+id/upload_head"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerVertical="true"
-        android:visibility="gone"
-        android:layout_marginBottom="60dp"
-        />
+        android:layout_marginBottom="60dp"        >
+        <com.juju.app.view.RoundImageView
+            android:id="@+id/head"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            />
+        <com.juju.app.view.CircleCopperImageView
+            android:id="@+id/upload_head"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_centerVertical="true"
+            android:visibility="gone"
+            />
+    </RelativeLayout>
     <RelativeLayout
         android:id="@+id/menu_layout"
         android:layout_alignParentBottom="true"

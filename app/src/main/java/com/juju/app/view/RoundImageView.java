@@ -80,9 +80,7 @@ public class RoundImageView extends ImageView {
         Bitmap b = null;
 
 
-        if(drawable instanceof BitmapDrawable){
-            b =  ((BitmapDrawable)drawable).getBitmap() ;
-        }else if(drawable instanceof AsyncDrawable){
+        if(drawable instanceof AsyncDrawable){
             b = Bitmap
                     .createBitmap(
                             getWidth(),
@@ -94,9 +92,14 @@ public class RoundImageView extends ImageView {
             drawable.setBounds(0, 0, getWidth(),
                     getHeight());
             drawable.draw(canvas1);
+        }else if(drawable instanceof BitmapDrawable){
+            b =  ((BitmapDrawable)drawable).getBitmap() ;
         }
 
         Bitmap bitmap = b.copy(Config.ARGB_8888, true);
+        if(bitmap == null){
+            bitmap = b;
+        }
 
         if(defaultWidth == 0) {
             defaultWidth = getWidth();

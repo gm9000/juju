@@ -31,6 +31,17 @@ public abstract class ImageViewTouchBase extends ImageView implements IDisposabl
     public static final String VERSION = BuildConfig.VERSION_NAME;
     public static final float MIN_SCALE_DIFF = 0.1f;
 
+    private float curCenterX;
+    private float curCenterY;
+
+    public float getCurCenterX() {
+        return curCenterX;
+    }
+
+    public float getCurCenterY() {
+        return curCenterY;
+    }
+
     public interface OnDrawableChangeListener {
         /**
          * Callback invoked when a new drawable has been
@@ -933,7 +944,6 @@ public abstract class ImageViewTouchBase extends ImageView implements IDisposabl
                     panBy(valueX - oldValueX, valueY - oldValueY);
                     oldValueX = valueX;
                     oldValueY = valueY;
-                    postInvalidateOnAnimation();
                 }
             }
         );
@@ -980,6 +990,10 @@ public abstract class ImageViewTouchBase extends ImageView implements IDisposabl
         final float finalScale = scale;
         final float destX = centerX + rect.left * scale;
         final float destY = centerY + rect.top * scale;
+
+        this.curCenterX = destX;
+        this.curCenterY = destY;
+
         stopAllAnimations();
 
         ValueAnimator animation = ValueAnimator.ofFloat(oldScale, finalScale);
@@ -991,7 +1005,6 @@ public abstract class ImageViewTouchBase extends ImageView implements IDisposabl
                 public void onAnimationUpdate(final ValueAnimator animation) {
                     float value = (Float) animation.getAnimatedValue();
                     zoomTo(value, destX, destY);
-                    postInvalidateOnAnimation();
                 }
             }
         );

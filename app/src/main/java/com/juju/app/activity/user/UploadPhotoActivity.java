@@ -12,7 +12,6 @@ import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
-import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -41,8 +40,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -56,6 +53,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     private final String imageName = "juju_head.jpg";
 
     private int size;
+
 
     @ViewInject(R.id.upload_head)
     private CircleCopperImageView headImg;
@@ -154,10 +152,11 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
             switch (requestCode) {
                 case PHOTO_REQUEST_TAKEPHOTO:
                     originHeadImg.setVisibility(View.GONE);
+
                     headImg.setVisibility(View.VISIBLE);
                     menuLayout.setVisibility(View.VISIBLE);
                     Bitmap bitmap = DecodeUtils.decode(this, Uri.parse(Environment.getExternalStorageDirectory()+"/juju/"+imageName), size, size);
-                    headImg.setImageBitmap(bitmap,null,-1,-1);
+                    headImg.setImageBitmap(bitmap);
                     break;
 
                 case PHOTO_REQUEST_GALLERY:
@@ -166,7 +165,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
                     menuLayout.setVisibility(View.VISIBLE);
                     if (data != null) {
                         Bitmap bitmap1 = DecodeUtils.decode(this, data.getData(), size, size);
-                        headImg.setImageBitmap(bitmap1, null, -1, -1);
+                        headImg.setImageBitmap(bitmap1);
                     }
                     break;
             }
