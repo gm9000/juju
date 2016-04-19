@@ -1,29 +1,49 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	xmlns:ptr="http://schemas.android.com/apk/res-auto"
 	android:layout_width="fill_parent"
 	android:layout_height="fill_parent"
-	android:background="#ebebeb"
-	android:orientation="vertical" >
+	android:orientation="vertical"
+	android:background="@color/red">
 
 	<include
 		android:id="@+id/top_bar"
 		layout="@layout/layout_title" />
 
-	<com.handmark.pulltorefresh.library.PullToRefreshListView
-		xmlns:ptr="http://schemas.android.com/apk/res-auto"
-		android:id="@+id/message_list"
+	<FrameLayout
 		android:layout_width="match_parent"
 		android:layout_height="wrap_content"
-		android:layout_weight="1"
-		android:background="#ebebeb"
-		android:cacheColorHint="@android:color/transparent"
-		android:clipToPadding="false"
-		android:divider="@null"
-		android:paddingBottom="1dp"
-		android:transcriptMode="normal"
-		ptr:ptrMode="pullFromStart"
-		ptr:ptrOverScroll="false"
-		android:orientation="horizontal" />
+		android:layout_weight="1">
+		<com.handmark.pulltorefresh.library.PullToRefreshListView
+			android:id="@+id/message_list"
+			android:layout_width="match_parent"
+			android:layout_height="match_parent"
+			android:background="#ffffff"
+			android:cacheColorHint="@android:color/transparent"
+			android:clipToPadding="false"
+			android:divider="@null"
+			android:paddingBottom="1dp"
+			android:transcriptMode="normal"
+			ptr:ptrMode="pullFromStart"
+			ptr:ptrOverScroll="false" />
+
+		<TextView
+			android:layout_width="58dp"
+			android:layout_height="wrap_content"
+			android:text="新消息"
+			android:paddingLeft="15dp"
+			android:paddingTop="5dp"
+			android:paddingBottom="8dp"
+			android:id="@+id/tt_new_msg_tip"
+			android:layout_gravity="right|bottom"
+			android:gravity="center_vertical|left"
+			android:visibility="gone"
+			android:textColor="#01aff4"
+			android:background="@mipmap/tt_new_msg_bk"
+			/>
+
+	</FrameLayout>
+
 
 	<RelativeLayout
 		android:id="@+id/tt_layout_bottom"
@@ -35,123 +55,176 @@
 			android:id="@+id/pannel_container"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:background="#aaffffff"
+			android:background="@drawable/tt_pannel_bk"
 			android:clickable="true"
 			android:focusable="true"
 			android:focusableInTouchMode="true"
 			android:orientation="horizontal"
-			android:paddingBottom="8dp"
-			android:paddingLeft="15dp"
-			android:paddingRight="15dp"
-			android:paddingTop="8dp" >
+			android:paddingBottom="7dp"
+			android:paddingLeft="3dp"
+			android:paddingRight="3dp"
+			android:paddingTop="7dp" >
 
-			<EditText
+			<com.juju.app.view.groupchat.CustomEditView
 				android:id="@+id/message_text"
 				android:layout_width="match_parent"
 				android:layout_height="wrap_content"
 				android:layout_centerVertical="true"
-				android:layout_marginLeft="10dp"
-				android:layout_marginRight="10dp"
+				android:layout_marginLeft="9dp"
+				android:layout_marginRight="9dp"
 				android:background="@drawable/tt_message_text_bg"
-				android:gravity="left|center_vertical"
-				android:hint="请输入..."
 				android:maxLines="4"
-				android:minHeight="33dp"
+				android:minHeight="30dp"
 				android:paddingLeft="10dp"
-				android:paddingRight="10dp"
+				android:paddingRight="0dp"
 				android:scrollbars="vertical"
 				android:textColor="@color/default_light_black_color"
-				android:textColorHint="@color/txt_hint_color"
-				android:textCursorDrawable="@drawable/tt_message_cursor"
-				android:textSize="16sp" />
-
-			<!--<com.juju.app.view.PasteEditText-->
-				<!--android:id="@+id/message_text"-->
-				<!--android:layout_width="match_parent"-->
-				<!--android:layout_height="wrap_content"-->
-				<!--android:layout_centerVertical="true"-->
-				<!--android:layout_marginLeft="10dp"-->
-				<!--android:layout_marginRight="10dp"-->
-				<!--android:background="@null"-->
-				<!--android:maxLines="3"-->
-				<!--android:minHeight="40dp"-->
-				<!--android:paddingBottom="3dp"-->
-				<!--android:paddingLeft="1dp"-->
-				<!--android:paddingRight="1dp"-->
-				<!--android:paddingTop="3dp"-->
-				<!--android:textSize="18sp" />-->
-
-
-
-			<TextView
-				android:id="@+id/send_message_btn"
-				android:layout_width="70dp"
-				android:layout_height="33dp"
-				android:layout_alignBottom="@id/message_text"
-				android:layout_alignParentRight="true"
-				android:background="@mipmap/tt_default_btn_bk"
-				android:gravity="center"
-				android:text="@string/send_message"
-				android:textColor="@android:color/white"
-				android:textSize="15dp"
-				android:visibility="gone" />
+				android:textSize="16sp"
+				android:scrollbarStyle="outsideInset"
+				/>
 
 			<ImageView
 				android:id="@+id/voice_btn"
-				android:layout_width="32dp"
-				android:layout_height="32dp"
-				android:layout_alignBottom="@id/message_text"
+				android:layout_width="31dp"
+				android:layout_height="31dp"
+				android:layout_centerVertical="true"
 				android:src="@mipmap/tt_voice_btn_btn" />
 
 			<ImageView
-				android:id="@+id/show_emo_btn"
-				android:layout_width="32dp"
-				android:layout_height="32dp"
-				android:layout_alignBottom="@id/message_text"
-				android:layout_marginLeft="10dp"
-				android:layout_toRightOf="@id/voice_btn"
-				android:src="@drawable/tt_show_emo_btn" />
-
-			<ImageView
 				android:id="@+id/show_keyboard_btn"
-				android:layout_width="32dp"
-				android:layout_height="32dp"
+				android:layout_width="31dp"
+				android:layout_height="31dp"
+				android:layout_centerVertical="true"
 				android:src="@mipmap/tt_switch_to_keyboard_btn"
 				android:visibility="gone" />
 
 			<ImageView
 				android:id="@+id/show_add_photo_btn"
-				android:layout_width="32dp"
-				android:layout_height="32dp"
+				android:layout_width="53dp"
+				android:layout_height="31dp"
 				android:layout_alignParentRight="true"
+				android:layout_centerVertical="true"
+				android:layout_centerHorizontal="true"
 				android:src="@mipmap/tt_show_add_photo_btn" />
+
+			<ImageView
+				android:id="@+id/show_emo_btn"
+				android:layout_width="28dp"
+				android:layout_height="28dp"
+				android:layout_centerVertical="true"
+				android:layout_alignParentRight="true"
+				android:layout_marginRight="60dp"
+				android:scaleType="fitCenter"
+				android:src="@drawable/tt_show_emo_btn" />
+
+			<TextView
+				android:id="@+id/send_message_btn"
+				android:layout_width="53dp"
+				android:layout_height="31dp"
+				android:layout_alignBottom="@id/voice_btn"
+				android:layout_alignParentRight="true"
+				android:layout_centerVertical="true"
+				android:background="@drawable/tt_send_btn_bg"
+				android:gravity="center"
+				android:text="@string/send_message"
+				android:textColor="@android:color/white"
+				android:textSize="15sp"
+				android:visibility="gone" />
 
 			<Button
 				android:id="@+id/record_voice_btn"
 				android:layout_width="match_parent"
-				android:layout_height="33dp"
+				android:layout_height="34dp"
 				android:layout_alignBottom="@id/message_text"
 				android:layout_centerInParent="true"
-				android:layout_marginLeft="10dp"
-				android:layout_marginRight="10dp"
-				android:layout_toLeftOf="@id/show_add_photo_btn"
+				android:layout_marginLeft="9dp"
+				android:layout_marginRight="9dp"
+				android:layout_toLeftOf="@id/show_emo_btn"
 				android:layout_toRightOf="@id/show_keyboard_btn"
 				android:background="@drawable/tt_panel_voice_forward"
 				android:gravity="center"
 				android:text="@string/tip_for_voice_forward"
 				android:textColor="@color/default_light_black_color"
-				android:textSize="15dp"
+				android:textSize="15sp"
 				android:visibility="gone" />
 		</RelativeLayout>
 
-		<com.juju.app.view.EmoGridView
-			android:id="@+id/emo_gridview"
+		<LinearLayout
+			android:id="@+id/emo_layout"
 			android:layout_width="match_parent"
 			android:layout_height="wrap_content"
-			android:layout_alignParentLeft="true"
 			android:layout_below="@id/pannel_container"
+			android:orientation="vertical"
 			android:background="@color/emo_bk_color"
-			android:visibility="gone" />
+			android:visibility="gone"
+			android:gravity="bottom"
+			>
+
+			<View
+				android:layout_width="fill_parent"
+				android:layout_height="0.5dp"
+				android:layout_weight="0"
+				android:background="@color/default_line_color" />
+			<com.juju.app.view.EmoGridView
+				android:id="@+id/emo_gridview"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_weight="1"
+				android:layout_alignParentLeft="true"
+				android:gravity="center_vertical"
+				android:visibility="gone" />
+
+			<com.juju.app.view.groupchat.YayaEmoGridView
+				android:id="@+id/yaya_emo_gridview"
+				android:layout_width="match_parent"
+				android:layout_height="match_parent"
+				android:layout_alignParentLeft="true"
+				android:gravity="center_vertical"
+				android:layout_weight="1"
+				android:visibility="gone" />
+
+			<RadioGroup
+				android:id="@+id/emo_tab_group"
+				android:layout_width="match_parent"
+				android:layout_height="30dp"
+				android:gravity="center_vertical"
+				android:layout_gravity="bottom"
+				android:orientation="horizontal"
+				android:checkedButton="@+id/tab1"
+				android:background="@color/group_manager_user_title">
+
+				<!-- 第一个标签，注意button属性设置成null，以此去掉自带的radio button -->
+				<!-- 注意：id="@id/tab1"，为什么不是+id呢？这个和加载先后有关系,Google一下吧 -->
+				<RadioButton
+					android:id="@id/tab1"
+					android:tag="tab1"
+					android:layout_width="fill_parent"
+					android:layout_height="fill_parent"
+					android:layout_weight="1.0"
+					android:text="@string/yaya_emo"
+					android:button="@null"
+					android:gravity="center"
+					android:layout_gravity="bottom"
+					android:textSize="14sp"
+					android:textColor="@android:color/black"
+					android:background="@drawable/tab_bg_selector"/>
+
+				<RadioButton
+					android:id="@+id/tab2"
+					android:layout_width="fill_parent"
+					android:layout_height="fill_parent"
+					android:layout_weight="1.0"
+					android:text="@string/default_emo"
+					android:button="@null"
+					android:layout_gravity="bottom"
+					android:gravity="center"
+					android:textSize="14sp"
+					android:textColor="@android:color/black"
+					android:background="@drawable/tab_bg_selector"/>
+
+			</RadioGroup>
+
+		</LinearLayout>>
 
 		<LinearLayout
 			android:id="@+id/add_others_panel"

@@ -135,8 +135,8 @@
                 android:singleLine="true" />
         </LinearLayout>
 
-
     </com.juju.app.view.SwipeLayout>
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

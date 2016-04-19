@@ -48,6 +48,9 @@
     <string name="me">我</string>
     <string name="confirm">确定</string>
     <string name="negative">取消</string>
+    <string name="common_loading">正在加载...</string>
+
+
 
 
     <!-- 群聊 -->
@@ -75,6 +78,9 @@
     <string name="loading">加载中&#8230;</string>
     <string name="refresh_over">刷新完成</string>
     <string name="refresh">刷新</string>
+    <string name="default_emo">默认表情</string>
+    <string name="yaya_emo">牙牙表情</string>
+
 
 
     <!-- 消息 -->
@@ -103,6 +109,8 @@
     <string name="message_null">不能发送空内容哦！</string>
     <string name="message_image_desc">Message Image</string>
     <string name="history_divider_text">以上是历史信息</string>
+    <string name="message_send_failed">请检查网络</string>
+
 
 
     <!--聚会-->
