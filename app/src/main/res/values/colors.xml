@@ -22,7 +22,6 @@
     <color name="transparent">#00000000</color>
     <color name="transparent2">#50000000</color>
 
-
     <!-- 公共部分 -->
     <!--蓝色：#0082E3-->
     <!--红色：#FF0000-->
@@ -60,12 +59,20 @@
     <color name="default_line_color">#cccccc</color>
     <color name="default_bk">#ffffff</color>
 
+
+    <color name="group_manager_group_title">#010101</color>
+    <color name="group_manager_user_title">#666666</color>
+    <color name="list_item_sel_color">#eaeaea</color>
+    <color name="contact_name_color">#222222</color>
+    <color name="message_body_text_color">#999999</color>
+    <color name="message_time_color">#a0a0a0</color>
+    <color name="default_line_color">#cccccc</color>
+    <color name="default_bk">#ffffff</color>
+
     <color name="text_color">#ffffff00</color>
     <color name="link_color">#ff4abad7</color>
     <color name="font_value">#ff888271</color>
     <color name="light_notes_color">#ff999999</color>
-
-
 
     <!--我 -->
     <color name="black2">#ffeeeeee</color>
