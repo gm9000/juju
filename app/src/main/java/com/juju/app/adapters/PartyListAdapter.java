@@ -1,36 +1,49 @@
 package com.juju.app.adapters;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-
-import android.content.Context;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
-import com.juju.app.golobal.GlobalVariable;
+import com.juju.app.golobal.BitmapUtilFactory;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.view.RoundImageView;
 import com.lidroid.xutils.BitmapUtils;
 import com.lidroid.xutils.bitmap.BitmapDisplayConfig;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class PartyListAdapter extends BaseAdapter implements View.OnClickListener {
     private DataFilter dataFilter;
     private LayoutInflater inflater;
-    private List<Party> allList = new ArrayList<Party>();
-    private List<Party> filteredPartyList = new ArrayList<Party>();
+
+    public void setPartyList(List<Party> partyList) {
+        if(partyList != null){
+            this.partyList = partyList;
+        }
+
+    }
+
+    private List<Party> partyList = new ArrayList<Party>();
     private BitmapUtils bitmapUtils;
     private BitmapDisplayConfig bdCofig;
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private Callback mCallback;
+
+    public void setFilterType(int filterType) {
+        this.filterType = filterType;
+    }
+
     private int filterType = 0;
 
     public interface Callback {
@@ -40,8 +53,7 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
     public PartyListAdapter(LayoutInflater inflater, BitmapUtils bitmapUtils, BitmapDisplayConfig bdCofig, List<Party> list, Callback callback) {
         this.inflater = inflater;
         if (list != null) {
-            this.filteredPartyList = list;
-            allList.addAll(filteredPartyList);
+            this.partyList = list;
         }
         this.bitmapUtils = bitmapUtils;
         this.bdCofig = bdCofig;
@@ -50,13 +62,13 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
 
     @Override
     public int getCount() {
-        return filteredPartyList.size();
+        return partyList.size();
     }
 
     @Override
     public Object getItem(int position) {
         // TODO Auto-generated method stub
-        return filteredPartyList.get(position);
+        return partyList.get(position);
     }
 
     @Override
@@ -67,7 +79,7 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
 
     @Override
     public View getView(int position, View view, ViewGroup parent) {
-        Party party = filteredPartyList.get(position);
+        Party party = partyList.get(position);
         H h = null;
         if (view == null) {
             h = new H();
@@ -76,22 +88,57 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
             h.name = (TextView) view.findViewById(R.id.party_name);
             h.time = (TextView) view.findViewById(R.id.time);
             h.partDesc = (TextView) view.findViewById(R.id.partyDesc);
+            h.status = (TextView) view.findViewById(R.id.txt_status);
             h.followIcon = (ImageView) view.findViewById(R.id.follow_icon);
-            h.followIcon.setTag(R.id.tag_follow_status,party.getFollowFlag());
-            h.followIcon.setTag(R.id.tag_index,position);
+            h.operate = (TextView) view.findViewById(R.id.txt_operate);
+            h.operate.setTag(R.id.tag_index,position);
+            h.operate.setTag(R.id.follow_icon,h.followIcon);
+            h.flagIcon = (ImageView) view.findViewById(R.id.img_flag);
+            h.layoutBack = (LinearLayout) view.findViewById(R.id.layout_back);
 
             view.setTag(h);
         } else {
             h = (H) view.getTag();
         }
-        h.followIcon.setOnClickListener(this);
-        String portraitUrl = "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort + "/juju/bServer/user/getPortrait?userNo=" + GlobalVariable.userNo + "&token=" + GlobalVariable.token + "&targetNo=" + party.getCreatorId();
-//        h.pic.setImageURI(Uri.parse(portraitUrl));
+        h.operate.setOnClickListener(this);
+        BitmapUtilFactory.getInstance(inflater.getContext()).display(h.pic, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + party.getCreator().getUserNo());
         h.name.setText(party.getName());
-        h.time.setText(party.getStartTime());
-        h.partDesc.setText(party.getDescription());
-        h.followIcon.setImageResource(party.getFollowFlag() == 0 ? R.drawable.heart : R.drawable.heart_fill);
+        if(party.getTime()!=null) {
+            h.time.setText(dateFormat.format(party.getTime()));
+        }else{
+            h.time.setText("暂无任何方案");
+        }
 
+        switch (party.getFollowFlag()){
+            case 0:
+                h.followIcon.setImageResource(R.mipmap.heart_hollow);
+                h.operate.setTag(R.id.tag_follow_status, party.getFollowFlag());
+                h.operate.setText(R.string.follow);
+                h.layoutBack.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.red));
+                break;
+            case 1:
+                h.followIcon.setImageResource(R.mipmap.heart_red);
+                h.operate.setTag(R.id.tag_follow_status, party.getFollowFlag());
+                h.operate.setText(R.string.unfollow);
+                h.layoutBack.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.blue1));
+                break;
+        }
+
+        switch (party.getStatus()){
+            case 0:
+                h.flagIcon.setImageResource(R.mipmap.flag_red);
+                h.status.setText("召集中");
+                break;
+            case 1:
+                h.flagIcon.setImageResource(R.mipmap.flag_green);
+                h.status.setText("进行中");
+                break;
+            case 2:
+                h.flagIcon.setImageResource(R.mipmap.flag_gray);
+                h.status.setText("已结束");
+                break;
+        }
+        h.partDesc.setText(party.getDesc());
         return view;
     }
 
@@ -105,15 +152,29 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
     @Override
     public void onClick(View v) {
 
-        ImageView heartIcon = (ImageView) v;
-        if(((Integer)v.getTag(R.id.tag_follow_status)).intValue()==0){
-            v.setTag(R.id.tag_follow_status,1);
-            heartIcon.setImageResource(R.drawable.heart_fill);
-        }else{
-            v.setTag(R.id.tag_follow_status,0);
-            heartIcon.setImageResource(R.drawable.heart);
+        switch (v.getId()) {
+            case R.id.txt_operate:
+                ImageView heartIcon = (ImageView) v.getTag(R.id.follow_icon);
+
+                int index = (Integer) v.getTag(R.id.tag_index);
+                Party party = partyList.get(index);
+
+                if (((Integer) v.getTag(R.id.tag_follow_status)).intValue() == 0) {
+                    v.setTag(R.id.tag_follow_status, 1);
+                    party.setFollowFlag(1);
+                    heartIcon.setImageResource(R.mipmap.heart_red);
+                } else {
+                    v.setTag(R.id.tag_follow_status, 0);
+                    heartIcon.setImageResource(R.mipmap.heart_hollow);
+                    party.setFollowFlag(0);
+                    if(filterType == 2){
+                        partyList.remove(party);
+                    }
+                }
+                JujuDbUtils.saveOrUpdate(party);
+                notifyDataSetChanged();
+                break;
         }
-        mCallback.click(v);
     }
 
     class DataFilter extends Filter {
@@ -121,31 +182,13 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
         @Override
         protected FilterResults performFiltering(CharSequence charSequence) {
             FilterResults filterResults = new FilterResults();
-            filteredPartyList = new ArrayList<Party>();
-            for (Iterator<Party> iterator = allList.iterator(); iterator.hasNext(); ) {
-                Party party = iterator.next();
-                if (charSequence.equals("all")) {
-                    filterType = 0;
-                    filteredPartyList.add(party);
-                } else if (charSequence.equals("attend")) {
-                    filterType = 1;
-                    if (party.getAttendFlag() == 1) {
-                        filteredPartyList.add(party);
-                    }
-                } else if (charSequence.equals("follow")) {
-                    filterType = 2;
-                    if (party.getFollowFlag() == 1) {
-                        filteredPartyList.add(party);
-                    }
-                } else {
-                    if (party.getName().contains(charSequence)) {
-                        if (filterType == 0 || (filterType == 1 ? (party.getAttendFlag() == 1) : (party.getFollowFlag()) == 1)) {
-                            filteredPartyList.add(party);
-                        }
-                    }
+            List<Party> filterPartyList = new ArrayList<Party>();
+            for (Party party : partyList) {
+                if (party.getName().contains(charSequence) || party.getDesc().contains(charSequence)) {
+                    filterPartyList.add(party);
                 }
             }
-            filterResults.values = filteredPartyList;
+            filterResults.values = filterPartyList;
             return filterResults;
         }
 
@@ -161,6 +204,10 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
         TextView time;
         TextView partDesc;
         ImageView followIcon;
+        TextView status;
+        ImageView flagIcon;
+        TextView operate;
+        LinearLayout layoutBack;
     }
 
 

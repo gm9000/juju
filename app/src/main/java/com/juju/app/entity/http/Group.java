@@ -1,5 +1,7 @@
 package com.juju.app.entity.http;
 
+import com.juju.app.entity.User;
+
 /**
  * 项目名称：juju
  * 类描述：群组实体
@@ -10,7 +12,7 @@ package com.juju.app.entity.http;
 public class Group {
 
 
-    private long id;
+    private String id;
 
     /**
      * 标示id,预留
@@ -19,16 +21,36 @@ public class Group {
 
     private String name;
 
+    private String desc;
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
+    }
+
+    public User getCreator() {
+        return creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
+    }
+
+    private User creator;
+
     /**
      * 群成员数
      */
     private int memberNum;
 
-    public long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

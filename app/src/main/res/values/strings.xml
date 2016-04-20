@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">思亲宝</string>
+    <string name="app_name">聚了么</string>
     <string name="action_settings">Settings</string>
     <string name="search">搜索</string>
 
@@ -44,6 +44,7 @@
     <string name="title_activity_login">LoginActivity</string>
     <string name="group_chat">群聊</string>
     <string name="group_party">聚会</string>
+    <string name="party_plan">聚会方案</string>
     <string name="group_invite">邀请</string>
     <string name="me">我</string>
     <string name="confirm">确定</string>
@@ -111,6 +112,43 @@
     <string name="picture">照片</string>
     <string name="capture">抓拍</string>
     <string name="discuss">评论</string>
+    <string name="title">请输入聚会主题</string>
+    <string name="description">请输入聚会描述</string>
+    <string name="time">请设置聚会时间</string>
+    <string name="select_location">请输入或选择聚会地点</string>
+    <string name="plan_description">请输入方案描述</string>
+    <string name="add_party">发起聚会</string>
+    <string name="publish">发起</string>
+    <string name="start">启动</string>
+    <string name="saving">正在保存&#8230;</string>
+    <string name="starting">正在启动&#8230;</string>
+    <string name="select">选择</string>
+    <string name="unselect">取消选择</string>
+    <string name="selected">未选</string>
+    <string name="signed">已报</string>
+    <string name="follow">关注</string>
+    <string name="unfollow">取消关注</string>
+    <string name="attended"> 人报名</string>
+    <string name="signup">报名</string>
+    <string name="unsignup">取消报名</string>
+    <string name="nodescription">\t\t掌柜的很懒，没有留下任何描述！</string>
+    <string name="completed">已完成</string>
+
+
+    <string-array name="weeks">
+        <item>星期一</item>
+        <item>星期二</item>
+        <item>星期三</item>
+        <item>星期四</item>
+        <item>星期五</item>
+        <item>星期六</item>
+        <item>星期日</item>
+    </string-array>
+    <string name="year">年</string>
+    <string name="month">月</string>
+    <string name="day">日</string>
+    <string name="hour">时</string>
+    <string name="minute">分</string>
 
     <!-- 我 -->
     <string name="my_posts">相册</string>
@@ -126,6 +164,7 @@
     <string name="female">女</string>
     <string name="logout">退出登录</string>
     <string name="uploading">正在上传&#8230;</string>
+
 
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -146,5 +185,8 @@
     <string name="title_activity_setting">SettingActivity</string>
     <string name="title_activity_properties_setting">PropertiesSettingActivity</string>
     <string name="title_activity_upload_photo">UploadPhotoActivity</string>
+    <string name="title_activity_party_create">PartyCreateActivity</string>
+    <string name="title_activity_party_detail">PartyDetailActivity</string>
+    <string name="title_activity_plan_detail">PlanDetailActivity</string>
 
 </resources>

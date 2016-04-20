@@ -1,5 +1,6 @@
 package com.juju.app.fragment;
 
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
@@ -14,6 +15,7 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseApplication;
@@ -24,6 +26,7 @@ import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 
@@ -80,7 +83,18 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     }
     @Override
     public void initView() {
+        Drawable rightDrawable = getResources().getDrawable(R.mipmap.right);
+        Drawable settingDrawable = getResources().getDrawable(R.mipmap.setting);
+        settingDrawable.setBounds(0, 0, 35, 35);
+        txt_setting.setCompoundDrawables(settingDrawable, null, rightDrawable, null);
 
+        Drawable partyDrawable = getResources().getDrawable(R.mipmap.party);
+        partyDrawable.setBounds(0, 0, 35, 35);
+        txt_party.setCompoundDrawables(partyDrawable, null, rightDrawable, null);
+
+        Drawable inviteDrawable = getResources().getDrawable(R.mipmap.invite);
+        inviteDrawable.setBounds(0, 0, 35, 35);
+        txt_invite.setCompoundDrawables(inviteDrawable, null, rightDrawable, null);
     }
 
     @Override
@@ -91,14 +105,17 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     }
 
     public void loadUserInfo() {
-        BitmapUtilFactory.getInstance(getActivity()).display(img_head,HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+BaseApplication.getInstance().getUserInfoBean().getJujuNo());
-        String userInfoStr = (String) SpfUtil.get(getActivity().getApplicationContext(), Constants.USER_INFO, null);
+        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        BitmapUtilFactory.getInstance(getActivity()).display(img_head,HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+userInfoBean.getJujuNo());
+
+        String userInfoStr = (String) SpfUtil.get(getActivity().getApplicationContext(), Constants.USER_INFO,null);
+
         User userInfo = null;
-        if(userInfoStr!=null) {
-            userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
+        if(userInfoStr != null){
+            userInfo = JacksonUtil.turnString2Obj(userInfoStr,User.class);
         }
         if(userInfo == null){
-            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+
             Map<String, Object> valueMap = new HashMap<String, Object>();
             valueMap.put("userNo", userInfoBean.getJujuNo());
             valueMap.put("token", userInfoBean.getToken());
@@ -162,14 +179,14 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                             User userInfo = new User();
                             userInfo.setUserNo(userJson.getString("userNo"));
                             userInfo.setNickName(userJson.getString("nickName"));
-                            userInfo.setPhone(userJson.getString("userPhone"));
+                            userInfo.setUserPhone(userJson.getString("userPhone"));
                             userInfo.setGender(userJson.getInt("gender"));
 
+                            JujuDbUtils.saveOrUpdate(userInfo);
 
                             img_gender.setImageResource(userInfo.getGender() == 0 ? R.mipmap.ic_sex_female : R.mipmap.ic_sex_male);
                             txt_jujuNo.setText(userInfo.getUserNo());
                             txt_nickName.setText(userInfo.getNickName());
-                            SpfUtil.put(getActivity().getApplicationContext(), Constants.USER_INFO, userInfo.toString());
 
                         } else {
                         }

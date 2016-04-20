@@ -72,7 +72,6 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewUtils.inject(this);
         initView();
         setListeners();
     }
@@ -201,7 +200,6 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
                 R.id.upload_head, HttpConstants.getUserUrl() + "/uploadPortrait", this, valueMap,
                 JSONObject.class);
         try {
-            ToastUtil.showShortToast(this,"正在上传...",100);
             loading(true, R.string.uploading);
             txt_confirm.setClickable(false);
             txt_cancel.setClickable(false);
@@ -241,7 +239,6 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
         switch (accessId) {
             case R.id.upload_head:
-                ToastUtil.showShortToast(this,"上传完成",100);
                 txt_confirm.setClickable(true);
                 txt_cancel.setClickable(true);
                 if(obj != null && obj.length > 0) {
@@ -269,7 +266,8 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
 
     @Override
     public void onFailure(HttpException error, String msg, int accessId) {
-        ToastUtil.showShortToast(this,"上传失败",100);
+        completeLoading();
+        ToastUtil.showShortToast(this,"上传失败",1);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         BitmapUtilFactory.getInstance(this).display(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
         txt_confirm.setClickable(true);

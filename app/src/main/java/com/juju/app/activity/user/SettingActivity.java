@@ -15,6 +15,7 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseApplication;
@@ -24,6 +25,7 @@ import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
 import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;
@@ -127,10 +129,9 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     private void loadUserInfo() {
 
         BitmapUtilFactory.getInstance(this).display(headImg,HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+ BaseApplication.getInstance().getUserInfoBean().getJujuNo());
-
-        String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
+        String userInfoStr = (String) SpfUtil.get(getApplicationContext(),Constants.USER_INFO,null);
         User userInfo = null;
-        if(userInfoStr!=null) {
+        if(userInfoStr != null) {
             userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
         }
         if(userInfo == null){
@@ -153,7 +154,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
         }else{
             txt_gender.setText(userInfo.getGender() == 0 ? "女" : "男");
             txt_jujuNo.setText(userInfo.getUserNo());
-            txt_phoneNo.setText(userInfo.getPhone());
+            txt_phoneNo.setText(userInfo.getUserPhone());
             txt_nickName.setText(userInfo.getNickName());
         }
     }
@@ -303,13 +304,14 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
                             User userInfo = new User();
                             userInfo.setUserNo(userJson.getString("userNo"));
                             userInfo.setNickName(userJson.getString("nickName"));
-                            userInfo.setPhone(userJson.getString("userPhone"));
+                            userInfo.setUserPhone(userJson.getString("userPhone"));
                             userInfo.setGender(userJson.getInt("gender"));
 
-                            txt_gender.setText(userInfo.getGender()==0?"女":"男");
+                            txt_gender.setText(userInfo.getGender() == 0 ? "女" : "男");
                             txt_jujuNo.setText(userInfo.getUserNo());
-                            txt_phoneNo.setText(userInfo.getPhone());
+                            txt_phoneNo.setText(userInfo.getUserPhone());
                             txt_nickName.setText(userInfo.getNickName());
+                            JujuDbUtils.saveOrUpdate(userInfo);
                             SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo.toString());
 
                         } else {
@@ -329,6 +331,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
                             String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
                             User userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
                             userInfo.setUpdate(false);
+                            JujuDbUtils.saveOrUpdate(userInfo);
                             SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
                         } else {
                             Log.e(TAG,"return status code:"+status);

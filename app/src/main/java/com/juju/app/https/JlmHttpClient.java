@@ -15,6 +15,7 @@ import com.lidroid.xutils.http.callback.RequestCallBack;
 import com.lidroid.xutils.http.client.HttpRequest;
 
 import org.apache.http.entity.StringEntity;
+import org.apache.http.protocol.HTTP;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -243,9 +244,9 @@ public class JlmHttpClient<Req> {
                 }
             }
             body = paramJson.toString();
-            Log.d("["+url+"]Send Post Message:", body);
         }
-        params.setBodyEntity(new StringEntity(body));
+        Log.d("["+url+"]Send Post Message:", body);
+        params.setBodyEntity(new StringEntity(body, HTTP.UTF_8));
     }
 
     private void doSend(RequestParams params, HttpRequest.HttpMethod httpMethod) {

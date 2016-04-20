@@ -8,5 +8,22 @@ package com.juju.app.bean.json;
  * 版本：V1.0.0
  */
 public class BaseReqBean {
+    private String userNo;
+    private String token;
 
+    public String getUserNo() {
+        return userNo;
+    }
+
+    public void setUserNo(String userNo) {
+        this.userNo = userNo;
+    }
+
+    public String getToken() {
+        return token;
+    }
+
+    public void setToken(String token) {
+        this.token = token;
+    }
 }

@@ -10,19 +10,25 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
+import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
+
+import org.apache.http.message.BasicNameValuePair;
 
 @ContentView(R.layout.activity_main)
 @CreateUI
@@ -56,6 +62,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     @Override
     public void loadData() {
+        if(GlobalVariable.isSkipLogin()){
+            return;
+        }
         joinChatRoom();
 //        Log.d("MainActivity", getRunningServicesInfo(MainActivity.this));
 //        sendMessage();
@@ -112,7 +121,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
                 index = 1;
                 txt_title.setText(R.string.group_party);
                 img_right.setVisibility(View.VISIBLE);
-                img_right.setImageResource(R.mipmap.icon_titleaddfriend);
+                img_right.setImageResource(R.mipmap.icon_add);
                 break;
             case R.id.re_profile:
                 index = 2;
@@ -171,8 +180,18 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
 
 
     @OnClick(R.id.img_right)
-    public void onClick4ImgRight(View v) {
-        titlePopup.show(layout_bar);
+    public void clickImgRight(View v) {
+        switch(index) {
+            case 0: //  群聊
+                titlePopup.show(layout_bar);
+                break;
+            case 1: //  聚会
+                //TODO 需要修改为从群聊中发起聚会
+                String groupId = "570dbc6fe4b092891a647e32";
+                BasicNameValuePair phoneValue = new BasicNameValuePair(Constants.GROURP_ID,groupId);
+                ActivityUtil.startActivity(this,PartyCreateActivity.class,phoneValue);
+                break;
+        }
     }
 
 
