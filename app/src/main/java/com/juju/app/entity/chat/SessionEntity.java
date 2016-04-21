@@ -1,12 +1,12 @@
 package com.juju.app.entity.chat;
 
 
+import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.utils.StringUtils;
 
-public class SessionEntity {
+public class SessionEntity extends BaseEntity {
 
-    private Long id;
     /** Not-null value. */
     private String sessionKey;
     private String peerId;
@@ -25,13 +25,13 @@ public class SessionEntity {
     public SessionEntity() {
     }
 
-    public SessionEntity(Long id) {
-        this.id = id;
+    public SessionEntity(Long localId) {
+        this.localId = localId;
     }
 
-    public SessionEntity(Long id, String sessionKey, String peerId, int peerType,
+    public SessionEntity(Long localId, String id, String sessionKey, String peerId, int peerType,
                          int latestMsgType, int latestMsgId, String latestMsgData, String talkId, int created, int updated) {
-        this.id = id;
+        this.localId = localId;
         this.sessionKey = sessionKey;
         this.peerId = peerId;
         this.peerType = peerType;
@@ -43,13 +43,6 @@ public class SessionEntity {
         this.updated = updated;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     /** Not-null value. */
     public String getSessionKey() {

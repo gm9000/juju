@@ -52,13 +52,14 @@ dependencies {
     compile name: 'SMSSDK-2.0.1', ext: 'aar'
     compile 'org.greenrobot:eventbus:3.0.0'
     compile 'com.kaopiz:kprogresshud:1.0.5'
-    compile 'com.android.support:design:23.2.0'
-    compile 'com.android.support:support-annotations:23.2.0'
-    compile 'com.android.support:appcompat-v7:23.2.0'
+    compile 'com.android.support:design:23.1.1'
+    compile 'com.android.support:support-annotations:23.1.1'
+    compile 'com.android.support:appcompat-v7:23.1.1'
     compile "org.igniterealtime.smack:smack-android-extensions:$smackVersion"
     compile "org.igniterealtime.smack:smack-experimental:$smackVersion"
     compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
     compile project(':mgimlibs')
+    compile files('libs/universal-image-loader-1.9.3.jar')
 }
 
 repositories {

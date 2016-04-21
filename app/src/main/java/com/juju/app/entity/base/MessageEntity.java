@@ -86,12 +86,13 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 	}
 
 	public MessageEntity(Long id) {
-		this.id = id;
+		this.localId = id;
 	}
 
-	public MessageEntity(Long id, int msgId, String fromId, String toId, String sessionKey,
+	public MessageEntity(Long localId, String id, int msgId, String fromId, String toId, String sessionKey,
 						 String content, int msgType, int displayType,
 						 int status, int created, int updated) {
+		this.localId = localId;
 		this.id = id;
 		this.msgId = msgId;
 		this.fromId = fromId;
@@ -105,13 +106,6 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 		this.updated = updated;
 	}
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
 
 	public int getMsgId() {
 		return msgId;
@@ -234,6 +228,7 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 	public String toString() {
 		return "MessageEntity{" +
 				"id=" + id +
+				"localId=" + localId +
 				", msgId=" + msgId +
 				", fromId=" + fromId +
 				", toId=" + toId +
@@ -334,7 +329,7 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 
 
 	public MessageEntity clone() {
-		MessageEntity entry = new MessageEntity(id, msgId, fromId, toId,  sessionKey,
+		MessageEntity entry = new MessageEntity(localId, id, msgId, fromId, toId,  sessionKey,
 				content,  msgType,  displayType, status,  created,  updated);
 		return entry;
 	}

@@ -8,6 +8,7 @@ import com.juju.app.utils.StringUtils;
  * 未读session实体，并未保存在DB中
  */
 public class UnreadEntity {
+
     private String sessionKey;
     private String peerId;
     private int sessionType;
