@@ -21,18 +21,14 @@ import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.adapters.PartyListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.entity.Party;
-import com.juju.app.entity.Plan;
-import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.http.GetPartysRes;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
-import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ToastUtil;
-import com.juju.app.view.wheel.dialog.SelectDateTimeDialog;
 import com.lidroid.xutils.BitmapUtils;
 import com.lidroid.xutils.bitmap.BitmapCommonUtils;
 import com.lidroid.xutils.bitmap.BitmapDisplayConfig;
@@ -95,7 +91,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
         if(JujuDbUtils.needRefresh(Party.class)) {
             JujuDbUtils.closeRefresh(Party.class);
             try {
-                Selector selector = Selector.from(Party.class).orderBy("localId", true);
+                Selector selector = Selector.from(Party.class).where("status",">",-1).orderBy("localId", true);
                 switch (filterType){
                     case 0:
                         break;
@@ -162,7 +158,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 //        }
 
         try {
-            partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).orderBy("localId", true));
+            partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("status",">",-1).orderBy("localId", true));
             if(partyList == null) {
                 partyList = new ArrayList<Party>();
             }
@@ -208,7 +204,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
     public void onCheckedChanged(RadioGroup group, int checkedId) {
         if (partyTypeGroup.getId() == group.getId()) {
 
-            Selector selector = Selector.from(Party.class).orderBy("localId", true);
+            Selector selector = Selector.from(Party.class).where("status", ">", -1).orderBy("localId", true);
 
             //  处理渲染用户相关的所有聚会
             if (checkedId == allBtn.getId()) {
@@ -216,7 +212,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
             }
             //  处理渲染用户参加的所有聚会
             if (checkedId == attendBtn.getId()) {
-                filterType = 2;
+                filterType = 1;
                 selector.where("attendFlag", "=", 1);
             }
             //  处理渲染用户关注的所有聚会

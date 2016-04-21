@@ -1,0 +1,123 @@
+package com.juju.app.adapters;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+
+import com.juju.app.R;
+import com.juju.app.entity.Party;
+import com.juju.app.utils.ViewHolderUtil;
+import com.juju.app.view.SwipeLayout;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+
+
+public class MyPartyListAdapter extends BaseAdapter{
+    private Context context;
+
+    public void setPartyList(List<Party> partyList) {
+        this.partyList = partyList;
+    }
+
+    private List<Party> partyList = new ArrayList<Party>();
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    private Callback mCallback;
+
+
+    public interface Callback {
+        public void deleteParty(int position);
+    }
+
+    public MyPartyListAdapter(Context context,List<Party> list, Callback callback) {
+        this.context = context;
+        if (list != null) {
+            this.partyList = list;
+        }
+        this.mCallback = callback;
+    }
+
+    @Override
+    public int getCount() {
+        return partyList.size();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        // TODO Auto-generated method stub
+        return partyList.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        // TODO Auto-generated method stub
+        return position;
+    }
+
+    @Override
+    public View getView(final int position, View view, ViewGroup parent) {
+
+        Party party = partyList.get(position);
+
+        if(view == null) {
+            view = LayoutInflater.from(context).inflate(R.layout.my_party_item, parent, false);
+        }
+        SwipeLayout layout_swipe = ViewHolderUtil.get(view, R.id.swipe);
+
+        if(party.getStatus() == -1) {
+            layout_swipe.setSwipeEnabled(true);
+        }else{
+            layout_swipe.setSwipeEnabled(false);
+        }
+
+        TextView partyName = (TextView) view.findViewById(R.id.party_name);
+        TextView time = (TextView) view.findViewById(R.id.time);
+        TextView partyDesc = (TextView) view.findViewById(R.id.partyDesc);
+        ImageView img_status = (ImageView) view.findViewById(R.id.img_status);
+        TextView txt_status = (TextView) view.findViewById(R.id.txt_status);
+        TextView operate = (TextView) view.findViewById(R.id.txt_operate);
+
+        partyName.setText(party.getName());
+        if(party.getTime()!=null) {
+            time.setText(dateFormat.format(party.getTime()));
+        }else{
+            time.setText("暂无任何方案");
+        }
+
+        partyDesc.setText(party.getDesc());
+
+        switch (party.getStatus()){
+            case -1:
+                img_status.setImageResource(R.mipmap.description);
+                txt_status.setText(R.string.drafts);
+                break;
+            case 0:
+                img_status.setImageResource(R.mipmap.flag_red);
+                txt_status.setText(R.string.calling);
+                break;
+            case 1:
+                img_status.setImageResource(R.mipmap.flag_green);
+                txt_status.setText(R.string.running);
+                break;
+            case 2:
+                img_status.setImageResource(R.mipmap.flag_gray);
+                txt_status.setText(R.string.finished);
+                break;
+        }
+
+        operate.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mCallback.deleteParty(position);
+            }
+        });
+
+        return view;
+    }
+
+}

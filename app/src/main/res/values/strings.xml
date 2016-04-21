@@ -44,11 +44,13 @@
     <string name="title_activity_login">LoginActivity</string>
     <string name="group_chat">群聊</string>
     <string name="group_party">聚会</string>
+    <string name="my_party">我发起的聚会</string>
     <string name="party_plan">聚会方案</string>
     <string name="group_invite">邀请</string>
     <string name="me">我</string>
     <string name="confirm">确定</string>
     <string name="negative">取消</string>
+    <string name="delete">删除</string>
 
 
     <!-- 群聊 -->
@@ -133,6 +135,11 @@
     <string name="unsignup">取消报名</string>
     <string name="nodescription">\t\t掌柜的很懒，没有留下任何描述！</string>
     <string name="completed">已完成</string>
+    <string name="published">已发布</string>
+    <string name="drafts">草稿箱</string>
+    <string name="calling">召集中</string>
+    <string name="running">进行中</string>
+    <string name="finished">已结束</string>
 
 
     <string-array name="weeks">
@@ -188,5 +195,6 @@
     <string name="title_activity_party_create">PartyCreateActivity</string>
     <string name="title_activity_party_detail">PartyDetailActivity</string>
     <string name="title_activity_plan_detail">PlanDetailActivity</string>
+    <string name="title_activity_my_party_list">MyPartyListActivity</string>
 
 </resources>

@@ -107,6 +107,10 @@
             android:name=".activity.party.PlanDetailActivity"
             android:label="@string/title_activity_plan_detail"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+        <activity
+            android:name=".activity.party.MyPartyListlActivity"
+            android:label="@string/title_activity_plan_detail"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
