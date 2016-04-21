@@ -47,6 +47,7 @@ public class Constants {
     public static final int MESSAGE_STATE_FINISH_FAILED = 0X0003;
     public static final int STOP_PLAY_VOICE = 0X0004;
     public static final int pageSize = 21;
+    public static final int yayaPageSize = 8;
     public static final String SESSION_ID_KEY = "session_id";
     public static final String GROUP_NAME_KEY = "group_name";
 
@@ -82,6 +83,11 @@ public class Constants {
     public final static int REQUEST_CODE = 0;
 
 
+    /**头像尺寸大小定义*/
+    public static final String AVATAR_APPEND_32 ="_32x32.jpg";
+
+
+
     /**
      ******************************************* 注册设置信息******************************************
      */
@@ -101,10 +107,21 @@ public class Constants {
     public static final String PROPERTY_TYPE = "propertyType";  //  属性类型
     public static final String PROPERTY_VALUE = "propertyValue";  //  属性名称
 
+<<<<<<< Updated upstream
     public static final String GROURP_ID = "groupId";    //  群组ID
     public static final String PARTY_ID = "partyId";    //  聚会ID
     public static final String IS_OWNER = "isOwner";    //  是否是创建者
     public static final String PLAN_ID = "planId";    //  聚会ID
 
+=======
+
+    //message 每次拉取的条数
+    public static final int MSG_CNT_PER_PAGE = 15;
+    /**
+     * event 优先级
+     * */
+    public static final int SERVICE_EVENTBUS_PRIORITY = 10;
+    public static final int MESSAGE_EVENTBUS_PRIORITY = 100;
+>>>>>>> Stashed changes
 
 }

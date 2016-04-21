@@ -26,4 +26,14 @@ public class IMRecentSessionManager extends IMManager {
     public void doOnStart() {
 
     }
+
+    /**
+     * 上下文环境的更新
+     * 1. 环境变量的clear
+     * 2. eventBus的清空
+     */
+    @Override
+    public void reset() {
+
+    }
 }

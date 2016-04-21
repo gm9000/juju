@@ -43,7 +43,7 @@ import java.util.Map;
  */
 @CreateFragmentUI(viewId = R.layout.fragment_live)
 public class LiveFragment extends BaseFragment implements CreateUIHelper,
-        View.OnClickListener, AdapterView.OnItemClickListener, HttpCallBack {
+        AdapterView.OnItemClickListener, HttpCallBack {
 
 
     private PartyActivity parentActivity;
@@ -52,16 +52,7 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
     private List<VideoProgram> videoProgramList;
 
 
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.rl_error_item:
-                NetWorkUtil.openSetNetWork(getActivity());
-                break;
-            default:
-                break;
-        }
-    }
+
 
     @Override
     public void setOnListener() {

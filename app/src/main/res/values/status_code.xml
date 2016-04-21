@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="SUCCESS">成功</string>
+    <string name="USER_NOT_EXIST">用户不存在</string>
+    <string name="GROUP_NOT_EXIST">群组不存在</string>
+    <string name="GROUP_USER_NOT_EXIST">群组用户不存在</string>
+    <string name="PARTY_NOT_EXIST">聚会不存在</string>
+    <string name="PLAN_NOT_EXIST">聚会任务不存在</string>
+    <string name="USER_HAS_EXIST">用户已存在</string>
+    <string name="PASSWORD_ERROR">密码错误</string>
+    <string name="TOKEN_ERROR">令牌错误</string>
+    <string name="INVITE_CODE_ERROR">邀请码无效</string>
+    <string name="NOT_PERMIT">无权限</string>
+    <string name="PARAM_ILLEGAL">非法参数</string>
+    <string name="INVALID">无效ID</string>
+    <string name="UNKNOWN_ERROR">未知异常</string>
+</resources>

@@ -144,8 +144,48 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 //        bdConfig.setAnimation(AnimationUtils.loadAnimation(context, R.anim.slide_in_from_top));
         bitmapUtils.configDefaultDisplayConfig(bdConfig);
 
+<<<<<<< Updated upstream
         loadPartyData();
     }
+=======
+        partyList = new ArrayList<Party>();
+        Party p1 = new Party();
+        p1.setId(1l);
+        p1.setName("郊区小聚");
+        p1.setDescription("好久不见，坐下来俩聊！");
+        p1.setStartTime("2015年12月12日 09:00");
+        p1.setCreatorId("100000011");
+        p1.setCreatorName("聚龙小子");
+        p1.setStatus(0);
+        p1.setAttendFlag(1);
+        p1.setFollowFlag(0);
+        partyList.add(p1);
+
+        Party p2 = new Party();
+        p2.setId(1l);
+        p2.setName("郊区小聚2");
+        p2.setDescription("好久不见，坐下来俩聊2！");
+        p2.setStartTime("2015年12月12日 09:00");
+        p2.setCreatorId("100000011");
+        p2.setCreatorName("聚龙小子2");
+        p2.setStatus(0);
+        p2.setAttendFlag(1);
+        p2.setFollowFlag(1);
+        partyList.add(p2);
+
+        Party p3 = new Party();
+        p3.setId(1l);
+        p3.setName("郊区小聚3");
+        p3.setDescription("好久不见，坐下来俩聊3！");
+        p3.setStartTime("2015年12月12日 09:00");
+        p3.setCreatorId("100000009");
+        p3.setCreatorName("聚龙小子3");
+        p3.setStatus(1);
+        p3.setAttendFlag(0);
+        p3.setFollowFlag(0);
+        partyList.add(p3);
+        wrapPartyList(partyList);
+>>>>>>> Stashed changes
 
     private void loadPartyData() {
 

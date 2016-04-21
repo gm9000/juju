@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:background="#ebebeb"
+<com.juju.app.view.groupchat.TextRenderView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/default_bk"
     android:paddingBottom="20dp"
-    android:paddingLeft="15dp" >
+    android:paddingLeft="10dp" >
 
-    <com.mogujie.widget.imageview.MGWebImageView
-        xmlns:app="http://schemas.android.com/apk/res-auto"
+    <com.juju.app.view.groupchat.IMBaseImageView
         android:id="@+id/user_portrait"
-        android:layout_width="38dp"
-        android:layout_height="38dp"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
         android:scaleType="centerCrop"
         android:src="@mipmap/tt_default_user_portrait_corner" />
 
@@ -18,8 +18,9 @@
         android:id="@+id/content_layout"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignTop="@id/user_portrait"
         android:layout_marginLeft="5dp"
-        android:layout_marginRight="35dp"
+        android:layout_marginRight="60dp"
         android:layout_toRightOf="@id/user_portrait"
         android:orientation="vertical" >
 
@@ -27,18 +28,16 @@
             android:id="@+id/name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="2dp"
             android:layout_marginLeft="5dp"
             android:text="小明"
-            android:textSize="14sp"
+            android:textSize="11sp"
             android:visibility="gone" />
 
         <LinearLayout
-            android:id="@+id/content_layout1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="35dp"
-            android:layout_marginTop="5dp"
+            android:layout_marginLeft="0dp"
             android:layout_toRightOf="@id/user_portrait"
             android:orientation="horizontal" >
 
@@ -46,15 +45,17 @@
                 android:id="@+id/message_content"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/im_other_item_bg_normal"
-                android:gravity="center"
-                android:paddingBottom="13dp"
-                android:paddingLeft="20dp"
-                android:paddingRight="13dp"
-                android:paddingTop="13dp"
+                android:background="@drawable/tt_other_item_bg_normal"
+                android:gravity="left"
+                android:paddingBottom="8dp"
+                android:paddingLeft="18dp"
+                android:paddingTop="8dp"
+                android:paddingRight="6dp"
                 android:text="1111111111111"
-                android:textColor="#070707"
-                android:textSize="14sp" />
+                android:textColor="@android:color/black"
+                android:textSize="17sp"
+                android:textColorLink="@android:color/black"
+                />
 
             <!--
                  <TextView
@@ -91,4 +92,4 @@
         </LinearLayout>
     </LinearLayout>
 
-</RelativeLayout>
+</com.juju.app.view.groupchat.TextRenderView>

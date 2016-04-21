@@ -10,21 +10,36 @@ import android.net.Uri;
 import android.util.Log;
 
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.biz.DaoSupport;
+import com.juju.app.biz.MessageDao;
+import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.entity.chat.TextMessage;
+import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.ConnectionState;
+import com.juju.app.event.PriorityEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
+import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.MessageConstant;
 import com.juju.app.service.im.XMPPServiceCallback;
 import com.juju.app.service.im.data.MessageProvider;
 
 
 
 import com.juju.app.service.im.data.MessageProvider.ChatConstants;
+import com.juju.app.service.im.manager.IMSessionManager;
+import com.juju.app.service.im.manager.IMUnreadMsgManager;
 import com.juju.app.service.im.tls.TLSMode;
 import com.juju.app.ui.base.BaseApplication;
+import com.juju.app.utils.StringUtils;
 
 
+import org.greenrobot.eventbus.EventBus;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
+import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -37,6 +52,7 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.TLSUtils;
+import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jivesoftware.smackx.ping.PingFailedListener;
@@ -45,6 +61,8 @@ import java.io.File;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.Date;
+import java.util.UUID;
 
 
 /**
@@ -65,8 +83,13 @@ public class XMPPServiceImpl implements
     private static final int PACKET_TIMEOUT = 30000;// 超时时间
 
 
+    private StanzaListener mStanzaListener;
+
+    private MessageListener messageListener;
 
     private XMPPServiceCallback mServiceCallBack;
+
+    private MultiUserChat multiUserChat;
 
     static {
         registerSmackProviders();
@@ -112,12 +135,17 @@ public class XMPPServiceImpl implements
     private AbstractXMPPConnection xmppConnection;
     private final AcceptAll ACCEPT_ALL = new AcceptAll();
 
-    private MultiUserChat multiUserChat;
+    private UserInfoBean userInfoBean = null;
+    private DaoSupport messageDao;
+
+    private IMSessionManager sessionManager = IMSessionManager.instance();
+    private IMUnreadMsgManager unreadMsgManager = IMUnreadMsgManager.instance();
 
 
 
 
-    public XMPPServiceImpl(ContentResolver contentResolver, Service service) {
+
+    public XMPPServiceImpl(ContentResolver contentResolver, Service service, DaoSupport messageDao) {
         this.mContentResolver = contentResolver;
         this.mService = service;
 
@@ -128,6 +156,8 @@ public class XMPPServiceImpl implements
         saslEnabled = false;
         tlsMode = TLSMode.legacy;
 
+        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        this.messageDao = messageDao;
     }
 
     private void createConnection(boolean useSRVLookup)
@@ -149,8 +179,8 @@ public class XMPPServiceImpl implements
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         // 不加这行会报错，因为没有证书
         builder.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
-//        builder.setCompressionEnabled(compression);
-//        builder.setSendPresence(false);
+        builder.setCompressionEnabled(false);
+        builder.setSendPresence(true);
 //        builder.setUsernameAndPassword(userInfoBean.getmAccount(), userInfoBean.getmPassword());
         try {
             TLSUtils.acceptAllCertificates(builder);
@@ -202,7 +232,10 @@ public class XMPPServiceImpl implements
      */
     @Override
     public boolean logout() {
-
+        if(xmppConnection != null && xmppConnection.isConnected()) {
+            xmppConnection.disconnect();
+            return true;
+        }
         return false;
     }
 
@@ -237,17 +270,11 @@ public class XMPPServiceImpl implements
     @Override
     public void sendMessage(String user, String message)
             throws SmackException.NotConnectedException {
-        final Message newMessage = new Message(user, Message.Type.groupchat);
+        Message newMessage = new Message(user, Message.Type.groupchat);
+        newMessage.setThread(UUID.randomUUID().toString());
         newMessage.setBody(message);
-
         if (isAuthenticated()) {
-//            addChatMessageToDB(ChatConstants.OUTGOING, user, message, ChatConstants.DS_SENT_OR_READ,
-//                    System.currentTimeMillis(), newMessage.getPacketID());
-            xmppConnection.sendPacket(newMessage);
-        } else {
-            // send offline -> store to DB
-//            addChatMessageToDB(ChatConstants.OUTGOING, user, message, ChatConstants.DS_NEW,
-//                    System.currentTimeMillis(), newMessage.getPacketID());
+            xmppConnection.sendStanza(newMessage);
         }
     }
 
@@ -256,7 +283,6 @@ public class XMPPServiceImpl implements
      */
     @Override
     public void registerAllListener() {
-
     }
 
     /**
@@ -275,7 +301,7 @@ public class XMPPServiceImpl implements
      */
     @Override
     public void registerCallback(XMPPServiceCallback callBack) {
-
+        this.mServiceCallBack = callBack;
     }
 
     /**
@@ -283,7 +309,7 @@ public class XMPPServiceImpl implements
      */
     @Override
     public void unRegisterCallback() {
-
+        this.mServiceCallBack = null;
     }
 
     /**
@@ -297,160 +323,20 @@ public class XMPPServiceImpl implements
                 "@"+BaseApplication.getInstance().getUserInfoBean().getmMucServiceName()+".juju";
         Log.d(TAG, "chatRoom:"+jid);
         multiUserChat = multiUserChatManager.getMultiUserChat(jid);
-        multiUserChat.join(BaseApplication.getInstance().getUserInfoBean().getUserName());
-//        multiUserChat.sendMessage("哈哈");
+        if(multiUserChat != null) {
+            DiscussionHistory history = new DiscussionHistory();
+            history.setSince(new Date());
+            String nickName = userInfoBean.getmAccount();
+            String password = userInfoBean.getmPassword();
+            multiUserChat.join(nickName, password, history,
+                    SmackConfiguration.getDefaultPacketReplyTimeout());
+        }
+
     }
 
 
 
-//    // called at the end of a state transition
-//    private synchronized void updateConnectionState(ConnectionState new_state) {
-//        if (new_state == ConnectionState.ONLINE || new_state == ConnectionState.CONNECTING)
-//            mLastError = null;
-//        Log.d(TAG, "updateConnectionState: " + mState + " -> " + new_state + " (" + mLastError + ")");
-//        if (new_state == mState)
-//            return;
-//        mState = new_state;
-//        if (mServiceCallBack != null)
-//            mServiceCallBack.connectionStateChanged();
-//    }
 
-
-    private void registerMessageListener() {
-        // do not register multiple packet listeners
-//        if (mPacketListener != null)
-//            mXMPPConnection.removePacketListener(mPacketListener);
-//
-//        PacketTypeFilter filter = new PacketTypeFilter(Message.class);
-//
-//        mPacketListener = new PacketListener() {
-//            public void processPacket(Packet packet) {
-//                try {
-//                    if (packet instanceof Message) {
-//                        Message msg = (Message) packet;
-//                        String fromJID = getBareJID(msg.getFrom());
-//                        int direction = ChatConstants.INCOMING;
-//                        Carbon cc = CarbonManager.getCarbon(msg);
-//                        // extract timestamp
-//                        long ts;
-//                        DelayInfo timestamp = (DelayInfo)msg.getExtension("delay", "urn:xmpp:delay");
-//                        if (timestamp == null)
-//                            timestamp = (DelayInfo)msg.getExtension("x", "jabber:x:delay");
-//                        if (cc != null) // Carbon timestamp overrides packet timestamp
-//                            timestamp = cc.getForwarded().getDelayInfo();
-//                        if (timestamp != null)
-//                            ts = timestamp.getStamp().getTime();
-//                        else
-//                            ts = System.currentTimeMillis();
-//
-//                        // try to extract a carbon
-//                        if (cc != null) {
-//                            Log.d(TAG, "carbon: " + cc.toXML());
-//                            msg = (Message)cc.getForwarded().getForwardedPacket();
-//
-//                            // outgoing carbon: fromJID is actually chat peer's JID
-//                            if (cc.getDirection() == Carbon.Direction.sent) {
-//                                fromJID = getBareJID(msg.getTo());
-//                                direction = ChatConstants.OUTGOING;
-//                            } else {
-//                                fromJID = getBareJID(msg.getFrom());
-//
-//                                // hook off carbonated delivery receipts
-//                                DeliveryReceipt dr = (DeliveryReceipt)msg.getExtension(
-//                                        DeliveryReceipt.ELEMENT, DeliveryReceipt.NAMESPACE);
-//                                if (dr != null) {
-//                                    Log.d(TAG, "got CC'ed delivery receipt for " + dr.getId());
-//                                    changeMessageDeliveryStatus(dr.getId(), ChatConstants.DS_ACKED);
-//                                }
-//                            }
-//                        }
-//
-//                        String chatMessage = msg.getBody();
-//
-//                        // display error inline
-//                        if (msg.getType() == Message.Type.error) {
-//                            if (changeMessageDeliveryStatus(msg.getPacketID(), ChatConstants.DS_FAILED))
-//                                mServiceCallBack.messageError(fromJID, msg.getError().toString(), (cc != null));
-//                            return; // we do not want to add errors as "incoming messages"
-//                        }
-//
-//                        // ignore empty messages
-//                        if (chatMessage == null) {
-//                            Log.d(TAG, "empty message.");
-//                            return;
-//                        }
-//                        // carbons are old. all others are new
-//                        int is_new = (cc == null) ? ChatConstants.DS_NEW : ChatConstants.DS_SENT_OR_READ;
-//                        if (msg.getType() == Message.Type.error)
-//                            is_new = ChatConstants.DS_FAILED;
-//
-//                        addChatMessageToDB(direction, fromJID, chatMessage, is_new, ts, msg.getPacketID());
-//                        if (direction == ChatConstants.INCOMING)
-//                            mServiceCallBack.newMessage(fromJID, chatMessage, (cc != null));
-//                    }
-//                } catch (Exception e) {
-//                    // SMACK silently discards exceptions dropped from processPacket :(
-//                    Log.e(TAG, "failed to process packet:");
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
-//        mXMPPConnection.addPacketListener(mPacketListener, filter);
-    }
-
-    private void registerPresenceListener() {
-        // do not register multiple packet listeners
-//        if (mPresenceListener != null)
-//            mXMPPConnection.removePacketListener(mPresenceListener);
-//
-//        mPresenceListener = new PacketListener() {
-//            public void processPacket(Packet packet) {
-//                try {
-//                    Presence p = (Presence) packet;
-//                    switch (p.getType()) {
-//                        case subscribe:
-//                            handleIncomingSubscribe(p);
-//                            break;
-//                        case unsubscribe:
-//                            break;
-//                    }
-//                } catch (Exception e) {
-//                    // SMACK silently discards exceptions dropped from processPacket :(
-//                    Log.e(TAG, "failed to process presence:");
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
-//
-//        mXMPPConnection.addPacketListener(mPresenceListener, new PacketTypeFilter(Presence.class));
-    }
-
-    private void registerPongListener() {
-        // reset ping expectation on new connection
-        mPingID = null;
-
-//        if (mPongListener != null)
-//            mXMPPConnection.removePacketListener(mPongListener);
-//
-//        mPongListener = new PacketListener() {
-//
-//            @Override
-//            public void processPacket(Packet packet) {
-//                if (packet == null) return;
-//
-//                gotServerPong(packet.getPacketID());
-//            }
-//
-//        };
-//
-//        mXMPPConnection.addPacketListener(mPongListener, new PacketTypeFilter(IQ.class));
-//        mPingAlarmPendIntent = PendingIntent.getBroadcast(mService.getApplicationContext(), 0, mPingAlarmIntent,
-//                PendingIntent.FLAG_UPDATE_CURRENT);
-//        mPongTimeoutAlarmPendIntent = PendingIntent.getBroadcast(mService.getApplicationContext(), 0, mPongTimeoutAlarmIntent,
-//                PendingIntent.FLAG_UPDATE_CURRENT);
-//        mAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
-//                System.currentTimeMillis() + AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES, mPingAlarmPendIntent);
-    }
 
     private String getBareJID(String from) {
         String[] res = from.split("/");
@@ -493,50 +379,66 @@ public class XMPPServiceImpl implements
     public void processPacket(Stanza packet) throws SmackException.NotConnectedException {
         if(packet instanceof Message) {
             Message message = (Message) packet;
-            Log.d(TAG, "APP接收消息"+message.getBody());
+            String[] fromArr = message.getFrom().split("/");
+            if(fromArr != null && fromArr.length >= 2) {
+                String peerId = fromArr[0];
+                String fromId = fromArr[1];
+                UserEntity userEntity = new UserEntity();
+                userEntity.setPeerId(fromId);
+                PeerEntity peerEntity = new PeerEntity() {
+                    @Override
+                    public int getType() {
+                        return DBConstant.SESSION_TYPE_GROUP;
+                    }
+                };
+                peerEntity.setPeerId(peerId);
+
+                MessageEntity textMessage = TextMessage.buildForSend(message.getBody(),
+                        userEntity, peerEntity);
+                textMessage.setStatus(MessageConstant.MSG_SUCCESS);
+
+                //将消息保存到本地数据库
+                MessageEntity dbMessage = textMessage.clone();
+                messageDao.saveOrUpdate(dbMessage);
+
+                //保存最新消息
+                sessionManager.updateSession(dbMessage);
+
+                /**
+                 *  发送已读确认由上层的activity处理 特殊处理
+                 *  1. 未读计数、 通知、session页面
+                 *  2. 当前会话
+                 * */
+                PriorityEvent  notifyEvent = new PriorityEvent();
+                notifyEvent.event = PriorityEvent.Event.MSG_RECEIVED_MESSAGE;
+                notifyEvent.object = textMessage;
+                triggerEvent(notifyEvent);
+
+
+            }
+            Log.d(TAG, "APP接收消息:"+message.getBody());
         }
     }
 
-    /**
-     * Notification that the connection has been successfully connected to the remote endpoint (e.g. the XMPP server).
-     * <p>
-     * Note that the connection is likely not yet authenticated and therefore only limited operations like registering
-     * an account may be possible.
-     * </p>
-     *
-     * @param connection the XMPPConnection which successfully connected to its endpoint.
-     */
+
     @Override
     public void connected(XMPPConnection connection) {
         Log.d(TAG, "connected()：连接成功");
     }
 
-    /**
-     * Notification that the connection has been authenticated.
-     *
-     * @param connection the XMPPConnection which successfully authenticated.
-     * @param resumed    true if a previous XMPP session's stream was resumed.
-     */
+
     @Override
     public void authenticated(XMPPConnection connection, boolean resumed) {
         Log.d(TAG, "authenticated()：校验成功");
     }
 
-    /**
-     * Notification that the connection was closed normally.
-     */
+
     @Override
     public void connectionClosed() {
         Log.d(TAG, "connectionClosed()：连接断开");
     }
 
-    /**
-     * Notification that the connection was closed due to an exception. When
-     * abruptly disconnected it is possible for the connection to try reconnecting
-     * to the server.
-     *
-     * @param e the exception.
-     */
+
     @Override
     public void connectionClosedOnError(Exception e) {
         Log.e(TAG, "connectionClosedOnError()：连接断开异常", e);
@@ -545,42 +447,21 @@ public class XMPPServiceImpl implements
 
     }
 
-    /**
-     * The connection has reconnected successfully to the server. Connections will
-     * reconnect to the server when the previous socket connection was abruptly closed.
-     */
+
     @Override
     public void reconnectionSuccessful() {
         Log.d(TAG, "reconnectionSuccessful()：重连成功");
     }
 
-    /**
-     * The connection will retry to reconnect in the specified number of seconds.
-     * <p>
-     * Note: This method is only called if {@link ReconnectionManager#isAutomaticReconnectEnabled()} returns true, i.e.
-     * only when the reconnection manager is enabled for the connection.
-     * </p>
-     *
-     * @param seconds remaining seconds before attempting a reconnection.
-     */
+
     @Override
     public void reconnectingIn(int seconds) {
     }
 
-    /**
-     * An attempt to connect to the server has failed. The connection will keep trying reconnecting to the server in a
-     * moment.
-     * <p>
-     * Note: This method is only called if {@link ReconnectionManager#isAutomaticReconnectEnabled()} returns true, i.e.
-     * only when the reconnection manager is enabled for the connection.
-     * </p>
-     *
-     * @param e the exception that caused the reconnection to fail.
-     */
+
     @Override
     public void reconnectionFailed(Exception e) {
         Log.d(TAG, "reconnectionFailed()：重连失败");
-
     }
 
     /**
@@ -593,6 +474,10 @@ public class XMPPServiceImpl implements
     }
 
 
+//    public Set<MultiUserChat> getMultiUserChats() {
+//        return multiUserChats;
+//    }
+
     /**
      *******************************************内部类******************************************
      */
@@ -600,8 +485,184 @@ public class XMPPServiceImpl implements
     static class AcceptAll implements StanzaFilter {
         @Override
         public boolean accept(Stanza packet) {
+            UserInfoBean bean = BaseApplication.getInstance().getUserInfoBean();
+            if(StringUtils.isNotBlank(packet.getFrom())
+                    && packet.getFrom().indexOf(bean.getmAccount()) >= 0) {
+                return false;
+            }
             return true;
         }
     }
+
+
+    //发送消息，消息发布者，UI需监听
+    private void triggerEvent(Object paramObject)
+    {
+        EventBus.getDefault().post(paramObject);
+    }
+
+
+
+    //    // called at the end of a state transition
+//    private synchronized void updateConnectionState(ConnectionState new_state) {
+//        if (new_state == ConnectionState.ONLINE || new_state == ConnectionState.CONNECTING)
+//            mLastError = null;
+//        Log.d(TAG, "updateConnectionState: " + mState + " -> " + new_state + " (" + mLastError + ")");
+//        if (new_state == mState)
+//            return;
+//        mState = new_state;
+//        if (mServiceCallBack != null)
+//            mServiceCallBack.connectionStateChanged();
+//    }
+
+
+//    private void registerMessageListener() {
+//        if (mStanzaListener != null)
+//            xmppConnection.removeAsyncStanzaListener(mStanzaListener);
+//
+//        StanzaTypeFilter filter = new StanzaTypeFilter(Message.class);
+//        mStanzaListener = new StanzaListener() {
+//            @Override
+//            public void processPacket(Stanza packet) throws SmackException.NotConnectedException {
+//                try {
+//                    if (packet instanceof Message) {
+//                        Message msg = (Message) packet;
+//                        String fromJID = getBareJID(msg.getFrom());
+//                        int direction = ChatConstants.INCOMING;
+//                        CarbonManager carbonManager = CarbonManager.getInstanceFor(xmppConnection);
+//
+//                        //离线消息
+//                        DelayInformation timestamp = DelayInformationManager.getDelayInformation(msg);
+//                        long ts;
+//
+//                        if (timestamp != null)
+//                            ts = timestamp.getStamp().getTime();
+//                        else
+//                            ts = System.currentTimeMillis();
+//
+//
+//                        String chatMessage = msg.getBody();
+//
+//                        // 处理异常消息
+//                        if (msg.getType() == Message.Type.error) {
+////                            if (changeMessageDeliveryStatus(msg.getStanzaId(), ChatConstants.DS_FAILED)) {
+////                                if(mServiceCallBack != null) {
+////                                    mServiceCallBack.messageError(fromJID, msg.getError().toString(), false);
+////                                }
+////                            }
+//                            mServiceCallBack.messageError(fromJID, msg.getError().toString(), false);
+//                            return;
+//                        }
+//
+//                        // ignore empty messages
+//                        if (chatMessage == null) {
+//                            Log.d(TAG, "empty message.");
+//                            return;
+//                        }
+//
+//                        if (direction == ChatConstants.INCOMING) {
+//                            if(mServiceCallBack != null) {
+//                                Log.d(TAG, "接收消息："+chatMessage);
+//                                mServiceCallBack.newMessage(fromJID, chatMessage, false);
+//                            }
+//                        }
+//                        //保存到数据库
+//                    }
+//                } catch (Exception e) {
+//                    Log.e(TAG, "failed to process packet:");
+//                    e.printStackTrace();
+//                }
+//            }
+//        };
+//
+//        xmppConnection.addAsyncStanzaListener(mStanzaListener, filter);
+//    }
+
+
+    /**
+     * 群聊消息监听器
+     */
+//    private void registerMUCMessageListener() {
+//        if(messageListener != null) {
+//            multiUserChat.removeMessageListener(messageListener);
+//        }
+//        messageListener = new MessageListener() {
+//            @Override
+//            public void processMessage(Message message) {
+//                //处理异常
+//                String fromJID = getBareJID(message.getFrom());
+//                if(message.getType() == Message.Type.error) {
+//                    mServiceCallBack.messageError(fromJID, message.getError().toString(), false);
+//                } else {
+//                    //离线消息
+//                    DelayInformation timestamp = DelayInformationManager.getDelayInformation(message);
+//                    //时间戳
+//                    long ts;
+//                    if (timestamp != null) {
+//                        ts = timestamp.getStamp().getTime() / 1000;
+//                    }
+//                    else {
+//                        ts = System.currentTimeMillis() / 1000;
+//                    }
+//                    mServiceCallBack.newMessage(fromJID, message.getBody(), false);
+//                }
+//            }
+//        };
+//        multiUserChat.addMessageListener(messageListener);
+//    }
+
+//    private void registerPresenceListener() {
+    // do not register multiple packet listeners
+//        if (mPresenceListener != null)
+//            mXMPPConnection.removePacketListener(mPresenceListener);
+//
+//        mPresenceListener = new PacketListener() {
+//            public void processPacket(Packet packet) {
+//                try {
+//                    Presence p = (Presence) packet;
+//                    switch (p.getType()) {
+//                        case subscribe:
+//                            handleIncomingSubscribe(p);
+//                            break;
+//                        case unsubscribe:
+//                            break;
+//                    }
+//                } catch (Exception e) {
+//                    // SMACK silently discards exceptions dropped from processPacket :(
+//                    Log.e(TAG, "failed to process presence:");
+//                    e.printStackTrace();
+//                }
+//            }
+//        };
+//
+//        mXMPPConnection.addPacketListener(mPresenceListener, new PacketTypeFilter(Presence.class));
+//    }
+
+//    private void registerPongListener() {
+    // reset ping expectation on new connection
+//        mPingID = null;
+
+//        if (mPongListener != null)
+//            mXMPPConnection.removePacketListener(mPongListener);
+//
+//        mPongListener = new PacketListener() {
+//
+//            @Override
+//            public void processPacket(Packet packet) {
+//                if (packet == null) return;
+//
+//                gotServerPong(packet.getPacketID());
+//            }
+//
+//        };
+//
+//        mXMPPConnection.addPacketListener(mPongListener, new PacketTypeFilter(IQ.class));
+//        mPingAlarmPendIntent = PendingIntent.getBroadcast(mService.getApplicationContext(), 0, mPingAlarmIntent,
+//                PendingIntent.FLAG_UPDATE_CURRENT);
+//        mPongTimeoutAlarmPendIntent = PendingIntent.getBroadcast(mService.getApplicationContext(), 0, mPongTimeoutAlarmIntent,
+//                PendingIntent.FLAG_UPDATE_CURRENT);
+//        mAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
+//                System.currentTimeMillis() + AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES, mPingAlarmPendIntent);
+//    }
 
 }

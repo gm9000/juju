@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -20,9 +21,14 @@ import android.widget.Toast;
 import com.juju.app.R;
 import com.juju.app.bean.groupchat.GroupChatInitBean;
 import com.juju.app.entity.http.Group;
+import com.juju.app.golobal.Constants;
+import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.SwipeLayout;
+import com.juju.app.view.groupchat.IMGroupAvatar;
+import com.mogujie.tools.ScreenTools;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -37,14 +43,15 @@ import java.util.Map;
  */
 public class GroupChatListAdapter extends BaseAdapter {
 
+    private LayoutInflater mInflater = null;
     private Context context;
     private List<GroupChatInitBean> groupChats;
     private LayoutInflater layoutInflater;
 
 
-    public GroupChatListAdapter(Context context, List<GroupChatInitBean> groupChats) {
+    public GroupChatListAdapter(Context context) {
         this.context = context;
-        this.groupChats = groupChats;
+        this.mInflater = LayoutInflater.from(context);
     }
 
 
@@ -54,8 +61,11 @@ public class GroupChatListAdapter extends BaseAdapter {
     }
 
     @Override
-    public Object getItem(int position) {
-        return null;
+    public GroupChatInitBean getItem(int position) {
+        if (position >= groupChats.size() || position < 0) {
+            return null;
+        }
+        return groupChats.get(position);
     }
 
     @Override
@@ -65,32 +75,10 @@ public class GroupChatListAdapter extends BaseAdapter {
 
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
-        layoutInflater = LayoutInflater.from(context);
-        final GroupChatInitBean groupChat = groupChats.get(position);
-
-//        System.out.println("groupChat:"+groupChat.toString()+"\r\n"+"memberNum:"+groupChat.getGroup().getMemberNum());
-        convertView = createConvertView(groupChat.getGroup().getMemberNum(), null);
-        TextView txt_name = ViewHolderUtil.get(convertView, R.id.txt_name);
-        TextView txt_state = ViewHolderUtil.get(convertView, R.id.txt_state);
-        TextView txt_del = ViewHolderUtil.get(convertView, R.id.txt_del);
-        TextView txt_content = ViewHolderUtil.get(convertView, R.id.txt_content);
-        TextView txt_time = ViewHolderUtil.get(convertView, R.id.txt_time);
-        TextView unreadLabel = ViewHolderUtil.get(convertView,
-                R.id.unread_msg_number);
-        TextView txt_unread_msg_number = ViewHolderUtil.get(convertView, R.id.unread_msg_number);
-        SwipeLayout swipe = ViewHolderUtil.get(convertView, R.id.swipe);
-        Group group = groupChat.getGroup();
-        txt_name.setText(group.getName());
-        txt_time.setText(groupChat.getTime());
-        txt_state.setText(groupChat.getState());
-        txt_content.setText(groupChat.getContent());
-        txt_unread_msg_number.setText(groupChat.getTotal());
-
-//        ImageView img_avar = ViewHolderUtil.get(convertView,
-//                R.id.contactitem_avatar_iv);
-
+        convertView = renderGroup(position, convertView, parent);
         return convertView;
     }
+
 
     private View createConvertView(int size, ViewGroup parent) {
         View convertView = null;
@@ -125,9 +113,141 @@ public class GroupChatListAdapter extends BaseAdapter {
         return convertView;
     }
 
+    private View renderGroup(int position,View convertView, ViewGroup parent){
+        GroupChatInitBean groupChatInitBean = groupChats.get(position);
+        GroupViewHolder holder;
+        if (null == convertView) {
+            convertView = mInflater.inflate(R.layout.adapter_item_chat_group, parent,false);
+            holder = new GroupViewHolder();
+            holder.avatarLayout = (IMGroupAvatar) convertView.findViewById(R.id.contact_portrait);
+            holder.uname = (TextView) convertView.findViewById(R.id.shop_name);
+            holder.lastContent = (TextView) convertView.findViewById(R.id.message_body);
+            holder.lastTime = (TextView) convertView.findViewById(R.id.message_time);
+            holder.msgCount = (TextView) convertView.findViewById(R.id.message_count_notify);
+            holder.noDisturb = (ImageView)convertView.findViewById(R.id.message_time_no_disturb_view);
+            convertView.setTag(holder);
+        }else{
+            holder = (GroupViewHolder)convertView.getTag();
+        }
+
+        if(groupChatInitBean.isTop()){
+            // todo   R.color.top_session_background
+            convertView.setBackgroundColor(Color.parseColor("#f4f4f4f4"));
+        }else{
+            convertView.setBackgroundColor(Color.WHITE);
+        }
+
+//        /**群屏蔽的设定*/
+//        if(recentInfo.isForbidden())
+//        {
+//            holder.noDisturb.setVisibility(View.VISIBLE);
+//        }
+//        else
+//        {
+//            holder.noDisturb.setVisibility(View.GONE);
+//        }
+
+        handleGroupContact(holder, groupChatInitBean);
+        return convertView;
+    }
+
+    public final class GroupChatViewHolder {
+//        public
+
+    }
 
     public List<GroupChatInitBean> getGroupChats() {
         return groupChats;
+    }
+
+
+    private void handleGroupContact(GroupViewHolder groupViewHolder,
+                                    GroupChatInitBean groupChatInitBean) {
+        String avatarUrl = null;
+        String userName = "";
+        String lastContent = "";
+        String lastTime = "";
+        int unReadCount = 0;
+//        int sessionType = DBConstant.SESSION_TYPE_SINGLE;
+
+        userName = groupChatInitBean.getGroup().getName();
+        lastContent = groupChatInitBean.getContent();
+        // todo 是不是每次都需要计算
+        lastTime = DateUtil.getSessionTime(groupChatInitBean.getUpdateTime());
+        unReadCount = groupChatInitBean.getUnReadCnt();
+//        sessionType = recentInfo.getSessionType();
+        // 设置未读消息计数 只有群组有的
+
+        if (unReadCount > 0) {
+            groupViewHolder.msgCount.setBackgroundResource(R.drawable.tt_message_notify);
+            groupViewHolder.msgCount.setVisibility(View.VISIBLE);
+            ((RelativeLayout.LayoutParams)groupViewHolder.msgCount.getLayoutParams()).leftMargin=ScreenTools.instance(this.mInflater.getContext()).dip2px(-10);
+            ((RelativeLayout.LayoutParams)groupViewHolder.msgCount.getLayoutParams()).topMargin=ScreenTools.instance(this.mInflater.getContext()).dip2px(3);
+            groupViewHolder.msgCount.getLayoutParams().width = RelativeLayout.LayoutParams.WRAP_CONTENT;
+            groupViewHolder.msgCount.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
+            groupViewHolder.msgCount.setPadding(ScreenTools.instance(this.mInflater.getContext()).dip2px(3),0,ScreenTools.instance(this.mInflater.getContext()).dip2px(3),0);
+
+            String strCountString=String.valueOf(unReadCount);
+            if (unReadCount>99) {
+                strCountString = "99+";
+            }
+            groupViewHolder.msgCount.setVisibility(View.VISIBLE);
+            groupViewHolder.msgCount.setText(strCountString);
+        } else {
+            groupViewHolder.msgCount.setVisibility(View.GONE);
+        }
+
+        //头像设置
+        setGroupAvatar(groupViewHolder, groupChatInitBean.getAvatar());
+        // 设置其它信息
+        groupViewHolder.uname.setText(userName);
+        groupViewHolder.lastContent.setText(lastContent);
+        groupViewHolder.lastTime.setText(lastTime);
+    }
+
+    public void setData(List<GroupChatInitBean> groupChats) {
+        this.groupChats = groupChats;
+        notifyDataSetChanged();
+    }
+
+
+    /**
+     * 基本HOLDER
+     */
+    public static class ContactHolderBase{
+        public TextView uname;
+        public TextView lastContent;
+        public TextView lastTime;
+        public TextView msgCount;
+        public ImageView noDisturb;
+    }
+
+    /**
+     * 群组HOLDER
+     */
+    private final static class GroupViewHolder extends ContactHolderBase{
+        public IMGroupAvatar avatarLayout;
+    }
+
+    /**
+     * 设置群头像
+     * @param holder
+     * @param avatarUrlList
+     */
+    private void setGroupAvatar(GroupViewHolder holder, List<String> avatarUrlList){
+        try {
+            if (null == avatarUrlList) {
+                return;
+            }
+            holder.avatarLayout.setAvatarUrlAppend(Constants.AVATAR_APPEND_32);
+            holder.avatarLayout.setChildCorner(3);
+            if (null != avatarUrlList) {
+                holder.avatarLayout.setAvatarUrls(new ArrayList<String>(avatarUrlList));
+            }
+        }catch (Exception e){
+           e.printStackTrace();
+        }
+
     }
 
 

@@ -40,13 +40,9 @@ public class DateUtil {
         return date;
     }
 
-    public static boolean needDisplayTime(Date predate, Date curdate) {
-        if (predate == null || curdate == null) {
-            return true;
-        }
-
-        long timediff = (curdate.getTime() - predate.getTime());
-        return (timediff >= 5 * 60 * 1000);
+    public static boolean needDisplayTime(int predateTime, int curdateTime) {
+        long timediff = (curdateTime - predateTime);
+        return (timediff >= 5 * 60 );
     }
 
     public static String getTimeDiffDesc(Date date) {
@@ -257,5 +253,76 @@ public class DateUtil {
 
         return (int) (System.currentTimeMillis() / 1000);
 
+    }
+
+    public static String getSessionTime(int mTimeStamp) {
+        if (mTimeStamp <= 0) {
+            return null;
+        }
+        String[] weekDays = {
+                "星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"
+        };
+        String strDesc = null;
+        SimpleDateFormat formatYear = new SimpleDateFormat("yy/MM/dd");
+        SimpleDateFormat formatToday = new SimpleDateFormat("HH:mm");
+        /**消息时间戳*/
+        long changeTime = (long) mTimeStamp;
+        long messageTimeStamp = changeTime * 1000;
+        /**当前的时间戳*/
+        long currentTimeStamp =System.currentTimeMillis();
+        /**获取今天的 0 点时间戳*/
+        long todayTimeStamp = getTimesmorning();
+        /**获取 上一周 0点时间戳*/
+        long rangeWeekStamp = todayTimeStamp - 86400000*6;
+
+        /**今天的显示 hh:mm   (今天星期三)
+         * 昨天
+         * 星期一
+         * 星期日 、 星期六、 星期五、星期四
+         * yy-hh-mm
+         * */
+        do{
+            long diff = currentTimeStamp -  messageTimeStamp;
+            long diffToday = currentTimeStamp - todayTimeStamp;
+            /**今天之内的*/
+            if(diff < diffToday){
+                strDesc = formatToday.format(messageTimeStamp);
+                break;
+            }
+
+            long diffWeek = currentTimeStamp - rangeWeekStamp;
+            /**最近一周的判断*/
+            if(diff < diffWeek){
+                /**昨天零点的时间*/
+                long yesterday = todayTimeStamp - 86400000;
+                long diffYesterday = currentTimeStamp - yesterday;
+                if(diff < diffYesterday){
+                    strDesc = "昨天";
+                }else{
+                    Calendar weekCal = Calendar.getInstance();
+                    weekCal.setTimeInMillis(messageTimeStamp);
+                    int w =  weekCal.get(Calendar.DAY_OF_WEEK) -1;
+                    w = w<0?0:w;
+                    strDesc = weekDays[w];
+                }
+                break;
+            }
+            /**年月日显示*/
+            strDesc = formatYear.format(messageTimeStamp);
+        }while(false);
+        return strDesc;
+    }
+
+    /**
+     * 获取当天 零点的时间戳【linux】
+     * @return
+     */
+    public  static long getTimesmorning() {
+        Calendar cal = Calendar.getInstance();
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return cal.getTimeInMillis();
     }
 }

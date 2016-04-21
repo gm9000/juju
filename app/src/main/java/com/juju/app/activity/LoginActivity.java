@@ -89,6 +89,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     @ViewInject(R.id.txt_foreget_psw)
     private TextView txt_foreget_psw;
 
+
+
     /**
      *******************************************全局属性******************************************
      */
@@ -155,7 +157,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        completeLoading();
+        completeLoadingCommon();
     }
 
     @Override
@@ -186,7 +188,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         initGlobalVariable();
         boolean vsBool = validateLogin();
         if(vsBool) {
-            loading(true, R.string.login_progress_signing_in);
+            loadingCommon(R.string.login_progress_signing_in);
             String password = MD5Util.MD5(pwd);
             Map<String, Object> valueMap = new HashMap<String, Object>();
             valueMap.put("userNo", userNo);
@@ -221,19 +223,30 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
                 JSONObject jsonRoot = (JSONObject)obj[0];
                 try {
                     int status = jsonRoot.getInt("status");
+                    String description = "";
+                    if(jsonRoot.has("description")) {
+                        description = jsonRoot.getString("description");
+                    }
                     jujuNo = jsonRoot.getString("userNo");
                     token = jsonRoot.getString("token");
                     if(status == 0) {
                         saveUserInfo();
                         startActivity(LoginActivity.this, MainActivity.class);
+                        //登陆聊天服务
                         IMLoginManager.instance().login();
                     } else {
-                        showMsgDialog(R.string.error_login_psw);
+                        final int resId = getResValue(description);
+                        if(resId > 0) {
+                            showMsgDialog(resId);
+                        } else {
+                            showMsgDialog(R.string.error_login_psw);
+                        }
                         clearUserInfo(true, true);
                     }
                 } catch (JSONException e) {
                     Log.e(TAG, "回调解析失败", e);
-                    e.printStackTrace();
+                    completeLoadingCommon();
+                    showMsgDialog(R.string.error_login_psw);
                 }
             }
                 break;
@@ -244,7 +257,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     public void onFailure(HttpException error, String msg, int accessId) {
         System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
                 error.getExceptionCode());
-        completeLoading();
+        completeLoadingCommon();
+        showMsgDialog(R.string.error_login_psw);
     }
 
 
@@ -288,6 +302,12 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
      * @return
      */
     private boolean validateLogin() {
+
+        int a = Integer.MAX_VALUE >> 2;
+        int height = View.MeasureSpec.makeMeasureSpec(
+                Integer.MAX_VALUE >> 2, View.MeasureSpec.AT_MOST);
+
+
         if(userNo.trim().equals("")){
             txt_userNo.setShakeAnimation();
             ToastUtil.TextIntToast(getApplicationContext(), R.string.user_no_null, 0);
@@ -314,6 +334,10 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         userInfoBean.setJujuNo(jujuNo);
         userInfoBean.setToken(token);
+        userInfoBean.setmAccount(userNo);
+        userInfoBean.setmPassword(pwd);
+        userInfoBean.setUserName(userNo);
+
 //        SpfUtil.put(this, "pwdChecked", pwdChecked);
 //        SpfUtil.put(this, "autoLoginChecked", autoLoginChecked);
 //        if(pwdChecked) {
@@ -407,5 +431,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 //    public void onMessageEvent(String event){
 //        System.out.println("线程ID=" + Thread.currentThread().getId());
 //    }
+
+
 
 }

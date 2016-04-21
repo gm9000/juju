@@ -1,5 +1,8 @@
 package com.juju.app.service.im;
 
+import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.MessageConstant;
+
 /**
  * 项目名称：juju
  * 类描述：XMPP服务回调接口

@@ -3,6 +3,7 @@ package com.juju.app.adapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -15,15 +16,26 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.bean.groupchat.TimeTileMessageBean;
-import com.juju.app.entity.MessageInfo;
+import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.TextMessage;
+import com.juju.app.entity.chat.UserEntity;
+import com.juju.app.enums.RenderType;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.DBConstant;
+import com.juju.app.service.im.IMService;
 import com.juju.app.tools.Emoparser;
+import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.CommonUtil;
 import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.view.groupchat.MessageOperatePopup;
+import com.juju.app.view.groupchat.TextRenderView;
+import com.juju.app.view.groupchat.TimeRenderView;
 import com.mogujie.widget.imageview.MGWebImageView;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -37,37 +49,31 @@ public class ChatAdapter extends BaseAdapter {
 
     private Logger logger = Logger.getLogger(ChatAdapter.class);
 
-    public static final int MESSAGE_TYPE_INVALID = -1;
-    public static final int MESSAGE_TYPE_MINE_TETX = 0x00;
-    public static final int MESSAGE_TYPE_MINE_IMAGE = 0x01;
-    public static final int MESSAGE_TYPE_MINE_AUDIO = 0x02;
-    public static final int MESSAGE_TYPE_OTHER_TEXT = 0x03;
-    public static final int MESSAGE_TYPE_OTHER_IMAGE = 0x04;
-    public static final int MESSAGE_TYPE_OTHER_AUDIO = 0x05;
-    public static final int MESSAGE_TYPE_TIME_TITLE = 0x07;
-    public static final int MESSAGE_TYPE_HISTORY_DIVIDER = 0x08;
-    private static final int VIEW_TYPE_COUNT = 9;
-    public static final String HISTORY_DIVIDER_TAG = "history_divider_tag";
+    //消息集合
+    private ArrayList<Object> msgObjectList = new ArrayList<>();
 
-    private Activity context = null;
-    private LayoutInflater inflater = null;
-    private ArrayList<Object> messageList = new ArrayList<Object>();
+    private Context ctx;
 
-    public ChatAdapter(Activity cxt) {
-        super();
-        // todo eric any recycle reference issue here
-        context = cxt;
-        if (null != context) {
-            inflater = ((Activity) context).getLayoutInflater();
-        }
+    private IMService imService;
+    private UserEntity loginUser;
+
+
+
+    public void setImService(IMService imService, UserEntity loginUser) {
+        this.imService = imService;
+        this.loginUser = loginUser;
+    }
+
+    public ChatAdapter(Context ctx) {
+        this.ctx = ctx;
     }
 
     @Override
     public int getCount() {
-        if (null == messageList) {
+        if (null == msgObjectList) {
             return 0;
         } else {
-            return messageList.size();
+            return msgObjectList.size();
         }
     }
 
@@ -76,7 +82,7 @@ public class ChatAdapter extends BaseAdapter {
         if (position >= getCount() || position < 0) {
             return null;
         }
-        return messageList.get(position);
+        return msgObjectList.get(position);
     }
 
     @Override
@@ -87,446 +93,337 @@ public class ChatAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, final ViewGroup parent) {
         try {
-            final int type = getItemViewType(position);
-            // 所有需要被赋值的holder都是基于MessageHolderBase的
-            MessageHolderBase holder = null;
-//            if (convertView == null) {
-                    if (type == MESSAGE_TYPE_TIME_TITLE) {
-//                    convertView = inflater.inflate(R.layout.tt_message_title_time, parent, false);
-                      convertView = LayoutInflater.from(context).inflate(R.layout.tt_message_title_time, parent, false);
-                    // 时间
-                    TimeTitleMessageHodler ttHodler = new TimeTitleMessageHodler();
-                    convertView.setTag(ttHodler);
-                    ttHodler.time_title = (TextView) convertView.findViewById(R.id.time_title);
-                } else if (type == MESSAGE_TYPE_HISTORY_DIVIDER) {
-                    // 历史消息
-                    convertView = LayoutInflater.from(context).inflate(R.layout.tt_history_divider_item, parent, false);
-                } else if (type == MESSAGE_TYPE_MINE_TETX) {
-                   //我的消息
-                    convertView = LayoutInflater.from(context).inflate(R.layout.tt_mine_text_message_item, parent, false);
-                    holder = new TextMessageHolder();
-                    convertView.setTag(holder);
-                    fillTextMessageHolder((TextMessageHolder) holder, convertView);
-                } else if (type == MESSAGE_TYPE_OTHER_TEXT) {
-                    //其他人的消息
-                    convertView = LayoutInflater.from(context).inflate(R.layout.tt_other_text_message_item, parent, false);
-                    holder = new TextMessageHolder();
-                    convertView.setTag(holder);
-                    fillTextMessageHolder((TextMessageHolder) holder, convertView);
-                }
-//            } else {
-//                if (type != MESSAGE_TYPE_TIME_TITLE) {
-//                    holder = (MessageHolderBase) convertView.getTag();
-//                }
-//            }
+            final int typeIndex = getItemViewType(position);
+            RenderType renderType = RenderType.values()[typeIndex];
+            // 改用map的形式
+            switch (renderType) {
+                case MESSAGE_TYPE_INVALID:
+                    // 直接返回
+                    logger.e("[fatal erro] render type:MESSAGE_TYPE_INVALID");
+                    break;
+                case MESSAGE_TYPE_TIME_TITLE:
+                    convertView = timeBubbleRender(position, convertView, parent);
+                    break;
+                case MESSAGE_TYPE_MINE_AUDIO:
+//                    convertView = audioMsgRender(position, convertView, parent, true);
+                    break;
+                case MESSAGE_TYPE_OTHER_AUDIO:
+//                    convertView = audioMsgRender(position, convertView, parent, false);
+                    break;
+                case MESSAGE_TYPE_MINE_GIF_IMAGE:
+//                    convertView = GifImageMsgRender(position, convertView, parent, true);
+                    break;
+                case MESSAGE_TYPE_OTHER_GIF_IMAGE:
+//                    convertView = GifImageMsgRender(position, convertView, parent, false);
+                    break;
+                case MESSAGE_TYPE_MINE_IMAGE:
+//                    convertView = imageMsgRender(position, convertView, parent, true);
+                    break;
+                case MESSAGE_TYPE_OTHER_IMAGE:
+//                    convertView = imageMsgRender(position, convertView, parent, false);
+                    break;
+                case MESSAGE_TYPE_MINE_TETX:
+                    convertView = textMsgRender(position, convertView, parent, true);
+                    break;
+                case MESSAGE_TYPE_OTHER_TEXT:
+                    convertView = textMsgRender(position, convertView, parent, false);
+                    break;
 
-            // 这些都是不需要被赋值的
-            if (type == MESSAGE_TYPE_HISTORY_DIVIDER
-                    || type == MESSAGE_TYPE_INVALID) {
-                return convertView;
+                case MESSAGE_TYPE_MINE_GIF:
+//                    convertView = gifMsgRender(position, convertView, parent, true);
+                    break;
+                case MESSAGE_TYPE_OTHER_GIF:
+//                    convertView = gifMsgRender(position, convertView, parent, false);
+                    break;
             }
-
-            if (type == MESSAGE_TYPE_TIME_TITLE) {
-                 TimeTileMessageBean msg = (TimeTileMessageBean) messageList.get(position);
-                 ((TimeTitleMessageHodler) convertView.getTag()).time_title.setText(DateUtil.getTimeDiffDesc(msg.getTime()));
-                return convertView;
-            }
-            final MessageInfo info = (MessageInfo) messageList.get(position);
-            final View baseView = getBaseViewForMenu(holder, info);
-
-            if (info.getMsgLoadState() == Constants.MESSAGE_STATE_FINISH_FAILED) {
-                holder.messageFailed.setVisibility(View.VISIBLE);
-                holder.messageFailed.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View arg0) {
-                        logger.d("debug#onClick, msg:%s", info);
-                        if (!info.isMy() && info.isImage()) {
-                            logger.d("debug#pic#found failed receiving image message");
-                            updateItemState(info.msgId, Constants.MESSAGE_STATE_UNLOAD);
-                        }
-                        int menuType = getMenuType(info);
-                        if (menuType > 0) {
-                            // logger.d("debug#showMenu  MessageInfo:%s", info);
-                            showMenu(context, menuType, parent, info, baseView);
-                        }
-                    }
-                });
-            } else {
-                holder.messageFailed.setVisibility(View.GONE);
-            }
-            if (info.getMsgLoadState() == Constants.MESSAGE_STATE_LOADDING
-            && !info.isImage()) {
-            holder.loadingProgressBar.setVisibility(View.VISIBLE);
-                } else {
-                    holder.loadingProgressBar.setVisibility(View.GONE);
-                }
-                if (type == MESSAGE_TYPE_MINE_TETX
-                        || type == MESSAGE_TYPE_OTHER_TEXT) {
-                    handleTextMessage((TextMessageHolder) holder, info, parent);
-                }
-                return convertView;
-            } catch (Exception e) {
-                if (null != e && null != logger) {
-                    logger.e("chat#%s", e);
-                }
-                return null;
-            }
+            return convertView;
+        } catch (Exception e) {
+            logger.e("chat#%s", e);
+            return null;
+        }
     }
 
 
     @Override
     public int getItemViewType(int position) {
         try {
-            if (position >= messageList.size()) {
-                return MESSAGE_TYPE_INVALID;
-            }
-            Object obj = messageList.get(position);
-            if (obj instanceof TimeTileMessageBean) {
-                return MESSAGE_TYPE_TIME_TITLE;
-            } else if (obj instanceof String && obj.equals(HISTORY_DIVIDER_TAG)) {
-                return MESSAGE_TYPE_HISTORY_DIVIDER;
-            } else {
-                MessageInfo info = (MessageInfo) obj;
-                if (info.getMsgFromUserId().equals("")) {
-                    if (info.getDisplayType() == Constants.DISPLAY_TYPE_TEXT) {
-                        return MESSAGE_TYPE_MINE_TETX;
-                    } else if (info.getDisplayType() == Constants.DISPLAY_TYPE_IMAGE) {
-                        return MESSAGE_TYPE_MINE_IMAGE;
-                    } else if (info.getDisplayType() == Constants.DISPLAY_TYPE_AUDIO) {
-                        return MESSAGE_TYPE_MINE_AUDIO;
-                    }
-                } else {
-                    if (info.getDisplayType() == Constants.DISPLAY_TYPE_TEXT) {
-                        return MESSAGE_TYPE_OTHER_TEXT;
-                    } else if (info.getDisplayType() == Constants.DISPLAY_TYPE_IMAGE) {
-                        return MESSAGE_TYPE_OTHER_IMAGE;
-                    } else if (info.getDisplayType() == Constants.DISPLAY_TYPE_AUDIO) {
-                        return MESSAGE_TYPE_OTHER_AUDIO;
-                    }
+            /**默认是失败类型*/
+            RenderType type = RenderType.MESSAGE_TYPE_INVALID;
+
+            Object obj = msgObjectList.get(position);
+            if (obj instanceof Integer) {
+                type = RenderType.MESSAGE_TYPE_TIME_TITLE;
+            } else if (obj instanceof MessageEntity) {
+                MessageEntity info = (MessageEntity) obj;
+                boolean isMine = info.getFromId().equals(loginUser.getPeerId());
+                switch (info.getDisplayType()) {
+                    case DBConstant.SHOW_AUDIO_TYPE:
+                        type = isMine ? RenderType.MESSAGE_TYPE_MINE_AUDIO
+                                : RenderType.MESSAGE_TYPE_OTHER_AUDIO;
+                        break;
+                    case DBConstant.SHOW_IMAGE_TYPE:
+//                        ImageMessage imageMessage = (ImageMessage) info;
+//                        if (CommonUtil.gifCheck(imageMessage.getUrl())) {
+//                            type = isMine ? RenderType.MESSAGE_TYPE_MINE_GIF_IMAGE
+//                                    : RenderType.MESSAGE_TYPE_OTHER_GIF_IMAGE;
+//                        } else {
+//                            type = isMine ? RenderType.MESSAGE_TYPE_MINE_IMAGE
+//                                    : RenderType.MESSAGE_TYPE_OTHER_IMAGE;
+//                        }
+
+                        break;
+                    case DBConstant.SHOW_ORIGIN_TEXT_TYPE:
+                        if (info.isGIfEmo()) {
+                            type = isMine ? RenderType.MESSAGE_TYPE_MINE_GIF
+                                    : RenderType.MESSAGE_TYPE_OTHER_GIF;
+                        } else {
+                            type = isMine ? RenderType.MESSAGE_TYPE_MINE_TETX
+                                    : RenderType.MESSAGE_TYPE_OTHER_TEXT;
+                        }
+
+                        break;
+                    case DBConstant.SHOW_MIX_TEXT:
+                        //
+                        logger.e("混合的消息类型%s", obj);
+                    default:
+                        break;
                 }
             }
-            return MESSAGE_TYPE_INVALID;
+            return type.ordinal();
         } catch (Exception e) {
             logger.e(e.getMessage());
-            return MESSAGE_TYPE_INVALID;
+            return RenderType.MESSAGE_TYPE_INVALID.ordinal();
         }
     }
-    private static class MessageHolderBase {
-        /**
-         * 头像
-         */
-        MGWebImageView portrait;
 
-        /**
-         * 消息状态
-         */
-        ImageView messageFailed;
 
-        ProgressBar loadingProgressBar;
 
-        TextView name;
-    }
-
-    private static class TimeTitleMessageHodler  {
-        TextView time_title;
-    }
-
-    private static class TextMessageHolder extends MessageHolderBase {
-        /**
-         * 文字消息体
-         */
-        TextView message_content;
-    }
-
-    private void fillTextMessageHolder(TextMessageHolder holder,
-                                       View convertView) {
-        fillBaseMessageholder(holder, convertView);
-
-        holder.message_content = (TextView) convertView.findViewById(R.id.message_content);
-    }
-
-    private void fillBaseMessageholder(MessageHolderBase holder,
-                                       View convertView) {
-        holder.portrait = (MGWebImageView) convertView.findViewById(R.id.user_portrait);
-        holder.messageFailed = (ImageView) convertView.findViewById(R.id.message_state_failed);
-        holder.loadingProgressBar = (ProgressBar) convertView.findViewById(R.id.progressBar1);
-
-        holder.name = (TextView) convertView.findViewById(R.id.userNoTxt);
-        logger.d("name#holder.name:%s", holder.name);
-    }
-
-    private View getBaseViewForMenu(MessageHolderBase holder, MessageInfo msg) {
-        if (msg.getDisplayType() == Constants.DISPLAY_TYPE_TEXT) {
-            return ((TextMessageHolder) holder).message_content;
+    /**
+     * ----------------------添加历史消息-----------------
+     */
+    public void addItem(final MessageEntity msg) {
+        if (msg.getDisplayType() == DBConstant.MSG_TYPE_SINGLE_TEXT) {
+            if (isMsgGif(msg)) {
+                msg.setGIfEmo(true);
+            } else {
+                msg.setGIfEmo(false);
+            }
         }
-//        else if (msg.getDisplayType() == Constants.DISPLAY_TYPE_IMAGE) {
-//            return ((ImageMessageHolder) holder).message_layout;
-//        } else if (msg.getDisplayType() == Constants.DISPLAY_TYPE_AUDIO) {
-//            return ((AudioMessageHolder) holder).message_layout;
+        int nextTime = msg.getCreated();
+        if (getCount() > 0) {
+            Object object = msgObjectList.get(getCount() - 1);
+            if (object instanceof MessageEntity) {
+                int preTime = ((MessageEntity) object).getCreated();
+                //是否需要显示时间
+                boolean needTime = DateUtil.needDisplayTime(preTime, nextTime);
+                if (needTime) {
+                    Integer in = nextTime;
+                    msgObjectList.add(in);
+                }
+            }
+        } else {
+            Integer in = msg.getCreated();
+            msgObjectList.add(in);
+        }
+//        /**消息的判断*/
+//        if (msg.getDisplayType() == DBConstant.SHOW_MIX_TEXT) {
+//            MixMessage mixMessage = (MixMessage) msg;
+//            msgObjectList.addAll(mixMessage.getMsgList());
+//        } else {
+//            msgObjectList.add(msg);
+//        }
+//        if (msg instanceof ImageMessage) {
+//            ImageMessage.addToImageMessageList((ImageMessage) msg);
+//        }
+        msgObjectList.add(msg);
+        logger.d("#messageAdapter#addItem");
+        notifyDataSetChanged();
+    }
+
+    private boolean isMsgGif(MessageEntity msg) {
+        String content = msg.getContent();
+        // @YM 临时处理  牙牙表情与消息混合出现的消息丢失
+        if (TextUtils.isEmpty(content)
+                || !(content.startsWith("[") && content.endsWith("]"))) {
+            return false;
+        }
+        return Emoparser.getInstance(this.ctx).isMessageGif(msg.getContent());
+    }
+
+    /**
+     * 时间气泡的渲染展示
+     */
+    private View timeBubbleRender(int position, View convertView, ViewGroup parent) {
+        TimeRenderView timeRenderView;
+        Integer timeBubble = (Integer) msgObjectList.get(position);
+        if (null == convertView) {
+            timeRenderView = TimeRenderView.inflater(ctx, parent);
+        } else {
+            // 不用再使用tag 标签了
+            if(convertView instanceof  TimeRenderView) {
+                timeRenderView = (TimeRenderView) convertView;
+            } else {
+                timeRenderView = TimeRenderView.inflater(ctx, parent);
+            }
+        }
+
+//        timeRenderView = TimeRenderView.inflater(ctx, parent);
+
+        timeRenderView.setTime(timeBubble);
+        return timeRenderView;
+    }
+
+    /**
+     * text类型的: 1. 设定内容Emoparser
+     * 2. 点击事件  单击跳转、 双击方法、长按pop menu
+     * 点击头像的事件 跳转
+     *
+     * @param position
+     * @param convertView
+     * @param viewGroup
+     * @param isMine
+     * @return
+     */
+    private View textMsgRender(final int position, View convertView,
+                               final ViewGroup viewGroup, final boolean isMine) {
+        TextRenderView textRenderView;
+        final TextMessage textMessage = (TextMessage) msgObjectList.get(position);
+        UserEntity userEntity = new UserEntity();
+        //测试使用
+        if(textMessage.getFromId().equals("100000001")) {
+            userEntity.setAvatar("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
+            userEntity.setMainName("100000001");
+        } else if (textMessage.getFromId().indexOf("100000002") >= 0 ) {
+            userEntity.setAvatar("http://cdn.duitang.com/uploads/item/201511/07/20151107210255_UzQaN.thumb.700_0.jpeg");
+            userEntity.setMainName("100000002");
+        }
+
+//        if(BaseApplication.getInstance().getUserInfoBean().getmAccount().equals("100000001")) {
+//            userEntity.setAvatar("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
+//        } else {
+//            userEntity.setAvatar("http://cdn.duitang.com/uploads/item/201601/08/20160108130846_MS4TW.thumb.700_0.png");
 //        }
 
-        else {
-            return null;
-        }
-    }
 
 
-
-    /**
-     * @Description 由消息id去修改消息状态（用于只有id的情况）
-     * @param msgId
-     * @param state
-     */
-    public void updateItemState(String msgId, int state) {
-        try {
-
-            String stackTraceString = Log.getStackTraceString(new Throwable());
-            stackTraceString.replaceAll("\n", "###");
-            // logger.d("debug#updateItemState stack:%s", stackTraceString);
-            MessageInfo msgInfo = getMsgInfo(msgId);
-            if (msgInfo == null) {
-                logger.e("chat#error can't find msgInfo:%s", msgId);
-                return;
-            }
-            msgInfo.setMsgLoadState(state);
-            // logger.d("debug#updateItemState,  msg:%s", msgInfo);
-            notifyDataSetChanged();
-        } catch (Exception e) {
-            logger.e(e.getMessage());
-        }
-    }
-
-    private MessageInfo getMsgInfo(String msgId) {
-        for (Object obj : messageList) {
-            if (!(obj instanceof MessageInfo)) {
-                continue;
-            }
-            MessageInfo msgInfo = (MessageInfo) obj;
-
-            if (msgInfo.msgId.equals(msgId)) {
-                return msgInfo;
-            }
-        }
-
-        return null;
-    }
-
-    private int getMenuType(MessageInfo msg) {
-        if (msg.getDisplayType() == Constants.DISPLAY_TYPE_TEXT) {
-            return Constants.POPUP_MENU_TYPE_TEXT;
-        } else if (msg.getDisplayType() == Constants.DISPLAY_TYPE_IMAGE) {
-            return Constants.POPUP_MENU_TYPE_IMAGE;
-        } else if (msg.getDisplayType() == Constants.DISPLAY_TYPE_AUDIO) {
-            return Constants.POPUP_MENU_TYPE_AUDIO;
+        if (null == convertView) {
+            textRenderView = TextRenderView.inflater(ctx, viewGroup, isMine); //new TextRenderView(ctx,viewGroup,isMine);
         } else {
-            return -1;
+            if(convertView instanceof TextRenderView
+                    && (isMine == ((TextRenderView) convertView).isMine())) {
+                textRenderView = (TextRenderView) convertView;
+            } else {
+                textRenderView = TextRenderView.inflater(ctx, viewGroup, isMine); //new TextRenderView(ctx,viewGroup,isMine);
+            }
         }
-    }
+        final TextView textView = textRenderView.getMessageContent();
 
-    /**
-     * @Description 显示菜单
-     * @param cxt
-     * @param msg
-     */
-    private void showMenu(Context cxt, int menuType, View parent,
-                          MessageInfo msg, View layout) {
-//        boolean bIsSelf = msg.getMsgFromUserId().equals(CacheHub.getInstance().getLoginUserId());
-//        OperateItemClickListener listener = new OperateItemClickListener(menuType);
-//        listener.setMessageInfo(msg);
-//
-//        MessageOperatePopup popupView = new MessageOperatePopup(context, parent);
-//        popupView.setOnItemClickListener(listener);
-//        currentPopupView = popupView;
-//
-//        boolean bResend = msg.getMsgLoadState() == SysConstant.MESSAGE_STATE_FINISH_FAILED;
-//        popupView.show(layout, menuType, bResend, bIsSelf);
+        // 失败事件添加
+        textRenderView.getMessageFailed().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+//                MessageOperatePopup popup = getPopMenu(viewGroup, new OperateItemClickListener(textMessage, position));
+//                popup.show(textView, DBConstant.SHOW_ORIGIN_TEXT_TYPE, true, isMine);
+            }
+        });
 
-    }
-
-    private void handleTextMessage(final TextMessageHolder holder,
-                                   final MessageInfo info, final View parent) {
-        if (null == holder || null == info) {
-            return;
-        }
-        holder.message_content.setText(Emoparser.getInstance(context).emoCharsequence(info.getMsgContent()));
-
-        holder.message_content.setOnLongClickListener(new View.OnLongClickListener() {
-
+        textView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
-                showMenu(context, Constants.POPUP_MENU_TYPE_TEXT, parent, info, holder.message_content);
+                // 弹窗类型
+//                MessageOperatePopup popup = getPopMenu(viewGroup, new OperateItemClickListener(textMessage, position));
+//                boolean bResend = textMessage.getStatus() == MessageConstant.MSG_FAILURE;
+//                popup.show(textView, DBConstant.SHOW_ORIGIN_TEXT_TYPE, bResend, isMine);
                 return true;
             }
         });
 
-        holder.message_content.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View arg0) {
-                CommonUtil.skipLink(context, info.getMsgContent());
-            }
-        });
-        holder.message_content.setOnTouchListener(new onDoubleClick(info.getMsgContent()));
+        // url 路径可以设定 跳转哦哦
+        final String content = textMessage.getContent();
+//        textView.setOnTouchListener(new OnDoubleClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                //todo
+//            }
+//
+//            @Override
+//            public void onDoubleClick(View view) {
+//                Intent intent = new Intent(ctx, PreviewTextActivity.class);
+//                intent.putExtra(IntentConstant.PREVIEW_TEXT_CONTENT, content);
+//                ctx.startActivity(intent);
+//            }
+//        });
+        textRenderView.render(textMessage, userEntity, ctx);
+        return textRenderView;
     }
 
+    public void clearItem() {
+        msgObjectList.clear();
+    }
+
+
     /**
-     * @Description 双击事件
-     * @author Nana
-     * @date 2014-7-30
+     * 下拉载入历史消息,从最上面开始添加
      */
-    class onDoubleClick implements View.OnTouchListener {
-        int count = 0;
-        int firClick = 0;
-        int secClick = 0;
-        String content = null;
-
-        private onDoubleClick(String txt) {
-            content = txt;
+    public void loadHistoryList(final List<MessageEntity> historyList) {
+        logger.d("#chatAdapter#loadHistoryList");
+        if (null == historyList || historyList.size() <= 0) {
+            return;
         }
+        Collections.sort(historyList, new MessageTimeComparator());
+        ArrayList<Object> chatList = new ArrayList<>();
+        int preTime = 0;
+        int nextTime = 0;
+        for (MessageEntity msg : historyList) {
+            if (msg.getDisplayType() == DBConstant.MSG_TYPE_SINGLE_TEXT) {
+                if (isMsgGif(msg)) {
+                    msg.setGIfEmo(true);
+                } else {
+                    msg.setGIfEmo(false);
+                }
+            }
+            nextTime = msg.getCreated();
+            boolean needTimeBubble = DateUtil.needDisplayTime(preTime, nextTime);
+            if (needTimeBubble) {
+                Integer in = nextTime;
+                chatList.add(in);
+            }
+            preTime = nextTime;
+//            if (msg.getDisplayType() == DBConstant.SHOW_MIX_TEXT) {
+//                MixMessage mixMessage = (MixMessage) msg;
+//                chatList.addAll(mixMessage.getMsgList());
+//            } else {
+//                chatList.add(msg);
+//            }
+            chatList.add(msg);
+        }
+        // 如果是历史消息，从头开始加
+        msgObjectList.addAll(0, chatList);
+//        getImageList();
+        logger.d("#chatAdapter#addItem");
+        notifyDataSetChanged();
+    }
 
+    public static class MessageTimeComparator implements Comparator<MessageEntity> {
         @Override
-        public boolean onTouch(View v, MotionEvent event) {
-            if (MotionEvent.ACTION_DOWN == event.getAction()) {
-                count++;
-                if (count == 1) {
-                    firClick = (int) System.currentTimeMillis();
-
-                } else if (count == 2) {
-                    secClick = (int) System.currentTimeMillis();
-                    if (secClick - firClick < 1000) {
-                        if (v.getId() == R.id.message_content) {
-//                            Intent intent = new Intent(context, PreviewTextActivity.class);
-//                            intent.putExtra(SysConstant.PREVIEW_TEXT_CONTENT, content);
-//                            context.startActivity(intent);
-                        }
-                    }
-                    count = 0;
-                    firClick = 0;
-                    secClick = 0;
-                }
+        public int compare(MessageEntity lhs, MessageEntity rhs) {
+            if (lhs.getCreated() == rhs.getCreated()) {
+                return lhs.getMsgId() - rhs.getMsgId();
             }
-            return false;
+            return lhs.getCreated() - rhs.getCreated();
         }
     }
 
-    /**
-     * 历史消息的添加请千万走这个函数
-     *
-     * @param fromStart
-     * @param list
-     */
-    public void addItem(boolean fromStart, List<MessageInfo> list) {
-        // logger.d("debug#dump addItem fromStart msgList");
-        int index = 0;
-        for (MessageInfo msgInfo : list) {
-            // logger.d("debug#index:%d, msg:%s", index, msgInfo);
-            ++index;
+    public MessageEntity getTopMsgEntity() {
+        if (msgObjectList.size() <= 0) {
+            return null;
         }
-
-        try {
-            if (null == list || list.size() == 0) {
-                return;
+        for (Object result : msgObjectList) {
+            if (result instanceof MessageEntity) {
+                return (MessageEntity) result;
             }
-            // 如果是历史消息，从头开始加
-            messageList.addAll(fromStart ? 0 : messageList.size(), list);
-
-            // 先取出需要加进去的数据数量
-            final int count = list.size();
-            // logger.d("debug#list size:%d", count);
-
-            if (fromStart) {
-                // 因为第一次插入历史数据的时候，需要插入一条divider数据，所以后移的偏移量是count + 1
-                // updatePositonSeqMap(0, mHistoryFirstAdd ? count + 1 : count);
-                // msgIndexMap.fix(0, count);
-            }
-            // 从加进去的那个info开始，赋值各条消息的状态
-            for (int i = 0; i < count; i++) {
-                MessageInfo info = (MessageInfo) list.get(i);
-                if (null == info) {
-                    continue;
-                }
-                // msgIndexMap.put(info.msgId, fromStart ? i : count + i);
-            }
-
-            int position = count - 1;
-            while (position >= 0) {
-                Object obj = messageList.get(position);
-                if (!(obj instanceof MessageInfo)) {
-                    position--;
-                    continue;
-                }
-
-                MessageInfo preInfo = null;
-                for (int i = position - 1; i >= 0; i--) {
-                    if (messageList.get(i) instanceof MessageInfo) {
-                        preInfo = (MessageInfo) messageList.get(i);
-                        break;
-                    }
-                }
-
-                MessageInfo info = (MessageInfo) obj;
-
-                if (DateUtil.needDisplayTime(null == preInfo
-                        ? null
-                        : preInfo.getMsgCreateTime(), info.getMsgCreateTime())) {
-                    // 如果当前位置已经有了time title，就不需要再加了
-                    if (!(messageList.get(position) instanceof TimeTileMessageBean)) {
-                        TimeTileMessageBean timeTile = new TimeTileMessageBean();
-                        timeTile.setTime(info.getMsgCreateTime());
-
-                        // 更新一下状态位置映射
-                        // msgIndexMap.fix(position, 1);
-                        messageList.add(position, timeTile);
-                    }
-                }
-
-                position--;
-            }
-            // if (mHistoryFirstAdd) {
-            // mHistoryFirstAdd = false;
-            // }
-        } catch (Exception e) {
-            logger.e(e.getMessage());
         }
-    }
-
-    /**
-     * 这个函数只能从末尾添加
-     *
-     * @param info
-     *
-     */
-    public void addItem(MessageInfo info) {
-        logger.d("chat#addItem");
-        try {
-            if (null == info || messageList.contains(info)) {
-                logger.d("chat#already has this item");
-                return;
-            }
-            messageList.add(info);
-            final int count = messageList.size();
-            MessageInfo preInfo = null;
-            for (int i = count - 2; i >= 0; i--) {
-                if (messageList.get(i) instanceof MessageInfo) {
-                    preInfo = (MessageInfo) messageList.get(i);
-                    break;
-                }
-            }
-
-            if (DateUtil.needDisplayTime(null == preInfo
-                    ? null
-                    : preInfo.getMsgCreateTime(), info.getMsgCreateTime())) {
-                TimeTileMessageBean timeTitle = new TimeTileMessageBean();
-                timeTitle.setTime(info.getMsgCreateTime());
-                // msgIndexMap.fix(count - 1, 1);
-                messageList.add(count - 1, timeTitle);
-            }
-
-            logger.d("chat#finish add item");
-        } catch (Exception e) {
-            logger.e("chat#find exception:%s", e.getMessage());
-            logger.e(e.getMessage());
-        }
+        return null;
     }
 
 }

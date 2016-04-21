@@ -1,316 +1,341 @@
 package com.juju.app.entity.base;
 
 
+import com.juju.app.golobal.DBConstant;
+import com.juju.app.helper.chat.EntityChangeEngine;
+import com.lidroid.xutils.db.annotation.Column;
+import com.lidroid.xutils.db.annotation.Id;
+import com.lidroid.xutils.db.annotation.Transient;
 
-import com.juju.app.entity.MessageInfo;
-import com.juju.app.golobal.Constants;
-import com.juju.app.golobal.ProtocolConstant;
-import com.juju.app.utils.Logger;
+public class MessageEntity extends BaseEntity implements java.io.Serializable {
 
-import org.json.JSONException;
-import org.json.JSONObject;
 
-import java.util.UUID;
+	/**
+	 * 消息ID　APP维护
+	 */
+	@Column(column = "msg_id")
+	protected int msgId;
 
-public class MessageEntity {
-	public int seqNo;
-	public String fromId;
-	public String toId;
-	public int createTime;
-	public byte type;
-	public int msgLen;
-	public byte[] msgData;
-	public String attach;
 
-	// non-meta members
-	protected Logger logger = Logger.getLogger(MessageEntity.class);
-	public String msgId;
-	public String sessionId;
-	public int sessionType = -1;
+	/**
+	 * 消息发送人ID
+	 */
+	@Column(column = "from_id")
+	protected String fromId;
 
-	public boolean isMy() {
-		return fromId.equals("1");
-}
+	/**
+	 * 消息接收人
+	 */
+	@Column(column = "to_id")
+	protected String toId;
 
-	public void copy(MessageEntity anotherEntity) {
-		seqNo = anotherEntity.seqNo;
-		fromId = anotherEntity.fromId;
-		toId = anotherEntity.toId;
-		createTime = anotherEntity.createTime;
-		type = anotherEntity.type;
-		msgLen = anotherEntity.msgLen;
-		msgData = anotherEntity.msgData;
-		attach = anotherEntity.attach;
-		generateMsgId();
-		sessionId = anotherEntity.sessionId;
-		sessionType = anotherEntity.sessionType;
+	/** Not-null value. */
+	/**
+	 * sessionType + "_" + peerId;  消息类型_消息发送人ID
+	 */
+	@Column(column = "session_key")
+	protected String sessionKey;
+
+	/** Not-null value. */
+
+	/**
+	 * 消息类容
+	 */
+	@Column(column = "content")
+	protected String content;
+
+	/**
+	 * 消息类型
+	 */
+	@Column(column = "msg_type")
+	protected int msgType;
+
+	/**
+	 * 显示类型
+	 */
+	@Column(column = "display_type")
+	protected int displayType;
+
+
+	@Column(column = "status")
+	protected int status;
+
+	/**
+	 * 创建时间
+	 */
+	@Column(column = "created")
+	protected int created;
+
+	/**
+	 * 更新时间
+	 */
+	@Column(column = "updated")
+	protected int updated;
+
+	// KEEP FIELDS - put your custom fields here
+
+
+	/**
+	 * 此属性为临时使用
+	 */
+	@Transient
+	protected boolean isGIfEmo;
+	// KEEP FIELDS END
+
+	public MessageEntity() {
 	}
 
-	private String getMsgDataDescription() {
-		if (type == ProtocolConstant.MSG_TYPE_P2P_TEXT) {
-			return new String(msgData);
-		} else {
-			return "";
+	public MessageEntity(Long id) {
+		this.id = id;
+	}
+
+	public MessageEntity(Long id, int msgId, String fromId, String toId, String sessionKey,
+						 String content, int msgType, int displayType,
+						 int status, int created, int updated) {
+		this.id = id;
+		this.msgId = msgId;
+		this.fromId = fromId;
+		this.toId = toId;
+		this.sessionKey = sessionKey;
+		this.content = content;
+		this.msgType = msgType;
+		this.displayType = displayType;
+		this.status = status;
+		this.created = created;
+		this.updated = updated;
+	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
+
+	public int getMsgId() {
+		return msgId;
+	}
+
+	public void setMsgId(int msgId) {
+		this.msgId = msgId;
+	}
+
+	public String getFromId() {
+		return fromId;
+	}
+
+	public void setFromId(String fromId) {
+		this.fromId = fromId;
+	}
+
+	public String getToId() {
+		return toId;
+	}
+
+	public void setToId(String toId) {
+		this.toId = toId;
+	}
+
+	/** Not-null value. */
+	public String getSessionKey() {
+		return sessionKey;
+	}
+
+	/** Not-null value; ensure this value is available before it is saved to the database. */
+	public void setSessionKey(String sessionKey) {
+		this.sessionKey = sessionKey;
+	}
+
+	/** Not-null value. */
+	public String getContent() {
+		return content;
+	}
+
+	/** Not-null value; ensure this value is available before it is saved to the database. */
+	public void setContent(String content) {
+		this.content = content;
+	}
+
+	public int getMsgType() {
+		return msgType;
+	}
+
+	public void setMsgType(int msgType) {
+		this.msgType = msgType;
+	}
+
+	public int getDisplayType() {
+		return displayType;
+	}
+
+	public void setDisplayType(int displayType) {
+		this.displayType = displayType;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public int getCreated() {
+		return created;
+	}
+
+	public void setCreated(int created) {
+		this.created = created;
+	}
+
+	public int getUpdated() {
+		return updated;
+	}
+
+	public void setUpdated(int updated) {
+		this.updated = updated;
+	}
+
+	// KEEP METHODS - put your custom methods here
+	/**
+	 * -----根据自身状态判断的---------
+	 */
+	public int getSessionType() {
+		switch (msgType) {
+			case  DBConstant.MSG_TYPE_SINGLE_TEXT:
+			case  DBConstant.MSG_TYPE_SINGLE_AUDIO:
+				return DBConstant.SESSION_TYPE_SINGLE;
+			case DBConstant.MSG_TYPE_GROUP_TEXT:
+			case DBConstant.MSG_TYPE_GROUP_AUDIO:
+				return DBConstant.SESSION_TYPE_GROUP;
+			default:
+				return DBConstant.SESSION_TYPE_SINGLE;
 		}
 	}
 
-	public boolean isTextType() {
-		// return (msgType == ProtocolConstant.MSG_TYPE_GROUP_TEXT || msgType ==
-		// ProtocolConstant.MSG_TYPE_P2P_TEXT);
-		return msgInfo.getDisplayType() == Constants.DISPLAY_TYPE_TEXT;
-	}
 
-	public boolean isAudioType() {
-		// return (msgType == ProtocolConstant.MSG_TYPE_GROUP_AUDIO || msgType
-		// == ProtocolConstant.MSG_TYPE_P2P_AUDIO);
-		return msgInfo.getDisplayType() == Constants.DISPLAY_TYPE_AUDIO;
-	}
-
-	public boolean isImage() {
-		return msgInfo.getDisplayType() == Constants.DISPLAY_TYPE_IMAGE;
-	}
-
-	public String getText() {
-		if (isTextType()) {
-			return new String(msgData);
-		} else {
-			return "";
+	public String getMessageDisplay() {
+		switch (displayType){
+			case DBConstant.SHOW_AUDIO_TYPE:
+				return DBConstant.DISPLAY_FOR_AUDIO;
+			case DBConstant.SHOW_ORIGIN_TEXT_TYPE:
+				return content;
+			case DBConstant.SHOW_IMAGE_TYPE:
+				return DBConstant.DISPLAY_FOR_IMAGE;
+			case DBConstant.SHOW_MIX_TEXT:
+				return DBConstant.DISPLAY_FOR_MIX;
+			default:
+				return DBConstant.DISPLAY_FOR_ERROR;
 		}
-	}
-
-	public void generateMsgId(/* boolean sending */) {
-		// logger.d("chat#generateMessageId -> sending:%s", sending);
-		//
-		// // unique session, unique time, seqNo+fromId
-		// msgId = String.format("%s_%d_%d_%s", getSessionId(sending),
-		// createTime,
-		// seqNo, fromId);
-		msgId = UUID.randomUUID().toString();
-	}
-
-	public void generateMsgIdIfEmpty(/* boolean sending */) {
-		if (msgId == null || msgId.isEmpty()) {
-			msgId = UUID.randomUUID().toString();
-		}
-	}
-
-	public void generateSessionId(boolean sending) {
-		logger.d("chat#generateSessionId sending:%s", sending);
-
-		sessionId = getSessionId(sending);
-
-		logger.d("chat#session id:%s", sessionId);
-	}
-
-	public void generateSessionType(int sessionType) {
-		this.sessionType = sessionType;
-	}
-
-	public boolean isGroupMsg() {
-		// todo eric consider flag &
-		if (type == ProtocolConstant.MSG_TYPE_GROUP_AUDIO
-				|| type == ProtocolConstant.MSG_TYPE_GROUP_TEXT) {
-			return true;
-		}
-
-		return false;
-	}
-
-	public boolean isP2PMsg() {
-		if (type == ProtocolConstant.MSG_TYPE_P2P_AUDIO
-				|| type == ProtocolConstant.MSG_TYPE_P2P_TEXT) {
-			return true;
-		}
-
-		return false;
 	}
 
 	@Override
 	public String toString() {
-		// todo eric make createtime readble
-		// todo eric if the content is text, should i logging here
-		// todo eric fix all warnings, like locale param in String.format
-		return String.format("seqNo:%d,  fromId:%s, toId:%s, createTime:%d, msgType:%d, msgLen:%d, msgData:%s, attach:%s, msgId:%s", seqNo, fromId, toId, createTime, type, msgLen, getMsgDataDescription(), (attach == null)
-				? ""
-				: attach, (msgId == null) ? "" : msgId);
+		return "MessageEntity{" +
+				"id=" + id +
+				", msgId=" + msgId +
+				", fromId=" + fromId +
+				", toId=" + toId +
+				", content='" + content + '\'' +
+				", msgType=" + msgType +
+				", displayType=" + displayType +
+				", status=" + status +
+				", created=" + created +
+				", updated=" + updated +
+				'}';
 	}
 
-	public String getSessionId(boolean sending) {
-		if (type == ProtocolConstant.MSG_TYPE_P2P_TEXT
-				|| type == ProtocolConstant.MSG_TYPE_P2P_AUDIO) {
-			return sending ? toId : fromId;
-		}
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof MessageEntity)) return false;
 
-		if (type == ProtocolConstant.MSG_TYPE_GROUP_TEXT
-				|| type == ProtocolConstant.MSG_TYPE_GROUP_AUDIO) {
+		MessageEntity that = (MessageEntity) o;
+
+		if (created != that.created) return false;
+		if (displayType != that.displayType) return false;
+		if (fromId != that.fromId) return false;
+		if (msgId != that.msgId) return false;
+		if (msgType != that.msgType) return false;
+		if (status != that.status) return false;
+		if (toId != that.toId) return false;
+		if (updated != that.updated) return false;
+		if (!content.equals(that.content)) return false;
+		if (!id.equals(that.id)) return false;
+		if (!sessionKey.equals(that.sessionKey)) return false;
+
+		return true;
+	}
+
+	@Override
+	public int hashCode() {
+		int result = id.hashCode();
+		result = 31 * result + msgId;
+		result = 31 * result + fromId.hashCode();
+		result = 31 * result + toId.hashCode();
+		result = 31 * result + sessionKey.hashCode();
+		result = 31 * result + content.hashCode();
+		result = 31 * result + msgType;
+		result = 31 * result + displayType;
+		result = 31 * result + status;
+		result = 31 * result + created;
+		result = 31 * result + updated;
+		return result;
+	}
+
+
+	/**
+	 * 获取会话的sessionId
+	 * @param isSend
+	 * @return
+	 */
+	public String getPeerId(boolean isSend){
+		if(isSend){
+			/**自己发出去的*/
 			return toId;
+		}else{
+			/**接受到的*/
+			switch (getSessionType()){
+				case DBConstant.SESSION_TYPE_SINGLE:
+					return String.valueOf(fromId);
+				case DBConstant.SESSION_TYPE_GROUP:
+					return toId;
+				default:
+					return toId;
+			}
 		}
+	}
 
-		logger.e("chat#getSessionId failed");
-
+	public byte[] getSendContent(){
 		return null;
 	}
 
-	public static String createAudioInfo(MessageInfo msgInfo) {
-		JSONObject jo = new JSONObject();
-		try {
-			jo.put("path", msgInfo.getSavePath());
-			jo.put("length", msgInfo.getPlayTime());
-			jo.put("readStatus", msgInfo.getMsgReadStatus());
-			return jo.toString();
-		} catch (JSONException e) {
-			Logger logger = Logger.getLogger(MessageEntity.class);
-			logger.e("audio#createAudioInfo failed");
-		}
-
-		return "";
+	public boolean isGIfEmo() {
+		return isGIfEmo;
 	}
 
-	public static String createPicInfo(MessageInfo msgInfo) {
-		Logger logger = Logger.getLogger(MessageEntity.class);
-		logger.d("pic#createPicInfo getSavePath:%s", msgInfo.getSavePath());
-		JSONObject jo = new JSONObject();
-		try {
-			String savePath = msgInfo.getSavePath();
-			if (savePath == null) {
-				savePath = "";
-			}
-
-			jo.put("path", savePath);
-
-			String url = msgInfo.getUrl();
-			if (url == null) {
-				url = "";
-			}
-			
-			logger.d("pic#save pic to db, path:%s, url:%s", savePath, url);
-
-			jo.put("url", url);
-
-			return jo.toString();
-		} catch (JSONException e) {
-
-			logger.e("pic#createPicInfo failed");
-		}
-
-		return "";
-	}
-	public static class AudioInfo {
-		private String path;
-		private int length;
-		private int readStatus;
-		
-		public int getReadStatus() {
-			return readStatus;
-		}
-
-		public void setReadStatus(int readStatus) {
-			this.readStatus = readStatus;
-		}
-
-		public String getPath() {
-			return path;
-		}
-
-		public void setPath(String path) {
-			this.path = path;
-		}
-
-		public int getLength() {
-			return length;
-		}
-
-		public void setLength(int length) {
-			this.length = length;
-		}
-
-		public AudioInfo(String path, int length, int readStatus) {
-			this.path = path;
-			this.length = length;
-			this.readStatus = readStatus;
-
-			Logger.getLogger(MessageEntity.class).d("audio#path:%s, length:%d, readStatus", path, length, readStatus);
-		}
-
-		public static AudioInfo create(String info) {
-			Logger logger = Logger.getLogger(AudioInfo.class);
-			String path = "";
-			int length = 0;
-			int readStatus = Constants.MESSAGE_UNREAD;
-			try {
-				JSONObject jo = new JSONObject(info);
-				
-				path = jo.getString("path");
-				length = jo.getInt("length");
-				readStatus = jo.getInt("readStatus");
-
-			} catch (JSONException e1) {
-				// TODO Auto-generated catch block
-				logger.w("audio#createAudioInfo failed");
-			}
-			
-			logger.d("audio#read audio info from db -> path:%s, length:%d, readStatus:%d", path, length, readStatus);
-			return new AudioInfo(path, length, readStatus);
-		}
+	public void setGIfEmo(boolean isGIfEmo) {
+		this.isGIfEmo = isGIfEmo;
 	}
 
-	public static class PicInfo {
-		public String getPath() {
-			return path;
-		}
-
-		public void setPath(String path) {
-			this.path = path;
-		}
-
-		private String path = "";
-		private String url = "";
-
-		public String getUrl() {
-			return url;
-		}
-
-		public void setUrl(String url) {
-			this.url = url;
-		}
-
-		public PicInfo(String path, String url) {
-			this.path = path;
-			this.url = url;
-
-			Logger.getLogger(PicInfo.class).d("pic#read picture content path:%s, url:%s", path, url);
-		}
-
-		public static PicInfo create(String info) {
-			String path = "";
-			String url = "";
-
-			try {
-				JSONObject jo = new JSONObject(info);
-				
-				url = (String) jo.get("url");
-				path = (String) jo.get("path");
-			} catch (JSONException e1) {
-			}
-
-			Logger.getLogger(PicInfo.class).d("pic#read pic info from db, url:%s, path:%s", url, path);
-			return new PicInfo(path, url);
-		}
+	public boolean isSend(String loginId){
+		boolean isSend = (loginId.equals(fromId)) ? true : false;
+		return isSend;
 	}
 
-	public String getContent() {
-		if (isTextType()) {
-			return new String(msgData);
-		} else if (isAudioType()) {
-			return createAudioInfo(msgInfo);
-		} else if (isImage()) {
-			return createPicInfo(msgInfo);
-		}
-
-		return "";
+	public String buildSessionKey(boolean isSend){
+		int sessionType = getSessionType();
+		String peerId = getPeerId(isSend);
+		sessionKey = EntityChangeEngine.getSessionKey(peerId, sessionType);
+		return sessionKey;
 	}
+	// KEEP METHODS END
 
-	// todo eric
-	public MessageInfo msgInfo;
 
+	public MessageEntity clone() {
+		MessageEntity entry = new MessageEntity(id, msgId, fromId, toId,  sessionKey,
+				content,  msgType,  displayType, status,  created,  updated);
+		return entry;
+	}
 }

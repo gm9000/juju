@@ -1,7 +1,11 @@
 package com.juju.app.utils;
 
 import android.content.Context;
+import android.text.TextUtils;
 import android.util.DisplayMetrics;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 项目名称：juju
@@ -76,4 +80,25 @@ public class CommonUtil {
 //            toWebPage(cxt, httpUrl);
 //        }
     }
+
+    /**
+     * @Description 判断是否是url
+     * @param text
+     * @return
+     */
+    public static String matchUrl(String text) {
+        if (TextUtils.isEmpty(text)) {
+            return null;
+        }
+        Pattern p = Pattern.compile(
+                "[http]+[://]+[0-9A-Za-z:/[-]_#[?][=][.][&]]*",
+                Pattern.CASE_INSENSITIVE);
+        Matcher matcher = p.matcher(text);
+        if (matcher.find()) {
+            return matcher.group();
+        } else {
+            return null;
+        }
+    }
+
 }

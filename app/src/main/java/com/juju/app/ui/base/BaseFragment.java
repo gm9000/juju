@@ -39,6 +39,7 @@ public class BaseFragment extends Fragment {
         if(createFragmentUI != null) {
             if(rootView == null) {
                 rootView = (View) inflater.inflate(createFragmentUI.viewId(), null);
+                ViewUtils.inject(this, rootView);
                 findViews();
                 setOnListener();
                 if(this instanceof CreateUIHelper) {
@@ -50,13 +51,12 @@ public class BaseFragment extends Fragment {
                         uiHelper.initView();
                     }
                 }
-                return rootView;
-            } else {
-                ViewGroup parent = (ViewGroup) rootView.getParent();
-                if (parent != null) {
-                    parent.removeView(rootView);
-                }
             }
+//            ViewGroup parent = (ViewGroup) rootView.getParent();
+//            if (parent != null) {
+//                parent.removeView(rootView);
+//            }
+            return rootView;
         }
         return super.onCreateView(inflater, container, savedInstanceState);
     }

@@ -10,7 +10,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 项目名称：juju
- * 类描述：
+ * 类描述：日志记录
  * 创建人：gm
  * 日期：2016/3/3 16:50
  * 版本：V1.0.0
@@ -21,7 +21,7 @@ public class Logger {
     /**
      * log tag
      */
-    private String tagName = "MoGuLogger";// tag name
+    private String tagName = "JuJuLogger";// tag name
     /**
      * debug or not
      */

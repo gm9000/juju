@@ -3,16 +3,15 @@ package com.juju.app.service.im.manager;
 import android.util.Log;
 
 import com.juju.app.bean.UserInfoBean;
-import com.juju.app.bean.json.UserInfoResBean;
+import com.juju.app.biz.DaoSupport;
+import com.juju.app.biz.MessageDao;
+import com.juju.app.biz.impl.MessageDaoImpl;
 import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.service.im.XMPPServiceCallback;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.ui.base.BaseApplication;
 
-import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 
@@ -33,16 +32,33 @@ public class IMLoginManager extends IMManager {
 
     private SocketService socketService;
 
+    private DaoSupport messageDao;
 
     public IMLoginManager() {
         super();
     }
 
+    private UserInfoBean userInfoBean;
+
+
+
     @Override
     public void doOnStart() {
-//        EventBus.getDefault().register(this);
-        socketService = new XMPPServiceImpl(ctx.getContentResolver(), service);
-        registerCallback();
+        messageDao = new MessageDaoImpl(ctx);
+        socketService = new XMPPServiceImpl(ctx.getContentResolver(), service, messageDao);
+        //登录成功后，为MessageManager设置XMPP服务， 暂时这样处理
+        IMMessageManager.instance().setSocketService(socketService);
+
+    }
+
+    /**
+     * 上下文环境的更新
+     * 1. 环境变量的clear
+     * 2. eventBus的清空
+     */
+    @Override
+    public void reset() {
+
     }
 
     public static IMLoginManager instance() {
@@ -55,13 +71,13 @@ public class IMLoginManager extends IMManager {
     }
 
     public void login() {
-        final UserInfoBean userBean = BaseApplication.getInstance().getUserInfoBean();
         new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    Log.d(TAG, "socketService"+socketService.toString());
+                    Log.d(TAG, "socketService" + socketService.toString());
                     socketService.login();
+                    IMLoginManager.instance().joinChatRoom();
                 } catch (JUJUXMPPException e) {
                     Log.e(TAG, "login>>消息服务登录异常");
                 } catch (XMPPException e) {
@@ -75,20 +91,31 @@ public class IMLoginManager extends IMManager {
         }).start();
     }
 
-    public void sendMessage(final String user, final String message) {
-        final UserInfoBean userBean = BaseApplication.getInstance().getUserInfoBean();
+    public void logout() {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "socketService"+socketService.toString());
-                try {
-                    socketService.sendMessage(user, message);
-                } catch (SmackException.NotConnectedException e) {
-                    e.printStackTrace();
-                }
+                Log.d(TAG, "app logout");
+                socketService.logout();
             }
         }).start();
     }
+
+
+//    public void sendMessage(final String user, final String message) {
+//        final UserInfoBean userBean = BaseApplication.getInstance().getUserInfoBean();
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                Log.d(TAG, "socketService"+socketService.toString());
+//                try {
+//                    socketService.sendMessage(user, message);
+//                } catch (SmackException.NotConnectedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }).start();
+//    }
 
     public void joinChatRoom() {
         new Thread(new Runnable() {
@@ -96,15 +123,16 @@ public class IMLoginManager extends IMManager {
             public void run() {
                 Log.d(TAG, "socketService"+socketService.toString());
                 try {
-                    try {
-                        socketService.joinChatRoom();
-                    } catch (JUJUXMPPException e) {
-                        e.printStackTrace();
-                    } catch (XMPPException e) {
-                        e.printStackTrace();
-                    } catch (SmackException.NoResponseException e) {
-                        e.printStackTrace();
-                    }
+                    //加入聊天室
+                    socketService.joinChatRoom();
+                    //为用户信息赋值
+                    userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                } catch (JUJUXMPPException e) {
+                    e.printStackTrace();
+                } catch (XMPPException e) {
+                    e.printStackTrace();
+                } catch (SmackException.NoResponseException e) {
+                    e.printStackTrace();
                 } catch (SmackException.NotConnectedException e) {
                     e.printStackTrace();
                 }
@@ -115,8 +143,8 @@ public class IMLoginManager extends IMManager {
     /**
      * 注册回调方法
     */
-    public void registerCallback() {
-        socketService.registerCallback(new XMPPServiceCallbackImpl4Login());
+    public void registerCallback(XMPPServiceCallback callBack) {
+        socketService.registerCallback(callBack);
     }
 
     /**
@@ -127,46 +155,7 @@ public class IMLoginManager extends IMManager {
     }
 
 
-    class XMPPServiceCallbackImpl4Login implements XMPPServiceCallback {
-
-        /**
-         * 新消息
-         *
-         * @param from
-         * @param messageBody
-         * @param silent_notification
-         */
-        @Override
-        public void newMessage(String from, String messageBody, boolean silent_notification) {
-
-        }
-
-        /**
-         * 消息异常
-         *
-         * @param from
-         * @param errorBody
-         * @param silent_notification
-         */
-        @Override
-        public void messageError(String from, String errorBody, boolean silent_notification) {
-
-        }
-
-        /**
-         * 连接状态变更
-         */
-        @Override
-        public void connectionStateChanged() {
-
-        }
+    public UserInfoBean getUserInfoBean() {
+        return userInfoBean;
     }
-
-
-//    @Subscribe(threadMode = ThreadMode.POSTING)
-//    public void onMessageEvent(String event){
-//        System.out.println("线程ID=" + Thread.currentThread().getId());
-//    }
-
-
 }

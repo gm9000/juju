@@ -12,7 +12,7 @@
             xmlns:imagecontrol="http://schemas.android.com/apk/res-auto"
             android:id="@+id/lay_person_info"
             android:layout_width="match_parent"
-            android:layout_marginTop="50dp"
+            android:layout_marginTop="@dimen/login_round_margin_top"
             android:layout_marginLeft="20dp"
             android:layout_marginRight="20dp"
             android:layout_height="wrap_content"
@@ -23,8 +23,8 @@
 
             <com.juju.app.view.RoundImageView
                 android:id="@+id/portrait"
-                android:layout_width="120dp"
-                android:layout_height="120dp"
+                android:layout_width="@dimen/login_round_image_size"
+                android:layout_height="@dimen/login_round_image_size"
                 android:src="@mipmap/head"
                 imagecontrol:border_outside_color="#000000"
                 imagecontrol:border_thickness="1dp" />
