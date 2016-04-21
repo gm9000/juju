@@ -1,0 +1,4 @@
+<resources>
+<dimen name="login_round_margin_top">50dp</dimen>
+<dimen name="login_round_image_size">120dp</dimen>
+</resources>
