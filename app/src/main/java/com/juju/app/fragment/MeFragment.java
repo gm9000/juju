@@ -8,6 +8,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.party.MyPartyListlActivity;
 import com.juju.app.activity.user.SettingActivity;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.UserInfoBean;
@@ -151,7 +152,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.txt_party:
-                ToastUtil.showShortToast(this.getActivity(),"聚会",1);
+                ActivityUtil.startActivity(getActivity(), MyPartyListlActivity.class);
                 break;
             case R.id.txt_invite:
                 ToastUtil.showShortToast(this.getActivity(),"invite",1);

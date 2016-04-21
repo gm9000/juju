@@ -125,17 +125,21 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
         }
 
         switch (party.getStatus()){
+            case -1:
+                h.flagIcon.setImageResource(R.mipmap.description);
+                h.status.setText(R.string.drafts);
+                break;
             case 0:
                 h.flagIcon.setImageResource(R.mipmap.flag_red);
-                h.status.setText("召集中");
+                h.status.setText(R.string.calling);
                 break;
             case 1:
                 h.flagIcon.setImageResource(R.mipmap.flag_green);
-                h.status.setText("进行中");
+                h.status.setText(R.string.running);
                 break;
             case 2:
                 h.flagIcon.setImageResource(R.mipmap.flag_gray);
-                h.status.setText("已结束");
+                h.status.setText(R.string.finished);
                 break;
         }
         h.partDesc.setText(party.getDesc());

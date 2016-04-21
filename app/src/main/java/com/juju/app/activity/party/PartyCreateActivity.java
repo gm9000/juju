@@ -48,6 +48,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.security.acl.Group;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -103,6 +104,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     private String groupId;
     private String partyId;
+    private Party party;
     private PlanListAdapter planListAdapter;
 
     private InputMethodManager inputManager = null;
@@ -128,14 +130,42 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     private void initData() {
         String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
-        groupId = getIntent().getStringExtra(Constants.GROURP_ID);
-        wrapPlanList(new ArrayList<Plan>());
+        if(partyId!=null){
+            try {
+                party = JujuDbUtils.getInstance(this).findFirst(Selector.from(Party.class).where("id","=",partyId));
+                groupId = party.getGroup().getId();
+                wrapParty(party);
+
+                List<Plan> planList = JujuDbUtils.getInstance(this).findAll(Selector.from(Plan.class).where("partyId","=",partyId));
+                if(planList!=null){
+                    wrapPlanList(planList);
+                }else{
+                    wrapPlanList(new ArrayList<Plan>());
+                }
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+        }else {
+            wrapPlanList(new ArrayList<Plan>());
+        }
+    }
+
+    private void wrapParty(Party party) {
+        txt_partyTitle.setText(party.getName());
+        txt_description.setText(party.getDesc());
     }
 
     private void wrapPlanList(List<Plan> planList) {
         planListAdapter = new PlanListAdapter(this,planList);
         listview_plan.setAdapter(planListAdapter);
         listview_plan.setCacheColorHint(0);
+
+        if(planList.size()>0) {
+            txt_noPlan.setVisibility(View.GONE);
+        }
+        if(planListAdapter.getCount()>=3){
+            layout_plan.setVisibility(View.GONE);
+        }
     }
 
 
@@ -151,13 +181,15 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         txt_title.setText(R.string.add_party);
         txt_left.setLayoutParams(layoutParams);
         txt_right.setText(R.string.save);
-        txt_right.setTextColor(0xFF27AE60);
+        txt_right.setTextColor(getResources().getColor(R.color.orange));
         img_right.setVisibility(View.GONE);
 
     }
 
 
     public void initParam() {
+        groupId = getIntent().getStringExtra(Constants.GROURP_ID);
+        partyId = getIntent().getStringExtra(Constants.PARTY_ID);
     }
 
     @OnClick(R.id.layout_plan_list)
@@ -221,8 +253,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     private void savePartyToServer(boolean isPublish) {
 
-        //TODO 增加本地保存
-
+        //  正式发布聚会
         if (isPublish){
             UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
             PartyReqBean reqBean = new PartyReqBean();
@@ -257,6 +288,51 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+        //临时保存聚会
+        }else{
+            loading(true, R.string.saving);
+            if(party==null){
+                party = new Party();
+            }
+            party.setName(txt_partyTitle.getText().toString());
+            party.setDesc(txt_description.getText().toString());
+            party.setStatus(-1);
+            User creator = null;
+            try {
+                creator = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+            party.setCreator(creator);
+            if(party.getGroup()==null){
+                try {
+                    Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
+//                    party.setGroup(group);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+            }
+            JujuDbUtils.saveOrUpdate(party);
+
+            party.setId(String.valueOf(party.getLocalId()));
+            List<Plan> planList = planListAdapter.getPlanList();
+            if(planList==null || planList.size() ==0){
+                JujuDbUtils.saveOrUpdate(party);
+            }
+            for(int i=0; i<planList.size(); i++) {
+                Plan plan = planList.get(i);
+
+                if(i == 0){
+                    party.setTime(plan.getStartTime());
+                    JujuDbUtils.saveOrUpdate(party);
+                }
+
+                plan.setPartyId(String.valueOf(party.getLocalId()));
+                JujuDbUtils.save(plan);
+            }
+            completeLoading();
+            ActivityUtil.finish(this);
         }
     }
 
@@ -307,16 +383,27 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                             partyId = jsonRoot.getString("partyId");
 
 
-                            Party party = new Party();
+                            if(party == null) {
+                                party = new Party();
+                            }
                             party.setName(txt_partyTitle.getText().toString());
                             party.setDesc(txt_description.getText().toString());
                             party.setId(partyId);
                             User creator = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
                             party.setCreator(creator);
 
+                            if(party.getGroup()==null){
+                                try {
+                                    Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
+//                                    party.setGroup(group);
+                                } catch (DbException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+
                             String planIds = jsonRoot.getString("planIds");
                             if(planIds==null || planIds.equals("")){
-                                JujuDbUtils.save(party);
+                                JujuDbUtils.saveOrUpdate(party);
                             }
                             String[] planIdArray = planIds.split(",");
                             List<Plan> planList = planListAdapter.getPlanList();
@@ -375,6 +462,10 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     public void deletePlan(int deleteIndex) {
         List<Plan> planList = planListAdapter.getPlanList();
+        Plan curPlan = planList.get(deleteIndex);
+        if(curPlan.getPartyId()!=null){
+            JujuDbUtils.delete(curPlan);
+        }
         planList.remove(deleteIndex);
         planListAdapter.notifyDataSetChanged();
         if(planListAdapter.getCount()==0) {
