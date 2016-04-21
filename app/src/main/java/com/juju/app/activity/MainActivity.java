@@ -26,11 +26,9 @@ import com.juju.app.service.im.manager.IMMessageManager;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.CreateUIHelper;
-<<<<<<< Updated upstream
+
 import com.juju.app.utils.ActivityUtil;
-=======
 import com.juju.app.utils.JacksonUtil;
->>>>>>> Stashed changes
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
@@ -39,11 +37,8 @@ import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
 
-<<<<<<< Updated upstream
 import org.apache.http.message.BasicNameValuePair;
-=======
 import java.util.List;
->>>>>>> Stashed changes
 
 @ContentView(R.layout.activity_main)
 @CreateUI
@@ -79,16 +74,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     @Override
     public void loadData() {
-<<<<<<< Updated upstream
         if(GlobalVariable.isSkipLogin()){
             return;
         }
-        joinChatRoom();
-=======
-//        joinChatRoom();
->>>>>>> Stashed changes
-//        Log.d("MainActivity", getRunningServicesInfo(MainActivity.this));
-//        sendMessage();
         testSqlLite();
     }
 

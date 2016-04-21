@@ -164,15 +164,9 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
         groupChats = new ArrayList<GroupChatInitBean>();
         for(int i = 1; i<=9 ; i++) {
             Group group = new Group();
-<<<<<<< Updated upstream
             group.setId("00000"+i);
             group.setName("休闲娱乐"+i);
-=======
-            group.setId(i);
-            group.setName("休闲娱乐" + i);
->>>>>>> Stashed changes
             group.setMemberNum(i);
-
             List<String> avatar = new ArrayList<String>();
             if(i >= 1) {
                 avatar.add("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
