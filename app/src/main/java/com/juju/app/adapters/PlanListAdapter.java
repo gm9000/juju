@@ -13,7 +13,6 @@ import com.juju.app.R;
 import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.entity.Plan;
 import com.juju.app.utils.ViewHolderUtil;
-import com.juju.app.view.dialog.WarnTipDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -31,7 +30,7 @@ public class PlanListAdapter extends BaseAdapter {
     private List<Plan> planList;
     private SimpleDateFormat dateFormat;
 
-    private WarnTipDialog tipdialog;
+//    private WarnTipDialog tipdialog;
     private int deleteIndex;
     private DialogInterface.OnClickListener onDeleteClick;
 
@@ -91,9 +90,9 @@ public class PlanListAdapter extends BaseAdapter {
             @Override
             public void onClick(View v) {
                 deleteIndex = position;
-                tipdialog = new WarnTipDialog((Activity) context,"您确定要删除该方案吗？");
-                tipdialog.setBtnOkLinstener(onDeleteClick);
-                tipdialog.show();
+//                tipdialog = new WarnTipDialog((Activity) context,"您确定要删除该方案吗？");
+//                tipdialog.setBtnOkLinstener(onDeleteClick);
+//                tipdialog.show();
             }
         });
         return convertView;

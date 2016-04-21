@@ -107,13 +107,10 @@ public class Constants {
     public static final String PROPERTY_TYPE = "propertyType";  //  属性类型
     public static final String PROPERTY_VALUE = "propertyValue";  //  属性名称
 
-<<<<<<< Updated upstream
     public static final String GROURP_ID = "groupId";    //  群组ID
     public static final String PARTY_ID = "partyId";    //  聚会ID
     public static final String IS_OWNER = "isOwner";    //  是否是创建者
     public static final String PLAN_ID = "planId";    //  聚会ID
-
-=======
 
     //message 每次拉取的条数
     public static final int MSG_CNT_PER_PAGE = 15;
@@ -122,6 +119,5 @@ public class Constants {
      * */
     public static final int SERVICE_EVENTBUS_PRIORITY = 10;
     public static final int MESSAGE_EVENTBUS_PRIORITY = 100;
->>>>>>> Stashed changes
 
 }

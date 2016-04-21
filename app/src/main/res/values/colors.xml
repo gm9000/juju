@@ -57,17 +57,14 @@
     <color name="message_time_color">#a0a0a0</color>
     <color name="default_line_color">#cccccc</color>
     <color name="default_bk">#ffffff</color>
-<<<<<<< Updated upstream
     <color name="text_color">#ffffff00</color>
     <color name="link_color">#ff4abad7</color>
     <color name="font_value">#ff888271</color>
     <color name="light_notes_color">#ff999999</color>
-=======
     <color name="list_divider_color">#d1d1d1</color>
 
 
 
->>>>>>> Stashed changes
 
     <!--我 -->
     <color name="black2">#ffeeeeee</color>

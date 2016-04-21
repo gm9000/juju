@@ -44,6 +44,7 @@
         <activity
             android:name=".activity.MainActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
+            android:screenOrientation="portrait"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
@@ -60,6 +61,7 @@
             android:name=".activity.chat.ChatActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_chat"
+            android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".activity.user.RegistActivity"

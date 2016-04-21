@@ -43,13 +43,14 @@ public class GroupEntity extends PeerEntity {
 
     }
 
-    public GroupEntity(Long id) {
-        this.id = id;
+    public GroupEntity(Long localId) {
+        this.localId = localId;
     }
 
-    public GroupEntity(Long id, String peerId, int groupType, String mainName,
+    public GroupEntity(Long localId, String id, String peerId, int groupType, String mainName,
                        String avatar, int creatorId, int userCnt, String userList,
                        int version, int status, int created, int updated) {
+        this.localId = localId;
         this.id = id;
         this.peerId = peerId;
         this.groupType = groupType;
@@ -64,13 +65,7 @@ public class GroupEntity extends PeerEntity {
         this.updated = updated;
     }
 
-    public Long getId() {
-        return id;
-    }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getPeerId() {
         return peerId;

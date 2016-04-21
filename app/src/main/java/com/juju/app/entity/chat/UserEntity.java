@@ -57,11 +57,12 @@ public class UserEntity extends PeerEntity{
     public UserEntity() {
     }
 
-    public UserEntity(Long id) {
-        this.id = id;
+    public UserEntity(Long localId) {
+        this.localId = localId;
     }
 
-    public UserEntity(Long id, String peerId, int gender, String mainName, String pinyinName, String realName, String avatar, String phone, String email, int departmentId, int status, int created, int updated) {
+    public UserEntity(Long localId, String id, String peerId, int gender, String mainName, String pinyinName, String realName, String avatar, String phone, String email, int departmentId, int status, int created, int updated) {
+        this.localId = localId;
         this.id = id;
         this.peerId = peerId;
         this.gender = gender;
@@ -77,13 +78,6 @@ public class UserEntity extends PeerEntity{
         this.updated = updated;
     }
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
 
     public String getPeerId() {
         return peerId;
@@ -200,6 +194,7 @@ public class UserEntity extends PeerEntity{
     public String toString() {
         return "UserEntity{" +
                 "id=" + id +
+                "localId=" + localId +
                 ", peerId=" + peerId +
                 ", gender=" + gender +
                 ", mainName='" + mainName + '\'' +

@@ -19,6 +19,7 @@ public class TextMessage extends MessageEntity implements Serializable {
      private TextMessage(MessageEntity entity){
          /**父类的id*/
          id =  entity.getId();
+         localId = entity.getLocalId();
          msgId  = entity.getMsgId();
          fromId = entity.getFromId();
          toId   = entity.getToId();

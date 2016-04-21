@@ -14,11 +14,11 @@ import java.io.Serializable;
  */
 public abstract class BaseEntity implements Serializable {
 
-    @Id(column = "localId")
-    private long localId;
+    @Id(column = "local_id")
+    protected long localId;
 
     @Column(column = "id")
-    private String id;
+    protected String id;
 
     public long getLocalId() {
         return localId;
