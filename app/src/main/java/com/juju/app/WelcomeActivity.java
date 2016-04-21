@@ -8,9 +8,14 @@ import android.widget.LinearLayout;
 
 import com.juju.app.activity.LoginActivity;
 import com.juju.app.config.HttpConstants;
+import com.juju.app.entity.Party;
+import com.juju.app.entity.Plan;
+import com.juju.app.entity.User;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 
@@ -27,6 +32,10 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
         super.onCreate(savedInstanceState);
         ViewUtils.inject(this);
 
+//        if(SpfUtil.get(getApplicationContext(), Constants.USER_INFO,null) == null){
+//            clearDatabase();
+//        }
+
        //TODO 增加加载配置文件
 //        try {
 //            Thread.currentThread().sleep(1000);
@@ -37,6 +46,16 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
         //初始化配置URL
         HttpConstants.initURL();
         new Thread(this).start();
+    }
+
+    private void clearDatabase() {
+        try {
+            JujuDbUtils.getInstance(getContext()).dropTable(Party.class);
+            JujuDbUtils.getInstance(getContext()).dropTable(Plan.class);
+            JujuDbUtils.getInstance(getContext()).dropTable(User.class);
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

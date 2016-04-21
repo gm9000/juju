@@ -1,27 +1,28 @@
 package com.juju.app.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
+import com.juju.app.entity.http.Group;
+import com.juju.app.utils.json.JsonDateDeserializer;
+import com.juju.app.utils.json.JsonDateSerializer;
 import com.lidroid.xutils.db.annotation.Column;
+import com.lidroid.xutils.db.annotation.Foreign;
+import com.lidroid.xutils.db.annotation.Table;
+import com.lidroid.xutils.db.annotation.Transient;
 
+import java.util.Date;
+
+
+@Table(name = "party")
 public class Party extends BaseEntity {
-
-    @Column(column = "creatorId")
-    private String creatorId;
-
-    @Column(column = "creatorName")
-    private String creatorName;
-
-
 
     @Column(column = "name")
     private String name;
-
-    @Column(column = "description")
-    private String description;
-
-
-    @Column(column = "startTime")
-    private String startTime;
+    @Column(column = "desc")
+    private String desc;
+    @Column(column = "time")
+    private Date time;
 
     @Column(column = "status")
     private int status;
@@ -32,22 +33,22 @@ public class Party extends BaseEntity {
     @Column(column = "attendFlag")
     private int attendFlag;
 
-
-    public String getCreatorId() {
-        return creatorId;
+    public boolean isHidden() {
+        return hidden;
     }
 
-    public void setCreatorId(String creatorId) {
-        this.creatorId = creatorId;
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
     }
 
-    public String getCreatorName() {
-        return creatorName;
-    }
+    @Transient
+    private boolean hidden;
 
-    public void setCreatorName(String creatorName) {
-        this.creatorName = creatorName;
-    }
+    @Foreign(column = "createUserNo",foreign = "userNo")
+    private User creator;
+
+    @Foreign(column = "groupId",foreign = "id")
+    private Group group;
 
     public String getName() {
         return name;
@@ -57,20 +58,21 @@ public class Party extends BaseEntity {
         this.name = name;
     }
 
-    public String getDescription() {
-        return description;
+    public String getDesc() {
+        return desc;
     }
 
-    public void setDescription(String description) {
-        this.description = description;
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 
-    public String getStartTime() {
-        return startTime;
+    @JsonSerialize(using=JsonDateSerializer.class)
+    public Date getTime() {
+        return time;
     }
-
-    public void setStartTime(String startTime) {
-        this.startTime = startTime;
+    @JsonDeserialize(using=JsonDateDeserializer.class)
+    public void setTime(Date time) {
+        this.time = time;
     }
 
     public int getStatus() {
@@ -95,5 +97,21 @@ public class Party extends BaseEntity {
 
     public void setAttendFlag(int attendFlag) {
         this.attendFlag = attendFlag;
+    }
+
+    public User getCreator() {
+        return creator;
+    }
+
+    public void setCreator(User creator) {
+        this.creator = creator;
+    }
+
+    public Group getGroup() {
+        return group;
+    }
+
+    public void setGroup(Group group) {
+        this.group = group;
     }
 }

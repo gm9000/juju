@@ -110,10 +110,6 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ViewUtils.inject(this);
-//        if (android.os.Build.VERSION.SDK_INT > 9) {
-//            StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build();
-//            StrictMode.setThreadPolicy(policy);
-//        }
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // 防止锁屏
         initParam();
         initView();

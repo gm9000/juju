@@ -61,6 +61,11 @@ public class BaseFragment extends Fragment {
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
     /**
      * 根视图
      *

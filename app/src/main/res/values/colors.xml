@@ -18,6 +18,9 @@
     <color name="corner">@android:color/white</color>
     <color name="surrounding_area">@color/black_translucent</color>
 
+    <!--透明-->
+    <color name="transparent">#00000000</color>
+    <color name="transparent2">#50000000</color>
 
     <!-- 公共部分 -->
     <!--蓝色：#0082E3-->
@@ -30,6 +33,7 @@
     <!--棕色：#795548-->
     <!--7EA4B2-->
     <color name="blue">#0082E3</color>
+    <color name="blue1">#ff00a4e8</color>
     <color name="disenble_blue">#CFDBE0</color>
     <color name="red">#FF0000</color>
     <color name="background">#ECF0F1</color>
@@ -45,7 +49,6 @@
     <color name="txt_hint_color">#999999</color>
     <color name="emo_bk_color">#ffffffff</color>
     <color name="default_blue_color">#01aff4</color>
-
     <color name="group_manager_group_title">#010101</color>
     <color name="group_manager_user_title">#666666</color>
     <color name="list_item_sel_color">#eaeaea</color>
@@ -54,9 +57,10 @@
     <color name="message_time_color">#a0a0a0</color>
     <color name="default_line_color">#cccccc</color>
     <color name="default_bk">#ffffff</color>
-
-
-
+    <color name="text_color">#ffffff00</color>
+    <color name="link_color">#ff4abad7</color>
+    <color name="font_value">#ff888271</color>
+    <color name="light_notes_color">#ff999999</color>
 
     <!--我 -->
     <color name="black2">#ffeeeeee</color>
@@ -68,6 +72,10 @@
 
     <!--注册 -->
     <color name="common_top_bar_blue">#22292c</color>
+
+    <color name="wheel_unselect_text">#c2c1c1</color>
+    <color name="wheel_bg">#f2f2f2</color>
+    <color name="cutting_line">#dfdfdf</color>
 
 
 </resources>

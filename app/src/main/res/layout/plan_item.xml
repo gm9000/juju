@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+
+    <com.juju.app.view.SwipeLayout
+        android:id="@+id/swipe"
+        app:drag_edge="right"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:id="@+id/layout_back"
+            android:background="@color/red"
+            android:gravity="center"
+            android:layout_width="80dp"
+            android:layout_height="65.0dip">
+            <TextView
+                android:id="@+id/txt_del"
+                style="@style/MMFontTitleInList"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="删除"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:singleLine="true" />
+        </LinearLayout>
+        <LinearLayout
+            android:id="@+id/contactitem_layout"
+            style="@style/MMListItem"
+            android:orientation="vertical"
+            android:layout_height="65.0dip"
+            android:background="@drawable/setting_item_selector"
+            android:paddingLeft="5dip">
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@mipmap/clock"/>
+                <TextView
+                    android:id="@+id/txt_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="2015-12-12 09:00"
+                    android:layout_marginLeft="5dp"
+                    android:textColor="@color/gray"
+                    android:textSize="14sp"
+                    android:singleLine="true" />
+            </LinearLayout>
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp">
+                <ImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@mipmap/location"/>
+                <TextView
+                    android:id="@+id/txt_address"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginLeft="5dp"
+                    android:text="百里山水画廊"
+                    android:layout_marginRight="10dp"
+                    android:padding="2dp"
+                    android:textColor="@color/gray"
+                    android:textSize="14sp"
+                    android:singleLine="true" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txt_description"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="15dp"
+                android:text="@string/nodescription"
+                android:textColor="@color/gray"
+                android:textSize="14sp"
+                android:singleLine="true" />
+        </LinearLayout>
+
+    </com.juju.app.view.SwipeLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/black2" />
+</LinearLayout>

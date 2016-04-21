@@ -194,6 +194,13 @@ public abstract class BaseActivity extends AppCompatActivity {
      * 完成加载
      */
     protected void completeLoading(){
+
+        txt_status_message.setText(R.string.completed);
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         if(loading_layout != null) {
             loading_layout.setVisibility(View.GONE);
         }

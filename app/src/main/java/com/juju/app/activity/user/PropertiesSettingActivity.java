@@ -14,14 +14,16 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.view.XEditText;
 import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.db.sqlite.Selector;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;
@@ -78,8 +80,12 @@ public class PropertiesSettingActivity extends AppCompatActivity implements XEdi
     }
 
     private void initData() {
-        String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
-        userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
+        try {
+            userInfo = JujuDbUtils.getInstance(this).findFirst(Selector.from(User.class).where("userNo","=",BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
 
         drawable = getResources().getDrawable(R.mipmap.right_icon);
         drawable.setBounds(0, 0, drawable.getMinimumWidth(), drawable.getMinimumHeight());//必须设置图片大小，否则不显示
@@ -143,7 +149,7 @@ public class PropertiesSettingActivity extends AppCompatActivity implements XEdi
     private void selectMale(View view){
         if(propertyValue.equals(getResources().getString(R.string.female))){
             txt_female.setCompoundDrawables(null,null,null,null);
-            txt_male.setCompoundDrawables(null,null,drawable,null);
+            txt_male.setCompoundDrawables(null, null, drawable, null);
             userInfo.setGender(1);
             userInfo.setUpdate(true);
             SpfUtil.put(getApplicationContext(),Constants.USER_INFO,userInfo);
@@ -203,7 +209,8 @@ public class PropertiesSettingActivity extends AppCompatActivity implements XEdi
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
                             userInfo.setUpdate(false);
-                            SpfUtil.put(getApplicationContext(),Constants.USER_INFO,userInfo);
+                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+                            JujuDbUtils.saveOrUpdate(userInfo);
                             ActivityUtil.finish(this);
                         } else {
                             Log.e(TAG,"return status code:"+status);

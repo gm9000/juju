@@ -1,8 +1,15 @@
 package com.juju.app.entity;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.utils.JacksonUtil;
+import com.juju.app.utils.json.JsonDateDeserializer;
+import com.juju.app.utils.json.JsonDateSerializer;
 import com.lidroid.xutils.db.annotation.Column;
+import com.lidroid.xutils.db.annotation.Transient;
+
+import java.util.Date;
 
 /**
  * 项目名称：juju
@@ -22,8 +29,8 @@ public class User extends BaseEntity {
     /**
      * 用户手机号
      */
-    @Column(column = "phone")
-    private String phone;
+    @Column(column = "userPhone")
+    private String userPhone;
 
     /**
      * 用户邮箱
@@ -36,13 +43,42 @@ public class User extends BaseEntity {
      * 更新时间
      */
     @Column(column = "updateTime")
-    private long updateTime;
+    private Date updateTime;
 
+    @Column(column = "gender")
     private int gender;
 
+    @Column(column = "nickName")
     private String nickName;
 
+    @Transient
     private boolean update;
+
+    @Column(column = "birthday")
+    private Date birthday;
+
+    @Column(column = "createTime")
+    private Date createTime;
+
+    @JsonSerialize(using=JsonDateSerializer.class)
+    public Date getCreateTime() {
+        return createTime;
+    }
+
+    @JsonDeserialize(using=JsonDateDeserializer.class)
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime;
+    }
+
+    @JsonSerialize(using=JsonDateSerializer.class)
+    public Date getBirthday() {
+        return birthday;
+    }
+
+    @JsonDeserialize(using=JsonDateDeserializer.class)
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday;
+    }
 
     public int getGender() {
         return gender;
@@ -68,12 +104,12 @@ public class User extends BaseEntity {
         this.userNo = userNo;
     }
 
-    public String getPhone() {
-        return phone;
+    public String getUserPhone() {
+        return userPhone;
     }
 
-    public void setPhone(String phone) {
-        this.phone = phone;
+    public void setUserPhone(String userPhone) {
+        this.userPhone = userPhone;
     }
 
     public String getEmail() {
@@ -84,12 +120,13 @@ public class User extends BaseEntity {
         this.email = email;
     }
 
-
-    public long getUpdateTime() {
+    @JsonSerialize(using=JsonDateSerializer.class)
+    public Date getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(long updateTime) {
+    @JsonDeserialize(using=JsonDateDeserializer.class)
+    public void setUpdateTime(Date updateTime) {
         this.updateTime = updateTime;
     }
 

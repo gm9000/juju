@@ -126,7 +126,7 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper,
         groupChats = new ArrayList<GroupChatInitBean>();
         for(int i = 1; i<=9 ; i++) {
             Group group = new Group();
-            group.setId(i);
+            group.setId("00000"+i);
             group.setName("休闲娱乐"+i);
             group.setMemberNum(i);
             GroupChatInitBean groupChat = new GroupChatInitBean(String.valueOf(i), group, "送达", "今天晚上我请客，" +

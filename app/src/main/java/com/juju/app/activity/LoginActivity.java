@@ -20,6 +20,7 @@ import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.golobal.BitmapUtilFactory;
+import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
@@ -178,6 +179,10 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     @OnClick(R.id.loginBtn)
     private void onClickBtnLogin(Button btn) {
         Log.d(TAG, "threadId" + Thread.currentThread().getId());
+        if(GlobalVariable.isSkipLogin()){
+            startActivity(LoginActivity.this, MainActivity.class);
+            return;
+        }
         initGlobalVariable();
         boolean vsBool = validateLogin();
         if(vsBool) {
