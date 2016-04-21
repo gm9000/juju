@@ -295,7 +295,7 @@ public class WheelView extends View {
                 return 0;
             }
         };
-        super.setBackground(background);
+        super.setBackgroundDrawable(background);
     }
 
     @Override

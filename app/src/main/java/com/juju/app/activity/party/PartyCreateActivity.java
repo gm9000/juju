@@ -305,14 +305,14 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                 e.printStackTrace();
             }
             party.setCreator(creator);
-            if(party.getGroup()==null){
-                try {
-                    Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
+//            if(party.getGroup()==null){
+//                try {
+//                    Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
 //                    party.setGroup(group);
-                } catch (DbException e) {
-                    e.printStackTrace();
-                }
-            }
+//                } catch (DbException e) {
+//                    e.printStackTrace();
+//                }
+//            }
             JujuDbUtils.saveOrUpdate(party);
 
             party.setId(String.valueOf(party.getLocalId()));
@@ -392,14 +392,14 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                             User creator = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
                             party.setCreator(creator);
 
-                            if(party.getGroup()==null){
-                                try {
-                                    Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
+//                            if(party.getGroup()==null){
+//                                try {
+//                                    Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
 //                                    party.setGroup(group);
-                                } catch (DbException e) {
-                                    e.printStackTrace();
-                                }
-                            }
+//                                } catch (DbException e) {
+//                                    e.printStackTrace();
+//                                }
+//                            }
 
                             String planIds = jsonRoot.getString("planIds");
                             if(planIds==null || planIds.equals("")){

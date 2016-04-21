@@ -74,7 +74,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
 
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         try {
-            partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo()).orderBy("localId", true));
+            partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo()).orderBy("local_id", true));
         } catch (DbException e) {
             e.printStackTrace();
         }

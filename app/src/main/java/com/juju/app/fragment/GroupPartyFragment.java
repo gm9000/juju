@@ -91,7 +91,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
         if(JujuDbUtils.needRefresh(Party.class)) {
             JujuDbUtils.closeRefresh(Party.class);
             try {
-                Selector selector = Selector.from(Party.class).where("status",">",-1).orderBy("localId", true);
+                Selector selector = Selector.from(Party.class).where("status",">",-1).orderBy("local_id", true);
                 switch (filterType){
                     case 0:
                         break;
@@ -158,7 +158,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 //        }
 
         try {
-            partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("status",">",-1).orderBy("localId", true));
+            partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("status",">",-1).orderBy("local_id", true));
             if(partyList == null) {
                 partyList = new ArrayList<Party>();
             }
@@ -204,7 +204,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
     public void onCheckedChanged(RadioGroup group, int checkedId) {
         if (partyTypeGroup.getId() == group.getId()) {
 
-            Selector selector = Selector.from(Party.class).where("status", ">", -1).orderBy("localId", true);
+            Selector selector = Selector.from(Party.class).where("status", ">", -1).orderBy("local_id", true);
 
             //  处理渲染用户相关的所有聚会
             if (checkedId == allBtn.getId()) {
