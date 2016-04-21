@@ -1,6 +1,7 @@
 package com.juju.app.biz;
 
 import com.juju.app.entity.User;
+import com.lidroid.xutils.exception.DbException;
 
 import java.util.List;
 
@@ -73,7 +74,6 @@ public interface UserDao {
 
     /**
      * 初始化用户数据库
-     * @param type
      */
-    public void init(String type);
+    public void init() throws DbException;
 }

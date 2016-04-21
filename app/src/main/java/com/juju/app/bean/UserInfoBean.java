@@ -144,13 +144,13 @@ public class UserInfoBean {
     }
 
     private void initTest() {
-        this.mAccount = "admin";
+//        this.mAccount = "100000001";
         this.mHost = "219.143.237.230";
         this.mPort = 5222;
-        this.mPassword = "admin";
+//        this.mPassword = "123456";
         this.mRoomName = "ceshi";
         this.mMucServiceName = "conference";
         this.mServiceName = "juju";
-        this.userName = "龚铭";
+        this.userName = "100000001";
     }
 }

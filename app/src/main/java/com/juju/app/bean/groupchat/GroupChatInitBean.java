@@ -4,6 +4,8 @@ import com.juju.app.R;
 import com.juju.app.entity.http.Group;
 import com.juju.app.golobal.Constants;
 
+import java.util.List;
+
 /**
  * 项目名称：juju
  * 类描述：群聊初始化Bean
@@ -46,7 +48,7 @@ public class GroupChatInitBean {
     /**
      * 消息总数
      */
-    private String total;
+    private int unReadCnt;
 
     private int defaultAvatar = R.id.iv_avatar1;
 
@@ -60,20 +62,30 @@ public class GroupChatInitBean {
      */
     private int displayType = Constants.DISPLAY_TYPE_TEXT;
 
+    /**是否置顶*/
+    private boolean isTop = false;
+
+    private int updateTime;
+
+    /**
+     * 图像集合
+     */
+    private List<String> avatar;
+
 
 
     public GroupChatInitBean() {
 
     }
 
-    public GroupChatInitBean(String sessionId, Group group, String state, String content,
-                             String time, String total) {
+    public GroupChatInitBean(String sessionId, Group group, String content,
+                             int updateTime, int unReadCnt, List<String> avatar) {
         this.sessionId = sessionId;
         this.group = group;
-        this.state = state;
         this.content = content;
-        this.time = time;
-        this.total = total;
+        this.updateTime = updateTime;
+        this.unReadCnt = unReadCnt;
+        this.avatar = avatar;
     }
 
 
@@ -109,12 +121,12 @@ public class GroupChatInitBean {
         this.group = group;
     }
 
-    public String getTotal() {
-        return total;
+    public int getUnReadCnt() {
+        return unReadCnt;
     }
 
-    public void setTotal(String total) {
-        this.total = total;
+    public void setUnReadCnt(int unReadCnt) {
+        this.unReadCnt = unReadCnt;
     }
 
     public String getSessionId() {
@@ -123,5 +135,29 @@ public class GroupChatInitBean {
 
     public void setSessionId(String sessionId) {
         this.sessionId = sessionId;
+    }
+
+    public boolean isTop() {
+        return isTop;
+    }
+
+    public void setIsTop(boolean isTop) {
+        this.isTop = isTop;
+    }
+
+    public int getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(int updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public List<String> getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(List<String> avatar) {
+        this.avatar = avatar;
     }
 }

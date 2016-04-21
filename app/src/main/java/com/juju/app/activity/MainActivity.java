@@ -3,6 +3,7 @@ package com.juju.app.activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -12,27 +13,43 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.annotation.CreateUI;
+import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.SessionEntity;
+import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.service.im.manager.IMLoginManager;
+import com.juju.app.service.im.manager.IMMessageManager;
+import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.CreateUIHelper;
+<<<<<<< Updated upstream
 import com.juju.app.utils.ActivityUtil;
+=======
+import com.juju.app.utils.JacksonUtil;
+>>>>>>> Stashed changes
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
 
+<<<<<<< Updated upstream
 import org.apache.http.message.BasicNameValuePair;
+=======
+import java.util.List;
+>>>>>>> Stashed changes
 
 @ContentView(R.layout.activity_main)
 @CreateUI
 public class MainActivity extends BaseActivity implements CreateUIHelper {
+
+    private final String TAG = getClass().getSimpleName();
 
     @ViewInject(R.id.img_right)
     private ImageView img_right;
@@ -62,12 +79,17 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     @Override
     public void loadData() {
+<<<<<<< Updated upstream
         if(GlobalVariable.isSkipLogin()){
             return;
         }
         joinChatRoom();
+=======
+//        joinChatRoom();
+>>>>>>> Stashed changes
 //        Log.d("MainActivity", getRunningServicesInfo(MainActivity.this));
 //        sendMessage();
+        testSqlLite();
     }
 
     @Override
@@ -195,19 +217,19 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
     }
 
 
-    private void sendMessage() {
-        int i = 0;
-        IMLoginManager.instance().sendMessage("ceshi@conference.juju", "在线吗？" + i);
-    }
+//    private void sendMessage() {
+//        int i = 0;
+//        IMLoginManager.instance().sendMessage("ceshi@conference.juju", "在线吗？" + i);
+//    }
 
     //加入聊天室
     private void joinChatRoom() {
-        try {
-            Thread.sleep(2000l);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        IMLoginManager.instance().joinChatRoom();
+//        try {
+//            Thread.sleep(2000l);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        IMLoginManager.instance().joinChatRoom();
     }
 
 //    public String getRunningServicesInfo(Context context) {
@@ -230,4 +252,24 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
 //        }
 //        return serviceInfo.toString();
 //    }
+
+    private void testSqlLite() {
+        List<MessageEntity> entrys = IMMessageManager.instance().getPublicMessageDao().findAll();
+        if(entrys != null && entrys.size() >0) {
+            for(MessageEntity entry : entrys) {
+                Log.d(TAG, "MessageEntity entry:" + JacksonUtil.turnObj2String(entry));
+            }
+        }
+        List<SessionEntity> entrys2 = null;
+        try {
+            entrys2 = IMSessionManager.instance().getSessionDao().findAll("select * from com_juju_app_entity_chat_SessionEntity");
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        if(entrys2 != null && entrys2.size() >0) {
+            for(SessionEntity entry : entrys2) {
+                Log.d(TAG, "SessionEntity entry:" + JacksonUtil.turnObj2String(entry));
+            }
+        }
+    }
 }

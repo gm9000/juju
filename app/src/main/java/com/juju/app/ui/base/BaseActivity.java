@@ -18,6 +18,7 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.TipsToastUtil;
 import com.juju.app.view.CustomDialog;
+import com.kaopiz.kprogresshud.KProgressHUD;
 import com.lidroid.xutils.ViewUtils;
 
 import org.apache.http.message.BasicNameValuePair;
@@ -56,6 +57,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 }
             }
         }
+        setOnListener();
         initPublicViews();
         BaseApplication.getInstance().addActivity(this);
         context = this;
@@ -206,6 +208,42 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }
 
+
+
+    //仿IOS系统加载
+    KProgressHUD loadingUI;
+    protected void loadingCommon(Object... msg) {
+        if(loadingUI == null) {
+            loadingUI =  KProgressHUD.create(this)
+                    .setStyle(KProgressHUD.Style.SPIN_INDETERMINATE)
+                    .setCancellable(true)
+                    .setAnimationSpeed(1)
+                    .setDimAmount(0.5f);
+            if(msg == null
+                    || msg.length == 0) {
+                loadingUI.setLabel(getContext().getResources()
+                        .getText(R.string.common_loading).toString());
+            } else {
+               if(msg[0] instanceof Integer) {
+                   loadingUI.setLabel(getContext().getResources()
+                           .getText((Integer) msg[0]).toString());
+               } else if (msg[0] instanceof String) {
+                   loadingUI.setLabel((String)msg[0]);
+               } else {
+                   loadingUI.setLabel(getContext().getResources()
+                           .getText(R.string.common_loading).toString());
+               }
+            }
+        }
+        loadingUI.show();
+    }
+
+    protected void completeLoadingCommon() {
+        if(loadingUI != null) {
+            loadingUI.dismiss();
+        }
+    }
+
 //    @Override
 //    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 //        super.onActivityResult(requestCode, resultCode, data);
@@ -260,7 +298,22 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * 绑定事件
+     */
+    protected void setOnListener() {
 
+    }
+
+    protected int getResValue(String name, String... type) {
+        int resId = 0;
+        if(type == null || type.length == 0) {
+            resId = getResources().getIdentifier(name, "string", "com.juju.app");
+        } else {
+            resId = getResources().getIdentifier(name, type[0], "com.juju.app");
+        }
+        return resId;
+    }
 
 
 }

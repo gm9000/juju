@@ -1,9 +1,11 @@
 package com.juju.app.biz.impl;
 
 import android.content.Context;
+import android.util.Log;
 
 import com.juju.app.biz.UserDao;
 import com.juju.app.entity.User;
+import com.juju.app.golobal.DBConstant;
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.db.sqlite.WhereBuilder;
@@ -20,13 +22,19 @@ import java.util.List;
  */
 public class UserDaoImpl implements UserDao {
 
+    private final String TAG = getClass().getSimpleName();
+
     private DbUtils db;
 
     private Context context;
 
-    public UserDaoImpl(Context context, String type) {
+    public UserDaoImpl(Context context) {
         this.context = context;
-        init(type);
+        try {
+            init();
+        } catch (DbException e) {
+            Log.e(TAG, "user init:", e);
+        }
     }
 
     @Override
@@ -65,12 +73,13 @@ public class UserDaoImpl implements UserDao {
 
     @Override
     public List<User> queryAll() {
+        List<User> userList = null;
         try {
-            List<User> userlist = db.findAll(Selector.from(User.class).orderBy("updateTime", true));
+            userList = db.findAll(Selector.from(User.class).orderBy("updateTime", true));
         } catch (DbException e) {
             e.printStackTrace();
         }
-        return null;
+        return userList;
     }
 
     @Override
@@ -112,7 +121,8 @@ public class UserDaoImpl implements UserDao {
     }
 
     @Override
-    public void init(String type) {
-        this.db = DbUtils.create(context, "user" + type);
+    public void init() throws DbException {
+        this.db = DbUtils.create(context, DBConstant.DB_NAME);
+        db.createTableIfNotExist(User.class);
     }
 }

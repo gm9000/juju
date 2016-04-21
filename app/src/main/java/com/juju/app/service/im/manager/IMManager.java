@@ -3,6 +3,8 @@ package com.juju.app.service.im.manager;
 import android.app.Service;
 import android.content.Context;
 
+import com.juju.app.service.im.service.SocketService;
+
 import org.greenrobot.eventbus.EventBus;
 
 /**
@@ -17,6 +19,9 @@ public abstract class IMManager {
     protected Context ctx;
 
     protected Service service;
+
+    protected SocketService socketService;
+
 
 
     public IMManager() {
@@ -47,11 +52,34 @@ public abstract class IMManager {
 
     public abstract void doOnStart();
 
+    /**
+     * 上下文环境的更新
+     * 1. 环境变量的clear
+     * 2. eventBus的清空
+     * */
+    public abstract void reset();
+
 
     //发送消息，消息发布者，UI需监听
     protected void triggerEvent(Object paramObject)
     {
         EventBus.getDefault().post(paramObject);
     }
+
+
+    protected boolean isAuthenticated() {
+        boolean isAuth = false;
+        if(socketService != null
+                && socketService.isAuthenticated()) {
+            return true;
+        }
+        return isAuth;
+    }
+
+    protected void setSocketService(SocketService socketService) {
+        this.socketService = socketService;
+    }
+
+
 
 }

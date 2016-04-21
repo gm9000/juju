@@ -7,6 +7,7 @@ import android.content.Intent;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.CacheManager;
 import com.juju.app.service.im.IMService;
+import com.juju.app.utils.ImageLoaderUtil;
 
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -52,11 +53,9 @@ public class BaseApplication extends Application {
 
 
     private void init() {
-        //启动聊天服务
-        Intent intent = new Intent();
-        intent.setAction("com.juju.app.service.XMMP");
-        intent.setClass(this, IMService.class);
-        startService(intent);
+        startIMService();
+        //初始化图片加载器
+        ImageLoaderUtil.initImageLoaderConfig(getApplicationContext());
     }
 
 
@@ -91,6 +90,7 @@ public class BaseApplication extends Application {
         for (Activity activity : mActivities) {
             activity.finish();
         }
+        stopIMService();
         System.exit(0);
     }
 
@@ -98,8 +98,18 @@ public class BaseApplication extends Application {
         return userInfoBean;
     }
 
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void onMessageEvent(String event){
-//        System.out.println("线程ID=" + Thread.currentThread().getId());
-//    }
+
+    //启动IM服务
+    private void startIMService() {
+        Intent intent = new Intent();
+        intent.setClass(this, IMService.class);
+        startService(intent);
+    }
+
+    //关闭IM服务
+    private void stopIMService() {
+        Intent intent = new Intent();
+        intent.setClass(this, IMService.class);
+        stopService(intent);
+    }
 }

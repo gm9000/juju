@@ -17,7 +17,7 @@ public class Group {
     /**
      * 标示id,预留
      */
-    private String markerId;
+    private String peerId;
 
     private String name;
 
@@ -70,11 +70,11 @@ public class Group {
         this.memberNum = memberNum;
     }
 
-    public String getMarkerId() {
-        return markerId;
+    public String getPeerId() {
+        return peerId;
     }
 
-    public void setMarkerId(String markerId) {
-        this.markerId = markerId;
+    public void setPeerId(String peerId) {
+        this.peerId = peerId;
     }
 }

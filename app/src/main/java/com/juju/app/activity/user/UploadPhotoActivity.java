@@ -68,6 +68,11 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     @ViewInject(R.id.confirm)
     private TextView txt_confirm;
 
+    @ViewInject(R.id.loading_layout)
+    private RelativeLayout loading_layout;
+    @ViewInject(R.id.txt_status_message)
+    private TextView txt_status_message;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,8 +111,8 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
             public void onClick(View v) {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 // 指定调用相机拍照后照片的储存路径
-                File imageFile = new File(Environment.getExternalStorageDirectory()+"/juju/"+imageName);
-                if(!imageFile.exists()){
+                File imageFile = new File(Environment.getExternalStorageDirectory() + "/juju/" + imageName);
+                if (!imageFile.exists()) {
                     try {
                         imageFile.createNewFile();
                     } catch (IOException e) {
@@ -278,4 +283,6 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
         System.out.println("TAG's accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
                 error.getExceptionCode());
     }
+
+
 }
