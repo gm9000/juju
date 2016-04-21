@@ -1,6 +1,8 @@
 package com.juju.app.entity.base;
 
 import com.lidroid.xutils.db.annotation.Column;
+import com.lidroid.xutils.db.annotation.Id;
+import com.lidroid.xutils.db.annotation.NoAutoIncrement;
 
 import java.io.Serializable;
 
@@ -13,14 +15,15 @@ import java.io.Serializable;
  */
 public abstract class BaseEntity implements Serializable {
 
+    @Id
     @Column(column = "id")
-    private int id;
+    protected Long id;
 
-    public int getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(Long id) {
         this.id = id;
     }
 }
