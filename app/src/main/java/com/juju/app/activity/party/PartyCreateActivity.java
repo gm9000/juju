@@ -308,7 +308,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             if(party.getGroup()==null){
                 try {
                     Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
-                    party.setGroup(group);
+//                    party.setGroup(group);
                 } catch (DbException e) {
                     e.printStackTrace();
                 }
@@ -395,7 +395,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                             if(party.getGroup()==null){
                                 try {
                                     Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
-                                    party.setGroup(group);
+//                                    party.setGroup(group);
                                 } catch (DbException e) {
                                     e.printStackTrace();
                                 }
