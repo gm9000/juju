@@ -15,7 +15,7 @@ public class JujuDbUtils {
         if (mInstance == null) {
             synchronized (JujuDbUtils.class){
                 if (mInstance == null) {
-                    mInstance = DbUtils.create(context.getApplicationContext());
+                    mInstance = DbUtils.create(context.getApplicationContext(),DBConstant.DB_NAME);
                     mInstance.configAllowTransaction(true);
                     mInstance.configDebug(true);
                 }

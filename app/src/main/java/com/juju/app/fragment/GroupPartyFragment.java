@@ -20,11 +20,18 @@ import com.juju.app.activity.party.PartyActivity;
 import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.adapters.PartyListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
+import com.juju.app.bean.UserInfoBean;
+import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.entity.Party;
+import com.juju.app.entity.Plan;
+import com.juju.app.entity.PlanVote;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.http.GetPartysRes;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
@@ -153,9 +160,21 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 //            JujuDbUtils.getInstance(getContext()).dropTable(PlanVote.class);
 //            JujuDbUtils.getInstance(getContext()).dropTable(Plan.class);
 //            JujuDbUtils.getInstance(getContext()).dropTable(Party.class);
+//            JujuDbUtils.getInstance(getContext()).dropTable(GroupEntity.class);
 //        } catch (DbException e) {
 //            e.printStackTrace();
 //        }
+//        GroupDaoImpl groupDao = new GroupDaoImpl(getContext());
+//        GroupEntity group = new GroupEntity();
+//        group.setId("570dbc6fe4b092891a647e32");
+//        group.setMainName("聚龙小组");
+//        group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
+//
+//        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+//        group.setCreatorId(userInfoBean.getJujuNo());
+//        groupDao.save(group);
+
+
 
         try {
             partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("status",">",-1).orderBy("local_id", true));

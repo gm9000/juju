@@ -48,6 +48,7 @@
     <string name="party_plan">聚会方案</string>
     <string name="group_invite">邀请</string>
     <string name="me">我</string>
+    <string name="basic_info">基本信息</string>
     <string name="confirm">确定</string>
     <string name="negative">取消</string>
     <string name="delete">删除</string>
@@ -146,6 +147,7 @@
     <string name="calling">召集中</string>
     <string name="running">进行中</string>
     <string name="finished">已结束</string>
+    <string name="location_select">选取位置</string>
 
 
     <string-array name="weeks">
@@ -202,5 +204,6 @@
     <string name="title_activity_party_detail">PartyDetailActivity</string>
     <string name="title_activity_plan_detail">PlanDetailActivity</string>
     <string name="title_activity_my_party_list">MyPartyListActivity</string>
+    <string name="title_activity_plan_location">PlanLocationActivity</string>
 
 </resources>

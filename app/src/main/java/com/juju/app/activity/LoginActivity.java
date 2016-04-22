@@ -19,8 +19,11 @@ import com.juju.app.activity.user.RegistActivity;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
+import com.juju.app.entity.User;
 import com.juju.app.golobal.BitmapUtilFactory;
+import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.GlobalVariable;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
@@ -28,11 +31,14 @@ import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.ClearEditText;
 import com.juju.app.view.RoundImageView;
+import com.lidroid.xutils.db.sqlite.Selector;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;
@@ -331,12 +337,32 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         SpfUtil.put(this, "userNo", userNo);
         SpfUtil.put(this, "pwd", pwd);
 
+        User loginUser = null;
+        try {
+            loginUser = JujuDbUtils.getInstance(this).findFirst(Selector.from(User.class).where("userNo","=",userNo));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         userInfoBean.setJujuNo(jujuNo);
         userInfoBean.setToken(token);
         userInfoBean.setmAccount(userNo);
         userInfoBean.setmPassword(pwd);
-        userInfoBean.setUserName(userNo);
+
+        if( loginUser == null){
+            SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
+        }else{
+            userInfoBean.setUserName(loginUser.getNickName());
+            userInfoBean.setGender(loginUser.getGender());
+            userInfoBean.setPhone(loginUser.getUserPhone());
+
+            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfoBean));
+        }
+
+
+
+
 
 //        SpfUtil.put(this, "pwdChecked", pwdChecked);
 //        SpfUtil.put(this, "autoLoginChecked", autoLoginChecked);

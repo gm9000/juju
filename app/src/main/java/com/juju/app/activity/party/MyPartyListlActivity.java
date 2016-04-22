@@ -66,6 +66,14 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
 
     }
 
+    @Override
+    protected void onResume(){
+        super.onResume();
+        if(JujuDbUtils.needRefresh(Party.class)){
+            initData();
+        }
+    }
+
     private void initListeners() {
         listPartyView.setOnItemClickListener(this);
     }

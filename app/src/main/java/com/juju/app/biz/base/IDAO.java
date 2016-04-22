@@ -36,6 +36,8 @@ public interface IDAO<T, PK> {
 
     public void deleteById(PK id);
 
+    public T findById(String id);
+
     public List<T> findAll();
 
     public long getTotalCount();
