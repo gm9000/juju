@@ -31,6 +31,7 @@ import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -158,10 +159,11 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                 ToastUtil.showShortToast(this.getActivity(),"invite",1);
                 break;
             case R.id.txt_setting:
-                ToastUtil.showShortToast(this.getActivity(),"setting",1);
+                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class);
                 break;
             case R.id.view_user:
-                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class);
+                UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,userInfoBean.getJujuNo()));
                 break;
         }
     }

@@ -48,7 +48,7 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
     @Override
     public void save(T entity) {
         try {
-            db.update(entity);
+            db.save(entity);
         } catch (DbException e) {
             Log.e(TAG, "save error:"+clazz.getSimpleName(), e);
         }
@@ -91,6 +91,17 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
     }
 
     @Override
+    public T findById(String id) {
+        T entity = null;
+        try {
+            entity = db.findFirst(Selector.from(clazz).where("id","=",id));
+        } catch (DbException e) {
+            Log.e(TAG, "execute findAll error:"+clazz.getSimpleName(), e);
+        }
+        return entity;
+    }
+
+    @Override
     public List<T> findAll() {
         List<T> list = null;
         try {
@@ -114,7 +125,7 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
 
     @Override
     public void init() {
-        this.db = DbUtils.create(context, DBConstant.DB_NAME);
+        this.db = DbUtils.create(context.getApplicationContext(), DBConstant.DB_NAME);
         try {
             db.createTableIfNotExist(clazz);
         } catch (DbException e) {

@@ -3,7 +3,7 @@ package com.juju.app.entity;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
-import com.juju.app.entity.http.Group;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
 import com.lidroid.xutils.db.annotation.Column;
@@ -48,7 +48,7 @@ public class Party extends BaseEntity {
     private User creator;
 
     @Foreign(column = "groupId",foreign = "id")
-    private Group group;
+    private GroupEntity group;
 
     public String getName() {
         return name;
@@ -107,11 +107,11 @@ public class Party extends BaseEntity {
         this.creator = creator;
     }
 
-    public Group getGroup() {
+    public GroupEntity getGroup() {
         return group;
     }
 
-    public void setGroup(Group group) {
+    public void setGroup(GroupEntity group) {
         this.group = group;
     }
 }

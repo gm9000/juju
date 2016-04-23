@@ -40,7 +40,7 @@
             android:paddingLeft="5dip">
             <TextView
                 android:id="@+id/txt_time"
-                style="@style/BlackTxt12"
+                style="@style/BlackTxt14"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="15dp"

@@ -4,13 +4,11 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 
+import com.baidu.mapapi.SDKInitializer;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.CacheManager;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
-
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,6 +46,7 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        SDKInitializer.initialize(this);
         init();
     }
 

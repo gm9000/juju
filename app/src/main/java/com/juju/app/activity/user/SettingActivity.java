@@ -6,6 +6,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
@@ -25,6 +26,7 @@ import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
 import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
@@ -67,6 +69,8 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     @ViewInject(R.id.txt_gender)
     private TextView txt_gender;
 
+    @ViewInject(R.id.layout_setting)
+    private RelativeLayout layout_setting;
     @ViewInject(R.id.img_rememberPwd)
     private ImageView img_rememberPwd;
     @ViewInject(R.id.img_autoLogin)
@@ -75,12 +79,19 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     @ViewInject(R.id.logoutBtn)
     private Button logoutBtn;
 
+    private String userNo;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ViewUtils.inject(this);
+        initParam();
         initView();
         loadUserInfo();
+    }
+
+    private void initParam() {
+        userNo = getIntent().getStringExtra(Constants.USER_NO);
     }
 
     @Override
@@ -127,19 +138,28 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
 
 
     private void loadUserInfo() {
+        String targetNo = userNo==null?BaseApplication.getInstance().getUserInfoBean().getJujuNo():userNo;
 
-        BitmapUtilFactory.getInstance(this).display(headImg,HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+ BaseApplication.getInstance().getUserInfoBean().getJujuNo());
-        String userInfoStr = (String) SpfUtil.get(getApplicationContext(),Constants.USER_INFO,null);
+        BitmapUtilFactory.getInstance(this).display(headImg,HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+ targetNo);
         User userInfo = null;
-        if(userInfoStr != null) {
-            userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
+        if(userNo == null) {
+            String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
+            if (userInfoStr != null) {
+                userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
+            }
+        }else{
+            try {
+                userInfo = JujuDbUtils.getInstance(this).findFirst(Selector.from(User.class).where("userNo","=",userNo));
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
         }
         if(userInfo == null){
             UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
             Map<String, Object> valueMap = new HashMap<String, Object>();
             valueMap.put("userNo", userInfoBean.getJujuNo());
             valueMap.put("token", userInfoBean.getToken());
-            valueMap.put("targetNo", userInfoBean.getJujuNo());
+            valueMap.put("targetNo", userNo==null?userInfoBean.getJujuNo():userNo);
 
             JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
                     R.id.txt_jujuNo, HttpConstants.getUserUrl() + "/getUserInfo", this, valueMap,
@@ -161,30 +181,40 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
 
     private void initView() {
 
-        txt_title.setText(R.string.settings);
+        if(userNo == null) {
+            txt_title.setText(R.string.settings);
+            txt_left.setText(R.string.me);
+        }else{
+            txt_title.setText(R.string.basic_info);
+            txt_left.setText(R.string.top_left_back);
+
+            layout_setting.setVisibility(View.GONE);
+            logoutBtn.setVisibility(View.GONE);
+            boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD,true);
+            boolean autoLogin = (boolean) SpfUtil.get(getApplicationContext(),Constants.AUTO_LOGIN,true);
+
+            if(rememberPwd){
+                img_rememberPwd.setImageResource(R.mipmap.switch_on);
+            }else{
+                img_rememberPwd.setImageResource(R.mipmap.switch_off);
+            }
+
+            if(autoLogin){
+                img_autoLogin.setImageResource(R.mipmap.switch_on);
+            }else{
+                img_autoLogin.setImageResource(R.mipmap.switch_off);
+            }
+            txt_gender.setClickable(false);
+            txt_gender.setCompoundDrawables(null, null, null, null);
+            txt_phoneNo.setClickable(false);
+            txt_phoneNo.setCompoundDrawables(null, null, null, null);
+            txt_nickName.setClickable(false);
+            txt_nickName.setCompoundDrawables(null,null,null,null);
+
+        }
         txt_left.setVisibility(View.VISIBLE);
-        txt_left.setText(R.string.me);
         img_back.setVisibility(View.VISIBLE);
         img_right.setVisibility(View.GONE);
-
-        txt_jujuNo.setText("");
-        txt_phoneNo.setText("");
-        txt_nickName.setText("");
-
-        boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD,true);
-        boolean autoLogin = (boolean) SpfUtil.get(getApplicationContext(),Constants.AUTO_LOGIN,true);
-
-        if(rememberPwd){
-            img_rememberPwd.setImageResource(R.mipmap.switch_on);
-        }else{
-            img_rememberPwd.setImageResource(R.mipmap.switch_off);
-        }
-
-        if(autoLogin){
-            img_autoLogin.setImageResource(R.mipmap.switch_on);
-        }else{
-            img_autoLogin.setImageResource(R.mipmap.switch_off);
-        }
 
     }
 
@@ -192,14 +222,14 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
 
     @OnClick(R.id.head)
     private void showHeadImg(View view){
-        ActivityUtil.startActivity(this, UploadPhotoActivity.class);
+        ActivityUtil.startActivity(this, UploadPhotoActivity.class,new BasicNameValuePair(Constants.USER_NO,userNo));
     }
 
     @OnClick(R.id.txt_nick_name)
     private void modifyNickName(View view){
         BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
         BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
-        ActivityUtil.startActivity(this,PropertiesSettingActivity.class,typeValue,valueValue);
+        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
     }
 
     @OnClick(R.id.txt_gender)
@@ -211,14 +241,14 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
 
     @OnClick(R.id.txt_phoneNo)
     private void modifyPhone(View view){
-        ToastUtil.showShortToast(this,"phone",1);
+        ToastUtil.showShortToast(this, "phone", 1);
     }
 
 
     @OnClick(R.id.img_rememberPwd)
     private void remenberPwd(View view){
         boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD,true);
-        SpfUtil.put(getApplicationContext(),Constants.REMEMBER_PWD,!rememberPwd);
+        SpfUtil.put(getApplicationContext(), Constants.REMEMBER_PWD, !rememberPwd);
         if(rememberPwd){
             img_rememberPwd.setImageResource(R.mipmap.switch_off);
         }else{
@@ -312,7 +342,9 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
                             txt_phoneNo.setText(userInfo.getUserPhone());
                             txt_nickName.setText(userInfo.getNickName());
                             JujuDbUtils.saveOrUpdate(userInfo);
-                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo.toString());
+                            if(userNo == null) {
+                                SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo.toString());
+                            }
 
                         } else {
                         }

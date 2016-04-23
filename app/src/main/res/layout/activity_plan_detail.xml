@@ -30,7 +30,7 @@
             android:drawableBottom="@drawable/menu_bottom_line"
             android:drawablePadding="5dp"
             android:text="方案一"
-            android:textAlignment="center"
+            android:gravity="center_horizontal"
             android:textColor="@drawable/menu_text_color"
             android:textSize="16sp" />
 
@@ -44,7 +44,7 @@
             android:drawableBottom="@drawable/menu_bottom_line"
             android:drawablePadding="5dp"
             android:text="方案二"
-            android:textAlignment="center"
+            android:gravity="center_horizontal"
             android:textColor="@drawable/menu_text_color"
             android:textSize="16sp" />
 
@@ -58,7 +58,7 @@
             android:drawableBottom="@drawable/menu_bottom_line"
             android:drawablePadding="5dp"
             android:text="方案三"
-            android:textAlignment="center"
+            android:gravity="center_horizontal"
             android:textColor="@drawable/menu_text_color"
             android:textSize="16sp" />
     </RadioGroup>

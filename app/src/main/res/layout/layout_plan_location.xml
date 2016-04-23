@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background">
+
+    <!--标题 -->
+    <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>
+
+    <com.baidu.mapapi.map.MapView
+        android:id="@+id/mapView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="48dp"
+        android:gravity="center"
+        android:layout_marginBottom="100dp"
+        />
+    <TextView
+        style="@style/BlackStrongTxt14"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:gravity="center_vertical"
+        android:text="北京市海淀区学院路8号"
+        android:drawableLeft="@mipmap/location_red"
+        android:paddingLeft="15dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="80dp"
+        android:background="@color/white"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="5dp"
+        android:gravity="center">
+
+        <Button
+            android:id="@+id/btn_confirm"
+            style="?android:textAppearanceMedium"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:background="@color/blue"
+            android:text="@string/confirm"
+            android:textColor="@color/white"
+            android:enabled="true"/>
+        <Button
+            android:id="@+id/btn_cancel"
+            android:layout_marginLeft="10dp"
+            style="?android:textAppearanceMedium"
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:background="@color/red"
+            android:text="@string/cancel"
+            android:enabled="true"
+            android:textColor="@color/white"/>
+
+    </LinearLayout>
+
+</RelativeLayout>

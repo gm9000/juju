@@ -7,6 +7,7 @@ import android.text.TextUtils;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.utils.pinyin.PinYinUtil;
 import com.lidroid.xutils.db.annotation.Column;
+import com.lidroid.xutils.db.annotation.Table;
 
 import java.util.Collections;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 
+@Table(name = "user_group")
 public class GroupEntity extends PeerEntity {
 
 
@@ -21,7 +23,7 @@ public class GroupEntity extends PeerEntity {
     private int groupType;
 
     @Column(column = "creator_id")
-    private int creatorId;
+    private String creatorId;
 
     @Column(column = "user_cnt")
     private int userCnt;
@@ -48,7 +50,7 @@ public class GroupEntity extends PeerEntity {
     }
 
     public GroupEntity(Long localId, String id, String peerId, int groupType, String mainName,
-                       String avatar, int creatorId, int userCnt, String userList,
+                       String avatar, String creatorId, int userCnt, String userList,
                        int version, int status, int created, int updated) {
         this.localId = localId;
         this.id = id;
@@ -99,11 +101,11 @@ public class GroupEntity extends PeerEntity {
         this.avatar = avatar;
     }
 
-    public int getCreatorId() {
+    public String getCreatorId() {
         return creatorId;
     }
 
-    public void setCreatorId(int creatorId) {
+    public void setCreatorId(String creatorId) {
         this.creatorId = creatorId;
     }
 

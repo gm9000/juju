@@ -1,6 +1,7 @@
 package com.juju.app.activity.party;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,11 +21,13 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.bean.json.PartyBean;
 import com.juju.app.bean.json.PartyReqBean;
 import com.juju.app.bean.json.PlanBean;
+import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.User;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -48,7 +51,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
-import java.security.acl.Group;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -59,6 +61,8 @@ import java.util.List;
 public class PartyCreateActivity extends BaseActivity implements HttpCallBack, AdapterView.OnItemClickListener {
 
     private static final String TAG = "PartyCreateActivity";
+
+    private static final int CMD_REQ_LOCATION = 1;
 
     @ViewInject(R.id.txt_title)
     private TextView txt_title;
@@ -107,6 +111,9 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     private Party party;
     private PlanListAdapter planListAdapter;
 
+    private GroupDaoImpl groupDao;
+
+
     private InputMethodManager inputManager = null;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
@@ -129,6 +136,9 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     }
 
     private void initData() {
+
+        groupDao = new GroupDaoImpl(this);
+
         String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
         if(partyId!=null){
             try {
@@ -238,7 +248,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     @OnClick(R.id.img_select_location)
     private void selectLocation(View view){
-        ToastUtil.showShortToast(this, "集成地图进行位置选择", 1);
+        Intent intent=new Intent(this,PlanLocationActivity.class);
+        startActivityForResult(intent, CMD_REQ_LOCATION);
     }
 
     @OnClick(R.id.txt_right)
@@ -306,12 +317,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             }
             party.setCreator(creator);
             if(party.getGroup()==null){
-                try {
-                    Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
-//                    party.setGroup(group);
-                } catch (DbException e) {
-                    e.printStackTrace();
-                }
+                GroupEntity group = groupDao.findById(groupId);
+                party.setGroup(group);
             }
             JujuDbUtils.saveOrUpdate(party);
 
@@ -368,6 +375,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     private void clearPlanTxt() {
         txt_time.setText("");
         txt_location.setText("");
+        txt_planDescription.setText("");
     }
 
     @Override
@@ -393,13 +401,10 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                             party.setCreator(creator);
 
                             if(party.getGroup()==null){
-                                try {
-                                    Group group = JujuDbUtils.getInstance(this).findFirst(Selector.from(Group.class).where("id","=",groupId));
-//                                    party.setGroup(group);
-                                } catch (DbException e) {
-                                    e.printStackTrace();
-                                }
+                                GroupEntity group = groupDao.findById(groupId);
+                                party.setGroup(group);
                             }
+                            party.setStatus(0); //  召集中
 
                             String planIds = jsonRoot.getString("planIds");
                             if(planIds==null || planIds.equals("")){
@@ -458,6 +463,25 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Plan curPlan = (Plan)listview_plan.getItemAtPosition(position);
         ToastUtil.showShortToast(this, curPlan.getAddress(), 1);
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case CMD_REQ_LOCATION:
+                    double lantitude = data.getDoubleExtra(Constants.LATITUDE,0f);
+                    double longitude = data.getDoubleExtra(Constants.LONGITUDE, 0f);
+                    String address = data.getStringExtra(Constants.ADDRESS);
+                    ToastUtil.showShortToast(this,lantitude+","+longitude+" "+address,1);
+                    break;
+
+            }
+            super.onActivityResult(requestCode, resultCode, data);
+
+        }else{
+        }
     }
 
     public void deletePlan(int deleteIndex) {

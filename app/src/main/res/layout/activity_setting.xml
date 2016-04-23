@@ -117,7 +117,8 @@
                     android:textSize="14sp"
                     android:gravity="center_vertical|right"
                     android:background="@drawable/setting_item_selector"
-                    android:paddingRight="32dp"
+                    android:drawablePadding="10dp"
+                    android:drawableRight="@null"
                     android:layout_height="match_parent"
                     android:layout_width="match_parent"
                     android:text="100000001" />
@@ -159,14 +160,15 @@
 
 
             <RelativeLayout
+                android:id="@+id/layout_setting"
                 android:layout_width="match_parent"
-                android:layout_height="50dp"
+                android:layout_height="101dp"
                 android:layout_marginTop="25dp"
                 android:orientation="horizontal"
-                android:gravity="center_vertical"
                 android:background="@drawable/setting_item_selector">
                 <TextView
                     style="@style/TxtTitle"
+                    android:id="@+id/txt_remember_pwd"
                     android:textSize="16sp"
                     android:gravity="center_vertical"
                     android:layout_marginRight="100dp"
@@ -175,29 +177,22 @@
                     android:text="@string/remember_pwd" />
                 <ImageView
                     android:id="@+id/img_rememberPwd"
-                    android:layout_width="80dp"
-                    android:layout_height="40dp"
-                    android:layout_centerVertical="true"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
                     android:layout_alignParentRight="true"
                     android:src="@mipmap/switch_on"/>
-            </RelativeLayout>
-
-            <View
-                android:background="@color/black2"
-                android:layout_width="match_parent"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="5dp"
-                android:layout_height="1.0dip" />
-
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="50dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/setting_item_selector">
+                <View
+                    android:id="@+id/line"
+                    android:layout_below="@+id/txt_remember_pwd"
+                    android:background="@color/black2"
+                    android:layout_width="match_parent"
+                    android:layout_marginLeft="5dp"
+                    android:layout_marginRight="5dp"
+                    android:layout_height="1.0dip" />
                 <TextView
                     style="@style/TxtTitle"
                     android:textSize="16sp"
+                    android:layout_below="@+id/line"
                     android:gravity="center_vertical"
                     android:layout_marginRight="100dp"
                     android:layout_height="50dp"
@@ -205,9 +200,9 @@
                     android:text="@string/auto_login" />
                 <ImageView
                     android:id="@+id/img_autoLogin"
-                    android:layout_width="80dp"
-                    android:layout_height="40dp"
-                    android:layout_centerVertical="true"
+                    android:layout_below="@id/line"
+                    android:layout_width="100dp"
+                    android:layout_height="50dp"
                     android:layout_alignParentRight="true"
                     android:src="@mipmap/switch_on"/>
             </RelativeLayout>

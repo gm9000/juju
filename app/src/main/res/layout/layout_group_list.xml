@@ -27,7 +27,7 @@
             android:drawableBottom="@drawable/menu_bottom_line"
             android:drawablePadding="5dp"
             android:text="所有的"
-            android:textAlignment="center"
+            android:gravity="center_horizontal"
             android:textColor="@drawable/menu_text_color"
             android:textSize="16dp" />
 
@@ -41,7 +41,7 @@
             android:drawableBottom="@drawable/menu_bottom_line"
             android:drawablePadding="5dp"
             android:text="参与的"
-            android:textAlignment="center"
+            android:gravity="center_horizontal"
             android:textColor="@drawable/menu_text_color"
             android:textSize="16dp" />
 
@@ -55,7 +55,7 @@
             android:drawableBottom="@drawable/menu_bottom_line"
             android:drawablePadding="5dp"
             android:text="关注的"
-            android:textAlignment="center"
+            android:gravity="center_horizontal"
             android:textColor="@drawable/menu_text_color"
             android:textSize="16dp" />
     </RadioGroup>

@@ -19,6 +19,7 @@ import com.juju.app.R;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.golobal.BitmapUtilFactory;
+import com.juju.app.golobal.Constants;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
@@ -27,7 +28,6 @@ import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CircleCopperImageView;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.imagezoom.utils.DecodeUtils;
-import com.lidroid.xutils.ViewUtils;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;
@@ -68,17 +68,19 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     @ViewInject(R.id.confirm)
     private TextView txt_confirm;
 
-    @ViewInject(R.id.loading_layout)
-    private RelativeLayout loading_layout;
-    @ViewInject(R.id.txt_status_message)
-    private TextView txt_status_message;
+    private String userNo;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        initParam();
         initView();
         setListeners();
+    }
+
+    private void initParam() {
+        userNo = getIntent().getStringExtra(Constants.USER_NO);
     }
 
 
@@ -86,12 +88,16 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
         final DisplayMetrics metrics = getResources().getDisplayMetrics();
         size = (int) (Math.min(metrics.widthPixels, metrics.heightPixels) / 0.55);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        BitmapUtilFactory.getInstance(this).display(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
+
+        String targetNo = userNo==null?userInfoBean.getJujuNo():userNo;
+        BitmapUtilFactory.getInstance(this).display(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo);
     }
 
 
     private void setListeners() {
-        originHeadImg.setOnLongClickListener(this);
+        if(userNo == null) {
+            originHeadImg.setOnLongClickListener(this);
+        }
     }
 
 

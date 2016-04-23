@@ -111,6 +111,10 @@ public class Constants {
     public static final String PARTY_ID = "partyId";    //  聚会ID
     public static final String IS_OWNER = "isOwner";    //  是否是创建者
     public static final String PLAN_ID = "planId";    //  聚会ID
+    public static final String USER_NO = "userNo";    //  聚会ID
+    public static final String LATITUDE = "lantitude";    //  聚会ID
+    public static final String LONGITUDE = "longitude";    //  聚会ID
+    public static final String ADDRESS = "address";    //  聚会ID
 
     //message 每次拉取的条数
     public static final int MSG_CNT_PER_PAGE = 15;
