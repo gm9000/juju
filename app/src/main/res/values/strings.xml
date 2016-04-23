@@ -82,6 +82,8 @@
     <string name="default_emo">默认表情</string>
     <string name="yaya_emo">牙牙表情</string>
     <string name="no_chat">暂无会话</string>
+    <string name="no_group">暂无群组</string>
+
 
 
     <!-- 消息 -->

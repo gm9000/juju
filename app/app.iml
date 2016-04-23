@@ -111,8 +111,8 @@
     <orderEntry type="library" exported="" name="universal-image-loader-1.9.3" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-23.1.1" level="project" />
     <orderEntry type="library" exported="" name="smack-android-4.1.5" level="project" />
-    <orderEntry type="library" exported="" name="minidns-0.1.7" level="project" />
     <orderEntry type="library" exported="" name="smack-android-extensions-4.1.5" level="project" />
+    <orderEntry type="library" exported="" name="minidns-0.1.7" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="hamcrest-core-1.3" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="junit-4.12" level="project" />
     <orderEntry type="library" exported="" name="recyclerview-v7-23.1.1" level="project" />

@@ -233,7 +233,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
                         saveUserInfo();
                         startActivity(LoginActivity.this, MainActivity.class);
                         //登陆聊天服务
-                        IMLoginManager.instance().login();
+//                        IMLoginManager.instance().login();
                     } else {
                         final int resId = getResValue(description);
                         if(resId > 0) {

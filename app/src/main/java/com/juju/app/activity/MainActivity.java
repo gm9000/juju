@@ -29,6 +29,7 @@ import com.juju.app.ui.base.CreateUIHelper;
 
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.JacksonUtil;
+import com.juju.app.utils.Logger;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
@@ -46,6 +47,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     private final String TAG = getClass().getSimpleName();
 
+    private Logger logger = Logger.getLogger(MainActivity.class);
+
+
     @ViewInject(R.id.img_right)
     private ImageView img_right;
 
@@ -54,6 +58,10 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     @ViewInject(R.id.layout_bar)
     private RelativeLayout layout_bar;
+
+    @ViewInject(R.id.unread_msg_number)
+    private TextView tx_unread_msg_number;
+
 
     private GroupChatFragment groupChatFragment;
     private GroupPartyFragment groupPartyFragment;
@@ -260,4 +268,24 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
             }
         }
     }
+
+    //显示未读消息总数
+    public void setUnreadMessageCnt(int unreadNum) {
+
+        logger.d("unread#setUreadNotify -> unreadNum:%d", unreadNum);
+        if (0 == unreadNum) {
+            tx_unread_msg_number.setVisibility(View.INVISIBLE);
+            return;
+        }
+
+        String notify;
+        if (unreadNum > 99) {
+            notify = "99+";
+        } else {
+            notify = Integer.toString(unreadNum);
+        }
+        tx_unread_msg_number.setText(notify);
+        tx_unread_msg_number.setVisibility(View.VISIBLE);
+    }
+
 }

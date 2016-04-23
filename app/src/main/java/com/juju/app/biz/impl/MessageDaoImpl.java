@@ -67,9 +67,12 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
         int preMsgId = lastMsgId +1;
         List<MessageEntity> messageList = null;
         try {
-            messageList = db.findAll(Selector.from(MessageEntity.class).where("created", "<=", lastCreateTime).
-                    and((WhereBuilder.b("msg_id", ">", 90000000).or("msg_id", " <= ", lastMsgId)))
-                    .orderBy("created desc, msg_id", true).offset(0).limit(count));
+            messageList = db.findAll(Selector.from(MessageEntity.class).where("created", "<=", lastCreateTime)
+                    .and("session_key", "=", sessionKey)
+                    .and((WhereBuilder.b("msg_id", ">", 90000000).or("msg_id", " <= ", lastMsgId)))
+                    .and("msg_id", "!=", preMsgId)
+                    .orderBy("created desc, msg_id", true)
+                    .limit(count));
         } catch (DbException e) {
             Log.e(TAG, "MessageDaoImpl#findHistoryMsgs error:", e);
         }

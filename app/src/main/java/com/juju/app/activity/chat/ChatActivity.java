@@ -921,8 +921,8 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                     message.obj = entity;
                     uiHandler.sendMessage(message);
 
-                    onMsgRecv(entity);
-                    imService.getUnReadMsgManager().onNotifyRead(entity);
+//                    onMsgRecv(entity);
+//                    imService.getUnReadMsgManager().onNotifyRead(entity);
                     //取消事件传递（阻止IMService监听到此事件）
                     EventBus.getDefault().cancelEventDelivery(event);
                 }
@@ -990,6 +990,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                     case HandlerConstant.MSG_RECEIVED_MESSAGE:
                         MessageEntity entity = (MessageEntity) msg.obj;
                         onMsgRecv(entity);
+                        imService.getUnReadMsgManager().onNotifyRead(entity);
                         break;
                     default:
                         break;
