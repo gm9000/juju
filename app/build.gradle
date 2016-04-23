@@ -60,6 +60,12 @@ dependencies {
     compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
     compile project(':mgimlibs')
     compile files('libs/universal-image-loader-1.9.3.jar')
+    compile files('libs/baidumapapi_base_v3_7_0.jar')
+    compile files('libs/baidumapapi_cloud_v3_7_0.jar')
+    compile files('libs/baidumapapi_map_v3_7_0.jar')
+    compile files('libs/baidumapapi_radar_v3_7_0.jar')
+    compile files('libs/baidumapapi_search_v3_7_0.jar')
+    compile files('libs/baidumapapi_util_v3_7_0.jar')
 }
 
 repositories {

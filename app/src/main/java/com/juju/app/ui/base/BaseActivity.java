@@ -12,6 +12,7 @@ import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.baidu.mapapi.SDKInitializer;
 import com.juju.app.R;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.golobal.Constants;
