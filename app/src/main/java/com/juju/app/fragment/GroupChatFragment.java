@@ -15,8 +15,11 @@ import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.groupchat.GroupChatInitBean;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.entity.http.Group;
+import com.juju.app.event.SessionEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.Constants;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.manager.IMUnreadMsgManager;
@@ -57,12 +60,12 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
 
 //    @ViewInject(R.id.rl_error_item)
 //    public RelativeLayout errorItem;
-
 //    /**
 //     * 异常提示文本组建
 //     */
 //    @ViewInject(R.id.tv_connect_errormsg)
 //    public TextView errorText;
+
 
     /**
      * 群组列表
@@ -76,34 +79,47 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
 
 
     private List<GroupChatInitBean> groupChats;
-
     private GroupChatListAdapter adapter = null;
+    private IMService imService;
+
+    //聊天服务连接器
+    private IMServiceConnector imServiceConnector = new IMServiceConnector(){
+
+        @Override
+        public void onServiceDisconnected() {
+            if(EventBus.getDefault().isRegistered(GroupChatFragment.this)){
+                EventBus.getDefault().unregister(GroupChatFragment.this);
+            }
+        }
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("groupchatfragment#recent#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+            if (imService == null) {
+                return;
+            }
+            // 依赖联系人会话、未读消息、用户的信息三者的状态
+            onRecentContactDataReady();
+            EventBus.getDefault().register(GroupChatFragment.this);
+        }
+    };
 
 
-//    @OnClick(R.id.rl_error_item)
-//    public void onClickRelativeErrorItem(View v) {
-//        NetWorkUtil.openSetNetWork(getActivity());
-//    }
-
-
-
-//    @Override
-//    public void setOnListener() {
-//        lvContact.setOnItemClickListener(this);
-//        errorItem.setOnClickListener(this);
-//    }
 
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        EventBus.getDefault().register(this);
+        imServiceConnector.connect(getActivity());
         super.onCreate(savedInstanceState);
     }
 
 
     @Override
     public void onDestroy() {
-        EventBus.getDefault().unregister(this);
+        if(EventBus.getDefault().isRegistered(GroupChatFragment.this)){
+            EventBus.getDefault().unregister(GroupChatFragment.this);
+        }
+        imServiceConnector.disconnect(getActivity());
         super.onDestroy();
     }
 
@@ -137,10 +153,7 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
     @Override
     protected void findViews() {
         super.findViews();
-//        parentActivity = (MainActivity) getActivity();
-//        lvContact = (ListView) findViewById(R.id.listview);
-//        errorItem = (RelativeLayout) findViewById(R.id.rl_error_item);
-//        errorText = (TextView) errorItem.findViewById(R.id.tv_connect_errormsg);
+
     }
 
     @Override
@@ -199,9 +212,13 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
             if(i == 5) {
                 group.setName("测试讨论组");
                 group.setPeerId("ceshi@conference.juju");
+
             }
             GroupChatInitBean groupChat = new GroupChatInitBean(String.valueOf(i), group, "今天晚上我请客，" +
                     "暂定苏州桥同一首歌碰面。", (int)(System.currentTimeMillis()/1000), 0, avatar);
+            if(i == 5) {
+                groupChat.setSessionId("2_ceshi@conference.juju");
+            }
             groupChats.add(groupChat);
         }
 //        Group group2 = new Group();
@@ -225,8 +242,21 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
         }
     }
 
+    //会话更新
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventMainThread(SessionEvent sessionEvent){
+        logger.d("chatfragment#SessionEvent# -> %s", sessionEvent);
+        switch (sessionEvent){
+            case RECENT_SESSION_LIST_UPDATE:
+            case RECENT_SESSION_LIST_SUCCESS:
+            case SET_SESSION_TOP:
+                onRecentContactDataReady();
+                break;
+        }
+    }
+
     /**
-     * 这个处理有点过于粗暴
+     * 查找最近消息
      */
     private void onRecentContactDataReady() {
 //        boolean isUserData = imService.getContactManager().isUserDataReady();
@@ -239,16 +269,14 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
         IMUnreadMsgManager unreadMsgManager = IMUnreadMsgManager.instance();
         IMSessionManager sessionManager = IMSessionManager.instance();
 
-//        int totalUnreadMsgCnt = unreadMsgManager.getTotalUnreadCount();
-//        logger.d("unread#total cnt %d", totalUnreadMsgCnt);
-//        ((MainActivity) getActivity()).setUnreadMessageCnt(totalUnreadMsgCnt);
+        int totalUnreadMsgCnt = unreadMsgManager.getTotalUnreadCount();
+        logger.d("unread#total cnt %d", totalUnreadMsgCnt);
+        ((MainActivity) getActivity()).setUnreadMessageCnt(totalUnreadMsgCnt);
 
         //获取最新消息
         List<RecentInfo> recentSessionList = sessionManager.getRecentListInfo();
-        setNoChatView(recentSessionList);
-
+//        setNoChatView(recentSessionList);
         getGroupChats4RecentList(recentSessionList);
-
         //更新群组列表数据
         adapter.setData(groupChats);
 //        hideProgressBar();

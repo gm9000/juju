@@ -80,38 +80,38 @@ public class GroupChatListAdapter extends BaseAdapter {
     }
 
 
-    private View createConvertView(int size, ViewGroup parent) {
-        View convertView = null;
-        if(size <= 1) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg, parent, false);
-        } else if (size == 2) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg2, parent, false);
-        } else if (size == 3) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg3, parent, false);
-        } else if (size == 4) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg4, parent, false);
-        } else if (size == 5) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg5, parent, false);
-        } else if (size == 6) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg6, parent, false);
-        } else if (size == 7) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg7, parent, false);
-        } else if (size == 8) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg8, parent, false);
-        } else if (size >= 9) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.layout_item_msg9, parent, false);
-        }
-        return convertView;
-    }
+//    private View createConvertView(int size, ViewGroup parent) {
+//        View convertView = null;
+//        if(size <= 1) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg, parent, false);
+//        } else if (size == 2) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg2, parent, false);
+//        } else if (size == 3) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg3, parent, false);
+//        } else if (size == 4) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg4, parent, false);
+//        } else if (size == 5) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg5, parent, false);
+//        } else if (size == 6) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg6, parent, false);
+//        } else if (size == 7) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg7, parent, false);
+//        } else if (size == 8) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg8, parent, false);
+//        } else if (size >= 9) {
+//            convertView = LayoutInflater.from(context).
+//                    inflate(R.layout.layout_item_msg9, parent, false);
+//        }
+//        return convertView;
+//    }
 
     private View renderGroup(int position,View convertView, ViewGroup parent){
         GroupChatInitBean groupChatInitBean = groupChats.get(position);

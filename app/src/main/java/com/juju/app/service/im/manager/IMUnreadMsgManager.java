@@ -62,6 +62,7 @@ public class IMUnreadMsgManager extends IMManager {
     }
 
 
+    //IMService调用
     public void add(MessageEntity msg) {
         //更新session list中的msg信息
         //更新未读消息计数

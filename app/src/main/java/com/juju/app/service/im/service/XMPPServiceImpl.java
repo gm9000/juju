@@ -271,7 +271,7 @@ public class XMPPServiceImpl implements
     public void sendMessage(String user, String message)
             throws SmackException.NotConnectedException {
         Message newMessage = new Message(user, Message.Type.groupchat);
-        newMessage.setThread(UUID.randomUUID().toString());
+        newMessage.setStanzaId(UUID.randomUUID().toString());
         newMessage.setBody(message);
         if (isAuthenticated()) {
             xmppConnection.sendStanza(newMessage);
@@ -379,6 +379,7 @@ public class XMPPServiceImpl implements
     public void processPacket(Stanza packet) throws SmackException.NotConnectedException {
         if(packet instanceof Message) {
             Message message = (Message) packet;
+            Log.d(TAG, message.toString());
             String[] fromArr = message.getFrom().split("/");
             if(fromArr != null && fromArr.length >= 2) {
                 String peerId = fromArr[0];
@@ -488,7 +489,7 @@ public class XMPPServiceImpl implements
             UserInfoBean bean = BaseApplication.getInstance().getUserInfoBean();
             if(StringUtils.isNotBlank(packet.getFrom())
                     && packet.getFrom().indexOf(bean.getmAccount()) >= 0) {
-                return false;
+                return true;
             }
             return true;
         }
