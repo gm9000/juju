@@ -5,18 +5,60 @@
     android:layout_height="match_parent"
     android:background="@color/background">
 
-    <!--标题 -->
-    <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>
+
 
     <com.baidu.mapapi.map.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="48dp"
         android:gravity="center"
-        android:layout_marginBottom="100dp"
         />
+    <!--标题 -->
+    <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>
+
+    <RelativeLayout
+        android:id="@+id/layout_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="10dp"
+        android:layout_marginTop="50dp"
+        android:gravity="center"
+        android:background="@color/background">
+    <EditText
+        android:id="@+id/txt_search"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/text_input_border"
+        android:layout_marginRight="105dp"
+        android:layout_marginLeft="10dp"
+        android:layout_centerVertical="true"
+        android:paddingLeft="5dp"
+        android:height="40dp"
+        android:hint="请输入查询的地址"/>
+        <Button
+            android:id="@+id/btn_search"
+            style="?android:textAppearanceSmall"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:enabled="true"
+            android:background="@color/blue"
+            android:text="@string/search"
+            android:textColor="@color/white"
+            android:layout_alignParentRight="true"
+            />
+    </RelativeLayout>
+
+
+    <ImageView
+        android:id="@+id/img_address"
+        android:layout_centerInParent="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@mipmap/location_red"
+        />
+
     <TextView
+        android:id="@+id/txt_address"
         style="@style/BlackStrongTxt14"
         android:layout_width="match_parent"
         android:layout_height="60dp"
@@ -25,11 +67,12 @@
         android:drawableLeft="@mipmap/location_red"
         android:paddingLeft="15dp"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="80dp"
+        android:layout_marginBottom="70dp"
         android:background="@color/white"
         />
 
     <LinearLayout
+        android:id="@+id/layout_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"

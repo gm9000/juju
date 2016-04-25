@@ -10,6 +10,8 @@ import java.util.Date;
  */
 public class PlanBean {
     private String address;
+    private double latitude;
+    private double longitude;
     private Date startTime;
     private String desc;
 
@@ -19,6 +21,22 @@ public class PlanBean {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
     }
 
     @JsonSerialize(using= JsonDateSerializer.class)

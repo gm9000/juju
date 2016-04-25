@@ -89,6 +89,10 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     private EditText txt_location;
     @ViewInject(R.id.txt_plan_description)
     private EditText txt_planDescription;
+
+    private double latitude = 0;
+    private double longitude = 0;
+
     @ViewInject(R.id.img_select_location)
     private ImageView img_selectLocation;
 
@@ -99,7 +103,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     @ViewInject(R.id.img_add_plan)
     private ImageView img_addPlan;
-
     @ViewInject(R.id.btn_publish)
     private Button btn_publish;
 
@@ -284,6 +287,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                 planBean.setAddress(plan.getAddress());
                 planBean.setStartTime(plan.getStartTime());
                 planBean.setDesc(plan.getDesc());
+                planBean.setLatitude(plan.getLatitude());
+                planBean.setLongitude(plan.getLongitude());
                 plans.add(planBean);
             }
             reqBean.setPlans(plans);
@@ -360,6 +365,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         }
         plan.setAddress(txt_location.getText().toString());
         plan.setDesc(txt_planDescription.getText().toString());
+        plan.setLatitude(latitude);
+        plan.setLongitude(longitude);
         planListAdapter.getPlanList().add(plan);
 
         planListAdapter.notifyDataSetChanged();
@@ -376,6 +383,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         txt_time.setText("");
         txt_location.setText("");
         txt_planDescription.setText("");
+        latitude = 0;
+        longitude = 0;
     }
 
     @Override
@@ -471,10 +480,10 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
                 case CMD_REQ_LOCATION:
-                    double lantitude = data.getDoubleExtra(Constants.LATITUDE,0f);
-                    double longitude = data.getDoubleExtra(Constants.LONGITUDE, 0f);
+                    latitude = data.getDoubleExtra(Constants.LATITUDE,0f);
+                    longitude = data.getDoubleExtra(Constants.LONGITUDE, 0f);
                     String address = data.getStringExtra(Constants.ADDRESS);
-                    ToastUtil.showShortToast(this,lantitude+","+longitude+" "+address,1);
+                    txt_location.setText(address);
                     break;
 
             }

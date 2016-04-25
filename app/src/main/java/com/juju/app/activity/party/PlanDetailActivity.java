@@ -1,5 +1,6 @@
 package com.juju.app.activity.party;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -38,6 +39,7 @@ import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
 
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -363,6 +365,16 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
             txt_location.setText(plan.getAddress());
         }
 
+    }
+
+    @OnClick(R.id.layout_location)
+    private void showMap(View view){
+        Plan plan = planList.get(planIndex);
+        Intent intent=new Intent(this,PlanLocationActivity.class);
+        intent.putExtra(Constants.LATITUDE,plan.getLatitude());
+        intent.putExtra(Constants.LONGITUDE,plan.getLongitude());
+        intent.putExtra(Constants.ADDRESS,plan.getAddress());
+        startActivity(intent);
     }
 
     @Override
