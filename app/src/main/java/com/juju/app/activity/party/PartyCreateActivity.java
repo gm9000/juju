@@ -141,8 +141,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     private void initData() {
 
         groupDao = new GroupDaoImpl(this);
-
-        String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
         if(partyId!=null){
             try {
                 party = JujuDbUtils.getInstance(this).findFirst(Selector.from(Party.class).where("id","=",partyId));

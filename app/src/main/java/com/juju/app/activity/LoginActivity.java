@@ -353,11 +353,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         if( loginUser == null){
             SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
         }else{
-            userInfoBean.setUserName(loginUser.getNickName());
-            userInfoBean.setGender(loginUser.getGender());
-            userInfoBean.setPhone(loginUser.getUserPhone());
 
-            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfoBean));
+            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, loginUser);
         }
 
 
