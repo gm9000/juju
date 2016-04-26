@@ -153,6 +153,9 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
             } catch (DbException e) {
                 e.printStackTrace();
             }
+            if(userInfo != null){
+                txt_title.setText(userInfo.getNickName());
+            }
         }
         if(userInfo == null){
             UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
@@ -344,6 +347,8 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
                             JujuDbUtils.saveOrUpdate(userInfo);
                             if(userNo == null) {
                                 SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo.toString());
+                            }else{
+                                txt_title.setText(userInfo.getNickName());
                             }
 
                         } else {

@@ -155,27 +155,6 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
     }
 
     private void loadPartyData() {
-
-//        try {
-//            JujuDbUtils.getInstance(getContext()).dropTable(PlanVote.class);
-//            JujuDbUtils.getInstance(getContext()).dropTable(Plan.class);
-//            JujuDbUtils.getInstance(getContext()).dropTable(Party.class);
-//            JujuDbUtils.getInstance(getContext()).dropTable(GroupEntity.class);
-//        } catch (DbException e) {
-//            e.printStackTrace();
-//        }
-//        GroupDaoImpl groupDao = new GroupDaoImpl(getContext());
-//        GroupEntity group = new GroupEntity();
-//        group.setId("570dbc6fe4b092891a647e32");
-//        group.setMainName("聚龙小组");
-//        group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
-//
-//        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-//        group.setCreatorId(userInfoBean.getJujuNo());
-//        groupDao.save(group);
-
-
-
         try {
             partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("status",">",-1).orderBy("local_id", true));
             if(partyList == null) {

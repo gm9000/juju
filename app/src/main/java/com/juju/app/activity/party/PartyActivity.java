@@ -89,7 +89,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
         imagebuttons[1].setSelected(true);
         textviews[1].setTextColor(0xFF0082E3);
         img_right.setVisibility(View.VISIBLE);
-        img_right.setImageResource(R.mipmap.icon_add);
+        img_right.setImageResource(R.mipmap.live_add);
         txt_title.setText(R.string.live);
 
         // 添加显示第一个fragment
@@ -103,6 +103,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
         img_back.setVisibility(View.VISIBLE);
         txt_left.setVisibility(View.VISIBLE);
         txt_left.setText(R.string.group_party);
+
     }
 
     public void onTabClicked(View view) {
@@ -120,7 +121,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
                 txt_title.setText(R.string.live);
 
                 img_right.setVisibility(View.VISIBLE);
-                img_right.setImageResource(R.mipmap.icon_add);
+                img_right.setImageResource(R.mipmap.live_add);
 
                 break;
             case R.id.menu_picture:

@@ -11,8 +11,8 @@
         android:id="@+id/view_user"
         android:layout_marginTop="1dp"
         android:background="@drawable/setting_item_selector">
-        <ImageView
-            android:id="@+id/live_capture"
+        <com.juju.app.view.RoundImageView
+            android:id="@+id/img_head"
             android:layout_marginRight="5dp"
             android:layout_marginLeft="10dp"
             android:layout_width="80dip"
@@ -24,7 +24,7 @@
             android:id="@+id/live_user_name"
             android:layout_marginTop="10dp"
             android:layout_marginLeft="5dp"
-            android:layout_toRightOf="@+id/live_capture"
+            android:layout_toRightOf="@+id/img_head"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="聚龙小子"/>
@@ -35,7 +35,7 @@
             android:layout_marginTop="12dp"
             android:layout_marginLeft="20dp"
             android:layout_below="@+id/live_user_name"
-            android:layout_toRightOf="@+id/live_capture"
+            android:layout_toRightOf="@+id/img_head"
             android:text="视频直播"
             android:textColor="@color/black"/>
 

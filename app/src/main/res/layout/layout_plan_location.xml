@@ -22,15 +22,14 @@
         android:layout_height="wrap_content"
         android:padding="10dp"
         android:layout_marginTop="50dp"
-        android:gravity="center"
-        android:background="@color/background">
+        android:gravity="center">
     <EditText
         android:id="@+id/txt_search"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/text_input_border"
         android:layout_marginRight="105dp"
-        android:layout_marginLeft="10dp"
+        android:layout_marginLeft="5dp"
         android:layout_centerVertical="true"
         android:paddingLeft="5dp"
         android:height="40dp"
@@ -39,7 +38,7 @@
             android:id="@+id/btn_search"
             style="?android:textAppearanceSmall"
             android:layout_width="100dp"
-            android:layout_height="wrap_content"
+            android:layout_height="40dp"
             android:enabled="true"
             android:background="@color/blue"
             android:text="@string/search"
@@ -52,8 +51,8 @@
     <ImageView
         android:id="@+id/img_address"
         android:layout_centerInParent="true"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:src="@mipmap/location_red"
         />
 
@@ -63,12 +62,12 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:gravity="center_vertical"
-        android:text="北京市海淀区学院路8号"
-        android:drawableLeft="@mipmap/location_red"
+        android:text="正在获取位置信息..."
+        android:drawableLeft="@mipmap/location_red_mini"
         android:paddingLeft="15dp"
         android:layout_alignParentBottom="true"
         android:layout_marginBottom="70dp"
-        android:background="@color/white"
+        android:background="@drawable/list_item_bk"
         />
 
     <LinearLayout
@@ -76,7 +75,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
-        android:layout_marginBottom="5dp"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
         android:gravity="center">
 
         <Button

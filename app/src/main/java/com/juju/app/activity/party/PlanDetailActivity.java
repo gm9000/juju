@@ -1,5 +1,6 @@
 package com.juju.app.activity.party;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.user.SettingActivity;
 import com.juju.app.adapters.PlanVoteListAdapter;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.bean.json.PlanVoteBean;
@@ -84,6 +86,10 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
     @ViewInject(R.id.txt_weather)
     private TextView txt_weather;
 
+    @ViewInject(R.id.img_location)
+    private ImageView img_location;
+    @ViewInject(R.id.img_mapped)
+    private ImageView img_mapped;
     @ViewInject(R.id.txt_location)
     private TextView txt_location;
 
@@ -200,6 +206,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
 
     }
 
+    @SuppressLint("NewApi")
     private void initView() {
 
         if(isOwner){
@@ -217,6 +224,12 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
         txt_left.setLayoutParams(layoutParams);
         txt_right.setVisibility(View.GONE);
         img_right.setVisibility(View.GONE);
+
+        if(planList.get(planIndex).getLatitude() == 0){
+            img_mapped.setVisibility(View.GONE);
+        }
+
+        img_mapped.setRotation(45);
 
     }
 
@@ -346,6 +359,11 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
             } catch (DbException e) {
                 e.printStackTrace();
             }
+            if(plan.getLatitude() == 0 ){
+                img_mapped.setVisibility(View.GONE);
+            }else{
+                img_mapped.setVisibility(View.VISIBLE);
+            }
 
             planVoteListAdapter.setPlanVoteList(planVoteList);
             planVoteListAdapter.notifyDataSetChanged();
@@ -370,17 +388,19 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
     @OnClick(R.id.layout_location)
     private void showMap(View view){
         Plan plan = planList.get(planIndex);
-        Intent intent=new Intent(this,PlanLocationActivity.class);
-        intent.putExtra(Constants.LATITUDE,plan.getLatitude());
-        intent.putExtra(Constants.LONGITUDE,plan.getLongitude());
-        intent.putExtra(Constants.ADDRESS,plan.getAddress());
-        startActivity(intent);
+        if(plan.getLatitude()!=0 && plan.getLongitude()!=0) {
+            Intent intent = new Intent(this, PlanLocationActivity.class);
+            intent.putExtra(Constants.LATITUDE, plan.getLatitude());
+            intent.putExtra(Constants.LONGITUDE, plan.getLongitude());
+            intent.putExtra(Constants.ADDRESS, plan.getAddress());
+            startActivity(intent);
+        }
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-        ToastUtil.showShortToast(this,"点击了第"+(position+1)+"个",1);
+        ActivityUtil.startActivity(this, SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,planVoteList.get(position).getAttender().getUserNo()));
 
     }
 }

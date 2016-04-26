@@ -29,6 +29,7 @@ import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
@@ -321,6 +322,15 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             party.setCreator(creator);
             if(party.getGroup()==null){
                 GroupEntity group = groupDao.findById(groupId);
+                // TODO 组信息正常保存后需要删除下面的代码
+                if(group == null) {
+                    group = new GroupEntity();
+                    group.setId(groupId);
+                    group.setMainName("聚龙小组");
+                    group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
+                    group.setCreatorId(creator.getUserNo());
+                    groupDao.save(group);
+                }
                 party.setGroup(group);
             }
             JujuDbUtils.saveOrUpdate(party);
@@ -409,6 +419,15 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
                             if(party.getGroup()==null){
                                 GroupEntity group = groupDao.findById(groupId);
+                                // TODO 组信息正常保存后需要删除下面的代码
+                                if(group == null) {
+                                    group = new GroupEntity();
+                                    group.setId(groupId);
+                                    group.setMainName("聚龙小组");
+                                    group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
+                                    group.setCreatorId(creator.getUserNo());
+                                    groupDao.save(group);
+                                }
                                 party.setGroup(group);
                             }
                             party.setStatus(0); //  召集中

@@ -11,6 +11,7 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.entity.VideoProgram;
 import com.juju.app.utils.ViewHolderUtil;
+import com.juju.app.view.RoundImageView;
 
 import java.util.List;
 
@@ -55,8 +56,8 @@ public class VideoProgramListAdpter extends BaseAdapter {
             convertView = LayoutInflater.from(context).
                     inflate(R.layout.party_live_item, parent, false);
         }
-        ImageView liveCapture = ViewHolderUtil.get(convertView,
-                R.id.live_capture);
+        RoundImageView imgHead = ViewHolderUtil.get(convertView,
+                R.id.img_head);
         TextView creatorName = ViewHolderUtil.get(convertView, R.id.live_user_name);
         TextView liveTypeTxt = ViewHolderUtil.get(convertView, R.id.live_type_txt);
         TextView liveTimeTxt = ViewHolderUtil.get(convertView, R.id.live_time_txt);

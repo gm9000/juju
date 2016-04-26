@@ -85,6 +85,7 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
             h = new H();
             view = inflater.inflate(R.layout.party_item, parent, false);
             h.pic = (RoundImageView) view.findViewById(R.id.creatorImage);
+            h.creatorName = (TextView) view.findViewById(R.id.creator_name);
             h.name = (TextView) view.findViewById(R.id.party_name);
             h.time = (TextView) view.findViewById(R.id.time);
             h.partDesc = (TextView) view.findViewById(R.id.partyDesc);
@@ -102,6 +103,7 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
         }
         h.operate.setOnClickListener(this);
         BitmapUtilFactory.getInstance(inflater.getContext()).display(h.pic, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + party.getCreator().getUserNo());
+        h.creatorName.setText(party.getCreator().getNickName());
         h.name.setText(party.getName());
         if(party.getTime()!=null) {
             h.time.setText(dateFormat.format(party.getTime()));
@@ -204,6 +206,7 @@ public class PartyListAdapter extends BaseAdapter implements View.OnClickListene
 
     class H {
         RoundImageView pic;
+        TextView creatorName;
         TextView name;
         TextView time;
         TextView partDesc;
