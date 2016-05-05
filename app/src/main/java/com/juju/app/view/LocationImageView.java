@@ -1,11 +1,11 @@
 package com.juju.app.view;
 
 import android.content.Context;
-import android.content.res.TypedArray;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.graphics.PixelFormat;
 import android.graphics.PorterDuff.Mode;
 import android.graphics.PorterDuffXfermode;
@@ -13,76 +13,41 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
-import android.util.AttributeSet;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.juju.app.R;
 import com.lidroid.xutils.bitmap.core.AsyncDrawable;
 
 
 /**
- * 圆形ImageView，可设置最多两个宽度不同且颜色不同的圆形边框。
+ * 圆形位置ImageView，
  * <p/>
  * 设置颜色在xml布局文件中由自定义属性配置参数指定
  */
-public class RoundImageView extends ImageView {
+public class LocationImageView extends ImageView {
 
-    private int mBorderThickness = 0;
+    private int mCircleThickness = 2;
+    private int mArrowHeight = 4;
     private Context mContext;
-    private int defaultColor = 0xFF000000;
-    // 如果只有其中一个有值，则只画一个圆形边框
-    private int mBorderOutsideColor = 0;
-    private int mBorderInsideColor = 0;
+    private int mColor = 0xFF00a4e8;
     // 控件默认长、宽
-    private int defaultWidth = 0;
-    private int defaultHeight = 0;
+    private int defaultWidth = 80;
+    private int defaultHeight = 80;
 
-    public RoundImageView(Context context) {
+    public LocationImageView(Context context) {
         super(context);
         mContext = context;
+        setLayoutParams(new ViewGroup.LayoutParams(defaultWidth, defaultHeight));
     }
-
-    public void setEdgeLen(int edgeLen){
-        this.defaultWidth = edgeLen;
-        this.defaultHeight = edgeLen;
-    }
-
-    public void setBorderThickness(int thickness){
-        this.mBorderThickness = thickness;
-    }
-
-    public void setBorderOutsideColor(int color){
-        this.mBorderOutsideColor = color;
-    }
-
-    public void setBorderInsideColor(int color){
-        this.mBorderInsideColor = color;
-    }
-
-
-    public RoundImageView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        mContext = context;
-        setCustomAttributes(attrs);
-    }
-
-
-    public RoundImageView(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        mContext = context;
-        setCustomAttributes(attrs);
-    }
-
-    private void setCustomAttributes(AttributeSet attrs) {
-        TypedArray a = mContext.obtainStyledAttributes(attrs, R.styleable.portrait);
-        mBorderThickness = a.getDimensionPixelSize(R.styleable.portrait_border_thickness, 0);
-        mBorderOutsideColor = a.getColor(R.styleable.portrait_border_outside_color, defaultColor);
-        mBorderInsideColor = a.getColor(R.styleable.portrait_border_inside_color, defaultColor);
-    }
-
 
     @Override
     protected void onDraw(Canvas canvas) {
+//        if(defaultWidth > getWidth()){
+//            defaultWidth = getWidth();
+//        }
+//        if(defaultHeight > getHeight()){
+//            defaultHeight = getHeight();
+//        }
         Drawable drawable = getDrawable();
         if (drawable == null) {
             return;
@@ -102,10 +67,9 @@ public class RoundImageView extends ImageView {
                     .createBitmap(
                             getWidth(),
                             getHeight(),
-                            drawable.getOpacity() != PixelFormat.OPAQUE ? Bitmap.Config.ARGB_8888
-                                    : Bitmap.Config.RGB_565);
+                            drawable.getOpacity() != PixelFormat.OPAQUE ? Config.ARGB_8888
+                                    : Config.RGB_565);
             Canvas canvas1 = new Canvas(b);
-            // canvas.setBitmap(bitmap);
             drawable.setBounds(0, 0, getWidth(),
                     getHeight());
             drawable.draw(canvas1);
@@ -118,40 +82,20 @@ public class RoundImageView extends ImageView {
             bitmap = b;
         }
 
-        if(defaultWidth == 0) {
-            defaultWidth = getWidth();
-        }
+        int radius = (defaultWidth < defaultHeight ? defaultWidth : defaultHeight) / 2 - mCircleThickness - mArrowHeight;
+        drawCircleBorder(canvas, radius + mCircleThickness / 2, mColor);
 
-        if(defaultHeight == 0){
-            defaultHeight = getHeight();
-        }
-
-        int radius = 0;
-        if(mBorderInsideColor != defaultColor && mBorderOutsideColor != defaultColor) {
-            // 定义画两个边框，分别为外圆边框和内圆边框
-            radius = (defaultWidth < defaultHeight ? defaultWidth : defaultHeight) / 2 - 2 * mBorderThickness;
-            // 画内圆
-            drawCircleBorder(canvas, radius + mBorderThickness / 2, mBorderInsideColor);
-            // 画外圆
-            drawCircleBorder(canvas, radius + mBorderThickness + mBorderThickness / 2, mBorderOutsideColor);
-
-        } else if (mBorderInsideColor != defaultColor && mBorderOutsideColor == defaultColor) {
-            // 定义画一个边框
-            radius = (defaultWidth < defaultHeight ? defaultWidth : defaultHeight) / 2 - mBorderThickness;
-            drawCircleBorder(canvas, radius + mBorderThickness / 2, mBorderInsideColor);
-
-        } else if (mBorderInsideColor == defaultColor && mBorderOutsideColor != defaultColor) {
-            // 定义画一个边框
-            radius = (defaultWidth < defaultHeight ? defaultWidth : defaultHeight) / 2 - mBorderThickness;
-            drawCircleBorder(canvas, radius + mBorderThickness / 2, mBorderOutsideColor);
-        } else {
-            // 没有边框
-            radius = (defaultWidth < defaultHeight ? defaultWidth : defaultHeight) / 2;
+        if(mArrowHeight>0) {
+            drawLocateArrow(canvas,mColor);
         }
 
         Bitmap roundBitmap = getCroppedRoundBitmap(bitmap, radius);
-        canvas.drawBitmap(roundBitmap, defaultWidth / 2 - radius, defaultHeight / 2 - radius, null);
+        canvas.drawBitmap(roundBitmap, defaultWidth / 2 - radius, defaultHeight / 2 - radius - mArrowHeight, null);
+
+
     }
+
+
 
 
     /**
@@ -202,15 +146,11 @@ public class RoundImageView extends ImageView {
         paint.setDither(true);
 
         canvas.drawARGB(0, 0, 0, 0);
-        canvas.drawCircle(scaledSrcBmp.getWidth() / 2,scaledSrcBmp.getHeight() / 2,scaledSrcBmp.getWidth() / 2,paint);
+        canvas.drawCircle(scaledSrcBmp.getWidth() / 2, scaledSrcBmp.getHeight() / 2, scaledSrcBmp.getWidth() / 2, paint);
         paint.setXfermode(new PorterDuffXfermode(Mode.SRC_IN));
         canvas.drawBitmap(scaledSrcBmp, rect, rect, paint);
 
-        bmp = null;
-        squareBitmap = null;
-        scaledSrcBmp = null;
-        return
-                output;
+        return  output;
     }
 
 
@@ -229,8 +169,29 @@ public class RoundImageView extends ImageView {
         /* 设置paint的　style　为STROKE：空心 */
         paint.setStyle(Paint.Style.STROKE);
         /* 设置paint的外框宽度 */
-        paint.setStrokeWidth(mBorderThickness);
-        canvas.drawCircle(defaultWidth / 2, defaultHeight / 2, radius, paint);
+        paint.setStrokeWidth(mCircleThickness);
+        canvas.drawCircle(defaultWidth / 2, defaultHeight / 2 - mArrowHeight, radius, paint);
+    }
+
+    private void drawLocateArrow(Canvas canvas, int color) {
+
+
+        Path arrawPath = new Path();
+        arrawPath.moveTo(mArrowHeight, defaultHeight/2);
+        arrawPath.lineTo(defaultWidth/2, defaultHeight);
+        arrawPath.lineTo(defaultWidth-mArrowHeight, defaultHeight/2);
+        arrawPath.close();//封闭
+
+        Paint paint = new Paint();
+        /* 去锯齿 */
+        paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
+        paint.setColor(color);
+        paint.setStyle(Paint.Style.FILL);
+
+        canvas.drawPath(arrawPath,paint);
+
     }
 
 }

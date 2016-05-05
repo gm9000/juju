@@ -91,6 +91,16 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     @ViewInject(R.id.txt_plan_description)
     private EditText txt_planDescription;
 
+    @ViewInject(R.id.layout_plan_info)
+    private LinearLayout layout_planInfo;
+    @ViewInject(R.id.txt_plan_time)
+    private TextView txt_planTime;
+    @ViewInject(R.id.txt_plan_address)
+    private TextView txt_planAddress;
+    @ViewInject(R.id.txt_plan_desc)
+    private TextView txt_planDesc;
+
+
     private double latitude = 0;
     private double longitude = 0;
 
@@ -137,6 +147,12 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     private void initListeners() {
         listview_plan.setOnItemClickListener(this);
+        layout_planInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout_planInfo.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void initData() {
@@ -488,7 +504,11 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Plan curPlan = (Plan)listview_plan.getItemAtPosition(position);
-        ToastUtil.showShortToast(this, curPlan.getAddress(), 1);
+        txt_planTime.setText(dateFormat.format(curPlan.getStartTime()));
+        txt_planAddress.setText(curPlan.getAddress());
+        txt_planDesc.setText((curPlan.getDesc()==null||curPlan.getDesc().equals(""))?getResources().getString(R.string.nodescription):"\t\t"+curPlan.getDesc());
+        layout_planInfo.setVisibility(View.VISIBLE);
+
     }
 
 

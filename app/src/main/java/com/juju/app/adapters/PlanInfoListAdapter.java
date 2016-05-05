@@ -9,12 +9,15 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.utils.DistanceUtil;
 import com.juju.app.R;
 import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.entity.Plan;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.SwipeLayout;
 
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
@@ -31,14 +34,17 @@ public class PlanInfoListAdapter extends BaseAdapter {
     private List<Plan> planList;
     private SimpleDateFormat dateFormat;
     private boolean canSwipe;
+    private LatLng myLocation;
+    private DecimalFormat df = new DecimalFormat("#.0");
 
     private int changeIndex;
 
-    public PlanInfoListAdapter(Context context, List<Plan> planList,boolean canSwipe) {
+    public PlanInfoListAdapter(Context context, List<Plan> planList,boolean canSwipe,LatLng location) {
         this.context = context;
         this.planList = planList;
         this.dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         this.canSwipe = canSwipe;
+        this.myLocation = location;
     }
 
 
@@ -77,6 +83,7 @@ public class PlanInfoListAdapter extends BaseAdapter {
         LinearLayout layout_back = ViewHolderUtil.get(convertView, R.id.layout_back);
         ImageView img_selected =  ViewHolderUtil.get(convertView, R.id.img_selected);
         TextView txt_signedTag =  ViewHolderUtil.get(convertView, R.id.txt_tag_signed);
+        TextView txt_distance = ViewHolderUtil.get(convertView, R.id.txt_distance);
 
 
         final Plan plan = planList.get(position);
@@ -112,6 +119,14 @@ public class PlanInfoListAdapter extends BaseAdapter {
                 break;
 
         }
+        if(plan.getLatitude()!=0 && myLocation!=null){
+            double distance = DistanceUtil.getDistance(new LatLng(plan.getLatitude(),plan.getLongitude()),myLocation);
+            txt_distance.setText(getDistanceStr(distance));
+        }else if(plan.getLatitude() != 0){
+            txt_distance.setText(R.string.un_location);
+        }else{
+            txt_distance.setText(R.string.un_tag);
+        }
 
 
         txt_operate.setOnClickListener(new View.OnClickListener() {
@@ -122,6 +137,14 @@ public class PlanInfoListAdapter extends BaseAdapter {
         });
         return convertView;
 
+    }
+
+    private String getDistanceStr(double distance) {
+        if(distance < 1000){
+            return ((int)distance)+"米";
+        }else{
+            return df.format(distance/1000)+"公里";
+        }
     }
 
 

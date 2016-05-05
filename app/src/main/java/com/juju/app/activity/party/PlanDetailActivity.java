@@ -210,7 +210,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
     private void initView() {
 
         if(isOwner){
-            btn_operate.setVisibility(View.VISIBLE);
+            btn_operate.setVisibility(View.GONE);
         }else{
             btn_operate.setVisibility(View.VISIBLE);
         }

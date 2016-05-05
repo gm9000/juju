@@ -24,6 +24,7 @@ public class Party extends BaseEntity {
     @Column(column = "time")
     private Date time;
 
+    //  -1：草稿箱  0：召集中   1：进行中   2：已结束
     @Column(column = "status")
     private int status;
 

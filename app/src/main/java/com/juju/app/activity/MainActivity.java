@@ -75,6 +75,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
     private int index;
     private int currentTabIndex;// 当前fragment的index
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -113,7 +114,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
         textviews[0] = (TextView) findViewById(R.id.tv_group_chat);
         textviews[1] = (TextView) findViewById(R.id.tv_group_party);
         textviews[2] = (TextView) findViewById(R.id.tv_profile);
-        textviews[0].setTextColor(0xFF45C01A);
+        textviews[0].setTextColor(getResources().getColor(R.color.blue));
 
         // 添加显示第一个fragment
         getSupportFragmentManager().beginTransaction()
@@ -158,8 +159,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
         imagebuttons[currentTabIndex].setSelected(false);
         // 把当前tab设为选中状态
         imagebuttons[index].setSelected(true);
-        textviews[currentTabIndex].setTextColor(0xFF999999);
-        textviews[index].setTextColor(0xFF45C01A);
+        textviews[currentTabIndex].setTextColor(getResources().getColor(R.color.gray));
+        if(index == 1){
+            textviews[index].setTextColor(getResources().getColor(R.color.white));
+        }else {
+            textviews[index].setTextColor(getResources().getColor(R.color.blue));
+        }
         currentTabIndex = index;
     }
 

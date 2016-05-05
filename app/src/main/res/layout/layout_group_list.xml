@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ptr="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/background"
@@ -64,7 +65,7 @@
         android:id="@+id/party_search"
         layout="@layout/top_search_input" />
 
-    <ListView
+    <com.handmark.pulltorefresh.library.PullToRefreshListView
         android:id="@+id/listPartyView"
         android:scrollbars="none"
         android:dividerHeight="0dp"
@@ -73,6 +74,19 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@color/white"
-        android:layout_marginTop="2dp" />
+        android:layout_marginTop="2dp"
+        ptr:ptrMode="pullFromEnd"
+        ptr:ptrOverScroll="false" />
+
+    <!--<ListView-->
+        <!--android:id="@+id/listPartyView"-->
+        <!--android:scrollbars="none"-->
+        <!--android:dividerHeight="0dp"-->
+        <!--android:divider="#00000000"-->
+        <!--android:listSelector="#00000000"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:background="@color/white"-->
+        <!--android:layout_marginTop="2dp" />-->
 
 </LinearLayout>

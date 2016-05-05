@@ -1,40 +1,47 @@
 package com.juju.app.fragment;
 
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.Typeface;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.location.LocationClientOption;
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.juju.app.R;
 import com.juju.app.activity.party.PartyActivity;
 import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.adapters.PartyListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
-import com.juju.app.bean.UserInfoBean;
-import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.entity.Party;
-import com.juju.app.entity.Plan;
-import com.juju.app.entity.PlanVote;
-import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.http.GetPartysRes;
 import com.juju.app.golobal.Constants;
-import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.lidroid.xutils.BitmapUtils;
 import com.lidroid.xutils.bitmap.BitmapCommonUtils;
@@ -57,10 +64,10 @@ import java.util.List;
  * 版本：V1.0.0
  */
 @CreateFragmentUI(viewId = R.layout.layout_group_list)
-public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, RadioGroup.OnCheckedChangeListener,TextWatcher,ListView.OnItemClickListener,PartyListAdapter.Callback, HttpCallBack {
+public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, RadioGroup.OnCheckedChangeListener,TextWatcher,ListView.OnItemClickListener,PartyListAdapter.Callback, HttpCallBack,PullToRefreshBase.OnRefreshListener {
 
     private static final String TAG = "GroupPartyFragment";
-    private ListView listView;
+    private PullToRefreshListView listView;
 
     private BitmapUtils bitmapUtils;
     private BitmapDisplayConfig bdConfig;
@@ -74,6 +81,12 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
     private RadioButton followBtn;
     List<Party> partyList;
     private int filterType = 0;
+    private int pageIndex = 0;
+    private int pageSize = 15;
+    private long totalSize = 0;
+
+    LocationClient mLocClient;
+    public MyLocationListenner myListener = new MyLocationListenner();
 
 
     @Override
@@ -96,9 +109,9 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
         Log.d(TAG, "onResume method");
         super.onResume();
         if(JujuDbUtils.needRefresh(Party.class)) {
-            JujuDbUtils.closeRefresh(Party.class);
             try {
-                Selector selector = Selector.from(Party.class).where("status",">",-1).orderBy("local_id", true);
+                pageIndex = 0;
+                Selector selector = Selector.from(Party.class).where("status", ">", -1);
                 switch (filterType){
                     case 0:
                         break;
@@ -109,9 +122,15 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
                         selector.where("followFlag","=",1);
                         break;
                 }
+                totalSize = JujuDbUtils.getInstance(getContext()).count(selector);
+                selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);
                 partyList = JujuDbUtils.getInstance(getContext()).findAll(selector);
             } catch (DbException e) {
                 e.printStackTrace();
+            }
+
+            if(partyList.size()>=totalSize){
+                listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
             }
             partyListAdapter.setPartyList(partyList);
             partyListAdapter.notifyDataSetChanged();
@@ -120,6 +139,19 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 
     @Override
     public void loadData() {
+
+
+        // 开启定位图层
+        mLocClient = new LocationClient(getContext());
+        mLocClient.registerLocationListener(myListener);
+        LocationClientOption option = new LocationClientOption();
+        option.setOpenGps(true); // 打开gps
+        option.setCoorType("bd09ll"); // 设置坐标类型
+        option.setScanSpan(1000);
+        mLocClient.setLocOption(option);
+        mLocClient.start();
+
+
         partyTypeGroup = (RadioGroup) findViewById(R.id.party_type);
         allBtn = (RadioButton) findViewById(R.id.all_party);
         attendBtn = (RadioButton) findViewById(R.id.attend_party);
@@ -130,9 +162,20 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
         partyTypeGroup.setOnCheckedChangeListener(this);
         searchInput.addTextChangedListener(this);
 
-        listView = (ListView) findViewById(R.id.listPartyView);
+        listView = (PullToRefreshListView) findViewById(R.id.listPartyView);
 
-        listView.setOnItemClickListener(this);
+        Drawable loadingDrawable = getResources().getDrawable(R.drawable.pull_to_refresh_indicator);
+        final int indicatorWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 29,
+                getResources().getDisplayMetrics());
+        loadingDrawable.setBounds(new Rect(0, indicatorWidth, 0, indicatorWidth));
+        listView.getLoadingLayoutProxy().setRefreshingVisible(false);
+        listView.getLoadingLayoutProxy().setLoadingDrawable(loadingDrawable);
+        listView.getLoadingLayoutProxy().setPullLabel(getResources().getString(R.string.pull_up_refresh_pull_label));
+        listView.getRefreshableView().setCacheColorHint(Color.WHITE);
+        listView.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
+        listView.getRefreshableView().setOnItemClickListener(this);
+        listView.setOnRefreshListener(this);
+
 
         bitmapUtils = new BitmapUtils(getContext());
         //  配置缓存大小100K
@@ -156,9 +199,16 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 
     private void loadPartyData() {
         try {
-            partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("status",">",-1).orderBy("local_id", true));
+            Selector selector = Selector.from(Party.class).where("status", ">", -1);
+            totalSize = JujuDbUtils.getInstance(getContext()).count(selector);
+            selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);
+            partyList = JujuDbUtils.getInstance(getContext()).findAll(selector);
             if(partyList == null) {
                 partyList = new ArrayList<Party>();
+            }
+
+            if(partyList.size()>=totalSize){
+                listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
             }
             wrapPartyList(partyList);
 
@@ -194,7 +244,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 
     private void wrapPartyList(List<Party> partyList) {
         partyListAdapter = new PartyListAdapter(inflater, bitmapUtils, bdConfig, partyList,this);
-        listView.setAdapter(partyListAdapter);
+        listView.getRefreshableView().setAdapter(partyListAdapter);
     }
 
 
@@ -202,7 +252,8 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
     public void onCheckedChanged(RadioGroup group, int checkedId) {
         if (partyTypeGroup.getId() == group.getId()) {
 
-            Selector selector = Selector.from(Party.class).where("status", ">", -1).orderBy("local_id", true);
+            pageIndex = 0;
+            Selector selector = Selector.from(Party.class).where("status", ">", -1);
 
             //  处理渲染用户相关的所有聚会
             if (checkedId == allBtn.getId()) {
@@ -220,9 +271,16 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
             }
 
             try {
+                totalSize = JujuDbUtils.getInstance(getContext()).count(selector);
+                selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);
                 partyList = JujuDbUtils.getInstance(getContext()).findAll(selector);
             } catch (DbException e) {
                 e.printStackTrace();
+            }
+            if(partyList.size()>= totalSize){
+                listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
+            }else{
+                listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_to_refresh_from_bottom_release_label));
             }
             partyListAdapter.setPartyList(partyList);
             partyListAdapter.setFilterType(filterType);
@@ -248,26 +306,36 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Party curParty = (Party)listView.getItemAtPosition(position);
+        Party curParty = (Party)listView.getRefreshableView().getItemAtPosition(position);
         switch(curParty.getStatus()){
             case 0: // 召集中
                 BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
                 ActivityUtil.startActivity(getActivity(), PartyDetailActivity.class,param);
                 break;
             case 1: //  进行中
-                ActivityUtil.startActivity(getActivity(), PartyActivity.class);
+                ActivityUtil.startActivity(getActivity(), PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
                 break;
             case 2: //  已结束
-                ActivityUtil.startActivity(getActivity(), PartyActivity.class);
+                ActivityUtil.startActivity(getActivity(), PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
                 break;
         }
     }
 
     @Override
     public void click(View v) {
-        ToastUtil.showShortToast(getActivity(), ((Integer)v.getTag(R.id.tag_index)).toString() , 1);
+        ToastUtil.showShortToast(getActivity(), ((Integer) v.getTag(R.id.tag_index)).toString(), 1);
         //  TODO    增加是否关注的修改、保存。
 
+    }
+
+    @Override
+    public void follow(Party party, int follow) {
+        party.setFollowFlag(follow);
+        JujuDbUtils.saveOrUpdate(party);
+        if(filterType==2){
+            partyList.remove(party);
+        }
+        partyListAdapter.notifyDataSetChanged();
     }
 
     @Override
@@ -293,5 +361,63 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
     public void onFailure(HttpException error, String msg, int accessId) {
         System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
                 error.getExceptionCode());
+    }
+
+    @Override
+    public void onRefresh(PullToRefreshBase refreshView) {
+        if(partyList.size()>=totalSize){
+            listView.onRefreshComplete();
+            return;
+        }
+        // 获取下一页数据
+        ListView partyListView = listView.getRefreshableView();
+        int preSum = partyList.size();
+
+        Selector selector = Selector.from(Party.class).where("status", ">", -1);
+        switch (filterType){
+            case 0:
+                break;
+            case 1:
+                selector.where("attendFlag", "=", 1);
+                break;
+            case 2:
+                selector.where("followFlag","=",1);
+                break;
+        }
+
+        try {
+            totalSize = JujuDbUtils.getInstance(getContext()).count(selector);
+            selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
+            List<Party> pagePartyList = JujuDbUtils.getInstance(getContext()).findAll(selector);
+            partyList.addAll(pagePartyList);
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+
+        if(partyList.size()>=totalSize){
+            listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
+        }
+        partyListAdapter.setPartyList(partyList);
+        int afterSum = partyList.size();
+        partyListView.setSelection(afterSum-preSum);
+        partyListAdapter.notifyDataSetChanged();
+        listView.onRefreshComplete();
+    }
+
+
+    /**
+     * 定位SDK监听函数
+     */
+    private class MyLocationListenner implements BDLocationListener {
+
+        @Override
+        public void onReceiveLocation(BDLocation location) {
+            if (location == null) {
+                return;
+            }
+            SpfUtil.put(getContext().getApplicationContext(), Constants.LOCATION, location.getLatitude()+","+location.getLongitude());
+            mLocClient.stop();
+            mLocClient = null;
+        }
     }
 }

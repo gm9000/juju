@@ -48,7 +48,7 @@
                             android:id="@+id/dialog_generic_htv_message"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="您确定要举办该好友吗？"
+                            android:text="您确定执行该操作吗？"
                             android:textColor="@color/black"
                             android:textSize="16sp" />
                     </LinearLayout>

@@ -115,6 +115,7 @@ public class Constants {
     public static final String LATITUDE = "lantitude";    //  聚会ID
     public static final String LONGITUDE = "longitude";    //  聚会ID
     public static final String ADDRESS = "address";    //  聚会ID
+    public static final String LOCATION = "location";    //  我的位置
 
     //message 每次拉取的条数
     public static final int MSG_CNT_PER_PAGE = 15;
