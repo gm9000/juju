@@ -6,6 +6,8 @@ import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 项目名称：juju
@@ -30,6 +32,10 @@ public interface IDAO<T, PK> {
 
     public void batchSaveOrUpdate(List<T> entityList);
 
+    public void replaceInto(T entity);
+
+    public void batchReplaceInto(List<T> entityList);
+
     public void delete(T entity);
 
     public void deleteAll(List<T> entityList);
@@ -42,12 +48,34 @@ public interface IDAO<T, PK> {
 
     public long getTotalCount();
 
-    public void init();
+    public List<T> findAll(Selector selector);
 
-    public void findAll(Selector selector);
+    /**
+     * 按属性排序
+     * @param orders
+     */
+    public List<T> findAll4Order(String... orders);
+
+
 
     //参考DbUtils
     public List<T> findAll(String sql) throws DbException;
 
+    /**
+     * 通过属性查找，返回列表或对象
+     * @param propertys
+     * @param values
+     * @return
+     */
+    public List<T> findByProperty(String propertys, Object[] values);
+
+
+    /**
+     * 通过属性查找，返回唯一对象
+     * @param propertys
+     * @param values
+     * @return
+     */
+    public T findUniByProperty(String propertys, Object[] values);
 
 }

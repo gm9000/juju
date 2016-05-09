@@ -6,8 +6,11 @@ import android.util.Log;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.MessageDao;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.MessageConstant;
+import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.db.sqlite.WhereBuilder;
 import com.lidroid.xutils.exception.DbException;
@@ -27,8 +30,21 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
 
     private final String TAG = getClass().getSimpleName();
 
+
     public MessageDaoImpl(Context context) {
         super(context);
+    }
+
+    @Override
+    protected void execAfterTableCreated() {
+        super.execAfterTableCreated();
+        //创建索引
+        try {
+            db.execNonQuery("CREATE INDEX index_message_created ON message(created)");
+            db.execNonQuery("CREATE UNIQUE INDEX index_message_session_key_msg_id on message(session_key, msg_id)");
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -62,7 +78,7 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
      * @return
      */
     public List<MessageEntity> findHistoryMsgs(String sessionKey, int lastMsgId,
-                                               int lastCreateTime, int count) {
+                                               long lastCreateTime, int count) {
         /**解决消息重复的问题*/
         int preMsgId = lastMsgId +1;
         List<MessageEntity> messageList = null;
@@ -133,5 +149,35 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
         }
         return newList;
     }
+
+    @Override
+    public long getSessionLastTime() {
+        long timeLine = 1l;
+        String successType = String.valueOf(MessageConstant.MSG_SUCCESS);
+        Selector selector = Selector.from(MessageEntity.class);
+        selector.where("status", "=", successType).orderBy("created", true).offset(0).limit(1);
+
+        List<MessageEntity> list = findAll(selector);
+        if(list != null) {
+            for(MessageEntity entity : list) {
+                timeLine = entity.getCreated();
+            }
+        }
+        return timeLine;
+    }
+
+//    @Override
+//    public void saveOrUpdate(MessageEntity entity) {
+//        try {
+//            if(entity instanceof TextMessage) {
+//                MessageEntity cloneMessage = entity.clone();
+//                db.saveOrUpdate(cloneMessage);
+//            } else {
+//                db.saveOrUpdate(entity);
+//            }
+//        } catch (DbException e) {
+//            Log.e(TAG, "execute saveOrUpdate error:"+clazz.getSimpleName(), e);
+//        }
+//    }
 
 }

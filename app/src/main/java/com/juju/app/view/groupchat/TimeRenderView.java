@@ -41,9 +41,9 @@ public class TimeRenderView extends LinearLayout {
     }
 
     /**与数据绑定*/
-    public void setTime(Integer msgTime){
-        long timeStamp  = (long) msgTime;
-        Date msgTimeDate = new Date(timeStamp * 1000);
+    public void setTime(Long msgTime){
+//        long timeStamp  = (long) msgTime;
+        Date msgTimeDate = new Date(msgTime);
         time_title.setText(DateUtil
                 .getTimeDiffDesc(msgTimeDate));
     }

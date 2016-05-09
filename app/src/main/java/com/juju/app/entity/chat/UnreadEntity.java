@@ -1,21 +1,48 @@
 package com.juju.app.entity.chat;
 
 
+import android.support.annotation.IdRes;
+
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.utils.StringUtils;
+import com.lidroid.xutils.db.annotation.Id;
+import com.lidroid.xutils.db.annotation.Table;
+import com.lidroid.xutils.db.annotation.Transient;
 
 /**
- * 未读session实体，并未保存在DB中
+ * 未读session实体
  */
+@Table(name = "unread_message", execAfterTableCreated = "CREATE UNIQUE INDEX index_unread_message_session_key " +
+        "ON unread_message(session_key);")
 public class UnreadEntity {
 
+
+    @Id(column = "session_key")
     private String sessionKey;
+
+    @Id(column = "peer_id")
     private String peerId;
+
+    @Id(column = "session_type")
     private int sessionType;
+
+    @Id(column = "un_read_cnt")
     private int unReadCnt;
+
+    @Id(column = "latest_msg_id")
     private int laststMsgId;
+
+    @Id(column = "latest_msg_data")
     private String latestMsgData;
+
+    @Id(column = "created")
+    private long created;
+
+    @Transient
     private boolean isForbidden = false;
+
+//    @Transient
+//    private String content;
 
     public String getSessionKey() {
         return sessionKey;
@@ -73,6 +100,14 @@ public class UnreadEntity {
         this.isForbidden = isForbidden;
     }
 
+    public long getCreated() {
+        return created;
+    }
+
+    public void setCreated(long created) {
+        this.created = created;
+    }
+
     @Override
     public String toString() {
         return "UnreadEntity{" +
@@ -80,6 +115,7 @@ public class UnreadEntity {
                 ", peerId=" + peerId +
                 ", sessionType=" + sessionType +
                 ", unReadCnt=" + unReadCnt +
+                ", created=" + created +
                 ", laststMsgId=" + laststMsgId +
                 ", latestMsgData='" + latestMsgData + '\'' +
                 ", isForbidden=" + isForbidden +

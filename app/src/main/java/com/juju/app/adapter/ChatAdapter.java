@@ -151,7 +151,7 @@ public class ChatAdapter extends BaseAdapter {
             RenderType type = RenderType.MESSAGE_TYPE_INVALID;
 
             Object obj = msgObjectList.get(position);
-            if (obj instanceof Integer) {
+            if (obj instanceof Long) {
                 type = RenderType.MESSAGE_TYPE_TIME_TITLE;
             } else if (obj instanceof MessageEntity) {
                 MessageEntity info = (MessageEntity) obj;
@@ -209,20 +209,20 @@ public class ChatAdapter extends BaseAdapter {
                 msg.setGIfEmo(false);
             }
         }
-        int nextTime = msg.getCreated();
+        long nextTime = msg.getCreated();
         if (getCount() > 0) {
             Object object = msgObjectList.get(getCount() - 1);
             if (object instanceof MessageEntity) {
-                int preTime = ((MessageEntity) object).getCreated();
+                long preTime = ((MessageEntity) object).getCreated();
                 //是否需要显示时间
                 boolean needTime = DateUtil.needDisplayTime(preTime, nextTime);
                 if (needTime) {
-                    Integer in = nextTime;
+                    Long in = nextTime;
                     msgObjectList.add(in);
                 }
             }
         } else {
-            Integer in = msg.getCreated();
+            Long in = msg.getCreated();
             msgObjectList.add(in);
         }
 //        /**消息的判断*/
@@ -255,7 +255,7 @@ public class ChatAdapter extends BaseAdapter {
      */
     private View timeBubbleRender(int position, View convertView, ViewGroup parent) {
         TimeRenderView timeRenderView;
-        Integer timeBubble = (Integer) msgObjectList.get(position);
+        Long timeBubble = (Long) msgObjectList.get(position);
         if (null == convertView) {
             timeRenderView = TimeRenderView.inflater(ctx, parent);
         } else {
@@ -372,8 +372,8 @@ public class ChatAdapter extends BaseAdapter {
         }
         Collections.sort(historyList, new MessageTimeComparator());
         ArrayList<Object> chatList = new ArrayList<>();
-        int preTime = 0;
-        int nextTime = 0;
+        long preTime = 0;
+        long nextTime = 0;
         for (MessageEntity msg : historyList) {
             if (msg.getDisplayType() == DBConstant.MSG_TYPE_SINGLE_TEXT) {
                 if (isMsgGif(msg)) {
@@ -385,7 +385,7 @@ public class ChatAdapter extends BaseAdapter {
             nextTime = msg.getCreated();
             boolean needTimeBubble = DateUtil.needDisplayTime(preTime, nextTime);
             if (needTimeBubble) {
-                Integer in = nextTime;
+                Long in = nextTime;
                 chatList.add(in);
             }
             preTime = nextTime;
@@ -410,7 +410,7 @@ public class ChatAdapter extends BaseAdapter {
             if (lhs.getCreated() == rhs.getCreated()) {
                 return lhs.getMsgId() - rhs.getMsgId();
             }
-            return lhs.getCreated() - rhs.getCreated();
+            return (int)(lhs.getCreated() - rhs.getCreated());
         }
     }
 

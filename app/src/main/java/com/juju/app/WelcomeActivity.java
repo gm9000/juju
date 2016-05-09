@@ -60,13 +60,13 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
 
     @Override
     public void run() {
-        try {
-            Log.i(tag, "等待1秒切换到登陆界面。。。");
-            Thread.sleep(1000);
-            startActivity(new Intent(WelcomeActivity.this, LoginActivity.class));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+
+//            Log.i(tag, "等待1秒切换到登陆界面。。。");
+//            Thread.sleep(1000);
+//            startActivity(new Intent(WelcomeActivity.this, LoginActivity.class));
+
+            startAnimation();
+
     }
 
     /**

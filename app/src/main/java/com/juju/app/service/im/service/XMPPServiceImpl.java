@@ -11,28 +11,27 @@ import android.util.Log;
 
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
-import com.juju.app.biz.MessageDao;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.ConnectionState;
 import com.juju.app.event.PriorityEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.golobal.DBConstant;
-import com.juju.app.golobal.MessageConstant;
-import com.juju.app.service.im.XMPPServiceCallback;
-import com.juju.app.service.im.data.MessageProvider;
+import com.juju.app.service.im.callback.FixListenerQueue;
+import com.juju.app.service.im.callback.ListenerQueue;
+import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 
 
-
-import com.juju.app.service.im.data.MessageProvider.ChatConstants;
+import com.juju.app.service.im.iq.RedisResIQ;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.manager.IMUnreadMsgManager;
+import com.juju.app.service.im.provider.RedisPacketExtensionProvider;
 import com.juju.app.service.im.tls.TLSMode;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.StringUtils;
-
 
 import org.greenrobot.eventbus.EventBus;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -45,9 +44,13 @@ import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
 import org.jivesoftware.smack.XMPPException;
 import org.jivesoftware.smack.filter.StanzaFilter;
+import org.jivesoftware.smack.packet.ExtensionElement;
+import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.parsing.ExceptionLoggingCallback;
+import org.jivesoftware.smack.provider.ExtensionElementProvider;
+import org.jivesoftware.smack.provider.ProviderManager;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
@@ -56,13 +59,20 @@ import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
 import org.jivesoftware.smackx.ping.PingFailedListener;
+import org.jivesoftware.smackx.xdata.Form;
+import org.jivesoftware.smackx.xdata.FormField;
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 /**
@@ -77,17 +87,8 @@ public class XMPPServiceImpl implements
 
     private final String TAG = getClass().getName();
 
-    // 客户端名称和类型。主要是向服务器登记，有点类似QQ显示iphone或者Android手机在线的功能
-    public static final String XMPP_IDENTITY_NAME = "XMPP";// 客户端名称
-    public static final String XMPP_IDENTITY_TYPE = "phone";// 客户端类型
-    private static final int PACKET_TIMEOUT = 30000;// 超时时间
 
-
-    private StanzaListener mStanzaListener;
-
-    private MessageListener messageListener;
-
-    private XMPPServiceCallback mServiceCallBack;
+//    private XMPPServiceCallback mServiceCallBack;
 
     private MultiUserChat multiUserChat;
 
@@ -141,6 +142,10 @@ public class XMPPServiceImpl implements
     private IMSessionManager sessionManager = IMSessionManager.instance();
     private IMUnreadMsgManager unreadMsgManager = IMUnreadMsgManager.instance();
 
+    //callback 队列
+    private ListenerQueue listenerQueue = ListenerQueue.instance();
+
+    private FixListenerQueue fixListenerQueue = FixListenerQueue.instance();
 
 
 
@@ -203,6 +208,14 @@ public class XMPPServiceImpl implements
         org.jivesoftware.smackx.ping.PingManager.getInstanceFor(xmppConnection).
                 registerPingFailedListener(this);
 
+        //监听消息回复
+        ProviderManager.addExtensionProvider(ReplayMessageTime.NAME,
+                ReplayMessageTime.NAME_SPACE, new ReplayMessageTimeProvider());
+
+        //监听redis相关回复
+        ProviderManager.addIQProvider(RedisPacketExtensionProvider.NAME,
+                RedisPacketExtensionProvider.NAMESPACE,
+                new RedisPacketExtensionProvider());
     }
 
 
@@ -263,20 +276,104 @@ public class XMPPServiceImpl implements
 
     /**
      * 发送消息
-     *
-     * @param user
+     * @param to
      * @param message
+     * @param uuid
+     * @param callback
      */
     @Override
-    public void sendMessage(String user, String message)
-            throws SmackException.NotConnectedException {
-        Message newMessage = new Message(user, Message.Type.groupchat);
-        newMessage.setStanzaId(UUID.randomUUID().toString());
+    public void sendMessage(String to, String message, String uuid,
+                            XMPPServiceCallbackImpl callback) {
+        Message newMessage = new Message(to, Message.Type.groupchat);
+        newMessage.setStanzaId(uuid);
         newMessage.setBody(message);
         if (isAuthenticated()) {
-            xmppConnection.sendStanza(newMessage);
+            if(callback.getType() == 0) {
+                sendStanzaAndBindListener(newMessage, uuid, callback);
+            } else {
+                sendStanzaAndBindFixListener(newMessage, uuid, callback);
+            }
         }
     }
+
+    /**
+     * 计算消息总数
+     *
+     * @param to
+     * @param minTime
+     * @param maxTime
+     * @param uuid
+     * @param listener
+     * @return
+     */
+    @Override
+    public void countMessage(final String to, final String minTime, final String maxTime,
+                             String uuid, XMPPServiceCallbackImpl listener) {
+        IQ iq = new IQ("request", "com:jlm:iq:redis") {
+            @Override
+            protected IQChildElementXmlStringBuilder getIQChildElementBuilder(
+                    IQChildElementXmlStringBuilder xml) {
+                xml.attribute("key", "2_"+to);
+                xml.attribute("command", "zcount");
+                xml.attribute("min", minTime);
+                if(StringUtils.isNotBlank(maxTime)) {
+                    xml.attribute("max", maxTime);
+                }
+                xml.append(">");
+                return xml;
+            }
+        };
+        iq.setStanzaId(uuid);
+        if (isAuthenticated()) {
+            if(listener.getType() == 0) {
+                sendStanzaAndBindListener(iq, uuid, listener);
+            } else {
+                sendStanzaAndBindFixListener(iq, uuid, listener);
+            }
+        }
+    }
+
+    /**
+     * 计算消息总数
+     *
+     * @param to
+     * @param minTime
+     * @param maxTime
+     * @param uuid
+     * @param offset
+     * @param length
+     * @param listener
+     * @return
+     */
+    @Override
+    public void findHisMessages(final String command, final String to, final String minTime, final String maxTime,
+                                final String uuid,  final int offset,
+                                final int length,  XMPPServiceCallbackImpl listener) {
+        IQ iq = new IQ("request", "com:jlm:iq:redis") {
+            @Override
+            protected IQChildElementXmlStringBuilder getIQChildElementBuilder(
+                    IQChildElementXmlStringBuilder xml) {
+                xml.attribute("key", "2_"+to);
+//                xml.attribute("command", "zrangebyscore");
+                xml.attribute("command", command);
+                xml.attribute("min", minTime);
+                if(StringUtils.isNotBlank(maxTime)) {
+                    xml.attribute("max", maxTime);
+                }
+                xml.attribute("offset", offset);
+                xml.attribute("length", length);
+                xml.append(">");
+                return xml;
+            }
+        };
+        iq.setStanzaId(uuid);
+        if(listener.getType() == 0) {
+            sendStanzaAndBindListener(iq, uuid, listener);
+        } else {
+            sendStanzaAndBindFixListener(iq, uuid, listener);
+        }
+    }
+
 
     /**
      * 注册所有监听
@@ -294,82 +391,91 @@ public class XMPPServiceImpl implements
         return null;
     }
 
-    /**
-     * 注册回调方法
-     *
-     * @param callBack
-     */
-    @Override
-    public void registerCallback(XMPPServiceCallback callBack) {
-        this.mServiceCallBack = callBack;
-    }
-
-    /**
-     * 注销回调方法
-     */
-    @Override
-    public void unRegisterCallback() {
-        this.mServiceCallBack = null;
-    }
+//    /**
+//     * 注册回调方法
+//     *
+//     * @param callBack
+//     */
+//    @Override
+//    public void registerCallback(XMPPServiceCallback callBack) {
+//        this.mServiceCallBack = callBack;
+//    }
+//
+//    /**
+//     * 注销回调方法
+//     */
+//    @Override
+//    public void unRegisterCallback() {
+//        this.mServiceCallBack = null;
+//    }
 
     /**
      * 加入聊天室
      */
     @Override
-    public void joinChatRoom() throws JUJUXMPPException, XMPPException,
+    public void joinChatRoom(String chatRoom, long lastUpdateTime) throws JUJUXMPPException, XMPPException,
             SmackException.NotConnectedException, SmackException.NoResponseException {
         MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(xmppConnection);
-        String jid = BaseApplication.getInstance().getUserInfoBean().getmRoomName()+
-                "@"+BaseApplication.getInstance().getUserInfoBean().getmMucServiceName()+".juju";
-        Log.d(TAG, "chatRoom:"+jid);
-        multiUserChat = multiUserChatManager.getMultiUserChat(jid);
+//        String jid = BaseApplication.getInstance().getUserInfoBean().getmRoomName()+
+//                "@"+BaseApplication.getInstance().getUserInfoBean().getmMucServiceName()+".juju";
+        Log.d(TAG, "chatRoom:"+chatRoom);
+        multiUserChat = multiUserChatManager.getMultiUserChat(chatRoom);
         if(multiUserChat != null) {
             DiscussionHistory history = new DiscussionHistory();
-            history.setSince(new Date());
+            history.setSince(new Date(lastUpdateTime));
+            history.setMaxStanzas(0);
             String nickName = userInfoBean.getmAccount();
             String password = userInfoBean.getmPassword();
             multiUserChat.join(nickName, password, history,
                     SmackConfiguration.getDefaultPacketReplyTimeout());
         }
-
     }
 
-
-
-
-
-    private String getBareJID(String from) {
-        String[] res = from.split("/");
-        return res[0].toLowerCase();
+    @Override
+    public boolean createChatRoom(String groupId, String mucServiceName, String serviceName) {
+        boolean bool = false;
+        //可以考虑用注解实现权限检查
+        if (isAuthenticated()) {
+            if(StringUtils.isBlank(mucServiceName))
+                mucServiceName = "conference";
+            try{
+                MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(xmppConnection);
+                String jid = groupId+"@"+mucServiceName+"."+serviceName;
+                MultiUserChat muc = multiUserChatManager.getMultiUserChat(jid);
+                muc.create(xmppConnection.getUser());
+                // 获得聊天室的配置表单
+                Form form = muc.getConfigurationForm();
+                // 根据原始表单创建一个要提交的新表单。
+                Form submitForm = form.createAnswerForm();
+                // 向要提交的表单添加默认答复
+                List<FormField> fileds = form.getFields();
+                for(FormField f : fileds) {
+                    if (!FormField.Type.hidden.equals(f.getType()) && f.getVariable() != null) {
+                        if("muc#roomconfig_persistentroom".equals(f.getVariable())) {
+                            //是否持久化房间
+                            submitForm.setAnswer("muc#roomconfig_persistentroom", true);
+                        } else if ("muc#roomconfig_publicroom".equals(f.getVariable())) {
+                            //是否列出目录中的房间
+                            submitForm.setAnswer("muc#roomconfig_publicroom", false);
+                        } else {
+                            submitForm.setDefaultAnswer(f.getVariable());
+                        }
+                    }
+                }
+                muc.sendConfigurationForm(submitForm);
+                bool = muc.isJoined();
+            }  catch (SmackException.NoResponseException e) {
+                Log.e(TAG, "createChatRoom method throws NoResponseException...", e);
+            } catch (XMPPException.XMPPErrorException e) {
+                Log.e(TAG, "createChatRoom method throws XMPPErrorException...", e);
+            } catch (SmackException.NotConnectedException e) {
+                Log.e(TAG, "createChatRoom method throws NotConnectedException...", e);
+            } catch (SmackException e) {
+                Log.e(TAG, "createChatRoom method throws SmackException...", e);
+            }
+        }
+        return bool;
     }
-
-    public boolean changeMessageDeliveryStatus(String packetID, int new_status) {
-        ContentValues cv = new ContentValues();
-        cv.put(ChatConstants.DELIVERY_STATUS, new_status);
-        Uri rowuri = Uri.parse("content://" + MessageProvider.AUTHORITY + "/"
-                + MessageProvider.TABLE_NAME);
-        return mContentResolver.update(rowuri, cv,
-                ChatConstants.PACKET_ID + " = ? AND " +
-                        ChatConstants.DELIVERY_STATUS + " != " + ChatConstants.DS_ACKED + " AND " +
-                        ChatConstants.DIRECTION + " = " + ChatConstants.OUTGOING,
-                new String[] { packetID }) > 0;
-    }
-
-    private void addChatMessageToDB(int direction, String JID,
-                                    String message, int delivery_status, long ts, String packetID) {
-        ContentValues values = new ContentValues();
-
-        values.put(ChatConstants.DIRECTION, direction);
-        values.put(ChatConstants.JID, JID);
-        values.put(ChatConstants.MESSAGE, message);
-        values.put(ChatConstants.DELIVERY_STATUS, delivery_status);
-        values.put(ChatConstants.DATE, ts);
-        values.put(ChatConstants.PACKET_ID, packetID);
-
-        mContentResolver.insert(MessageProvider.CONTENT_URI, values);
-    }
-
-
 
 
     /**
@@ -378,46 +484,9 @@ public class XMPPServiceImpl implements
     @Override
     public void processPacket(Stanza packet) throws SmackException.NotConnectedException {
         if(packet instanceof Message) {
-            Message message = (Message) packet;
-            Log.d(TAG, message.toString());
-            String[] fromArr = message.getFrom().split("/");
-            if(fromArr != null && fromArr.length >= 2) {
-                String peerId = fromArr[0];
-                String fromId = fromArr[1];
-                UserEntity userEntity = new UserEntity();
-                userEntity.setPeerId(fromId);
-                PeerEntity peerEntity = new PeerEntity() {
-                    @Override
-                    public int getType() {
-                        return DBConstant.SESSION_TYPE_GROUP;
-                    }
-                };
-                peerEntity.setPeerId(peerId);
-
-                MessageEntity textMessage = TextMessage.buildForSend(message.getBody(),
-                        userEntity, peerEntity);
-                textMessage.setStatus(MessageConstant.MSG_SUCCESS);
-
-                //将消息保存到本地数据库
-                MessageEntity dbMessage = textMessage.clone();
-                messageDao.saveOrUpdate(dbMessage);
-
-                //保存最新消息
-                sessionManager.updateSession(dbMessage);
-
-                /**
-                 *  发送已读确认由上层的activity处理 特殊处理
-                 *  1. 未读计数、 通知、session页面
-                 *  2. 当前会话
-                 * */
-                PriorityEvent  notifyEvent = new PriorityEvent();
-                notifyEvent.event = PriorityEvent.Event.MSG_RECEIVED_MESSAGE;
-                notifyEvent.object = textMessage;
-                triggerEvent(notifyEvent);
-
-
-            }
-            Log.d(TAG, "APP接收消息:"+message.getBody());
+            handlerMessage(packet);
+        } else if (packet instanceof RedisResIQ) {
+            handlerRedisResIQ(packet);
         }
     }
 
@@ -475,9 +544,11 @@ public class XMPPServiceImpl implements
     }
 
 
-//    public Set<MultiUserChat> getMultiUserChats() {
-//        return multiUserChats;
-//    }
+
+    private String getBareJID(String from) {
+        String[] res = from.split("/");
+        return res[0].toLowerCase();
+    }
 
     /**
      *******************************************内部类******************************************
@@ -487,9 +558,14 @@ public class XMPPServiceImpl implements
         @Override
         public boolean accept(Stanza packet) {
             UserInfoBean bean = BaseApplication.getInstance().getUserInfoBean();
+            //针对自己发出消息的回复 需要放过
+//            if(packet instanceof Message && ((Message)packet).
+//                    getExtension(ReplayMessageTime.NAME, ReplayMessageTime.NAME_SPACE) != null) {
+//                return true;
+//            }
             if(StringUtils.isNotBlank(packet.getFrom())
                     && packet.getFrom().indexOf(bean.getmAccount()) >= 0) {
-                return true;
+                return false;
             }
             return true;
         }
@@ -504,166 +580,210 @@ public class XMPPServiceImpl implements
 
 
 
-    //    // called at the end of a state transition
-//    private synchronized void updateConnectionState(ConnectionState new_state) {
-//        if (new_state == ConnectionState.ONLINE || new_state == ConnectionState.CONNECTING)
-//            mLastError = null;
-//        Log.d(TAG, "updateConnectionState: " + mState + " -> " + new_state + " (" + mLastError + ")");
-//        if (new_state == mState)
-//            return;
-//        mState = new_state;
-//        if (mServiceCallBack != null)
-//            mServiceCallBack.connectionStateChanged();
-//    }
+    class ReplayMessageTimeProvider extends
+            ExtensionElementProvider<ExtensionElement> {
+
+        @Override
+        public ExtensionElement parse(XmlPullParser parser, int initialDepth)
+                throws XmlPullParserException, IOException, SmackException {
+
+            boolean done = false;
+            String id = null;
+            String time = null;
+
+            while (!done) {
+                int eventType = parser.next();
+                String name = parser.getName();
+                // XML Tab标签
+                if (eventType == XmlPullParser.START_TAG) {
+                    if (name.equals("id")) {
+                        id = parser.nextText();
+                    }
+                    if (name.equals("time")) {
+                        time = parser.nextText();
+                    }
+                }
+                if (eventType == XmlPullParser.END_TAG) {
+                    if (name.equals("replay")) {
+                        done = true;
+                    }
+                }
+            }
+            ReplayMessageTime messageTime = new ReplayMessageTime(id, time);
+            return messageTime;
+        }
+
+    }
 
 
-//    private void registerMessageListener() {
-//        if (mStanzaListener != null)
-//            xmppConnection.removeAsyncStanzaListener(mStanzaListener);
-//
-//        StanzaTypeFilter filter = new StanzaTypeFilter(Message.class);
-//        mStanzaListener = new StanzaListener() {
-//            @Override
-//            public void processPacket(Stanza packet) throws SmackException.NotConnectedException {
-//                try {
-//                    if (packet instanceof Message) {
-//                        Message msg = (Message) packet;
-//                        String fromJID = getBareJID(msg.getFrom());
-//                        int direction = ChatConstants.INCOMING;
-//                        CarbonManager carbonManager = CarbonManager.getInstanceFor(xmppConnection);
-//
-//                        //离线消息
-//                        DelayInformation timestamp = DelayInformationManager.getDelayInformation(msg);
-//                        long ts;
-//
-//                        if (timestamp != null)
-//                            ts = timestamp.getStamp().getTime();
-//                        else
-//                            ts = System.currentTimeMillis();
-//
-//
-//                        String chatMessage = msg.getBody();
-//
-//                        // 处理异常消息
-//                        if (msg.getType() == Message.Type.error) {
-////                            if (changeMessageDeliveryStatus(msg.getStanzaId(), ChatConstants.DS_FAILED)) {
-////                                if(mServiceCallBack != null) {
-////                                    mServiceCallBack.messageError(fromJID, msg.getError().toString(), false);
-////                                }
-////                            }
-//                            mServiceCallBack.messageError(fromJID, msg.getError().toString(), false);
-//                            return;
-//                        }
-//
-//                        // ignore empty messages
-//                        if (chatMessage == null) {
-//                            Log.d(TAG, "empty message.");
-//                            return;
-//                        }
-//
-//                        if (direction == ChatConstants.INCOMING) {
-//                            if(mServiceCallBack != null) {
-//                                Log.d(TAG, "接收消息："+chatMessage);
-//                                mServiceCallBack.newMessage(fromJID, chatMessage, false);
-//                            }
-//                        }
-//                        //保存到数据库
-//                    }
-//                } catch (Exception e) {
-//                    Log.e(TAG, "failed to process packet:");
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
-//
-//        xmppConnection.addAsyncStanzaListener(mStanzaListener, filter);
-//    }
+    public class ReplayMessageTime implements ExtensionElement {
 
+        public static final String NAME = "replay";
+        public static final String NAME_SPACE = "com:jlm:replay";
+
+        private String id;
+        private String time;
+
+        public ReplayMessageTime(String id, String time) {
+            this.id = id;
+            this.time = time;
+        }
+
+        public String getElementName() {
+            return NAME;
+        }
+
+        /**
+         * 构造XML
+         * @return
+         */
+        public CharSequence toXML() {
+            StringBuffer sb = new StringBuffer();
+            sb.append("<replay").append(" xmlns=\"").append(NAME_SPACE)
+                    .append("\">");
+            sb.append("<id>").append(id).append("</id>");
+            sb.append("<time>").append(time).append("</time>");
+            sb.append("</replay>");
+            return sb.toString();
+        }
+
+        public String getNamespace() {
+            return NAME_SPACE;
+        }
+
+        public String getId() {
+            return id;
+        }
+
+        public void setId(String id) {
+            this.id = id;
+        }
+
+        public String getTime() {
+            return time;
+        }
+
+        public void setTime(String time) {
+            this.time = time;
+        }
+    }
 
     /**
-     * 群聊消息监听器
+     * 发送数据包，绑定监听
+     * @param packet
+     * @param uuid
+     * @param listener
      */
-//    private void registerMUCMessageListener() {
-//        if(messageListener != null) {
-//            multiUserChat.removeMessageListener(messageListener);
-//        }
-//        messageListener = new MessageListener() {
-//            @Override
-//            public void processMessage(Message message) {
-//                //处理异常
-//                String fromJID = getBareJID(message.getFrom());
-//                if(message.getType() == Message.Type.error) {
-//                    mServiceCallBack.messageError(fromJID, message.getError().toString(), false);
-//                } else {
-//                    //离线消息
-//                    DelayInformation timestamp = DelayInformationManager.getDelayInformation(message);
-//                    //时间戳
-//                    long ts;
-//                    if (timestamp != null) {
-//                        ts = timestamp.getStamp().getTime() / 1000;
-//                    }
-//                    else {
-//                        ts = System.currentTimeMillis() / 1000;
-//                    }
-//                    mServiceCallBack.newMessage(fromJID, message.getBody(), false);
-//                }
-//            }
-//        };
-//        multiUserChat.addMessageListener(messageListener);
-//    }
+    private void sendStanzaAndBindListener(Stanza packet, String uuid,
+                                           XMPPServiceCallbackImpl listener) {
+        if(listener != null) {
+            listenerQueue.push(uuid, listener);
+        }
+        try {
+            xmppConnection.sendStanza(packet);
+        } catch (SmackException.NotConnectedException e) {
+            //发送消息失败
+            if(listener != null) {
+                listener.onFailed();
+            }
+            listenerQueue.pop(uuid);
+            Log.e(TAG, "数据包发送异常", e);
+        }
+    }
 
-//    private void registerPresenceListener() {
-    // do not register multiple packet listeners
-//        if (mPresenceListener != null)
-//            mXMPPConnection.removePacketListener(mPresenceListener);
-//
-//        mPresenceListener = new PacketListener() {
-//            public void processPacket(Packet packet) {
-//                try {
-//                    Presence p = (Presence) packet;
-//                    switch (p.getType()) {
-//                        case subscribe:
-//                            handleIncomingSubscribe(p);
-//                            break;
-//                        case unsubscribe:
-//                            break;
-//                    }
-//                } catch (Exception e) {
-//                    // SMACK silently discards exceptions dropped from processPacket :(
-//                    Log.e(TAG, "failed to process presence:");
-//                    e.printStackTrace();
-//                }
-//            }
-//        };
-//
-//        mXMPPConnection.addPacketListener(mPresenceListener, new PacketTypeFilter(Presence.class));
-//    }
+    /**
+     * 发送数据包，绑定监听
+     * @param packet
+     * @param uuid
+     * @param listener
+     */
+    private void sendStanzaAndBindFixListener(Stanza packet, String uuid,
+                                           XMPPServiceCallbackImpl listener) {
+        if(listener != null) {
+            fixListenerQueue.push(uuid, listener);
+        }
+        try {
+            xmppConnection.sendStanza(packet);
+        } catch (SmackException.NotConnectedException e) {
+            //发送消息失败
+            if(listener != null) {
+                listener.onFailed();
+            }
+            fixListenerQueue.remove(uuid);
+            Log.e(TAG, "数据包发送异常", e);
+        }
+    }
 
-//    private void registerPongListener() {
-    // reset ping expectation on new connection
-//        mPingID = null;
 
-//        if (mPongListener != null)
-//            mXMPPConnection.removePacketListener(mPongListener);
-//
-//        mPongListener = new PacketListener() {
-//
-//            @Override
-//            public void processPacket(Packet packet) {
-//                if (packet == null) return;
-//
-//                gotServerPong(packet.getPacketID());
-//            }
-//
-//        };
-//
-//        mXMPPConnection.addPacketListener(mPongListener, new PacketTypeFilter(IQ.class));
-//        mPingAlarmPendIntent = PendingIntent.getBroadcast(mService.getApplicationContext(), 0, mPingAlarmIntent,
-//                PendingIntent.FLAG_UPDATE_CURRENT);
-//        mPongTimeoutAlarmPendIntent = PendingIntent.getBroadcast(mService.getApplicationContext(), 0, mPongTimeoutAlarmIntent,
-//                PendingIntent.FLAG_UPDATE_CURRENT);
-//        mAlarmManager.setInexactRepeating(AlarmManager.RTC_WAKEUP,
-//                System.currentTimeMillis() + AlarmManager.INTERVAL_FIFTEEN_MINUTES, AlarmManager.INTERVAL_FIFTEEN_MINUTES, mPingAlarmPendIntent);
-//    }
 
+    private void handlerMessage(Stanza stanza) {
+        Message message = (Message) stanza;
+        Log.d(TAG, message.toString());
+        //接收群聊消息
+        if(message.getExtension(ReplayMessageTime.NAME, ReplayMessageTime.NAME_SPACE) == null) {
+            String[] fromArr = message.getFrom().split("/");
+            if(fromArr != null && fromArr.length >= 2) {
+                String peerId = fromArr[0];
+                String fromId = fromArr[1];
+                UserEntity userEntity = new UserEntity();
+                userEntity.setPeerId(fromId);
+                PeerEntity peerEntity = new PeerEntity() {
+                    @Override
+                    public int getType() {
+                        return DBConstant.SESSION_TYPE_GROUP;
+                    }
+                };
+                peerEntity.setPeerId(peerId);
+                MessageEntity textMessage = TextMessage.buildForReceive(message,
+                        userEntity, peerEntity);
+
+                //将消息保存到本地数据库
+                MessageEntity dbMessage = textMessage.clone();
+                messageDao.saveOrUpdate(dbMessage);
+
+                SessionEntity cacheSessionEntity = sessionManager.getSessionMap()
+                        .get(textMessage.getSessionKey());
+                if(cacheSessionEntity == null
+                        || cacheSessionEntity.getCreated() < textMessage.getCreated()) {
+                    //保存最新消息
+                    sessionManager.updateSession(dbMessage);
+                }
+
+                /**
+                 *  发送已读确认由上层的activity处理 特殊处理
+                 *  1. 未读计数、 通知、session页面
+                 *  2. 当前会话
+                 * */
+                PriorityEvent  notifyEvent = new PriorityEvent();
+                notifyEvent.event = PriorityEvent.Event.MSG_RECEIVED_MESSAGE;
+                notifyEvent.object = textMessage;
+                triggerEvent(notifyEvent);
+            }
+        } else {
+            //针对自己请求消息的回复，确认是否发送到服务器
+            ReplayMessageTime messageTime = message
+                    .getExtension(ReplayMessageTime.NAME, ReplayMessageTime.NAME_SPACE);
+            String uuid = messageTime.getId();
+            XMPPServiceCallbackImpl listener = listenerQueue.pop(uuid);
+            if(listener != null) {
+                listener.onSuccess(messageTime);
+            }
+        }
+        Log.d(TAG, "接收MESSAGE:"+message.getBody());
+    }
+
+    private void handlerRedisResIQ(Stanza stanza) {
+        RedisResIQ redisResIQ = (RedisResIQ)stanza;
+        String uuid = stanza.getStanzaId();
+        XMPPServiceCallbackImpl listener = listenerQueue.pop(uuid);
+        if(listener != null){
+            listener.onSuccess(redisResIQ);
+        } else {
+            XMPPServiceCallbackImpl fixListener = fixListenerQueue.get(uuid);
+            if(fixListener != null) {
+                fixListener.onSuccess(redisResIQ);
+            }
+        }
+        Log.d(TAG, redisResIQ.getStanzaId()+"接收IQ消息:"+redisResIQ.getContent());
+    }
 }

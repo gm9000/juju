@@ -189,7 +189,6 @@ public class FileUtil {
      * 判断文件是否存在
      *
      * @param filePath
-     * @param size
      * @return
      */
     public static boolean isFileExists(String filePath) {

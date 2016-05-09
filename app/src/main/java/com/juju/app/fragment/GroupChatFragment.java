@@ -1,6 +1,7 @@
 package com.juju.app.fragment;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -13,14 +14,18 @@ import com.juju.app.activity.chat.ChatActivity;
 import com.juju.app.adapter.GroupChatListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.groupchat.GroupChatInitBean;
+import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.RecentInfo;
-import com.juju.app.entity.http.Group;
+import com.juju.app.entity.chat.SessionEntity;
+import com.juju.app.entity.chat.UnreadEntity;
 import com.juju.app.event.SessionEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMLoginManager;
+import com.juju.app.service.im.manager.IMMessageManager;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.manager.IMUnreadMsgManager;
 import com.juju.app.ui.base.BaseFragment;
@@ -132,7 +137,7 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
             BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
                     bean.getSessionId());
             BasicNameValuePair nameValue = new BasicNameValuePair(Constants.GROUP_NAME_KEY,
-                    bean.getGroup().getName());
+                    bean.getGroup().getMainName());
             valuePairs.add(markerIdValue);
             valuePairs.add(nameValue);
             ActivityUtil.startActivity(getActivity(), ChatActivity.class,
@@ -159,6 +164,9 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
     @Override
     public void loadData() {
         initTestData();
+
+
+        initGroupsInfo();
     }
 
     @Override
@@ -168,6 +176,23 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
         lvContact.setAdapter(adapter);
 
 //        IMLoginManager.instance().joinChatRoom();
+
+        //查询所有消息（方便分析数据）
+//        List<MessageEntity> messageEntities = IMMessageManager.instance().findAll4Order("updated:desc");
+//        for(MessageEntity entity : messageEntities) {
+//            logger.d(entity.toString());
+//        }
+//
+//        List<SessionEntity> sessionEntities = IMSessionManager.instance().findAll();
+//        for(SessionEntity entity : sessionEntities) {
+//            logger.d(entity.toString());
+//        }
+//
+//        List<UnreadEntity> unreadEntities = IMUnreadMsgManager.instance().findAll();
+//        for(UnreadEntity entity : unreadEntities) {
+//            logger.d(entity.toString());
+//        }
+
     }
 
     /**
@@ -176,10 +201,10 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
     private void initTestData() {
         groupChats = new ArrayList<GroupChatInitBean>();
         for(int i = 1; i<=9 ; i++) {
-            Group group = new Group();
-            group.setId("00000"+i);
-            group.setName("休闲娱乐"+i);
-            group.setMemberNum(i);
+            GroupEntity group = new GroupEntity();
+            group.setId("00000" + i);
+            group.setMainName("休闲娱乐" + i);
+//            group.setMemberNum(i);
             List<String> avatar = new ArrayList<String>();
             if(i >= 1) {
                 avatar.add("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
@@ -209,13 +234,11 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
                 avatar.add("http://img4.duitang.com/uploads/item/201601/06/20160106131952_xirGJ.thumb.700_0.jpeg");
             }
             int unReadCnt = 0;
-            if(i == 5) {
-                group.setName("测试讨论组");
+            if(i == 1) {
+                group.setMainName("测试讨论组");
                 group.setPeerId("ceshi@conference.juju");
-
             }
-            GroupChatInitBean groupChat = new GroupChatInitBean(String.valueOf(i), group, "今天晚上我请客，" +
-                    "暂定苏州桥同一首歌碰面。", (int)(System.currentTimeMillis()/1000), 0, avatar);
+            GroupChatInitBean groupChat = new GroupChatInitBean(String.valueOf(i), group, "", System.currentTimeMillis(), 0, avatar);
             if(i == 5) {
                 groupChat.setSessionId("2_ceshi@conference.juju");
             }
@@ -310,6 +333,13 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
                 }
             }
         }
+    }
+
+    /**
+     * 初始化群聊消息
+     */
+    private void initGroupsInfo() {
+
     }
 
 }

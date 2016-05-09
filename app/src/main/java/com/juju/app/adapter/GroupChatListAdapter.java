@@ -20,7 +20,6 @@ import android.widget.Toast;
 
 import com.juju.app.R;
 import com.juju.app.bean.groupchat.GroupChatInitBean;
-import com.juju.app.entity.http.Group;
 import com.juju.app.golobal.Constants;
 import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.ViewHolderUtil;
@@ -164,13 +163,13 @@ public class GroupChatListAdapter extends BaseAdapter {
     private void handleGroupContact(GroupViewHolder groupViewHolder,
                                     GroupChatInitBean groupChatInitBean) {
         String avatarUrl = null;
-        String userName = "";
+        String mainName = "";
         String lastContent = "";
         String lastTime = "";
         int unReadCount = 0;
 //        int sessionType = DBConstant.SESSION_TYPE_SINGLE;
 
-        userName = groupChatInitBean.getGroup().getName();
+        mainName = groupChatInitBean.getGroup().getMainName();
         lastContent = groupChatInitBean.getContent();
         // todo 是不是每次都需要计算
         lastTime = DateUtil.getSessionTime(groupChatInitBean.getUpdateTime());
@@ -200,7 +199,7 @@ public class GroupChatListAdapter extends BaseAdapter {
         //头像设置
         setGroupAvatar(groupViewHolder, groupChatInitBean.getAvatar());
         // 设置其它信息
-        groupViewHolder.uname.setText(userName);
+        groupViewHolder.uname.setText(mainName);
         groupViewHolder.lastContent.setText(lastContent);
         groupViewHolder.lastTime.setText(lastTime);
     }

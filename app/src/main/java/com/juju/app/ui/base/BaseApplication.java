@@ -4,11 +4,21 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 
+import com.activeandroid.ActiveAndroid;
 import com.baidu.mapapi.SDKInitializer;
+import com.facebook.stetho.InspectorModulesProvider;
+import com.facebook.stetho.Stetho;
+import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
+import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
+import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
+import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
+import com.juju.app.activity.MainActivity;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.CacheManager;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
+import com.rey.material.app.ThemeManager;
+
 
 import java.io.File;
 import java.util.ArrayList;
@@ -33,6 +43,8 @@ public class BaseApplication extends Application {
 
     private List<Activity> mActivities = new ArrayList<Activity>();
 
+
+
     // 单例模式中获取唯一的ExitApplication 实例
     public static BaseApplication getInstance() {
         if (null == mInstance) {
@@ -55,6 +67,38 @@ public class BaseApplication extends Application {
         startIMService();
         //初始化图片加载器
         ImageLoaderUtil.initImageLoaderConfig(getApplicationContext());
+
+        ThemeManager.init(getApplicationContext(), 2, 0, null);
+
+        Stetho.initialize(Stetho
+                .newInitializerBuilder(this)
+                .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
+                .enableWebKitInspector(
+                        Stetho.defaultInspectorModulesProvider(this)).build());
+
+//        Stetho.initialize(Stetho.newInitializerBuilder(this)
+//                .enableWebKitInspector(new InspectorModulesProvider() {
+//                    @Override
+//                    public Iterable<ChromeDevtoolsDomain> get() {
+//                        return new Stetho.DefaultInspectorModulesBuilder(getApplicationContext()).provideDatabaseDriver(
+//                                new SqliteDatabaseDriver(getApplicationContext(), new DatabaseFilesProvider() {
+//
+//                                    @Override
+//                                    public List<File> getDatabaseFiles() {
+//                                        List<File> files = new ArrayList<File>();
+//                                        files.add(new File("/mnt/sdcard/Android/data/com.juju.app/cache/App/juju.db"));
+//                                        return files;
+//                                    }
+//                                })
+//                        ).finish();
+//                    }
+//                })
+//                .build());
+
+
+        ActiveAndroid.initialize(this);
+
+
     }
 
 
@@ -85,12 +129,12 @@ public class BaseApplication extends Application {
      */
     @Override
     public void onTerminate() {
-        super.onTerminate();
         for (Activity activity : mActivities) {
             activity.finish();
         }
         stopIMService();
         System.exit(0);
+        super.onTerminate();
     }
 
     public UserInfoBean getUserInfoBean() {

@@ -199,6 +199,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     @Override
     protected void onDestroy() {
         EventBus.getDefault().unregister(this);
+        unregisterReceiver(receiver);
         imServiceConnector.disconnect(this);
         super.onDestroy();
     }
@@ -1012,6 +1013,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         setTitleByUser();
         reqHistoryMsg();
         adapter.setImService(imService, loginUser);
+        //清除未读消息
         imService.getUnReadMsgManager().readUnreadSession(currentSessionKey);
 //        imService.getNotificationManager().cancelSessionNotifications(currentSessionKey);
     }
@@ -1051,6 +1053,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
      */
     private void reqHistoryMsg() {
         historyTimes++;
+        //拉取历史信息
         List<MessageEntity> msgList = IMMessageManager.instance().
                 loadHistoryMsg(historyTimes, currentSessionKey, peerEntity);
         pushList(msgList);

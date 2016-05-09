@@ -16,7 +16,6 @@ public class Constants {
      */
 
 
-
     // 应用名称
     public static String APP_NAME = "";
 
@@ -29,9 +28,12 @@ public class Constants {
     // 图片存储路径
     public static final String BASE_PATH = SD_PATH + "/juju/";
 
+
     // 缓存图片路径
     public static final String BASE_IMAGE_CACHE = BASE_PATH + "cache/images/";
 
+    //是否是开发模式
+    public static final boolean IS_APP_MODEL = true;
 
     /**
      ******************************************* 参数设置信息结束 ******************************************

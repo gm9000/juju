@@ -4,20 +4,45 @@ package com.juju.app.entity.chat;
 import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.utils.StringUtils;
+import com.lidroid.xutils.db.annotation.Column;
+import com.lidroid.xutils.db.annotation.Table;
+import com.lidroid.xutils.db.annotation.Transient;
 
+@Table(name = "session", execAfterTableCreated = "CREATE UNIQUE INDEX index_session_session_key ON session(session_key);")
 public class SessionEntity extends BaseEntity {
 
     /** Not-null value. */
+    @Column(column = "session_key")
     private String sessionKey;
+
+    @Column(column = "peer_id")
     private String peerId;
+
+    @Column(column = "peer_type")
     private int peerType;
+
+    @Column(column = "latest_msg_type")
     private int latestMsgType;
+
+    @Column(column = "latest_msg_id")
     private int latestMsgId;
+
     /** Not-null value. */
+    @Column(column = "latest_msg_data")
     private String latestMsgData;
+
+    @Column(column = "talk_id")
     private String talkId;
-    private int created;
-    private int updated;
+
+    @Column(column = "created")
+    private Long created;
+
+    @Column(column = "updated")
+    private Long updated;
+
+
+
+
 
     // KEEP FIELDS - put your custom fields here
     // KEEP FIELDS END
@@ -30,7 +55,8 @@ public class SessionEntity extends BaseEntity {
     }
 
     public SessionEntity(Long localId, String id, String sessionKey, String peerId, int peerType,
-                         int latestMsgType, int latestMsgId, String latestMsgData, String talkId, int created, int updated) {
+                         int latestMsgType, int latestMsgId, String latestMsgData, String talkId,
+                         Long created, Long updated) {
         this.localId = localId;
         this.sessionKey = sessionKey;
         this.peerId = peerId;
@@ -104,21 +130,22 @@ public class SessionEntity extends BaseEntity {
         this.talkId = talkId;
     }
 
-    public int getCreated() {
+    public Long getCreated() {
         return created;
     }
 
-    public void setCreated(int created) {
+    public void setCreated(Long created) {
         this.created = created;
     }
 
-    public int getUpdated() {
+    public Long getUpdated() {
         return updated;
     }
 
-    public void setUpdated(int updated) {
+    public void setUpdated(Long updated) {
         this.updated = updated;
     }
+
 
     // KEEP METHODS - put your custom methods here
     public String buildSessionKey(){
