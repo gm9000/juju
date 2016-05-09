@@ -238,23 +238,25 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
         ActivityUtil.startActivity(this, UploadPhotoActivity.class, new BasicNameValuePair(Constants.USER_NO, userNo));
     }
 
-    @OnClick(R.id.txt_nick_name)
+    @OnClick(R.id.layout_nick_name)
     private void modifyNickName(View view){
         BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
         BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
         ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
     }
 
-    @OnClick(R.id.txt_gender)
+    @OnClick(R.id.layout_gender)
     private void modifyGender(View view){
         BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_gender));
         BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_gender.getText().toString());
         ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
     }
 
-    @OnClick(R.id.txt_phoneNo)
+    @OnClick(R.id.layout_phone)
     private void modifyPhone(View view){
-        ToastUtil.showShortToast(this, "phone", 1);
+        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_phoneNo));
+        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_phoneNo.getText().toString());
+        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
     }
 
 

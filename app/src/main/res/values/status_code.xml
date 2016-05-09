@@ -7,6 +7,7 @@
     <string name="PARTY_NOT_EXIST">聚会不存在</string>
     <string name="PLAN_NOT_EXIST">聚会任务不存在</string>
     <string name="USER_HAS_EXIST">用户已存在</string>
+     <string name="PHONE_HAS_EXIST">该手机号已被注册</string>
     <string name="PASSWORD_ERROR">密码错误</string>
     <string name="TOKEN_ERROR">令牌错误</string>
     <string name="INVITE_CODE_ERROR">邀请码无效</string>

@@ -26,12 +26,15 @@
                 android:layout_width="120dp"
                 android:layout_height="120dp"
                 android:scaleType="centerInside"
+                android:clickable="true"
                 android:src="@mipmap/head" />
 
             <LinearLayout
+                android:id="@+id/layout_phone"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
                 android:layout_marginTop="20dp"
+                android:background="@drawable/setting_item_selector"
                 android:orientation="horizontal">
                 <TextView
                     style="@style/TxtTitle"
@@ -48,7 +51,6 @@
                     style="@style/TxtContent"
                     android:textSize="14sp"
                     android:gravity="center_vertical|right"
-                    android:background="@drawable/setting_item_selector"
                     android:layout_height="match_parent"
                     android:layout_width="match_parent"
                     android:drawablePadding="10dp"
@@ -64,8 +66,10 @@
                 android:layout_height="1.0dip" />
 
             <LinearLayout
+                android:id="@+id/layout_nick_name"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/setting_item_selector"
                 android:orientation="horizontal">
                 <TextView
                     style="@style/TxtTitle"
@@ -82,7 +86,6 @@
                     style="@style/TxtContent"
                     android:textSize="14sp"
                     android:gravity="center_vertical|right"
-                    android:background="@drawable/setting_item_selector"
                     android:layout_height="match_parent"
                     android:layout_width="match_parent"
                     android:drawablePadding="10dp"
@@ -132,8 +135,10 @@
                 android:layout_height="1.0dip" />
 
             <LinearLayout
+                android:id="@+id/layout_gender"
                 android:layout_width="match_parent"
                 android:layout_height="50dp"
+                android:background="@drawable/setting_item_selector"
                 android:orientation="horizontal">
                 <TextView
                     style="@style/TxtTitle"
@@ -150,7 +155,6 @@
                     style="@style/TxtContent"
                     android:textSize="14sp"
                     android:gravity="center_vertical|right"
-                    android:background="@drawable/setting_item_selector"
                     android:layout_height="match_parent"
                     android:layout_width="match_parent"
                     android:drawablePadding="10dp"

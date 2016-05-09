@@ -5,7 +5,7 @@ package com.juju.app.media.util;
  */
 public class YuvProcess {
 
-    public static byte[] rotateYUV240SP(byte[] src,int width,int height)
+    public static byte[] rotate90YUV240SP(byte[] src,int width,int height)
     {
         byte[] des = new byte[width*height*3/2];
         int wh = width * height;
@@ -32,4 +32,34 @@ public class YuvProcess {
 
         return des;
     }
+
+    public static byte[] rotate270YUV240SP(byte[] src,int width,int height)
+    {
+        byte[] des = new byte[width*height*3/2];
+        int wh = width * height;
+        //旋转Y
+        int k = 0;
+        for(int i=width-1;i>=0;i--) {
+            for(int j=0;j<height;j++)
+            {
+                des[k] = src[width*j + i];
+                k++;
+            }
+        }
+        // System.arraycopy(src, width*height, des, width*height, src.length-width*height);
+        for(int i=width-1;i>=0;i-=2) {
+            for(int j=0;j<height/2;j++)
+            {
+                des[k] = src[wh+ width*j + i-1];
+                des[k+1]=src[wh + width*j + i];
+                k+=2;
+            }
+        }
+
+
+        return des;
+    }
+
+
+
 }

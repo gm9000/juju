@@ -4,8 +4,10 @@ import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.res.Configuration;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.AudioFormat;
@@ -13,10 +15,13 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -33,14 +38,14 @@ import com.juju.app.media.util.YuvProcess;
 import com.juju.app.service.BitRateInfo;
 import com.juju.app.service.ConnectStatus;
 import com.juju.app.service.MediaProcessService;
+import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.ScreenUtil;
-import com.juju.app.utils.ToastUtil;
-import com.lidroid.xutils.ViewUtils;
+import com.juju.app.view.CustomDialog;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
+import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -49,7 +54,6 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -58,28 +62,34 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 @ContentView(R.layout.activity_play_video)
-public class UploadVideoActivity extends Activity implements View.OnClickListener, SurfaceHolder.Callback, Camera.PreviewCallback, HttpCallBack {
+public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.Callback, Camera.PreviewCallback, HttpCallBack {
 
-    @ViewInject(R.id.img_right)
-    private ImageView img_right;
-    @ViewInject(R.id.txt_title)
-    private TextView txt_title;
-    @ViewInject(R.id.img_back)
-    private ImageView img_back;
-    @ViewInject(R.id.txt_left)
-    private TextView txt_left;
+    @ViewInject(R.id.layout_main)
+    private RelativeLayout layoutMain;
 
     @ViewInject(R.id.statusText)
     private TextView statusText;
 
+    @ViewInject(R.id.img_play)
+    private ImageView imgPlay;
+
+    @ViewInject(R.id.layout_right_menu)
+    private RelativeLayout layoutRight;
     @ViewInject(R.id.live_discuss_listView)
     private ListView discussListView;
+    @ViewInject(R.id.txt_discuss)
+    private EditText txtDiscuss;
+    @ViewInject(R.id.btn_send)
+    private Button btnSend;
+    @ViewInject(R.id.img_weixin)
+    private ImageView imgWeixin;
+    @ViewInject(R.id.img_pyq)
+    private ImageView imgPyq;
+    @ViewInject(R.id.img_weibo)
+    private ImageView imgWeibo;
+    @ViewInject(R.id.img_copy)
+    private ImageView imgCopy;
 
-    @ViewInject(R.id.menu_play_icon)
-    private ImageView playBtn;
-
-    @ViewInject(R.id.videoUrlText)
-    private TextView videoUrlText;
 
     private SurfaceView videoPlayView;
     private SurfaceHolder surfaceHolder;
@@ -90,8 +100,8 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
 
     private static int queueSize = 64;
     private ArrayBlockingQueue<byte[]> YUVQueue = new ArrayBlockingQueue<byte[]>(queueSize);
-    private int width = 1280;
-    private int height = 720;
+    private int width = 720;
+    private int height = 1280;
 
     private static int audioQueueSize = 256;
     private ArrayBlockingQueue<byte[]> AACQueue = new ArrayBlockingQueue<byte[]>(audioQueueSize);
@@ -109,7 +119,6 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewUtils.inject(this);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // 防止锁屏
         initParam();
         initView();
@@ -147,9 +156,6 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
 
 
     private void initListener() {
-        txt_left.setOnClickListener(this);
-        img_back.setOnClickListener(this);
-        img_right.setOnClickListener(this);
     }
 
     private void initParam() {
@@ -158,14 +164,6 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
     }
 
     private void initView() {
-        img_back.setVisibility(View.VISIBLE);
-        txt_left.setVisibility(View.VISIBLE);
-        txt_left.setText(R.string.live);
-
-        txt_title.setText("节目");
-        img_right.setImageResource(R.mipmap.camera);
-        img_right.setVisibility(View.VISIBLE);
-
         videoPlayView = (SurfaceView) findViewById(R.id.video_play_view);
     }
 
@@ -175,53 +173,8 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
         boolean bindFlag = bindService(intent, conn, Context.BIND_AUTO_CREATE);
     }
 
-    public void onTabClicked(View view) throws IOException {
-        switch (view.getId()) {
-            case R.id.menu_capture:
-                ToastUtil.showShortToast(this, "点击抓拍", 1);
-                break;
-            case R.id.menu_play:
-                if (mediaProcessService.isProcess()) {
-                    ToastUtil.showShortToast(this, "点击停止", 1);
-
-                    playBtn.setImageResource(R.mipmap.play);
-                    mediaProcessService.stopEncoding();
-                } else {
-                    playBtn.setImageResource(R.mipmap.stop);
-                    JlmHttpClient client = new JlmHttpClient(12, HttpConstants.getLiveServerUrl() + "/apply_for_upload", this, null, LiveAddressResBean.class);
-
-                    try {
-                        client.sendGetNoCache();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                }
-                break;
-            case R.id.menu_discuss:
-                ToastUtil.showShortToast(this, "点击评论", 1);
-                break;
-        }
-    }
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.txt_left:
-                ActivityUtil.finish(this);
-                break;
-            case R.id.img_back:
-                ActivityUtil.finish(this);
-                break;
-            case R.id.img_right:
-
-                ToastUtil.showShortToast(this, "更换摄像头", 1);
-                changeCamera();
-                break;
-        }
-    }
-
-    private void changeCamera() {
+    @OnClick(R.id.img_change)
+    private void changeCamera(View view){
         if (camera == null) {
             return;
         }
@@ -236,8 +189,49 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
         }
         camera = getCamera(curCameraId);
         startCamera(camera);
+    }
+
+    @OnClick(R.id.img_close)
+    private void closeVideo(View view){
+        if (mediaProcessService.isProcess()) {
+            CustomDialog.Builder builder = new CustomDialog.Builder(this);
+            builder.setMessage(getString(R.string.close_live));
+            builder.setPositiveButton(R.string.confirm,
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog,
+                                            int whichButton) {
+                            mediaProcessService.stopEncoding();
+                            dialog.dismiss();
+                            ActivityUtil.finish(UploadVideoActivity.this);
+                        }
+                    });
+            builder.setNegativeButton(R.string.negative,
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog,
+                                            int whichButton) {
+                            dialog.dismiss();
+                        }
+                    });
+            builder.create().show();
+        }else{
+            ActivityUtil.finish(this);
+        }
 
     }
+
+    @OnClick(R.id.img_play)
+    private void uploadVideo(View view){
+        JlmHttpClient client = new JlmHttpClient(12, HttpConstants.getLiveServerUrl() + "/apply_for_upload", this, null, LiveAddressResBean.class);
+        try {
+            client.sendGetNoCache();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -267,20 +261,22 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
                 }
                 parameters = mCamera.getParameters();
 
-                mCamera.setDisplayOrientation(90);
+//                mCamera.setDisplayOrientation(90);
 //                parameters.set("rotation", 90);
 //                parameters.set("orientation","landscape");
 //                parameters.setRotation(90);
 //                if (this.getResources().getConfiguration().orientation != Configuration.ORIENTATION_LANDSCAPE) {
-////                    camera.setDisplayOrientation(90);//针对android2.2和之前的版本
-//                    parameters.setRotation(90);//去掉android2.0和之前的版本
-//
-//                    setCameraDisplayOrientation(UploadVideoActivity.this,curCameraId,camera);
+//                    camera.setDisplayOrientation(90);//针对android2.2和之前的版本
+//                    parameters.setRotation(180);//去掉android2.0和之前的版本
 //                } else {
 //                    parameters.set("orientation", "landscape");
 //                    camera.setDisplayOrientation(0);
 //                    parameters.setRotation(0);
 //                }
+
+
+                setCameraDisplayOrientation(curCameraId,camera);
+
                 parameters.setPreviewFormat(ImageFormat.NV21);
 
                 //设置PictureSize
@@ -295,7 +291,7 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
                 height = previewSize.height;
 
                 parameters.setPreviewFrameRate(25);
-                parameters.setAutoWhiteBalanceLock(true);
+//                parameters.setAutoWhiteBalanceLock(true);
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 
                 mCamera.setParameters(parameters);
@@ -304,13 +300,13 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
 
 
 
-                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ScreenUtil.ViewgetScreenWidth(this),ScreenUtil.ViewgetScreenWidth(this) *width / height);
-                layoutParams.topMargin = (ScreenUtil.getScreenWidth(this)*height/width - ScreenUtil.getScreenWidth(this)*width/height) / 2;
-                videoPlayView.setLayoutParams(layoutParams);
-
-                RelativeLayout.LayoutParams listViewParams = new RelativeLayout.LayoutParams(ScreenUtil.ViewgetScreenWidth(this),ScreenUtil.getScreenHeight(this)-110-(ScreenUtil.ViewgetScreenWidth(this) * height / width));
-                listViewParams.topMargin = 50 + ScreenUtil.ViewgetScreenWidth(this) * height/width;
-                discussListView.setLayoutParams(listViewParams);
+//                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ScreenUtil.ViewgetScreenWidth(this),ScreenUtil.ViewgetScreenWidth(this) *width / height);
+//                layoutParams.topMargin = (ScreenUtil.getScreenWidth(this)*height/width - ScreenUtil.getScreenWidth(this)*width/height) / 2;
+//                videoPlayView.setLayoutParams(layoutParams);
+//
+//                RelativeLayout.LayoutParams listViewParams = new RelativeLayout.LayoutParams(ScreenUtil.ViewgetScreenWidth(this),ScreenUtil.getScreenHeight(this)-110-(ScreenUtil.ViewgetScreenWidth(this) * height / width));
+//                listViewParams.topMargin = 50 + ScreenUtil.ViewgetScreenWidth(this) * height/width;
+//                discussListView.setLayoutParams(listViewParams);
 
             } catch (IOException e) {
                 e.printStackTrace();
@@ -393,7 +389,6 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
                 if(obj != null && obj.length > 0) {
                     LiveAddressResBean liveAddressBean = (LiveAddressResBean)obj[0];
                     mediaProcessService.setUpdateUrl(liveAddressBean.getUploadUrl());
-                    videoUrlText.setText(liveAddressBean.getDownloadUrl());
 
                     Map<String, Object> valueMap = new HashMap<String, Object>();
                     valueMap.put("videoUrl", liveAddressBean.getDownloadUrl());
@@ -409,6 +404,7 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
                         e.printStackTrace();
                     }
                     mediaProcessService.startEncoding();
+                    imgPlay.setVisibility(View.GONE);
                 }
                 break;
             case 22:
@@ -422,7 +418,6 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
     public void onFailure(HttpException error, String msg, int accessId) {
         switch (accessId) {
             case 12:
-                playBtn.setImageResource(R.mipmap.play);
                 statusText.setText("服务器连接失败!");
                 break;
             case 22:
@@ -449,25 +444,30 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
         if(mediaProcessService.isProcess() && MediaEnCoderFactory.sSuggestedMode==MediaEnCoderFactory.MODE_MEDIACODEC_API) {
-            //  90度旋转
-            data = YuvProcess.rotateYUV240SP(data, width, height);
-            //  横屏裁剪
-            int cutVideoWidth = height;
-            int cutVideoHeight = cutVideoWidth * height / width;
-            while (cutVideoHeight % 16 != 0) {
-                cutVideoHeight++;
+            //  YUV数据旋转
+            if (curCameraId==0) {
+                data = YuvProcess.rotate90YUV240SP(data, width, height);
+            }else{
+                data = YuvProcess.rotate270YUV240SP(data, width, height);
             }
-            ByteBuffer cutByteBuffer = ByteBuffer.allocate(cutVideoWidth * cutVideoHeight * 3 / 2);
-            cutByteBuffer.put(data, cutVideoWidth * (width - cutVideoHeight) / 2, cutVideoWidth * cutVideoHeight);
-            cutByteBuffer.put(data, width * height + cutVideoWidth * (width - cutVideoHeight) / 4, cutVideoWidth * cutVideoHeight / 2);
-            putYUVData(cutByteBuffer.array());
+//            //  横屏裁剪
+//            int cutVideoWidth = height;
+//            int cutVideoHeight = cutVideoWidth * height / width;
+//            while (cutVideoHeight % 16 != 0) {
+//                cutVideoHeight++;
+//            }
+//            ByteBuffer cutByteBuffer = ByteBuffer.allocate(cutVideoWidth * cutVideoHeight * 3 / 2);
+//            cutByteBuffer.put(data, cutVideoWidth * (width - cutVideoHeight) / 2, cutVideoWidth * cutVideoHeight);
+//            cutByteBuffer.put(data, width * height + cutVideoWidth * (width - cutVideoHeight) / 4, cutVideoWidth * cutVideoHeight / 2);
+//            putYUVData(cutByteBuffer.array());
+            putYUVData(data);
         }
     }
 
     private void putYUVData(byte[] buffer) {
         if (YUVQueue.size() >= queueSize) {
             System.out.println(width + ":" + height + "------------------------------------- skip a frame YUV packege:" + YUVQueue.poll().length);
-//            YUVQueue.poll();
+            YUVQueue.poll();
         }
         YUVQueue.add(buffer);
     }
@@ -503,8 +503,8 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
             mediaProcessService.setCamera(camera);
             mediaProcessService.setSurfaceHolder(surfaceHolder);
             mediaProcessService.setContext(UploadVideoActivity.this);
-            mediaProcessService.setWidth(width);
-            mediaProcessService.setHeight(height);
+            mediaProcessService.setWidth(height);
+            mediaProcessService.setHeight(width);
 
             mediaProcessService.setYUVQueue(YUVQueue);
             mediaProcessService.setQueueSize(queueSize);
@@ -521,7 +521,7 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
         statusText.setText(connStatus.getConnectDesc());
         switch (connStatus.getStatus()){
             case 1:
-                playBtn.setImageResource(R.mipmap.play);
+                imgPlay.setVisibility(View.VISIBLE);
                 if(mediaProcessService!=null && mediaProcessService.isProcess()) {
                     mediaProcessService.stopEncoding();
                 }
@@ -539,5 +539,26 @@ public class UploadVideoActivity extends Activity implements View.OnClickListene
         statusText.setText("码率: "+bitRateInfo.getBitRate()+"kb");
     }
 
+    private void setCameraDisplayOrientation(int cameraId, Camera camera) {
+        Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+        Camera.getCameraInfo(cameraId, info);
+        int rotation = getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0: degrees = 0; break;
+            case Surface.ROTATION_90: degrees = 90; break;
+            case Surface.ROTATION_180: degrees = 180; break;
+            case Surface.ROTATION_270: degrees = 270; break;
+        }
+
+        int result;
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360;
+            result = (360 - result) % 360;  // compensate the mirror
+        } else {  // back-facing
+            result = (info.orientation - degrees + 360) % 360;
+        }
+        camera.setDisplayOrientation(result);
+    }
 
 }

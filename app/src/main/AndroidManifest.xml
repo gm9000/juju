@@ -79,7 +79,8 @@
             android:name=".activity.party.PlayVideoActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
             android:label="@string/title_activity_play_video"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustNothing"/>
         <activity
             android:name=".activity.chat.ChatActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -96,7 +97,8 @@
             android:name=".activity.party.UploadVideoActivity"
             android:label="@string/title_activity_upload_video"
             android:screenOrientation="portrait"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustNothing"/>
         <activity
             android:name=".activity.user.SettingActivity"
             android:label="@string/title_activity_setting"

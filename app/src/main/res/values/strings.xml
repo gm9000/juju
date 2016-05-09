@@ -139,6 +139,7 @@
     <string name="signed">已报</string>
     <string name="follow">关注</string>
     <string name="unfollow">取消关注</string>
+    <string name="have"> 已有</string>
     <string name="attended"> 人报名</string>
     <string name="signup">报名</string>
     <string name="unsignup">取消报名</string>
@@ -154,6 +155,8 @@
     <string name="un_tag">未标注</string>
     <string name="un_location">定位失败</string>
     <string name="un_publish">未发布</string>
+    <string name="live_discuss">和主播聊点什么</string>
+    <string name="close_live">确定要停止当前的直播</string>
 
 
     <string-array name="weeks">
@@ -191,6 +194,11 @@
     <string name="unpass">已经拒绝</string>
     <string name="check_pass">我要加入</string>
     <string name="check_fail">无情拒绝</string>
+    <string name="phone_hint">当前绑定手机</string>
+    <string name="change_phone">更换手机号</string>
+    <string name="input_phone">请输入手机号</string>
+    <string name="get_yzm">获取验证码</string>
+    <string name="phone_same">您输入的手机号与当前的手机号相同</string>
 
 
 

@@ -33,8 +33,8 @@ public class MediaProcessService extends Service {
 
     private ArrayBlockingQueue<byte[]> YUVQueue = new ArrayBlockingQueue<byte[]>(queueSize);
     private ArrayBlockingQueue<Object[]> H264Queue = new ArrayBlockingQueue<Object[]>(queueSize);
-    private int width = 1280;
-    private int height = 720;
+    private int width = 720;
+    private int height = 1280;
     int framerate = 25;
 
     private ArrayBlockingQueue<Object[]> AACQueue = new ArrayBlockingQueue<Object[]>(audioQueueSize);
@@ -135,19 +135,19 @@ public class MediaProcessService extends Service {
         isProcess = true;
         YUVQueue.clear();
         H264Queue.clear();
-        int cutVideoWidth = height;
-        int cutVideoHeight = cutVideoWidth * height/width;
-        while(cutVideoHeight%16 != 0){
-            cutVideoHeight++;
-        }
+//        int cutVideoWidth = height;
+//        int cutVideoHeight = cutVideoWidth * height/width;
+//        while(cutVideoHeight%16 != 0){
+//            cutVideoHeight++;
+//        }
 
 //        mediaEncoder = new MediaRecorderEncoder(width, height, framerate, biterate, YUVQueue, H264Queue, queueSize);
         mediaEncoder = MediaEnCoderFactory.generateMediaEncoder(width, height,framerate, YUVQueue, H264Queue, queueSize);
         mediaEncoder.setCamera(camera);
         mediaEncoder.setSurfaceHolder(surfaceHolder);
         mediaEncoder.setContext(context);
-        mediaEncoder.setWidth(cutVideoWidth);
-        mediaEncoder.setHeight(cutVideoHeight);
+        mediaEncoder.setWidth(width);
+        mediaEncoder.setHeight(height);
 
 
 
