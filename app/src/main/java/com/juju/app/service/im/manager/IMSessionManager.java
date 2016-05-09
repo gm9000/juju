@@ -1,6 +1,11 @@
 package com.juju.app.service.im.manager;
 
+import android.text.TextUtils;
+
+import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
+import com.juju.app.biz.MessageDao;
+import com.juju.app.biz.impl.MessageDaoImpl;
 import com.juju.app.biz.impl.SessionDaoIml;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.GroupEntity;
@@ -9,10 +14,19 @@ import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.UnreadEntity;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.SessionEvent;
+import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.chat.EntityChangeEngine;
+import com.juju.app.helper.chat.SequenceNumberMaker;
+import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
+import com.juju.app.service.im.iq.RedisResIQ;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.SpfUtil;
+
+import org.apache.commons.lang.StringUtils;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +34,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -35,7 +50,7 @@ public class IMSessionManager extends IMManager {
 
     private final String TAG = getClass().getSimpleName();
 
-    private static IMSessionManager inst;
+    private volatile static IMSessionManager inst;
 
     // key = sessionKey -->  sessionType_peerId
     private Map<String, SessionEntity> sessionMap = new ConcurrentHashMap<>();
@@ -47,21 +62,58 @@ public class IMSessionManager extends IMManager {
 
     private DaoSupport sessionDao;
 
+    private MessageDao messageDao;
 
 
+    //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMSessionManager instance() {
-        synchronized (IMSessionManager.class) {
-            if (inst == null) {
-                inst = new IMSessionManager();
+        if(inst == null) {
+            synchronized (IMSessionManager.class) {
+                if (inst == null) {
+                    inst = new IMSessionManager();
+                }
             }
-            return inst;
         }
+        return inst;
     }
 
     @Override
     public void doOnStart() {
         sessionDao = new SessionDaoIml(ctx);
+        messageDao = new MessageDaoImpl(ctx);
     }
+
+    public void onNormalLoginOk() {
+        onLocalLoginOk();
+        onLocalNetOk();
+    }
+
+    public void onLocalLoginOk(){
+        logger.i("session#loadFromDb");
+        List<SessionEntity>  sessionInfoList = sessionDao.findAll4Order("updated:desc");
+        for(SessionEntity sessionInfo:sessionInfoList){
+            sessionMap.put(sessionInfo.getSessionKey(), sessionInfo);
+        }
+        triggerEvent(SessionEvent.RECENT_SESSION_LIST_SUCCESS);
+    }
+
+    public void onLocalNetOk(){
+        long latestUpdateTime = messageDao.getSessionLastTime();
+        logger.d("session#更新时间:%d", latestUpdateTime);
+
+        //群组需要另外启服务
+        List<String> chatRoomIds = new ArrayList<String>();
+        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        chatRoomIds.add(userInfoBean.getmRoomName() +
+                "@" + userInfoBean.getmMucServiceName() + "." + userInfoBean.getmServiceName());
+
+        //latestUpdateTime>1 本地数据库存储了session数据
+        if(latestUpdateTime > 1) {
+//            reqGetRecentContacts(latestUpdateTime, chatRoomIds);
+        }
+    }
+
+
 
     /**
      * 上下文环境的更新
@@ -82,10 +134,11 @@ public class IMSessionManager extends IMManager {
     public void updateSession(MessageEntity msg) {
         logger.d("recent#updateSession msg:%s", msg);
         if (msg == null) {
-            logger.d("recent#updateSession is end,cause by msg is null");
+            logger.d("recent#updateSession is end,cause by msg is null")
+            ;
             return;
         }
-        String loginId = imLoginManager.getUserInfoBean().getmAccount();
+        String loginId = BaseApplication.getInstance().getUserInfoBean().getmAccount();
         boolean isSend = msg.isSend(loginId);
         // 因为多端同步的问题
         String peerId = msg.getPeerId(isSend);
@@ -117,9 +170,19 @@ public class IMSessionManager extends IMManager {
         /**DB 先更新*/
         ArrayList<SessionEntity> needDb = new ArrayList<>(1);
         needDb.add(sessionEntity);
-        sessionDao.batchSaveOrUpdate(needDb);
+        sessionDao.batchReplaceInto(needDb);
         sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
+        SpfUtil.put(ctx, sessionEntity.getSessionKey(),
+                sessionEntity.getUpdated());
         triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
+    }
+
+    public SessionEntity findSession(String sessionKey){
+        if(sessionMap.size()<=0 || TextUtils.isEmpty(sessionKey)){return null;}
+        if(sessionMap.containsKey(sessionKey)){
+            return sessionMap.get(sessionKey);
+        }
+        return null;
     }
 
     public DaoSupport getSessionDao() {
@@ -142,7 +205,6 @@ public class IMSessionManager extends IMManager {
 
 
         for(SessionEntity recentSession:sessionList){
-
             int sessionType = recentSession.getPeerType();
             String peerId = recentSession.getPeerId();
             String sessionKey = recentSession.getSessionKey();
@@ -177,11 +239,139 @@ public class IMSessionManager extends IMManager {
         return recentInfoList;
     }
 
+    public Map<String, SessionEntity> getSessionMap() {
+        return sessionMap;
+    }
+
+
+    /**
+     * 请求最近回话
+     */
+    private void reqGetRecentContacts(long latestUpdateTime,  List<String> chatRoomIds) {
+        logger.i("session#reqGetRecentContacts");
+
+        for(String chatRoom : chatRoomIds) {
+            String uuid = UUID.randomUUID().toString();
+
+            socketService.findHisMessages("zrevrangebyscore", chatRoom, String.valueOf(latestUpdateTime+1), "",
+                    uuid, 0, Constants.MSG_CNT_PER_PAGE, new XMPPServiceCallbackImpl(0) {
+
+                /**
+                 * 新消息
+                 *
+                 * @param t
+                 */
+                @Override
+                public void onSuccess(Object t) {
+                    if(t instanceof RedisResIQ) {
+                        //需要放在循环体外(消息merge)
+                        ArrayList<SessionEntity> needDb = new ArrayList<>();
+                        RedisResIQ redisResIQ = (RedisResIQ)t;
+                        SessionEntity sessionEntity = getSessionEntity(redisResIQ);
+                        if(sessionEntity != null) {
+                            sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
+                            needDb.add(sessionEntity);
+                            //将最新的session信息保存在DB中
+                            sessionDao.batchReplaceInto(needDb);
+                            triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
+                        }
+                    }
+                }
+
+
+                /**
+                 * 消息异常
+                 */
+                @Override
+                public void onFailed() {
+
+                }
+
+                /**
+                 * 消息超时
+                 */
+                @Override
+                public void onTimeout() {
+
+                }
+            });
+        }
+
+    }
+
+    public SessionEntity getSessionEntity(RedisResIQ redisResIQ){
+        SessionEntity sessionEntity = null;
+        if(StringUtils.isBlank(redisResIQ.getContent())) {
+            return sessionEntity;
+        }
+        try {
+            sessionEntity = new SessionEntity();
+            //需要改进，不能写死
+            int msgType = DBConstant.MSG_TYPE_GROUP_TEXT;
+            sessionEntity.setLatestMsgType(msgType);
+            //需要改进，不能写死
+            sessionEntity.setPeerType(DBConstant.SESSION_TYPE_GROUP);
+            JSONObject jsonBody = new JSONObject(redisResIQ.getContent());
+            String to = jsonBody.getString("to");
+            String from = jsonBody.getString("from");
+            String thread = jsonBody.getString("thread");
+            //以后需要考虑消息类型
+            String body = jsonBody.getString("body");
+            int laststMsgId = SequenceNumberMaker.getInstance().makelocalUniqueMsgId(Long.valueOf(thread));
+            sessionEntity.setPeerId(to);
+            sessionEntity.buildSessionKey();
+            sessionEntity.setTalkId(from);
+            sessionEntity.setLatestMsgId(laststMsgId);
+            sessionEntity.setLatestMsgData(body);
+            sessionEntity.setUpdated(Long.valueOf(thread));
+            sessionEntity.setCreated(Long.valueOf(thread));
+            return sessionEntity;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
+    public SessionEntity getSessionEntity(String content){
+        SessionEntity sessionEntity = null;
+        if(StringUtils.isBlank(content)) {
+            return sessionEntity;
+        }
+        try {
+            sessionEntity = new SessionEntity();
+            //需要改进，不能写死
+            int msgType = DBConstant.MSG_TYPE_GROUP_TEXT;
+            sessionEntity.setLatestMsgType(msgType);
+            //需要改进，不能写死
+            sessionEntity.setPeerType(DBConstant.SESSION_TYPE_GROUP);
+            JSONObject jsonBody = new JSONObject(content);
+            String to = jsonBody.getString("to");
+            String from = jsonBody.getString("from");
+            String thread = jsonBody.getString("thread");
+            //以后需要考虑消息类型
+            String body = jsonBody.getString("body");
+            int laststMsgId = SequenceNumberMaker.getInstance().makelocalUniqueMsgId(Long.valueOf(thread));
+            sessionEntity.setPeerId(to);
+            sessionEntity.buildSessionKey();
+            sessionEntity.setTalkId(from);
+            sessionEntity.setLatestMsgId(laststMsgId);
+            sessionEntity.setLatestMsgData(body);
+            sessionEntity.setUpdated(Long.valueOf(thread));
+            sessionEntity.setCreated(Long.valueOf(thread));
+            return sessionEntity;
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+
     private static void sort(List<RecentInfo> data) {
         Collections.sort(data, new Comparator<RecentInfo>() {
             public int compare(RecentInfo o1, RecentInfo o2) {
-                Integer a = o1.getUpdateTime();
-                Integer b = o2.getUpdateTime();
+                Long a = o1.getUpdateTime();
+                Long b = o2.getUpdateTime();
 
                 boolean isTopA = o1.isTop();
                 boolean isTopB = o2.isTop();
@@ -201,5 +391,19 @@ public class IMSessionManager extends IMManager {
 
             }
         });
+    }
+
+    /**
+     * （统计未读消息条目时，能够返回最新的未读消息）供IMUnreadMsgManager调用
+     * @param sessionEntity
+     */
+    public void saveSession(SessionEntity  sessionEntity) {
+        sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
+        sessionDao.replaceInto(sessionEntity);
+        triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
+    }
+
+    public List<SessionEntity> findAll(){
+        return sessionDao.findAll();
     }
 }

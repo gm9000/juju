@@ -5,8 +5,10 @@ import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.lidroid.xutils.db.annotation.Column;
 import com.lidroid.xutils.db.annotation.Id;
+import com.lidroid.xutils.db.annotation.Table;
 import com.lidroid.xutils.db.annotation.Transient;
 
+@Table(name = "message", execAfterTableCreated = "CREATE INDEX index_message_id ON message(id);")
 public class MessageEntity extends BaseEntity implements java.io.Serializable {
 
 
@@ -64,13 +66,13 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 	 * 创建时间
 	 */
 	@Column(column = "created")
-	protected int created;
+	protected Long created;
 
 	/**
 	 * 更新时间
 	 */
 	@Column(column = "updated")
-	protected int updated;
+	protected Long updated;
 
 	// KEEP FIELDS - put your custom fields here
 
@@ -91,7 +93,7 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 
 	public MessageEntity(Long localId, String id, int msgId, String fromId, String toId, String sessionKey,
 						 String content, int msgType, int displayType,
-						 int status, int created, int updated) {
+						 int status, Long created, Long updated) {
 		this.localId = localId;
 		this.id = id;
 		this.msgId = msgId;
@@ -175,19 +177,19 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 		this.status = status;
 	}
 
-	public int getCreated() {
+	public Long getCreated() {
 		return created;
 	}
 
-	public void setCreated(int created) {
+	public void setCreated(Long created) {
 		this.created = created;
 	}
 
-	public int getUpdated() {
+	public Long getUpdated() {
 		return updated;
 	}
 
-	public void setUpdated(int updated) {
+	public void setUpdated(Long updated) {
 		this.updated = updated;
 	}
 
@@ -230,6 +232,7 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 				"id=" + id +
 				"localId=" + localId +
 				", msgId=" + msgId +
+				", sessionKey=" + sessionKey +
 				", fromId=" + fromId +
 				", toId=" + toId +
 				", content='" + content + '\'' +
@@ -274,8 +277,8 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 		result = 31 * result + msgType;
 		result = 31 * result + displayType;
 		result = 31 * result + status;
-		result = 31 * result + created;
-		result = 31 * result + updated;
+		result = 31 * result + created.hashCode();
+		result = 31 * result + updated.hashCode();
 		return result;
 	}
 

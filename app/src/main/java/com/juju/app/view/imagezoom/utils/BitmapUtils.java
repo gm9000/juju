@@ -94,4 +94,11 @@ public class BitmapUtils {
 		return new Object[]{bytes.length,is};
 	}
 
+	public static Object[] bitmap2InputStream2(Bitmap bm) {
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		bm.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+		byte[] bytes = baos.toByteArray();
+		return new Object[]{bytes.length, bytes};
+	}
+
 }

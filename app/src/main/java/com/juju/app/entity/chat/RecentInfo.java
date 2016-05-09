@@ -17,7 +17,7 @@ public class RecentInfo {
     private int latestMsgType;
     private int latestMsgId;
     private String latestMsgData;
-    private int updateTime;
+    private Long updateTime;
 
     /**unreadEntity*/
     private int unReadCnt;
@@ -141,11 +141,11 @@ public class RecentInfo {
         this.latestMsgData = latestMsgData;
     }
 
-    public int getUpdateTime() {
+    public Long getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(int updateTime) {
+    public void setUpdateTime(Long updateTime) {
         this.updateTime = updateTime;
     }
 

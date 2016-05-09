@@ -1,5 +1,6 @@
 package com.juju.app.https;
 
+
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 
@@ -12,9 +13,10 @@ import com.lidroid.xutils.http.ResponseInfo;
  */
 public interface HttpCallBack {
 
+
+
     public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj);
 
     public void onFailure(HttpException error, String msg, int accessId);
-
 
 }

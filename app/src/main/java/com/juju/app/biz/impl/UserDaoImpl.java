@@ -91,7 +91,7 @@ public class UserDaoImpl implements UserDao {
             e.printStackTrace();
         }
         return null;
-}
+    }
 
     @Override
     public void delete(User user) {

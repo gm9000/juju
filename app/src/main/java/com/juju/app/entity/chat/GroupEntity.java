@@ -15,7 +15,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 
-@Table(name = "user_group")
+@Table(name = "user_group", execAfterTableCreated = "CREATE UNIQUE INDEX index_group_peer_id on user_group(peer_id);")
 public class GroupEntity extends PeerEntity {
 
 
@@ -37,6 +37,12 @@ public class GroupEntity extends PeerEntity {
     @Column(column = "status")
     private int status;
 
+    /**
+     * 描述
+     */
+    @Column(column = "desc")
+    private String desc;
+
 
     private PinYinUtil.PinYinElement pinyinElement = new PinYinUtil.PinYinElement();
     private SearchElement searchElement = new SearchElement();
@@ -51,7 +57,7 @@ public class GroupEntity extends PeerEntity {
 
     public GroupEntity(Long localId, String id, String peerId, int groupType, String mainName,
                        String avatar, String creatorId, int userCnt, String userList,
-                       int version, int status, int created, int updated) {
+                       int version, int status, int created, int updated, String desc) {
         this.localId = localId;
         this.id = id;
         this.peerId = peerId;
@@ -65,6 +71,7 @@ public class GroupEntity extends PeerEntity {
         this.status = status;
         this.created = created;
         this.updated = updated;
+        this.desc = desc;
     }
 
 
@@ -163,6 +170,7 @@ public class GroupEntity extends PeerEntity {
     }
 
 
+
     public Set<Integer> getlistGroupMemberIds(){
         if(TextUtils.isEmpty(userList)){
           return  Collections.emptySet();
@@ -198,5 +206,13 @@ public class GroupEntity extends PeerEntity {
 
     public void setSearchElement(SearchElement searchElement) {
         this.searchElement = searchElement;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
+
+    public void setDesc(String desc) {
+        this.desc = desc;
     }
 }

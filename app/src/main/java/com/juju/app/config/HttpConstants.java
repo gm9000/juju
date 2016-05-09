@@ -11,8 +11,11 @@ import com.juju.app.golobal.GlobalVariable;
  */
 public class HttpConstants {
 
+
     //HTTP请求、响应类型
     public static final String CONTENT_TYPE = "application/json";
+    public static final String CONNECTION_CLOSE = "close";
+
 
     public static final String UPLOAD_TYPE = "multipart/form-data";
 

@@ -31,7 +31,14 @@ public interface MessageDao {
      * @return
      */
     public List<MessageEntity> findHistoryMsgs(String sessionKey, int lastMsgId,
-                                               int lastCreateTime, int count);
+                                               long lastCreateTime, int count);
 
 
+    /**
+     * 获取最后回话的时间，便于获取联系人列表变化
+     * 问题: 本地消息发送失败，依旧会更新session的时间 [存在会话、不存在的会话]
+     * 本质上还是最后一条成功消息的时间
+     * @return
+     */
+    public long getSessionLastTime();
 }

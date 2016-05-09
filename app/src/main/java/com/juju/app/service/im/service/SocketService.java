@@ -1,7 +1,7 @@
 package com.juju.app.service.im.service;
 
 import com.juju.app.exceptions.JUJUXMPPException;
-import com.juju.app.service.im.XMPPServiceCallback;
+import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -46,12 +46,39 @@ public interface SocketService {
 
     /**
      * 发送消息
-     *
-     * @param user
+     * @param to
      * @param message
+     * @param uuid
+     * @param listener
+     * @throws SmackException.NotConnectedException
      */
-    public void sendMessage(String user, String message) throws SmackException.NotConnectedException;
+    public void sendMessage(String to, String message, String uuid,
+                            XMPPServiceCallbackImpl listener) throws SmackException.NotConnectedException;
 
+
+    /**
+     * 计算消息总数
+     * @param minTime
+     * @param maxTime
+     * @param uuid
+     * @param listener
+     * @return
+     */
+    public void countMessage(String to, String minTime, String maxTime, String uuid,
+                             XMPPServiceCallbackImpl listener);
+
+    /**
+     * 计算消息总数
+     * @param minTime
+     * @param maxTime
+     * @param uuid
+     * @param offset
+     * @param length
+     * @param listener
+     * @return
+     */
+    public void findHisMessages(String command, String to, String minTime, String maxTime,
+                                String uuid, int offset, int length, XMPPServiceCallbackImpl listener);
 
     /**
      * 注册所有监听
@@ -66,20 +93,24 @@ public interface SocketService {
      */
     public String changePassword(String newPassword);
 
-    /**
-     * 注册回调方法
-     * @param callBack
-     */
-    public void registerCallback(XMPPServiceCallback callBack);
-
-    /**
-     * 注销回调方法
-     */
-    public void unRegisterCallback();
+//    /**
+//     * 注册回调方法
+//     * @param callBack
+//     */
+//    public void registerCallback(XMPPServiceCallback callBack);
+//
+//    /**
+//     * 注销回调方法
+//     */
+//    public void unRegisterCallback();
 
     /**
      * 加入聊天室
      */
-    public void joinChatRoom() throws JUJUXMPPException, XMPPException,
+    public void joinChatRoom(String chatRoom, long lastUpdateTime) throws JUJUXMPPException, XMPPException,
             SmackException.NotConnectedException, SmackException.NoResponseException;
+
+
+    public boolean createChatRoom(String groupId, String mucServiceName, String serviceName);
+
 }

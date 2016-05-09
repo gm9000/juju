@@ -8,7 +8,7 @@ import com.juju.app.entity.chat.SessionEntity;
 
 /**
  * 项目名称：juju
- * 类描述：
+ * 类描述：群组
  * 创建人：gm
  * 日期：2016/4/21 15:46
  * 版本：V1.0.0

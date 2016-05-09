@@ -6,16 +6,22 @@ import android.util.Log;
 
 import com.juju.app.biz.base.IDAO;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.exceptions.JUJUSQLException;
+import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.utils.StringUtils;
 import com.lidroid.xutils.DbUtils;
 import com.lidroid.xutils.db.sqlite.CursorUtils;
 import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.util.IOUtils;
 
+import java.io.File;
 import java.lang.reflect.ParameterizedType;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -82,6 +88,24 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
     }
 
     @Override
+    public void batchReplaceInto(List<T> entityList) {
+        try {
+            db.replaceAll(entityList);
+        } catch (DbException e) {
+            Log.e(TAG, "execute batchReplaceInto error:"+clazz.getSimpleName(), e);
+        }
+    }
+
+    @Override
+    public void replaceInto(T entity) {
+        try {
+            db.replace(entity);
+        } catch (DbException e) {
+            Log.e(TAG, "execute replaceInto error:"+clazz.getSimpleName(), e);
+        }
+    }
+
+    @Override
     public void delete(T entity) {
         try {
             db.delete(entity);
@@ -94,9 +118,9 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
     public T findById(String id) {
         T entity = null;
         try {
-            entity = db.findFirst(Selector.from(clazz).where("id","=",id));
+            entity = db.findById(clazz, id);
         } catch (DbException e) {
-            Log.e(TAG, "execute findAll error:"+clazz.getSimpleName(), e);
+            Log.e(TAG, "execute findById error:"+clazz.getSimpleName(), e);
         }
         return entity;
     }
@@ -123,14 +147,38 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
         return count;
     }
 
-    @Override
-    public void init() {
-        this.db = DbUtils.create(context.getApplicationContext(), DBConstant.DB_NAME);
+
+    private void init() {
+        File file = null;
+        String dir = null;
+        if(Constants.IS_APP_MODEL) {
+            dir = Constants.SD_PATH+"/Android/data/"+context.getPackageName()+"/cache/App";
+            file = new File(dir);
+            if(!file.isDirectory()) {
+                file.mkdirs();
+            }
+        }
+        if(file != null && file.isDirectory()) {
+            this.db = DbUtils.create(context.getApplicationContext(), dir, DBConstant.DB_NAME);
+        } else {
+            this.db = DbUtils.create(context.getApplicationContext(), DBConstant.DB_NAME);
+        }
+        createTable();
+    }
+
+    private void createTable() {
         try {
-            db.createTableIfNotExist(clazz);
+            if(!db.tableIsExist(clazz)) {
+                db.createTableIfNotExist(clazz);
+                execAfterTableCreated();
+            }
         } catch (DbException e) {
             Log.e(TAG, "execute init error:" + clazz.getSimpleName(), e);
         }
+    }
+
+    protected void execAfterTableCreated() {
+
     }
 
     @Override
@@ -161,12 +209,14 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
     }
 
     @Override
-    public void findAll(Selector selector) {
+    public List<T> findAll(Selector selector) {
+        List<T> list = new ArrayList<T>();
         try {
-            db.findAll(selector);
+            list = db.findAll(selector);
         } catch (DbException e) {
             Log.e(TAG, "execute deleteAll error:"+clazz.getSimpleName(), e);
         }
+        return list;
     }
 
     //参考DbUtils
@@ -194,6 +244,81 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
             }
         }
         return result;
+    }
+
+    /**
+     * 按属性排序
+     *
+     * @param orders
+     */
+    @Override
+    public List<T> findAll4Order(String... orders) {
+        List<T> list = new ArrayList<T>();
+        if(orders == null || orders.length == 0)
+            throw new JUJUSQLException("findAll4Order#orders cannot be empty");
+
+        Selector selector = Selector.from(clazz);
+        StringBuilder sbf = new StringBuilder();
+        boolean lastOrderCmd = false;
+        for (int i = 0; i < orders.length; i++) {
+            String order = orders[i];
+            String[] arr = order.split(":");
+            if(arr.length < 2)
+                throw new JUJUSQLException("findAll4Order#orders format mismatch, need ':'");
+            String key = arr[0];
+            String value = arr[1];
+            String orderCmd = "asc";
+            if("desc".equalsIgnoreCase(value)) {
+                orderCmd = value;
+            }
+            sbf.append(key);
+            if(i < orders.length -1) {
+                sbf.append(" "+orderCmd);
+            } else {
+                lastOrderCmd = "desc".equalsIgnoreCase(orderCmd);
+            }
+        }
+        selector.orderBy(sbf.toString(), lastOrderCmd);
+        try {
+            list = db.findAll(selector);
+        } catch (DbException e) {
+            Log.e(TAG, "execute findAll4Order error:" + clazz.getSimpleName(), e);
+        }
+        return list;
+    }
+
+    @Override
+    public List<T> findByProperty(String propertys, Object... values) {
+        List<T> list = null;
+        try {
+            Selector selector = Selector.from(clazz);
+            if(StringUtils.isNotBlank(propertys)) {
+                String[] propertysArr = propertys.split(",");
+                if(values == null || propertysArr.length != values.length) {
+                    throw new DbException("MISMATCH");
+                }
+                for (int i = 0; i <propertysArr.length; i++) {
+                    if(i == 0) {
+                        selector.where(propertysArr[i], "=", values[i]);
+                    } else {
+                        selector.and(propertysArr[i], "=", values[i]);
+                    }
+                }
+            }
+            list = db.findAll(selector);
+        } catch (DbException e) {
+            Log.e(TAG, "execute findByProperty error:"+clazz.getSimpleName(), e);
+        }
+        return list;
+    }
+
+    public T findUniByProperty(String propertys, Object... values) {
+        T t = null;
+        List<T> list = findByProperty(propertys, values);
+        if(list != null && list.size() >0) {
+            t = list.get(0);
+        }
+        return t;
     }
 
 
@@ -229,6 +354,13 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
             }
         }
     }
+
+//    private void makeDir(File dir) {
+//        if(! dir.getParentFile().exists()) {
+//            makeDir(dir.getParentFile());
+//        }
+//        dir.mkdir();
+//    }
 
 
 }

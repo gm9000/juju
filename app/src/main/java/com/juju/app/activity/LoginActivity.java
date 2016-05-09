@@ -25,6 +25,7 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.manager.IMLoginManager;
@@ -54,7 +55,7 @@ import java.util.Map;
 
 @ContentView(R.layout.activity_login)
 @CreateUI(isLoadData = true, isInitView = true)
-public class LoginActivity extends BaseActivity implements HttpCallBack, CreateUIHelper {
+public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
 
     private final String TAG = getClass().getName();
 
@@ -118,6 +119,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 
     @Override
     public void loadData() {
+
         Map<Object, View> viewMap = new HashMap<Object, View>();
 //        pwdChecked = (boolean) SpfUtil.get(LoginActivity.this, "pwdChecked", false);
 //        autoLoginChecked = (boolean) SpfUtil.get(LoginActivity.this,
@@ -127,7 +129,6 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 //        if(pwdChecked) {
 //            pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
 //        }
-
 
     }
 
@@ -141,7 +142,8 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
         layout_login_main.setFocusableInTouchMode(true);
 
         if(BaseApplication.getInstance().getUserInfoBean().getJujuNo()!=null){
-            BitmapUtilFactory.getInstance(this).display(portrait, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+            BitmapUtilFactory.getInstance(this).display(portrait, HttpConstants.getUserUrl() +
+                    "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
         }
 
         if(BaseApplication.getInstance().getUserInfoBean().getUserName()!=null){
@@ -155,6 +157,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 
     @Override
     protected void onResume() {
+
         super.onResume();
         Log.d(TAG, "onResume");
     }
@@ -203,7 +206,7 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
                     R.id.loginBtn, HttpConstants.getUserUrl() + "/login", this, valueMap,
                     JSONObject.class);
             try {
-                client.sendPost();
+                client.sendPost4OK();
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
@@ -221,51 +224,51 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
     /**
      *******************************************回调函数******************************************
      */
-    @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-        switch (accessId) {
-            case R.id.loginBtn:
-                if(obj != null && obj.length > 0) {
-                JSONObject jsonRoot = (JSONObject)obj[0];
-                try {
-                    int status = jsonRoot.getInt("status");
-                    String description = "";
-                    if(jsonRoot.has("description")) {
-                        description = jsonRoot.getString("description");
-                    }
-                    jujuNo = jsonRoot.getString("userNo");
-                    token = jsonRoot.getString("token");
-                    if(status == 0) {
-                        saveUserInfo();
-                        startActivity(LoginActivity.this, MainActivity.class);
-                        //登陆聊天服务
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.loginBtn:
+//                if(obj != null && obj.length > 0) {
+//                JSONObject jsonRoot = (JSONObject)obj[0];
+//                try {
+//                    int status = jsonRoot.getInt("status");
+//                    String description = "";
+//                    if(jsonRoot.has("description")) {
+//                        description = jsonRoot.getString("description");
+//                    }
+//                    jujuNo = jsonRoot.getString("userNo");
+//                    token = jsonRoot.getString("token");
+//                    if(status == 0) {
+//                        saveUserInfo();
+//                        startActivity(LoginActivity.this, MainActivity.class);
+//                        //登陆聊天服务
 //                        IMLoginManager.instance().login();
-                    } else {
-                        final int resId = getResValue(description);
-                        if(resId > 0) {
-                            showMsgDialog(resId);
-                        } else {
-                            showMsgDialog(R.string.error_login_psw);
-                        }
-                        clearUserInfo(true, true);
-                    }
-                } catch (JSONException e) {
-                    Log.e(TAG, "回调解析失败", e);
-                    completeLoadingCommon();
-                    showMsgDialog(R.string.error_login_psw);
-                }
-            }
-                break;
-        }
-    }
-
-    @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
-        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-                error.getExceptionCode());
-        completeLoadingCommon();
-        showMsgDialog(R.string.error_login_psw);
-    }
+//                    } else {
+//                        final int resId = getResValue(description);
+//                        if(resId > 0) {
+//                            showMsgDialog(resId);
+//                        } else {
+//                            showMsgDialog(R.string.error_login_psw);
+//                        }
+//                        clearUserInfo(true, true);
+//                    }
+//                } catch (JSONException e) {
+//                    Log.e(TAG, "回调解析失败", e);
+//                    completeLoadingCommon();
+//                    showMsgDialog(R.string.error_login_psw);
+//                }
+//            }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
+//                error.getExceptionCode());
+//        completeLoadingCommon();
+//        showMsgDialog(R.string.error_login_psw);
+//    }
 
 
     ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -429,6 +432,51 @@ public class LoginActivity extends BaseActivity implements HttpCallBack, CreateU
 
     private void unBindService() {
 
+    }
+
+    @Override
+    public void onSuccess(Object obj, int accessId) {
+        switch (accessId) {
+            case R.id.loginBtn:
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
+                    try {
+                        int status = jsonRoot.getInt("status");
+                        String description = "";
+                        if(jsonRoot.has("description")) {
+                            description = jsonRoot.getString("description");
+                        }
+                        jujuNo = jsonRoot.getString("userNo");
+                        token = jsonRoot.getString("token");
+                        if(status == 0) {
+                            saveUserInfo();
+                            startActivity(LoginActivity.this, MainActivity.class);
+                            //登陆聊天服务
+                            IMLoginManager.instance().login();
+                        } else {
+                            final int resId = getResValue(description);
+                            if(resId > 0) {
+                                showMsgDialog(resId);
+                            } else {
+                                showMsgDialog(R.string.error_login_psw);
+                            }
+                            clearUserInfo(true, true);
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "回调解析失败", e);
+                        completeLoadingCommon();
+                        showMsgDialog(R.string.error_login_psw);
+                    }
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onFailure(Exception e, int accessId) {
+        e.printStackTrace();
+        completeLoadingCommon();
+        showMsgDialog(R.string.error_login_psw);
     }
 
 

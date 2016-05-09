@@ -1,7 +1,7 @@
 package com.juju.app.bean.groupchat;
 
 import com.juju.app.R;
-import com.juju.app.entity.http.Group;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.golobal.Constants;
 
 import java.util.List;
@@ -23,7 +23,7 @@ public class GroupChatInitBean {
     /**
      * 群组信息
      */
-    private Group group;
+    private GroupEntity group;
 
     /**
      * 群组图像
@@ -52,20 +52,11 @@ public class GroupChatInitBean {
 
     private int defaultAvatar = R.id.iv_avatar1;
 
-    /**
-     * 消息类型
-     */
-    private byte msgType;
-
-    /**
-     * 消息展示类型
-     */
-    private int displayType = Constants.DISPLAY_TYPE_TEXT;
 
     /**是否置顶*/
     private boolean isTop = false;
 
-    private int updateTime;
+    private Long updateTime;
 
     /**
      * 图像集合
@@ -78,8 +69,8 @@ public class GroupChatInitBean {
 
     }
 
-    public GroupChatInitBean(String sessionId, Group group, String content,
-                             int updateTime, int unReadCnt, List<String> avatar) {
+    public GroupChatInitBean(String sessionId, GroupEntity group, String content,
+                             Long updateTime, int unReadCnt, List<String> avatar) {
         this.sessionId = sessionId;
         this.group = group;
         this.content = content;
@@ -113,11 +104,11 @@ public class GroupChatInitBean {
         this.time = time;
     }
 
-    public Group getGroup() {
+    public GroupEntity getGroup() {
         return group;
     }
 
-    public void setGroup(Group group) {
+    public void setGroup(GroupEntity group) {
         this.group = group;
     }
 
@@ -145,11 +136,11 @@ public class GroupChatInitBean {
         this.isTop = isTop;
     }
 
-    public int getUpdateTime() {
+    public Long getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(int updateTime) {
+    public void setUpdateTime(Long updateTime) {
         this.updateTime = updateTime;
     }
 

@@ -3,7 +3,10 @@ package com.juju.app.biz.impl;
 import android.content.Context;
 
 import com.juju.app.biz.DaoSupport;
+import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.SessionEntity;
+import com.juju.app.golobal.MessageConstant;
+import com.lidroid.xutils.db.sqlite.Selector;
 
 import java.util.List;
 
@@ -20,5 +23,6 @@ public class SessionDaoIml extends DaoSupport<SessionEntity, Long> {
     public SessionDaoIml(Context context) {
         super(context);
     }
+
 
 }

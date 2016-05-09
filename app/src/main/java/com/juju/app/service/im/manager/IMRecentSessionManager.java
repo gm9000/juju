@@ -11,15 +11,18 @@ public class IMRecentSessionManager extends IMManager {
 
     private final String TAG = getClass().getName();
 
-    private static IMRecentSessionManager inst;
+    private volatile static IMRecentSessionManager inst;
 
+    //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMRecentSessionManager instance() {
-        synchronized (IMRecentSessionManager.class) {
-            if (inst == null) {
-                inst = new IMRecentSessionManager();
+        if(inst == null) {
+            synchronized (IMRecentSessionManager.class) {
+                if (inst == null) {
+                    inst = new IMRecentSessionManager();
+                }
             }
-            return inst;
         }
+        return inst;
     }
 
     @Override
