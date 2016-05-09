@@ -10,15 +10,20 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.entity.Plan;
 import com.juju.app.fragment.party.LiveFragment;
 import com.juju.app.fragment.party.LocationFragment;
 import com.juju.app.fragment.party.PictureFragment;
+import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
 import com.lidroid.xutils.ViewUtils;
+import com.lidroid.xutils.db.sqlite.Selector;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 
@@ -49,14 +54,27 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
     private int index;
     private int currentTabIndex;// 当前fragment的index
 
+    private String partyId;
+    private Plan plan;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         ViewUtils.inject(this);
+        initParam();
         initTabView();
         initPopWindow();
         addClickListener();
 
+    }
+
+    private void initParam() {
+        partyId = getIntent().getStringExtra(Constants.PARTY_ID);
+        try {
+            plan = JujuDbUtils.getInstance(this).findFirst(Selector.from(Plan.class).where("status","=",1).and("partyId","=",partyId));
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
     }
 
     private void addClickListener() {
@@ -69,7 +87,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
      * 初始化TabView
      */
     private void initTabView() {
-        locationFragment = new LocationFragment();
+        locationFragment = new LocationFragment(plan);
         liveFragment = new LiveFragment();
         pictureFragment = new PictureFragment();
         fragments = new Fragment[]{locationFragment, liveFragment,
@@ -89,7 +107,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
         imagebuttons[1].setSelected(true);
         textviews[1].setTextColor(0xFF0082E3);
         img_right.setVisibility(View.VISIBLE);
-        img_right.setImageResource(R.mipmap.icon_add);
+        img_right.setImageResource(R.mipmap.live_add);
         txt_title.setText(R.string.live);
 
         // 添加显示第一个fragment
@@ -103,6 +121,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
         img_back.setVisibility(View.VISIBLE);
         txt_left.setVisibility(View.VISIBLE);
         txt_left.setText(R.string.group_party);
+
     }
 
     public void onTabClicked(View view) {
@@ -120,7 +139,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
                 txt_title.setText(R.string.live);
 
                 img_right.setVisibility(View.VISIBLE);
-                img_right.setImageResource(R.mipmap.icon_add);
+                img_right.setImageResource(R.mipmap.live_add);
 
                 break;
             case R.id.menu_picture:

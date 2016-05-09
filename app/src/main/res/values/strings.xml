@@ -165,6 +165,10 @@
     <string name="running">进行中</string>
     <string name="finished">已结束</string>
     <string name="location_select">选取位置</string>
+    <string name="location_share">集结地图</string>
+    <string name="un_tag">未标注</string>
+    <string name="un_location">定位失败</string>
+    <string name="un_publish">未发布</string>
 
 
     <string-array name="weeks">
@@ -196,6 +200,12 @@
     <string name="female">女</string>
     <string name="logout">退出登录</string>
     <string name="uploading">正在上传&#8230;</string>
+    <string name="uncheck">等待验证</string>
+    <string name="unprocess">等你加入</string>
+    <string name="pass">已经加入</string>
+    <string name="unpass">已经拒绝</string>
+    <string name="check_pass">我要加入</string>
+    <string name="check_fail">无情拒绝</string>
 
 
 
@@ -222,5 +232,6 @@
     <string name="title_activity_plan_detail">PlanDetailActivity</string>
     <string name="title_activity_my_party_list">MyPartyListActivity</string>
     <string name="title_activity_plan_location">PlanLocationActivity</string>
+    <string name="title_activity_my_invite">MyInviteListActivity</string>
 
 </resources>

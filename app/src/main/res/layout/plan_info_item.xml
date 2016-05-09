@@ -104,7 +104,7 @@
                         style="@style/GrayTxt12"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="3.2公里"/>
+                        android:text="@string/un_tag"/>
                 </LinearLayout>
                 <ImageView
                     android:layout_width="10dp"

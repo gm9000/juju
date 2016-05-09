@@ -7,6 +7,7 @@ import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
 import com.lidroid.xutils.db.annotation.Column;
 import com.lidroid.xutils.db.annotation.Table;
+import com.lidroid.xutils.db.annotation.Transient;
 
 import java.util.Date;
 
@@ -40,6 +41,9 @@ public class Plan extends BaseEntity {
 
     @Column(column = "signed")
     private int signed;
+
+    @Transient
+    private String distance;
 
     public String getAddress() {
         return address;
@@ -113,5 +117,13 @@ public class Plan extends BaseEntity {
 
     public void setSigned(int signed) {
         this.signed = signed;
+    }
+
+    public String getDistance() {
+        return distance;
+    }
+
+    public void setDistance(String distance) {
+        this.distance = distance;
     }
 }

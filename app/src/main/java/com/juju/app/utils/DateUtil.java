@@ -389,4 +389,28 @@ public class DateUtil {
         cal.set(Calendar.MILLISECOND, 0);
         return cal.getTimeInMillis();
     }
+
+
+
+    public static String getPastTimeDisplay(Date time){
+        Date now = new Date();
+        StringBuffer sb = new StringBuffer();
+        long l=now.getTime()-time.getTime();
+        long day=l/(24*60*60*1000);
+        long hour=(l/(60*60*1000)-day*24);
+        long min=((l/(60*1000))-day*24*60-hour*60);
+        long s=(l/1000-day*24*60*60-hour*60*60-min*60);
+
+        if(day > 0) {
+            sb.append(day + "天");
+        }else if(hour > 0 ) {
+            sb.append(hour + "小时");
+        }else if(min > 0 ) {
+            sb.append(min + "分钟");
+        }else {
+            sb.append(s + "秒");
+        }
+        sb.append("前");
+        return sb.toString();
+    }
 }

@@ -28,11 +28,9 @@ import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
-import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
-import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
@@ -115,6 +113,13 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setListeners();
+        boolean autoLogin = getIntent().getBooleanExtra(Constants.AUTO_LOGIN,true);
+        if(autoLogin) {
+            autoLogin = (boolean) SpfUtil.get(getApplicationContext(), Constants.AUTO_LOGIN, true);
+            if (autoLogin && !pwd.equals("")) {
+                onClickBtnLogin(btn_login);
+            }
+        }
     }
 
     @Override
@@ -135,7 +140,10 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     @Override
     public void initView() {
         txt_userNo.setText(userNo);
-        txt_password.setText(pwd);
+        boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD,true);
+        if(rememberPwd) {
+            txt_password.setText(pwd);
+        }
 //        chk_rememberPwd.setChecked(pwdChecked);
 //        chk_autoLogin.setChecked(autoLoginChecked);
         setLoginBtnBackgroud();
@@ -149,8 +157,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         if(BaseApplication.getInstance().getUserInfoBean().getUserName()!=null){
             nickName.setText(BaseApplication.getInstance().getUserInfoBean().getUserName());
         }
-
-
 
 //        bindXMPPService();
     }
@@ -342,7 +348,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
         User loginUser = null;
         try {
-            loginUser = JujuDbUtils.getInstance(this).findFirst(Selector.from(User.class).where("userNo","=",userNo));
+            loginUser = JujuDbUtils.getInstance(this).findFirst(Selector.from(User.class).where("userNo","=",jujuNo));
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -356,11 +362,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         if( loginUser == null){
             SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
         }else{
-            userInfoBean.setUserName(loginUser.getNickName());
-            userInfoBean.setGender(loginUser.getGender());
-            userInfoBean.setPhone(loginUser.getUserPhone());
-
-            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfoBean));
+            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, loginUser);
         }
 
 
@@ -505,7 +507,4 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 //    public void onMessageEvent(String event){
 //        System.out.println("线程ID=" + Thread.currentThread().getId());
 //    }
-
-
-
 }

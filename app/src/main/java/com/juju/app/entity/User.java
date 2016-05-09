@@ -7,6 +7,7 @@ import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
 import com.lidroid.xutils.db.annotation.Column;
+import com.lidroid.xutils.db.annotation.Table;
 import com.lidroid.xutils.db.annotation.Transient;
 
 import java.util.Date;
@@ -18,6 +19,7 @@ import java.util.Date;
  * 日期：2016/2/17 12:07
  * 版本：V1.0.0
  */
+@Table(name = "user")
 public class User extends BaseEntity {
 
     /**

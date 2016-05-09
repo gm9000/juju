@@ -81,6 +81,8 @@ public class MyPartyListAdapter extends BaseAdapter{
         ImageView img_status = (ImageView) view.findViewById(R.id.img_status);
         TextView txt_status = (TextView) view.findViewById(R.id.txt_status);
         TextView operate = (TextView) view.findViewById(R.id.txt_operate);
+        TextView waitingProcess = (TextView) view.findViewById(R.id.waiting_process);
+
 
         partyName.setText(party.getName());
         if(party.getTime()!=null) {
@@ -95,18 +97,22 @@ public class MyPartyListAdapter extends BaseAdapter{
             case -1:
                 img_status.setImageResource(R.mipmap.description);
                 txt_status.setText(R.string.drafts);
+                waitingProcess.setVisibility(View.VISIBLE);
                 break;
             case 0:
                 img_status.setImageResource(R.mipmap.flag_red);
                 txt_status.setText(R.string.calling);
+                waitingProcess.setVisibility(View.GONE);
                 break;
             case 1:
                 img_status.setImageResource(R.mipmap.flag_green);
                 txt_status.setText(R.string.running);
+                waitingProcess.setVisibility(View.GONE);
                 break;
             case 2:
                 img_status.setImageResource(R.mipmap.flag_gray);
                 txt_status.setText(R.string.finished);
+                waitingProcess.setVisibility(View.GONE);
                 break;
         }
 

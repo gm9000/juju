@@ -59,14 +59,9 @@ import java.util.Map;
 
 @ContentView(R.layout.activity_main)
 @CreateUI
-public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
+public class MainActivity extends BaseActivity implements CreateUIHelper {
 
     private final String TAG = getClass().getSimpleName();
-
-    private final int CREATE_GROUP = 0x01;
-
-    private final int DELETE_GROUP = 0x02;
-
 
     private Logger logger = Logger.getLogger(MainActivity.class);
 
@@ -95,6 +90,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     private TextView[] textviews;
     private int index;
     private int currentTabIndex;// 当前fragment的index
+
 
     private UserInfoBean userInfoBean;
 
@@ -146,7 +142,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         textviews[0] = (TextView) findViewById(R.id.tv_group_chat);
         textviews[1] = (TextView) findViewById(R.id.tv_group_party);
         textviews[2] = (TextView) findViewById(R.id.tv_profile);
-        textviews[0].setTextColor(0xFF45C01A);
+        textviews[0].setTextColor(getResources().getColor(R.color.blue));
 
         // 添加显示第一个fragment
         getSupportFragmentManager().beginTransaction()
@@ -191,8 +187,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         imagebuttons[currentTabIndex].setSelected(false);
         // 把当前tab设为选中状态
         imagebuttons[index].setSelected(true);
-        textviews[currentTabIndex].setTextColor(0xFF999999);
-        textviews[index].setTextColor(0xFF45C01A);
+        textviews[currentTabIndex].setTextColor(getResources().getColor(R.color.gray));
+        if(index == 1){
+            textviews[index].setTextColor(getResources().getColor(R.color.white));
+        }else {
+            textviews[index].setTextColor(getResources().getColor(R.color.blue));
+        }
         currentTabIndex = index;
     }
 
@@ -291,7 +291,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 Log.d(TAG, "MessageEntity entry:" + JacksonUtil.turnObj2String(entry));
             }
         }
-        List<SessionEntity> entrys2 = IMSessionManager.instance().getSessionDao().findAll();
+        List<SessionEntity> entrys2 = null;
+        try {
+            entrys2 = IMSessionManager.instance().getSessionDao().findAll("select * from com_juju_app_entity_chat_SessionEntity");
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
         if(entrys2 != null && entrys2.size() >0) {
             for(SessionEntity entry : entrys2) {
                 Log.d(TAG, "SessionEntity entry:" + JacksonUtil.turnObj2String(entry));

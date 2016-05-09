@@ -8,11 +8,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.party.MyInviteListActivity;
 import com.juju.app.activity.party.MyPartyListlActivity;
 import com.juju.app.activity.user.SettingActivity;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
+import com.juju.app.entity.Invite;
+import com.juju.app.entity.Party;
 import com.juju.app.entity.User;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
@@ -27,6 +30,7 @@ import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
+import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
@@ -36,6 +40,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -82,7 +87,50 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     @Override
     public void loadData() {
         loadUserInfo();
+        // TODO 通过消息驱动生成相关的邀请信息，并删除模拟数据生成的相关代码
+        generateInviteDate();
     }
+
+    private void generateInviteDate() {
+
+        try {
+            if(JujuDbUtils.getInstance(getContext()).count(Invite.class)==0){
+                Invite invite1 = new Invite();
+                invite1.setFlag(0);
+                invite1.setStatus(-1);
+                invite1.setUserNo("100000001");
+                invite1.setNickName("金牛之女");
+                invite1.setGroupId("0000000000000001");
+                invite1.setGroupName("聚龙小组1");
+                invite1.setTime(new Date(System.currentTimeMillis() - 3 * 60 * 1000));
+                JujuDbUtils.saveOrUpdate(invite1);
+
+                Invite invite2 = new Invite();
+                invite2.setFlag(1);
+                invite2.setStatus(-1);
+                invite2.setUserNo("100000002");
+                invite2.setNickName("爱拼才会赢");
+                invite2.setGroupId("0000000000000002");
+                invite2.setGroupName("聚龙小组2");
+                invite2.setTime(new Date(System.currentTimeMillis() - 128 * 60 * 1000));
+                JujuDbUtils.saveOrUpdate(invite2);
+
+                Invite invite3 = new Invite();
+                invite3.setFlag(1);
+                invite3.setStatus(-1);
+                invite3.setUserNo("100000003");
+                invite3.setNickName("成功属于坚持的人");
+                invite3.setGroupId("0000000000000003");
+                invite3.setGroupName("聚龙小组3");
+                invite3.setTime(new Date(System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000));
+                JujuDbUtils.saveOrUpdate(invite3);
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+
+    }
+
     @Override
     public void initView() {
         Drawable rightDrawable = getResources().getDrawable(R.mipmap.right);
@@ -90,19 +138,41 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
         settingDrawable.setBounds(0, 0, 35, 35);
         txt_setting.setCompoundDrawables(settingDrawable, null, rightDrawable, null);
 
-        Drawable partyDrawable = getResources().getDrawable(R.mipmap.party);
+        Drawable partyDrawable = null;
+        Drawable inviteDrawable = null;
+        try {
+            if(JujuDbUtils.getInstance(getContext()).count(Selector.from(Invite.class).where("status","=",-1).and("flag","=",1))>0){
+                inviteDrawable = getResources().getDrawable(R.mipmap.invite_new);
+            }else{
+                inviteDrawable = getResources().getDrawable(R.mipmap.invite);
+            }
+            if(JujuDbUtils.getInstance(getContext()).count(Selector.from(Party.class).where("status","=",-1))>0){
+                partyDrawable = getResources().getDrawable(R.mipmap.party_new);
+            }else{
+                partyDrawable = getResources().getDrawable(R.mipmap.party);
+            }
+
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+
         partyDrawable.setBounds(0, 0, 35, 35);
         txt_party.setCompoundDrawables(partyDrawable, null, rightDrawable, null);
 
-        Drawable inviteDrawable = getResources().getDrawable(R.mipmap.invite);
         inviteDrawable.setBounds(0, 0, 35, 35);
         txt_invite.setCompoundDrawables(inviteDrawable, null, rightDrawable, null);
+
     }
 
     @Override
     public void onResume(){
-        Log.d(TAG,"onResume");
+        Log.d(TAG, "onResume");
         super.onResume();
+        if(JujuDbUtils.needRefresh(Party.class) || JujuDbUtils.needRefresh(Invite.class)){
+            initView();
+            JujuDbUtils.closeRefresh(Party.class);
+            JujuDbUtils.closeRefresh(Invite.class);
+        }
         loadUserInfo();
     }
 
@@ -138,6 +208,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
             txt_jujuNo.setText(userInfo.getUserNo());
             txt_nickName.setText(userInfo.getNickName());
         }
+
     }
 
     @Override
@@ -156,7 +227,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                 ActivityUtil.startActivity(getActivity(), MyPartyListlActivity.class);
                 break;
             case R.id.txt_invite:
-                ToastUtil.showShortToast(this.getActivity(),"invite",1);
+                ActivityUtil.startActivity(getActivity(), MyInviteListActivity.class);
                 break;
             case R.id.txt_setting:
                 ActivityUtil.startActivity(this.getActivity(), SettingActivity.class);
@@ -186,6 +257,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                             userInfo.setGender(userJson.getInt("gender"));
 
                             JujuDbUtils.saveOrUpdate(userInfo);
+                            SpfUtil.put(getActivity().getApplicationContext(),Constants.USER_INFO,userInfo);
 
                             img_gender.setImageResource(userInfo.getGender() == 0 ? R.mipmap.ic_sex_female : R.mipmap.ic_sex_male);
                             txt_jujuNo.setText(userInfo.getUserNo());

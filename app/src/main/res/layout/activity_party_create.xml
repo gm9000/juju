@@ -47,7 +47,7 @@
 
                     <EditText
                         android:id="@+id/txt_party_title"
-                        style="@style/TxtContent"
+                        style="@style/BlackTxt14"
                         android:layout_width="match_parent"
                         android:layout_height="35dip"
                         android:layout_marginLeft="5dp"
@@ -79,7 +79,7 @@
 
                     <EditText
                         android:id="@+id/txt_description"
-                        style="@style/TxtContent"
+                        style="@style/BlackTxt14"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:background="@null"
@@ -159,7 +159,7 @@
 
                         <TextView
                             android:id="@+id/txt_time"
-                            style="@style/TxtContent"
+                            style="@style/BlackTxt14"
                             android:layout_width="match_parent"
                             android:layout_height="35dp"
                             android:layout_gravity="center_vertical"
@@ -190,7 +190,7 @@
 
                         <EditText
                             android:id="@+id/txt_location"
-                            style="@style/TxtContent"
+                            style="@style/BlackTxt14"
                             android:layout_width="match_parent"
                             android:layout_height="35dp"
                             android:gravity="center_vertical"
@@ -200,6 +200,7 @@
                             android:layout_toRightOf="@+id/icon_location"
                             android:layout_toLeftOf="@+id/img_select_location"
                             android:focusable="true"
+                            android:singleLine="true"
                             android:hint="@string/select_location"/>
                         <ImageView
                             android:id="@+id/img_select_location"
@@ -229,7 +230,7 @@
 
                         <EditText
                             android:id="@+id/txt_plan_description"
-                            style="@style/TxtContent"
+                            style="@style/BlackTxt14"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:background="@null"
@@ -272,4 +273,42 @@
         android:textColor="@color/white"
         android:textSize="18sp"/>
     <include  layout="@layout/layout_loading"/>
+    <LinearLayout
+        android:id="@+id/layout_plan_info"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/background"
+        android:orientation="vertical"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/txt_plan_time"
+            style="@style/GrayTxt16"
+            android:layout_marginTop="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:layout_marginLeft="15dp"
+            android:drawablePadding="8dp"
+            android:drawableLeft="@mipmap/tt_clock_icon"
+            android:text="2015-12-12 09:00"/>
+        <TextView
+            android:id="@+id/txt_plan_address"
+            style="@style/GrayTxt16"
+            android:layout_marginTop="5dp"
+            android:layout_marginRight="10dp"
+            android:layout_marginLeft="10dp"
+            android:gravity="center_vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawableLeft="@mipmap/location"
+            android:text="北京市海淀区学院南路8号"/>
+        <TextView
+            android:id="@+id/txt_plan_desc"
+            style="@style/GrayTxt16"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="10dp"
+            android:background="@drawable/text_input_border"
+            android:text="@string/nodescription"/>
+    </LinearLayout>
 </RelativeLayout>

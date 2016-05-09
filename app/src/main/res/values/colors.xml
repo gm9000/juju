@@ -43,6 +43,7 @@
     <color name="background">#ECF0F1</color>
     <color name="bar_color">#232325</color>
     <color name="half_transparent_light">#AA000000</color>
+    <color name="half_transparent_black">#77000000</color>
 
 
     <!-- 群聊-->

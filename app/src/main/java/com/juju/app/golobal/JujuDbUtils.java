@@ -27,9 +27,9 @@ public class JujuDbUtils {
     public static void delete(Object entity){
         try {
             mInstance.delete(entity);
-            GlobalVariable.put(entity.getClass().getName() + "needRefresh", true);
+            GlobalVariable.put(entity.getClass().getSimpleName() + "needRefresh", true);
             if(entity instanceof PlanVote){
-                GlobalVariable.put(Plan.class.getName()+"needRefresh",true);
+                GlobalVariable.put(Plan.class.getSimpleName()+"needRefresh",true);
             }
         } catch (DbException e) {
             e.printStackTrace();
@@ -44,9 +44,9 @@ public class JujuDbUtils {
     public static void saveOrUpdate(Object entity){
         try {
             mInstance.saveOrUpdate(entity);
-            GlobalVariable.put(entity.getClass().getName()+"needRefresh",true);
+            GlobalVariable.put(entity.getClass().getSimpleName()+"needRefresh",true);
             if(entity instanceof PlanVote){
-                GlobalVariable.put(Plan.class.getName()+"needRefresh",true);
+                GlobalVariable.put(Plan.class.getSimpleName()+"needRefresh",true);
             }
         } catch (DbException e) {
             e.printStackTrace();
@@ -54,10 +54,10 @@ public class JujuDbUtils {
     }
 
     public static void closeRefresh(Class entityClass){
-        GlobalVariable.delete(entityClass.getName()+"needRefresh");
+        GlobalVariable.delete(entityClass.getSimpleName() + "needRefresh");
     }
 
     public static boolean needRefresh(Class entityClass){
-        return GlobalVariable.get(entityClass.getName() + "needRefresh",Boolean.class,false);
+        return GlobalVariable.get(entityClass.getSimpleName() + "needRefresh",Boolean.class,false);
     }
 }

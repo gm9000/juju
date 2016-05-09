@@ -1,6 +1,11 @@
 package com.juju.app.activity.party;
 
+import android.graphics.Color;
+import android.graphics.Rect;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.AdapterView;
@@ -9,6 +14,8 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.juju.app.R;
 import com.juju.app.adapters.MyPartyListAdapter;
 import com.juju.app.bean.UserInfoBean;
@@ -31,7 +38,7 @@ import org.apache.http.message.BasicNameValuePair;
 import java.util.List;
 
 @ContentView(R.layout.layout_my_party_list)
-public class MyPartyListlActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback {
+public class MyPartyListlActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener {
 
     private static final String TAG = "MyPartyListlActivity";
 
@@ -49,11 +56,15 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
 
 
     @ViewInject(R.id.listPartyView)
-    private ListView listPartyView;
+    private PullToRefreshListView listPartyView;
 
     private MyPartyListAdapter partyListAdapter;
 
     private List<Party> partyList;
+
+    private int pageIndex = 0;
+    private int pageSize = 15;
+    private long totalSize = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,21 +81,31 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
     protected void onResume(){
         super.onResume();
         if(JujuDbUtils.needRefresh(Party.class)){
+            pageIndex = 0;
             initData();
         }
     }
 
     private void initListeners() {
-        listPartyView.setOnItemClickListener(this);
+        listPartyView.getRefreshableView().setOnItemClickListener(this);
     }
 
     private void initData() {
 
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        Selector selector = Selector.from(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo());
         try {
-            partyList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo()).orderBy("local_id", true));
+            totalSize = JujuDbUtils.getInstance(this).count(selector);
+            selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);;
+            partyList = JujuDbUtils.getInstance(this).findAll(selector);
         } catch (DbException e) {
             e.printStackTrace();
+        }
+
+        if(partyList.size() >= totalSize){
+            listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
+        }else{
+            listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_to_refresh_release_label));
         }
 
         wrapPartyList(partyList);
@@ -92,8 +113,8 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
 
     private void wrapPartyList(List<Party> planList) {
         partyListAdapter = new MyPartyListAdapter(this,partyList,this);
-        listPartyView.setAdapter(partyListAdapter);
-        listPartyView.setCacheColorHint(0);
+        listPartyView.getRefreshableView().setAdapter(partyListAdapter);
+        listPartyView.getRefreshableView().setCacheColorHint(0);
     }
 
 
@@ -108,6 +129,17 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
         txt_left.setLayoutParams(layoutParams);
         txt_right.setVisibility(View.GONE);
         img_right.setVisibility(View.GONE);
+
+        Drawable loadingDrawable = getResources().getDrawable(R.drawable.pull_to_refresh_indicator);
+        final int indicatorWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 29,
+                getResources().getDisplayMetrics());
+        loadingDrawable.setBounds(new Rect(0, indicatorWidth, 0, indicatorWidth));
+        listPartyView.getLoadingLayoutProxy().setRefreshingVisible(false);
+        listPartyView.getLoadingLayoutProxy().setLoadingDrawable(loadingDrawable);
+        listPartyView.getLoadingLayoutProxy().setPullLabel(getResources().getString(R.string.pull_up_refresh_pull_label));
+        listPartyView.getRefreshableView().setCacheColorHint(Color.WHITE);
+        listPartyView.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
+        listPartyView.setOnRefreshListener(this);
 
     }
 
@@ -124,7 +156,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Party curParty = (Party)listPartyView.getItemAtPosition(position);
+        Party curParty = (Party)listPartyView.getRefreshableView().getItemAtPosition(position);
         switch(curParty.getStatus()){
             case -1: // 草稿箱
                 ActivityUtil.startActivity(this, PartyCreateActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
@@ -134,7 +166,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
                 ActivityUtil.startActivity(this, PartyDetailActivity.class,param);
                 break;
             case 1: //  进行中
-                ActivityUtil.startActivity(this, PartyActivity.class);
+                ActivityUtil.startActivity(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
                 break;
             case 2: //  已结束
                 ActivityUtil.startActivity(this, PartyActivity.class);
@@ -143,12 +175,43 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
     }
 
     @Override
+    public void onRefresh(PullToRefreshBase refreshView) {
+        if(partyList.size()>=totalSize){
+            listPartyView.onRefreshComplete();
+            return;
+        }
+        // 获取下一页数据
+        ListView partyListView = listPartyView.getRefreshableView();
+        int preSum = partyList.size();
+
+        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        Selector selector = Selector.from(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo());
+        try {
+            totalSize = JujuDbUtils.getInstance(getContext()).count(selector);
+            selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
+            List<Party> pagePartyList = JujuDbUtils.getInstance(getContext()).findAll(selector);
+            partyList.addAll(pagePartyList);
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+
+        if(partyList.size()>=totalSize){
+            listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
+        }
+        partyListAdapter.setPartyList(partyList);
+        int afterSum = partyList.size();
+        partyListView.setSelection(afterSum-preSum);
+        partyListAdapter.notifyDataSetChanged();
+        listPartyView.onRefreshComplete();
+    }
+
+    @Override
     public void deleteParty(int position) {
 
         try {
             Party party = partyList.get(position);
             JujuDbUtils.getInstance(this).delete(Plan.class, WhereBuilder.b("partyId","=",party.getId()));
-            JujuDbUtils.getInstance(this).delete(party);
+            JujuDbUtils.delete(party);
         } catch (DbException e) {
             e.printStackTrace();
         }

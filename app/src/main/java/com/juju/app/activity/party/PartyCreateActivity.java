@@ -29,6 +29,7 @@ import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
@@ -90,6 +91,16 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     @ViewInject(R.id.txt_plan_description)
     private EditText txt_planDescription;
 
+    @ViewInject(R.id.layout_plan_info)
+    private LinearLayout layout_planInfo;
+    @ViewInject(R.id.txt_plan_time)
+    private TextView txt_planTime;
+    @ViewInject(R.id.txt_plan_address)
+    private TextView txt_planAddress;
+    @ViewInject(R.id.txt_plan_desc)
+    private TextView txt_planDesc;
+
+
     private double latitude = 0;
     private double longitude = 0;
 
@@ -136,13 +147,17 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     private void initListeners() {
         listview_plan.setOnItemClickListener(this);
+        layout_planInfo.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                layout_planInfo.setVisibility(View.GONE);
+            }
+        });
     }
 
     private void initData() {
 
         groupDao = new GroupDaoImpl(this);
-
-        String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
         if(partyId!=null){
             try {
                 party = JujuDbUtils.getInstance(this).findFirst(Selector.from(Party.class).where("id","=",partyId));
@@ -323,6 +338,15 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             party.setCreator(creator);
             if(party.getGroup()==null){
                 GroupEntity group = groupDao.findById(groupId);
+                // TODO 组信息正常保存后需要删除下面的代码
+                if(group == null) {
+                    group = new GroupEntity();
+                    group.setId(groupId);
+                    group.setMainName("聚龙小组");
+                    group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
+                    group.setCreatorId(creator.getUserNo());
+                    groupDao.save(group);
+                }
                 party.setGroup(group);
             }
             JujuDbUtils.saveOrUpdate(party);
@@ -411,6 +435,15 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
                             if(party.getGroup()==null){
                                 GroupEntity group = groupDao.findById(groupId);
+                                // TODO 组信息正常保存后需要删除下面的代码
+                                if(group == null) {
+                                    group = new GroupEntity();
+                                    group.setId(groupId);
+                                    group.setMainName("聚龙小组");
+                                    group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
+                                    group.setCreatorId(creator.getUserNo());
+                                    groupDao.save(group);
+                                }
                                 party.setGroup(group);
                             }
                             party.setStatus(0); //  召集中
@@ -471,7 +504,11 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Plan curPlan = (Plan)listview_plan.getItemAtPosition(position);
-        ToastUtil.showShortToast(this, curPlan.getAddress(), 1);
+        txt_planTime.setText(dateFormat.format(curPlan.getStartTime()));
+        txt_planAddress.setText(curPlan.getAddress());
+        txt_planDesc.setText((curPlan.getDesc()==null||curPlan.getDesc().equals(""))?getResources().getString(R.string.nodescription):"\t\t"+curPlan.getDesc());
+        layout_planInfo.setVisibility(View.VISIBLE);
+
     }
 
 

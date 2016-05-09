@@ -1,6 +1,7 @@
 package com.juju.app.activity.party;
 
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -12,6 +13,16 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.baidu.location.BDLocation;
+import com.baidu.location.BDLocationListener;
+import com.baidu.location.LocationClient;
+import com.baidu.mapapi.map.BitmapDescriptor;
+import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.MapStatus;
+import com.baidu.mapapi.map.MapStatusUpdateFactory;
+import com.baidu.mapapi.map.MarkerOptions;
+import com.baidu.mapapi.map.OverlayOptions;
+import com.baidu.mapapi.model.LatLng;
 import com.juju.app.R;
 import com.juju.app.adapters.PlanInfoListAdapter;
 import com.juju.app.bean.UserInfoBean;
@@ -27,9 +38,11 @@ import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.scroll.NoScrollListView;
+import com.lidroid.xutils.bitmap.BitmapDisplayConfig;
 import com.lidroid.xutils.db.sqlite.Selector;
 import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
@@ -134,7 +147,13 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
     }
 
     private void wrapPlanList(List<Plan> planList) {
-        planListAdapter = new PlanInfoListAdapter(this,planList,isOwner);
+        String latLonStr = (String)SpfUtil.get(getApplicationContext(),Constants.LOCATION,null);
+        LatLng location = null;
+        if(latLonStr!=null){
+            String[] latLonArray = latLonStr.split(",");
+            location = new LatLng(Double.parseDouble(latLonArray[0]),Double.parseDouble(latLonArray[1]));
+        }
+        planListAdapter = new PlanInfoListAdapter(this,planList,isOwner,location);
         listview_plan.setAdapter(planListAdapter);
         listview_plan.setCacheColorHint(0);
     }
@@ -310,7 +329,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
             txt_fullDesc.setText("\t\t" + curPlan.getDesc());
         }
         txt_fullDesc.setVisibility(View.VISIBLE);
-        return false;
+        return true;
     }
 
     @OnClick(R.id.txt_fullDesc)
