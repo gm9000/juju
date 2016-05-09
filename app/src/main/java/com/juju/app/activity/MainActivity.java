@@ -41,6 +41,7 @@ import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
+import com.lidroid.xutils.exception.DbException;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;
@@ -59,9 +60,14 @@ import java.util.Map;
 
 @ContentView(R.layout.activity_main)
 @CreateUI
-public class MainActivity extends BaseActivity implements CreateUIHelper {
+public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
 
     private final String TAG = getClass().getSimpleName();
+
+    private final int CREATE_GROUP = 0x01;
+
+    private final int DELETE_GROUP = 0x02;
+
 
     private Logger logger = Logger.getLogger(MainActivity.class);
 
@@ -120,7 +126,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
         initTabView();
         initPopWindow();
         long end = System.currentTimeMillis();
-        Log.d(TAG, "init MainActivity cost time:"+(end-begin)+"毫秒");
+        Log.d(TAG, "init MainActivity cost time:" + (end - begin) + "毫秒");
     }
 
     /**
@@ -293,7 +299,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper {
         }
         List<SessionEntity> entrys2 = null;
         try {
-            entrys2 = IMSessionManager.instance().getSessionDao().findAll("select * from com_juju_app_entity_chat_SessionEntity");
+            entrys2 = IMSessionManager.instance().getSessionDao().
+                    findAll("select * from com_juju_app_entity_chat_SessionEntity");
         } catch (DbException e) {
             e.printStackTrace();
         }

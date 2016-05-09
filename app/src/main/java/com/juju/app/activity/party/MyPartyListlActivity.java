@@ -134,7 +134,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
         final int indicatorWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 29,
                 getResources().getDisplayMetrics());
         loadingDrawable.setBounds(new Rect(0, indicatorWidth, 0, indicatorWidth));
-        listPartyView.getLoadingLayoutProxy().setRefreshingVisible(false);
+//        listPartyView.getLoadingLayoutProxy().setRefreshingVisible(false);
         listPartyView.getLoadingLayoutProxy().setLoadingDrawable(loadingDrawable);
         listPartyView.getLoadingLayoutProxy().setPullLabel(getResources().getString(R.string.pull_up_refresh_pull_label));
         listPartyView.getRefreshableView().setCacheColorHint(Color.WHITE);

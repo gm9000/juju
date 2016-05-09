@@ -168,7 +168,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
         final int indicatorWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 29,
                 getResources().getDisplayMetrics());
         loadingDrawable.setBounds(new Rect(0, indicatorWidth, 0, indicatorWidth));
-        listView.getLoadingLayoutProxy().setRefreshingVisible(false);
+//        listView.getLoadingLayoutProxy().setRefreshingVisible(false);
         listView.getLoadingLayoutProxy().setLoadingDrawable(loadingDrawable);
         listView.getLoadingLayoutProxy().setPullLabel(getResources().getString(R.string.pull_up_refresh_pull_label));
         listView.getRefreshableView().setCacheColorHint(Color.WHITE);
