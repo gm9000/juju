@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * 项目名称：juju
@@ -66,10 +67,7 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
             ToastUtil.showShortToast(getActivity(), videoProgram.getCreatorName() + "的直播节目", 1);
 
         //  TODO 获取视频请求的URL参数，传入播放界面
-
-
-
-        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl());
+        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
         ActivityUtil.startActivity(getActivity(), PlayVideoActivity.class,nvPair);
     }
 

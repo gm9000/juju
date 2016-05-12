@@ -35,6 +35,7 @@ import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.apache.http.message.BasicNameValuePair;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @ContentView(R.layout.layout_my_party_list)
@@ -100,6 +101,10 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
             partyList = JujuDbUtils.getInstance(this).findAll(selector);
         } catch (DbException e) {
             e.printStackTrace();
+        }
+
+        if(partyList == null) {
+            partyList = new ArrayList<Party>();
         }
 
         if(partyList.size() >= totalSize){

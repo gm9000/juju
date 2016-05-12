@@ -277,6 +277,9 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
             } catch (DbException e) {
                 e.printStackTrace();
             }
+            if(partyList == null) {
+                partyList = new ArrayList<Party>();
+            }
             if(partyList.size()>= totalSize){
                 listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
             }else{

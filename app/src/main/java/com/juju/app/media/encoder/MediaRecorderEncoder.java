@@ -4,6 +4,7 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.hardware.Camera;
+import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
 import android.net.LocalServerSocket;
 import android.net.LocalSocket;
@@ -72,19 +73,23 @@ public class MediaRecorderEncoder extends MediaEncoder {
         initializeRecorder();
     }
 
+    @SuppressLint("NewApi")
     private void initializeRecorder() {
         mCamera.unlock();
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setCamera(mCamera);
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
-        mediaRecorder.setOrientationHint(90);
+
+//        mediaRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
+        mediaRecorder.setInputSurface(mSurfaceHolder.getSurface());
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+//        mediaRecorder.setOrientationHint(90);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-//        mediaRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
-//        mediaRecorder.setInputSurface(mSurfaceHolder.getSurface());
-        mediaRecorder.setVideoSize(m_width, m_height);
+        mediaRecorder.setVideoSize(m_height, m_width);
+//        CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+//        mediaRecorder.setProfile(cProfile);
         mediaRecorder.setVideoFrameRate(m_framerate);
-        mediaRecorder.setVideoEncodingBitRate(m_width*m_height*5);
+        mediaRecorder.setVideoEncodingBitRate(m_width * m_height * 5);
         mediaRecorder.setMaxDuration(0);
         mediaRecorder.setMaxFileSize(0);
         if (SPS == null) {
@@ -100,6 +105,7 @@ public class MediaRecorderEncoder extends MediaEncoder {
         } else {
             mediaRecorder.setOutputFile(mSender.getFileDescriptor());
         }
+
     }
 
     @Override
@@ -123,7 +129,7 @@ public class MediaRecorderEncoder extends MediaEncoder {
                 if (SPS == null) {
                     Log.e(TAG, "Rlease MediaRecorder and get SPS and PPS");
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(2000);
                         //释放MediaRecorder资源
                         releaseMediaRecorder();
                         //从已采集的视频数据中获取SPS和PPS
@@ -199,7 +205,7 @@ public class MediaRecorderEncoder extends MediaEncoder {
                     m_outputQueue.put(new Object[]{pts,sendData});
                 }else {
                     System.out.println("-----------------------------skip current h264 frame:" + sendData.length);
-                    m_outputQueue.put(m_outputQueue.poll());
+//                    m_outputQueue.put(m_outputQueue.poll());
                 }
             }else{
                 m_outputQueue.put(new Object[]{pts,sendData});
@@ -216,7 +222,6 @@ public class MediaRecorderEncoder extends MediaEncoder {
     public void stopStreamEncode() {
         if(isEncoding) {
             isEncoding = false;
-            mCamera.lock();
             if (mediaRecorder != null) {
                 mediaRecorder.stop();
                 mediaRecorder.release();
@@ -274,7 +279,7 @@ public class MediaRecorderEncoder extends MediaEncoder {
             Log.e(TAG, String.format("h264frame %d,%d,%d", h264length, read, h264length - read));
             if (temp == -1) {
                 Log.e(TAG, "no data get wait for data coming.....");
-                Thread.sleep(500);
+                Thread.sleep(200);
                 continue;
             }
             read += temp;

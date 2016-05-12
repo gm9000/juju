@@ -8,11 +8,13 @@ import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Environment;
 import android.os.IBinder;
 import android.view.SurfaceHolder;
 
 import com.juju.app.media.consumer.HttpMediaConsumer;
 import com.juju.app.media.consumer.MediaConsumer;
+import com.juju.app.media.consumer.OutputStreamMediaConsumer;
 import com.juju.app.media.encoder.AudioEncoder;
 import com.juju.app.media.encoder.MediaEnCoderFactory;
 import com.juju.app.media.encoder.MediaEncoder;
@@ -20,6 +22,11 @@ import com.juju.app.utils.ToastUtil;
 
 import org.greenrobot.eventbus.EventBus;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.util.concurrent.ArrayBlockingQueue;
 
 public class MediaProcessService extends Service {
@@ -153,6 +160,23 @@ public class MediaProcessService extends Service {
 
         //      启动音视频传输
         mediaConsumer = new HttpMediaConsumer(H264Queue,AACQueue,updateUrl);
+
+//        String fd = Environment.getExternalStorageDirectory()+"/juju_h264.h264";
+//        File file = new File(fd);
+//        if(!file.exists()){
+//            try {
+//                file.createNewFile();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//        }
+//        OutputStream ouputStream = null;
+//        try {
+//            ouputStream = new FileOutputStream(file);
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
+//        mediaConsumer = new OutputStreamMediaConsumer(H264Queue,ouputStream);
         mediaConsumer.setWidth(mediaEncoder.getWidth());
         mediaConsumer.setHeight(mediaEncoder.getHeight());
         mediaConsumer.setFrameRate(framerate);

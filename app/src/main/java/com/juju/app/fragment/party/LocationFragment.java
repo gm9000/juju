@@ -332,8 +332,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
 
         public BitmapDescriptor getBitmapDescriptor() {
             File headFile = BitmapUtilFactory.getInstance(getContext()).getBitmapFileFromDiskCache(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo);
-             headImg.setImageURI(Uri.parse(headFile.getAbsolutePath()));
-
+            headImg.setImageURI(Uri.parse(headFile.getAbsolutePath()));
 
 //            Bitmap headBitmap = null;
 //            try {

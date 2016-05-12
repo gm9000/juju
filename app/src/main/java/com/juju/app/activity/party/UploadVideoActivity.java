@@ -1,13 +1,11 @@
 package com.juju.app.activity.party;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.res.Configuration;
 import android.graphics.ImageFormat;
 import android.hardware.Camera;
 import android.media.AudioFormat;
@@ -15,10 +13,12 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.v4.widget.SlidingPaneLayout;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -40,12 +40,15 @@ import com.juju.app.service.ConnectStatus;
 import com.juju.app.service.MediaProcessService;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.CameraUtil;
+import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CustomDialog;
 import com.lidroid.xutils.exception.HttpException;
 import com.lidroid.xutils.http.ResponseInfo;
 import com.lidroid.xutils.view.annotation.ContentView;
 import com.lidroid.xutils.view.annotation.ViewInject;
 import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.rey.material.app.BottomSheetDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -54,6 +57,8 @@ import org.json.JSONException;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -62,16 +67,22 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 @ContentView(R.layout.activity_play_video)
-public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.Callback, Camera.PreviewCallback, HttpCallBack {
+public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.Callback, Camera.PreviewCallback, HttpCallBack, View.OnClickListener {
 
     @ViewInject(R.id.layout_main)
     private RelativeLayout layoutMain;
 
+    @ViewInject(R.id.img_change)
+    private ImageView imgChange;
+
     @ViewInject(R.id.statusText)
     private TextView statusText;
 
-    @ViewInject(R.id.img_play)
-    private ImageView imgPlay;
+    @ViewInject(R.id.img_upload)
+    private ImageView imgUpload;
+
+    @ViewInject(R.id.layout_sliding)
+    private SlidingPaneLayout layoutSliding;
 
     @ViewInject(R.id.layout_right_menu)
     private RelativeLayout layoutRight;
@@ -81,14 +92,15 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     private EditText txtDiscuss;
     @ViewInject(R.id.btn_send)
     private Button btnSend;
-    @ViewInject(R.id.img_weixin)
-    private ImageView imgWeixin;
-    @ViewInject(R.id.img_pyq)
-    private ImageView imgPyq;
-    @ViewInject(R.id.img_weibo)
-    private ImageView imgWeibo;
-    @ViewInject(R.id.img_copy)
-    private ImageView imgCopy;
+    @ViewInject(R.id.img_share)
+    private ImageView imgShare;
+
+    private BottomSheetDialog shareDialog;
+    private TextView txtWeixin;
+    private TextView txtPyq;
+    private TextView txtWeibo;
+    private TextView txtCopy;
+    private TextView txtCancel;
 
 
     private SurfaceView videoPlayView;
@@ -97,6 +109,9 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     private int curCameraId;
     private Camera.Parameters parameters;
 
+
+
+    private byte[] mPreBuffer = null;
 
     private static int queueSize = 64;
     private ArrayBlockingQueue<byte[]> YUVQueue = new ArrayBlockingQueue<byte[]>(queueSize);
@@ -115,6 +130,8 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
     private CameraSizeComparator sizeComparator = new CameraSizeComparator();
     private float previewRate;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,6 +158,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        realaseResource();
         unbindService(conn);
         mediaProcessService.stopEncoding();
         realaseResource();
@@ -156,15 +174,36 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
 
     private void initListener() {
+        layoutSliding.setPanelSlideListener(new SliderListener());
     }
 
     private void initParam() {
 //        previewRate = ScreenUtil.getScreenRate(this);
-        previewRate = 4f/3f;
+        previewRate = 16f/9f;
     }
 
     private void initView() {
         videoPlayView = (SurfaceView) findViewById(R.id.video_play_view);
+
+        try {
+            Field f_overHang = SlidingPaneLayout.class.getDeclaredField("mOverhangSize");
+            f_overHang.setAccessible(true);
+            //设置左菜单离右边屏幕边缘的距离为0，设置全屏
+            f_overHang.set(layoutSliding, 150);
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        layoutSliding.setSliderFadeColor(getResources().getColor(R.color.transparent));
+
+
+        if(!CameraUtil.hasFrontFacingCamera()){
+            imgChange.setVisibility(View.GONE);
+        }
+        layoutSliding.setVisibility(View.GONE);
+
     }
 
 
@@ -178,7 +217,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
         if (camera == null) {
             return;
         }
-        camera.setPreviewCallback(null);
+        camera.setPreviewCallbackWithBuffer(null);
         camera.stopPreview();
         camera.release();
         camera = null;
@@ -219,7 +258,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
     }
 
-    @OnClick(R.id.img_play)
+    @OnClick(R.id.img_upload)
     private void uploadVideo(View view){
         JlmHttpClient client = new JlmHttpClient(12, HttpConstants.getLiveServerUrl() + "/apply_for_upload", this, null, LiveAddressResBean.class);
         try {
@@ -229,6 +268,24 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+    }
+
+    @OnClick(R.id.img_share)
+    private void showDialog(View view){
+        shareDialog = new BottomSheetDialog(this);
+        shareDialog.contentView(R.layout.layout_video_share)
+                .inDuration(300);
+        txtWeixin = (TextView)shareDialog.findViewById(R.id.txt_weixin);
+        txtPyq = (TextView)shareDialog.findViewById(R.id.txt_pyq);
+        txtWeibo = (TextView)shareDialog.findViewById(R.id.txt_weibo);
+        txtCopy = (TextView)shareDialog.findViewById(R.id.txt_copy);
+        txtCancel = (TextView)shareDialog.findViewById(R.id.txt_cancel);
+        txtWeixin.setOnClickListener(this);
+        txtPyq.setOnClickListener(this);
+        txtWeibo.setOnClickListener(this);
+        txtCopy.setOnClickListener(this);
+        txtCancel.setOnClickListener(this);
+        shareDialog.show();
     }
 
 
@@ -255,10 +312,6 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     private void startCamera(Camera mCamera) {
         if (mCamera != null) {
             try {
-                mCamera.setPreviewCallback(this);
-                if (parameters == null) {
-                    parameters = mCamera.getParameters();
-                }
                 parameters = mCamera.getParameters();
 
 //                mCamera.setDisplayOrientation(90);
@@ -283,7 +336,6 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
                 Camera.Size pictureSize = getPropPictureSize(parameters.getSupportedPictureSizes(), previewRate, 840);
                 parameters.setPictureSize(pictureSize.width, pictureSize.height);
 
-
                 //设置PreviewSize
                 Camera.Size previewSize = getPropPreviewSize(parameters.getSupportedPreviewSizes(), previewRate, 840);
                 parameters.setPreviewSize(previewSize.width, previewSize.height);
@@ -296,9 +348,11 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
                 mCamera.setParameters(parameters);
                 mCamera.setPreviewDisplay(surfaceHolder);
+
+                mPreBuffer = new byte[width*height*3/2];
+                mCamera.addCallbackBuffer(mPreBuffer);
+                mCamera.setPreviewCallbackWithBuffer(this);
                 mCamera.startPreview();
-
-
 
 //                RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(ScreenUtil.ViewgetScreenWidth(this),ScreenUtil.ViewgetScreenWidth(this) *width / height);
 //                layoutParams.topMargin = (ScreenUtil.getScreenWidth(this)*height/width - ScreenUtil.getScreenWidth(this)*width/height) / 2;
@@ -404,7 +458,8 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
                         e.printStackTrace();
                     }
                     mediaProcessService.startEncoding();
-                    imgPlay.setVisibility(View.GONE);
+                    imgUpload.setVisibility(View.GONE);
+                    layoutSliding.setVisibility(View.VISIBLE);
                 }
                 break;
             case 22:
@@ -418,10 +473,35 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     public void onFailure(HttpException error, String msg, int accessId) {
         switch (accessId) {
             case 12:
-                statusText.setText("服务器连接失败!");
+                statusText.setText("连接失败!");
                 break;
             case 22:
                 statusText.setText("视频地址发布失败!");
+                break;
+        }
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.txt_weixin:
+                ToastUtil.showShortToast(this,"weixin",1);
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_pyq:
+                ToastUtil.showShortToast(this,"pyq",1);
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_weibo:
+                ToastUtil.showShortToast(this,"weibo",1);
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_copy:
+                ToastUtil.showShortToast(this,"copy",1);
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_cancel:
+                shareDialog.dismiss();
                 break;
         }
     }
@@ -443,13 +523,13 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
     @Override
     public void onPreviewFrame(byte[] data, Camera camera) {
-        if(mediaProcessService.isProcess() && MediaEnCoderFactory.sSuggestedMode==MediaEnCoderFactory.MODE_MEDIACODEC_API) {
-            //  YUV数据旋转
-            if (curCameraId==0) {
-                data = YuvProcess.rotate90YUV240SP(data, width, height);
-            }else{
-                data = YuvProcess.rotate270YUV240SP(data, width, height);
-            }
+
+        //  YUV数据旋转
+        if (curCameraId==0) {
+            data = YuvProcess.rotate90YUV240SP(data, width, height);
+        }else{
+            data = YuvProcess.rotate270YUV240SP(data, width, height);
+        }
 //            //  横屏裁剪
 //            int cutVideoWidth = height;
 //            int cutVideoHeight = cutVideoWidth * height / width;
@@ -460,8 +540,12 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 //            cutByteBuffer.put(data, cutVideoWidth * (width - cutVideoHeight) / 2, cutVideoWidth * cutVideoHeight);
 //            cutByteBuffer.put(data, width * height + cutVideoWidth * (width - cutVideoHeight) / 4, cutVideoWidth * cutVideoHeight / 2);
 //            putYUVData(cutByteBuffer.array());
+        if(mediaProcessService.isProcess() && MediaEnCoderFactory.sSuggestedMode==MediaEnCoderFactory.MODE_MEDIACODEC_API) {
             putYUVData(data);
         }
+        mPreBuffer = new byte[data.length];
+        System.arraycopy(data,0,mPreBuffer,0,data.length);
+        camera.addCallbackBuffer(mPreBuffer);
     }
 
     private void putYUVData(byte[] buffer) {
@@ -475,7 +559,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
     private void realaseResource(){
         if (null != camera) {
-            camera.setPreviewCallback(null);
+            camera.setPreviewCallbackWithBuffer(null);
             camera.stopPreview();
             camera.release();
             camera = null;
@@ -521,7 +605,8 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
         statusText.setText(connStatus.getConnectDesc());
         switch (connStatus.getStatus()){
             case 1:
-                imgPlay.setVisibility(View.VISIBLE);
+                imgUpload.setVisibility(View.VISIBLE);
+                layoutSliding.setVisibility(View.GONE);
                 if(mediaProcessService!=null && mediaProcessService.isProcess()) {
                     mediaProcessService.stopEncoding();
                 }
@@ -559,6 +644,24 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
             result = (info.orientation - degrees + 360) % 360;
         }
         camera.setDisplayOrientation(result);
+    }
+
+    private class SliderListener extends SlidingPaneLayout.SimplePanelSlideListener {
+        @Override
+        public void onPanelOpened(View panel) {
+//            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txtDiscuss.getLayoutParams();
+//            layoutParams.leftMargin = 100;
+//            txtDiscuss.setLayoutParams(layoutParams);
+            txtDiscuss.setVisibility(View.GONE);
+        }
+
+        @Override
+        public void onPanelClosed(View panel) {
+//            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txtDiscuss.getLayoutParams();
+//            layoutParams.leftMargin = 10;
+//            txtDiscuss.setLayoutParams(layoutParams);
+            txtDiscuss.setVisibility(View.VISIBLE);
+        }
     }
 
 }

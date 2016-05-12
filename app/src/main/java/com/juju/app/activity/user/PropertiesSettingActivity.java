@@ -4,6 +4,7 @@ import android.content.DialogInterface;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -386,7 +387,9 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
             }else{
                 ((Throwable)data).printStackTrace();
                 txtYzm.requestFocus();
+                Looper.prepare();
                 showMsgDialog(R.string.login_vercode_error);
+                Looper.loop();
                 Log.d(TAG, "请输入正确的验证码");
             }
         }

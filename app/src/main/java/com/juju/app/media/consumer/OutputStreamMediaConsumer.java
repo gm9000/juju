@@ -7,10 +7,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 
 public class OutputStreamMediaConsumer extends MediaConsumer {
 
-    private ArrayBlockingQueue<byte[]> mediaQueue;
+    private ArrayBlockingQueue<Object[]> mediaQueue;
     private OutputStream outputStream;
 
-    public OutputStreamMediaConsumer(ArrayBlockingQueue<byte[]> mediaDataQueue, OutputStream consumer) {
+    public OutputStreamMediaConsumer(ArrayBlockingQueue<Object[]> mediaDataQueue, OutputStream consumer) {
 
         mediaQueue = mediaDataQueue;
         outputStream = consumer;
@@ -38,7 +38,7 @@ public class OutputStreamMediaConsumer extends MediaConsumer {
                 byte[] mediaData = null;
                 while (isConsuming) {
                     if (mediaQueue.size() > 0) {
-                        mediaData = mediaQueue.poll();
+                        mediaData = (byte[])mediaQueue.poll()[1];
                         if (mediaData != null) {
                             try {
                                 outputStream.write(mediaData, 0, mediaData.length);
