@@ -128,8 +128,8 @@
     <orderEntry type="library" exported="" name="kprogresshud-1.0.5" level="project" />
     <orderEntry type="library" exported="" name="smack-core-4.1.5" level="project" />
     <orderEntry type="library" exported="" name="appcompat-v7-23.1.1" level="project" />
-    <orderEntry type="library" exported="" name="okio-1.6.0" level="project" />
     <orderEntry type="library" exported="" name="jsr305-2.0.1" level="project" />
+    <orderEntry type="library" exported="" name="okio-1.6.0" level="project" />
     <orderEntry type="library" exported="" name="jackson-annotations-2.6.0" level="project" />
     <orderEntry type="library" exported="" name="baidumapapi_cloud_v3_7_3" level="project" />
     <orderEntry type="library" exported="" name="eventbus-3.0.0" level="project" />

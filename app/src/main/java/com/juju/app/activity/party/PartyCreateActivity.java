@@ -608,6 +608,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
                                     PlanVote planVote = new PlanVote();
                                     planVote.setPlanId(plan.getId());
+                                    planVote.setAttenderNo(creator.getUserNo());
+
                                     planVote.setAttender(creator);
                                     JujuDbUtils.save(planVote);
 

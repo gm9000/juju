@@ -57,6 +57,7 @@ public class Party extends BaseEntity {
     private String groupId;
 
 
+    //临时属性(创建者)
     private User creator;
 
 

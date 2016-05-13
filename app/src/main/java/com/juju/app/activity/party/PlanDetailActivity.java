@@ -168,7 +168,14 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
 
         try {
             planVoteList = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).findAll();
-            planVote = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).and("attenderNo", "=", userInfoBean.getJujuNo()).findFirst();
+            if(planVoteList != null) {
+                for(PlanVote planVote1 : planVoteList) {
+                    User dbUser = JujuDbUtils.getInstance(this).selector(User.class)
+                            .where("user_no", "=", planVote1.getAttenderNo()).findFirst();
+                    planVote1.setAttender(dbUser);
+                }
+            }
+            planVote = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).and("attender_no", "=", userInfoBean.getJujuNo()).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -345,7 +352,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
                             UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
                             if(isSigned){
 
-                                WhereBuilder whereBuilder = WhereBuilder.b("attenderNo", "=", userTokenInfoBean.getJujuNo());
+                                WhereBuilder whereBuilder = WhereBuilder.b("attender_no", "=", userTokenInfoBean.getJujuNo());
                                 whereBuilder.and("planId", "=", planId);
                                 JujuDbUtils.getInstance(this).delete(PlanVote.class, whereBuilder);
                                 Plan plan = JujuDbUtils.getInstance(this).selector(Plan.class).where("id", "=", planId).findFirst();
@@ -354,9 +361,10 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
                                 JujuDbUtils.saveOrUpdate(plan);
 
                             }else{
-                                User user = JujuDbUtils.getInstance(getContext()).selector(User.class).where("userNo", "=", userTokenInfoBean.getJujuNo()).findFirst();
+                                User user = JujuDbUtils.getInstance(getContext()).selector(User.class).where("user_no", "=", userTokenInfoBean.getJujuNo()).findFirst();
                                 PlanVote planVote = new PlanVote();
                                 planVote.setPlanId(planId);
+                                planVote.setAttenderNo(userTokenInfoBean.getJujuNo());
                                 planVote.setAttender(user);
                                 JujuDbUtils.save(planVote);
 
@@ -424,6 +432,13 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
             planId = plan.getId();
             try {
                 planVoteList = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).findAll();
+                if(planVoteList != null) {
+                    for(PlanVote planVote : planVoteList) {
+                        User dbUser = JujuDbUtils.getInstance(this).selector(User.class)
+                                .where("user_no", "=", planVote.getAttenderNo()).findFirst();
+                        planVote.setAttender(dbUser);
+                    }
+                }
             } catch (DbException e) {
                 e.printStackTrace();
             }
