@@ -41,6 +41,7 @@ import com.juju.app.view.LocationImageView;
 
 
 import org.xutils.common.Callback;
+import org.xutils.db.Selector;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 
@@ -275,7 +276,8 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         if(clickUserNo != null){
             User clickUser = null;
             try {
-                clickUser = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo","=",clickUserNo));
+                clickUser = JujuDbUtils.getInstance(getContext())
+                        .selector(User.class).where("user_no", "=", clickUserNo).findFirst();
             } catch (DbException e) {
                 e.printStackTrace();
             }
