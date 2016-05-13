@@ -20,9 +20,6 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.CustomDialog;
 import com.juju.app.utils.ToastUtil;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 import com.rey.material.app.BottomSheetDialog;
 
 import org.xutils.view.annotation.ContentView;

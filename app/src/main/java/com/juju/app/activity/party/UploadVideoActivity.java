@@ -14,6 +14,7 @@ import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.v4.widget.SlidingPaneLayout;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -44,11 +45,6 @@ import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.CameraUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CustomDialog;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 import com.rey.material.app.BottomSheetDialog;
 
 import org.greenrobot.eventbus.EventBus;
@@ -72,7 +68,8 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 @ContentView(R.layout.activity_play_video)
-public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.Callback, Camera.PreviewCallback, HttpCallBack {
+public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.Callback,
+        Camera.PreviewCallback, HttpCallBack, View.OnClickListener {
 
     @ViewInject(R.id.layout_main)
     private RelativeLayout layoutMain;
@@ -275,7 +272,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
         }
     }
 
-    @OnClick(R.id.img_share)
+    @Event(R.id.img_share)
     private void showDialog(View view){
         shareDialog = new BottomSheetDialog(this);
         shareDialog.contentView(R.layout.layout_video_share)
