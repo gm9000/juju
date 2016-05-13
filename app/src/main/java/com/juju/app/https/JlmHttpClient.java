@@ -397,7 +397,9 @@ public class JlmHttpClient<Req> {
      */
     private void initGetRequestParams(Req req, RequestParams params)
             throws JSONException, UnsupportedEncodingException {
-        params.addHeader("content-type", HttpConstants.CONTENT_TYPE);
+//        params.addHeader("Content-Type", HttpConstants.CONTENT_TYPE);
+        params.addHeader("Connection", HttpConstants.CONNECTION_CLOSE);
+
         Map<String, Object> valueMap = null;
         if(req instanceof  Map) {
             valueMap = (Map<String, Object>) req;
@@ -428,12 +430,8 @@ public class JlmHttpClient<Req> {
      */
     private void initPostUploadParams(Req req, RequestParams params)
             throws JSONException, UnsupportedEncodingException {
-
-//        MultipartBody
-
-
+        params.addHeader("Connection", HttpConstants.CONNECTION_CLOSE);
         params.setMultipart(true);
-//        params.addHeader("content-type", HttpConstants.UPLOAD_TYPE);
         JSONObject paramJson = new JSONObject();
         Map<String, Object> valueMap = (Map<String, Object>) req;
         if(valueMap != null && valueMap.size() > 0) {
@@ -461,7 +459,8 @@ public class JlmHttpClient<Req> {
 
     private void initPostRequestParams(Req req, RequestParams params)
             throws JSONException, UnsupportedEncodingException {
-        params.addHeader("content-type", HttpConstants.CONTENT_TYPE);
+        params.addHeader("Content-Type", HttpConstants.CONTENT_TYPE);
+        params.addHeader("Connection", HttpConstants.CONNECTION_CLOSE);
         JSONObject paramJson = new JSONObject();
         String body = "";
         Map<String, Object> valueMap = null;
