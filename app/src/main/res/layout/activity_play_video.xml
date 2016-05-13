@@ -3,7 +3,8 @@
     android:id="@+id/layout_main"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
 
     <VideoView
         android:id="@+id/video_play_win"
