@@ -61,7 +61,7 @@ import java.util.concurrent.Executors;
 @ContentView(R.layout.activity_login)
 @CreateUI(isLoadData = true, isInitView = true)
 @SystemColor(isApply = false)
-public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpCallBack {
+public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
 
     private final String TAG = getClass().getName();
 
@@ -222,7 +222,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     JSONObject.class);
             try {
                 Log.d(TAG, "主线程:"+Thread.currentThread().getName());
-                client.sendPost();
+                client.sendPost4OK();
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
@@ -446,8 +446,9 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
     }
 
+
     @Override
-    public void onSuccess(Object obj, int accessId) {
+    public void onSuccess4OK(Object obj, int accessId) {
         Log.d(TAG, "回调线程:" + Thread.currentThread().getName());
         switch (accessId) {
             case R.id.loginBtn:
@@ -492,20 +493,9 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     }
 
     @Override
-    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
-        ex.printStackTrace();
+    public void onFailure4OK(Exception e, int accessId) {
         completeLoadingCommon();
         showMsgDialog(R.string.error_login_psw);
-    }
-
-    @Override
-    public void onCancelled(Callback.CancelledException cex) {
-
-    }
-
-    @Override
-    public void onFinished() {
-
     }
 
 
