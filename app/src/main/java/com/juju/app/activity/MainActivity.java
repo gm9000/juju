@@ -6,6 +6,7 @@ import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -36,22 +37,21 @@ import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 import com.rey.material.app.Dialog;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -103,6 +103,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
     }
 
     @Override
@@ -238,8 +239,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     }
 
 
-    @OnClick(R.id.img_right)
-    public void clickImgRight(View v) {
+    @Event(value = R.id.img_right, type = View.OnClickListener.class)
+    private void clickImgRight(View v) {
         switch(index) {
             case 0: //  群聊
                 titlePopup.show(layout_bar);
@@ -298,12 +299,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             }
         }
         List<SessionEntity> entrys2 = null;
-        try {
-            entrys2 = IMSessionManager.instance().getSessionDao().
-                    findAll("select * from com_juju_app_entity_chat_SessionEntity");
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
+        entrys2 = IMSessionManager.instance().getSessionDao().
+                findAll();
         if(entrys2 != null && entrys2.size() >0) {
             for(SessionEntity entry : entrys2) {
                 Log.d(TAG, "SessionEntity entry:" + JacksonUtil.turnObj2String(entry));
@@ -335,13 +332,15 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         final View view = MainActivity.this.getLayoutInflater().inflate(R.layout.activity_add_group_chat, null);
         if(mDialog == null) {
             mDialog = new Dialog(context, R.style.SimpleDialog);
-            mDialog.layoutParams(400, 450);
+            int width = (ScreenUtil.getScreenWidth(MainActivity.this) / 3) * 2;
+            int height = ScreenUtil.getScreenHeight(MainActivity.this) / 2;
+            mDialog.layoutParams(width, height);
             mDialog.title(R.string.chat_create)
                     .positiveAction(R.string.confirm)
                     .negativeAction(R.string.negative)
                     .contentView(view)
-                    .maxWidth(400)
-                    .maxHeight(600)
+                    .maxWidth(width+100)
+                    .maxHeight(height+200)
                     .positiveActionTextAppearance(R.style.other)
                     .negativeActionTextAppearance(R.style.other)
                     .cancelable(true);
@@ -404,13 +403,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 }
             });
         }
-        if(!mDialog.isShowing())
             mDialog.show();
 
     }
 
     @Override
-    public void onSuccess(Object obj, int accessId) {
+    public void onSuccess4OK(Object obj, int accessId) {
         if(accessId == CREATE_GROUP) {
             completeLoadingCommon();
             if(obj instanceof  JSONObject) {
@@ -462,7 +460,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     }
 
     @Override
-    public void onFailure(Exception e, int accessId) {
+    public void onFailure4OK(Exception e, int accessId) {
         if(accessId == CREATE_GROUP) {
             completeLoadingCommon();
             showMsgDialog(R.string.chat_create_error);

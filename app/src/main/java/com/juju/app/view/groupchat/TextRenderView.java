@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
@@ -44,11 +45,11 @@ public class TextRenderView extends  BaseMsgRenderView {
     /**
      * 控件赋值
      * @param messageEntity
-     * @param userEntity
+     * @param user
      */
     @Override
-    public void render(MessageEntity messageEntity, UserEntity userEntity, Context context) {
-        super.render(messageEntity, userEntity, context);
+    public void render(MessageEntity messageEntity, User user, Context context) {
+        super.render(messageEntity, user, context);
         TextMessage textMessage = (TextMessage) messageEntity;
         // 按钮的长按也是上层设定的
         // url 路径可以设定 跳转哦哦

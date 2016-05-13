@@ -2,11 +2,14 @@ package com.juju.app;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.widget.ViewUtils;
 import android.util.Log;
+import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.widget.LinearLayout;
 
 import com.juju.app.activity.LoginActivity;
+import com.juju.app.annotation.SystemColor;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.Plan;
@@ -14,12 +17,14 @@ import com.juju.app.entity.User;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
-import com.lidroid.xutils.ViewUtils;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
+
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.ViewInject;
+
 
 @ContentView(R.layout.activity_welcome)
+@SystemColor(isApply = false)
 public class WelcomeActivity extends BaseActivity implements Runnable  {
 
     private final String tag = getClass().getName();
@@ -30,7 +35,6 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewUtils.inject(this);
 
 //        if(SpfUtil.get(getApplicationContext(), Constants.USER_INFO,null) == null){
 //            clearDatabase();
@@ -44,6 +48,10 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
 //        }
 //        startAnimation();
         //初始化配置URL
+        //透明状态栏
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        //透明导航栏
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         HttpConstants.initURL();
         new Thread(this).start();
     }

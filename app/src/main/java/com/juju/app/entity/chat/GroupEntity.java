@@ -6,8 +6,9 @@ import android.text.TextUtils;
 
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.utils.pinyin.PinYinUtil;
-import com.lidroid.xutils.db.annotation.Column;
-import com.lidroid.xutils.db.annotation.Table;
+
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
 
 import java.util.Collections;
 import java.util.List;
@@ -15,32 +16,32 @@ import java.util.Set;
 import java.util.TreeSet;
 
 
-@Table(name = "user_group", execAfterTableCreated = "CREATE UNIQUE INDEX index_group_peer_id on user_group(peer_id);")
+@Table(name = "user_group", onCreated = "CREATE UNIQUE INDEX index_group_peer_id on user_group(peer_id);")
 public class GroupEntity extends PeerEntity {
 
 
-    @Column(column = "group_type")
+    @Column(name = "group_type")
     private int groupType;
 
-    @Column(column = "creator_id")
+    @Column(name = "creator_id")
     private String creatorId;
 
-    @Column(column = "user_cnt")
+    @Column(name = "user_cnt")
     private int userCnt;
 
-    @Column(column = "user_list")
+    @Column(name = "user_list")
     private String userList;
 
-    @Column(column = "version")
+    @Column(name = "version")
     private int version;
 
-    @Column(column = "status")
+    @Column(name = "status")
     private int status;
 
     /**
      * 描述
      */
-    @Column(column = "desc")
+    @Column(name = "desc")
     private String desc;
 
 
@@ -171,7 +172,8 @@ public class GroupEntity extends PeerEntity {
 
 
 
-    public Set<Integer> getlistGroupMemberIds(){
+
+    public Set<String> getlistGroupMemberIds(){
         if(TextUtils.isEmpty(userList)){
           return  Collections.emptySet();
         }
@@ -180,9 +182,9 @@ public class GroupEntity extends PeerEntity {
             return Collections.emptySet();
         }
         /**zhe'g*/
-        Set<Integer> result = new TreeSet<Integer>();
+        Set<String> result = new TreeSet<String>();
         for(int index=0;index < arrayUserIds.length;index++){
-            int userId =  Integer.parseInt(arrayUserIds[index]);
+            String userId =  arrayUserIds[index];
             result.add(userId);
         }
         return result;

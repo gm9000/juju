@@ -16,6 +16,7 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.bean.groupchat.TimeTileMessageBean;
+import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
@@ -288,15 +289,20 @@ public class ChatAdapter extends BaseAdapter {
                                final ViewGroup viewGroup, final boolean isMine) {
         TextRenderView textRenderView;
         final TextMessage textMessage = (TextMessage) msgObjectList.get(position);
-        UserEntity userEntity = new UserEntity();
-        //测试使用
-        if(textMessage.getFromId().equals("100000001")) {
-            userEntity.setAvatar("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
-            userEntity.setMainName("100000001");
-        } else if (textMessage.getFromId().indexOf("100000002") >= 0 ) {
-            userEntity.setAvatar("http://cdn.duitang.com/uploads/item/201511/07/20151107210255_UzQaN.thumb.700_0.jpeg");
-            userEntity.setMainName("100000002");
-        }
+        User user = imService.getContactManager().findContact(textMessage.getFromId());
+
+
+//        UserEntity userEntity = new UserEntity();
+//        //测试使用
+//        if(textMessage.getFromId().equals("100000001")) {
+//            userEntity.setAvatar("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
+//            userEntity.setMainName("100000001");
+//        } else if (textMessage.getFromId().indexOf("100000002") >= 0 ) {
+//            userEntity.setAvatar("http://cdn.duitang.com/uploads/item/201511/07/20151107210255_UzQaN.thumb.700_0.jpeg");
+//            userEntity.setMainName("100000002");
+//        }
+
+
 
 //        if(BaseApplication.getInstance().getUserInfoBean().getmAccount().equals("100000001")) {
 //            userEntity.setAvatar("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
@@ -353,7 +359,7 @@ public class ChatAdapter extends BaseAdapter {
 //                ctx.startActivity(intent);
 //            }
 //        });
-        textRenderView.render(textMessage, userEntity, ctx);
+        textRenderView.render(textMessage, user, ctx);
         return textRenderView;
     }
 

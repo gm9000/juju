@@ -125,7 +125,7 @@ public class MyInviteListAdapter extends BaseAdapter{
             txtInviteInfo.setText("邀请您加入 " + invite.getGroupName());
         }
 
-        BitmapUtilFactory.getInstance(context).display(imgHead, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + invite.getUserNo());
+        BitmapUtilFactory.getInstance(context).bind(imgHead, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + invite.getUserNo(), BitmapUtilFactory.Option.imageOptions());
         txtNickName.setText(invite.getNickName());
         txtTime.setText(DateUtil.getPastTimeDisplay(invite.getTime()));
 

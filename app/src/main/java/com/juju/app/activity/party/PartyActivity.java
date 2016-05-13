@@ -21,11 +21,12 @@ import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
-import com.lidroid.xutils.ViewUtils;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
+
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.ViewInject;
+import org.xutils.x;
+
 
 @ContentView(R.layout.activity_party)
 public class PartyActivity extends AppCompatActivity implements View.OnClickListener {
@@ -60,7 +61,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewUtils.inject(this);
+        x.view().inject(this);
         initParam();
         initTabView();
         initPopWindow();
@@ -71,7 +72,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
     private void initParam() {
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
         try {
-            plan = JujuDbUtils.getInstance(this).findFirst(Selector.from(Plan.class).where("status","=",1).and("partyId","=",partyId));
+            plan = JujuDbUtils.getInstance(this).selector(Plan.class).where("status", "=", 1).and("partyId", "=", partyId).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }

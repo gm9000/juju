@@ -10,6 +10,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -17,6 +18,7 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.activity.user.RegistActivity;
 import com.juju.app.annotation.CreateUI;
+import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
@@ -27,6 +29,7 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.https.OkHttpClientManager;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
@@ -37,24 +40,28 @@ import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.ClearEditText;
 import com.juju.app.view.RoundImageView;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
+import com.squareup.okhttp.Response;
+
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.db.Selector;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import java.util.concurrent.Executors;
+
 @ContentView(R.layout.activity_login)
 @CreateUI(isLoadData = true, isInitView = true)
-public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
+@SystemColor(isApply = false)
+public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpCallBack {
 
     private final String TAG = getClass().getName();
 
@@ -151,8 +158,9 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         layout_login_main.setFocusableInTouchMode(true);
 
         if(BaseApplication.getInstance().getUserInfoBean().getJujuNo()!=null){
-            BitmapUtilFactory.getInstance(this).display(portrait, HttpConstants.getUserUrl() +
-                    "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+            BitmapUtilFactory.getInstance(this).bind(portrait, HttpConstants.getUserUrl() +
+                    "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo(),
+                    BitmapUtilFactory.Option.imageOptions());
         }
 
         if(BaseApplication.getInstance().getUserInfoBean().getUserName()!=null){
@@ -194,7 +202,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     /**
      *******************************************事件函数******************************************
      */
-    @OnClick(R.id.loginBtn)
+    @Event(value = R.id.loginBtn, type = View.OnClickListener.class)
     private void onClickBtnLogin(Button btn) {
         Log.d(TAG, "threadId" + Thread.currentThread().getId());
         if(GlobalVariable.isSkipLogin()){
@@ -213,7 +221,8 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     R.id.loginBtn, HttpConstants.getUserUrl() + "/login", this, valueMap,
                     JSONObject.class);
             try {
-                client.sendPost4OK();
+                Log.d(TAG, "主线程:"+Thread.currentThread().getName());
+                client.sendPost();
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             } catch (JSONException e) {
@@ -222,7 +231,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         }
     }
 
-    @OnClick(R.id.txt_regist_newuser)
+    @Event(value = R.id.txt_regist_newuser, type = View.OnClickListener.class)
     private void onClick4RegistNewUser(View view) {
         startActivity(LoginActivity.this, RegistActivity.class);
     }
@@ -349,7 +358,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
         User loginUser = null;
         try {
-            loginUser = JujuDbUtils.getInstance(this).findFirst(Selector.from(User.class).where("userNo","=",jujuNo));
+            loginUser = JujuDbUtils.getInstance(this).selector(User.class).where("user_no","=",jujuNo).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -439,9 +448,16 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
     @Override
     public void onSuccess(Object obj, int accessId) {
+        Log.d(TAG, "回调线程:" + Thread.currentThread().getName());
         switch (accessId) {
             case R.id.loginBtn:
                 if(obj != null) {
+                    LoginActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            completeLoadingCommon();
+                        }
+                    });
                     JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
@@ -476,10 +492,20 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     }
 
     @Override
-    public void onFailure(Exception e, int accessId) {
-        e.printStackTrace();
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+        ex.printStackTrace();
         completeLoadingCommon();
         showMsgDialog(R.string.error_login_psw);
+    }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
     }
 
 

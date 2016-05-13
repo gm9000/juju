@@ -21,6 +21,7 @@ import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
@@ -30,14 +31,13 @@ import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -51,6 +51,7 @@ import java.util.Map;
  * 日期：2016/2/18 15:11
  * 版本：V1.0.0
  */
+@ContentView(R.layout.fragment_me)
 @CreateFragmentUI(viewId = R.layout.fragment_me)
 public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnClickListener, HttpCallBack {
 
@@ -94,7 +95,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     private void generateInviteDate() {
 
         try {
-            if(JujuDbUtils.getInstance(getContext()).count(Invite.class)==0){
+            if(JujuDbUtils.getInstance(getContext()).selector(Invite.class).count()==0){
                 Invite invite1 = new Invite();
                 invite1.setFlag(0);
                 invite1.setStatus(-1);
@@ -141,12 +142,12 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
         Drawable partyDrawable = null;
         Drawable inviteDrawable = null;
         try {
-            if(JujuDbUtils.getInstance(getContext()).count(Selector.from(Invite.class).where("status","=",-1).and("flag","=",1))>0){
+            if(JujuDbUtils.getInstance(getContext()).selector(Invite.class).where("status", "=", -1).and("flag", "=", 1).count()>0){
                 inviteDrawable = getResources().getDrawable(R.mipmap.invite_new);
             }else{
                 inviteDrawable = getResources().getDrawable(R.mipmap.invite);
             }
-            if(JujuDbUtils.getInstance(getContext()).count(Selector.from(Party.class).where("status","=",-1))>0){
+            if(JujuDbUtils.getInstance(getContext()).selector(Party.class).where("status", "=", -1).count()>0){
                 partyDrawable = getResources().getDrawable(R.mipmap.party_new);
             }else{
                 partyDrawable = getResources().getDrawable(R.mipmap.party);
@@ -178,7 +179,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
 
     public void loadUserInfo() {
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        BitmapUtilFactory.getInstance(getActivity()).display(img_head,HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+userInfoBean.getJujuNo());
+        BitmapUtilFactory.getInstance(getActivity()).bind(img_head,HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+userInfoBean.getJujuNo());
 
         String userInfoStr = (String) SpfUtil.get(getActivity().getApplicationContext(), Constants.USER_INFO,null);
 
@@ -240,11 +241,11 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     }
 
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case R.id.txt_property:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -275,8 +276,63 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
-        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-                error.getExceptionCode());
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e(TAG, "onFailure", ex);
     }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
+    }
+
+
+
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.txt_property:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            JSONObject userJson = jsonRoot.getJSONObject("user");
+//                            //   "userNo":"100000001","nickName":"别名-1","userPhone":"13800000001","birthday":1451889752445,"gender":1,"createTime":1451889752445}
+//                            User userInfo = new User();
+//                            userInfo.setUserNo(userJson.getString("userNo"));
+//                            userInfo.setNickName(userJson.getString("nickName"));
+//                            userInfo.setUserPhone(userJson.getString("userPhone"));
+//                            userInfo.setGender(userJson.getInt("gender"));
+//
+//                            JujuDbUtils.saveOrUpdate(userInfo);
+//                            SpfUtil.put(getActivity().getApplicationContext(),Constants.USER_INFO,userInfo);
+//
+//                            img_gender.setImageResource(userInfo.getGender() == 0 ? R.mipmap.ic_sex_female : R.mipmap.ic_sex_male);
+//                            txt_jujuNo.setText(userInfo.getUserNo());
+//                            txt_nickName.setText(userInfo.getNickName());
+//
+//                        } else {
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
+//                error.getExceptionCode());
+//    }
+
+
 }

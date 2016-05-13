@@ -4,40 +4,41 @@ package com.juju.app.entity.chat;
 import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.utils.StringUtils;
-import com.lidroid.xutils.db.annotation.Column;
-import com.lidroid.xutils.db.annotation.Table;
-import com.lidroid.xutils.db.annotation.Transient;
 
-@Table(name = "session", execAfterTableCreated = "CREATE UNIQUE INDEX index_session_session_key ON session(session_key);")
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
+
+
+@Table(name = "session", onCreated = "CREATE UNIQUE INDEX index_session_session_key ON session(session_key);")
 public class SessionEntity extends BaseEntity {
 
     /** Not-null value. */
-    @Column(column = "session_key")
+    @Column(name = "session_key")
     private String sessionKey;
 
-    @Column(column = "peer_id")
+    @Column(name = "peer_id")
     private String peerId;
 
-    @Column(column = "peer_type")
+    @Column(name = "peer_type")
     private int peerType;
 
-    @Column(column = "latest_msg_type")
+    @Column(name = "latest_msg_type")
     private int latestMsgType;
 
-    @Column(column = "latest_msg_id")
+    @Column(name = "latest_msg_id")
     private int latestMsgId;
 
     /** Not-null value. */
-    @Column(column = "latest_msg_data")
+    @Column(name = "latest_msg_data")
     private String latestMsgData;
 
-    @Column(column = "talk_id")
+    @Column(name = "talk_id")
     private String talkId;
 
-    @Column(column = "created")
+    @Column(name = "created")
     private Long created;
 
-    @Column(column = "updated")
+    @Column(name = "updated")
     private Long updated;
 
 

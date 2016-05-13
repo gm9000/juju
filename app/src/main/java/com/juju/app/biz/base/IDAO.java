@@ -2,8 +2,9 @@ package com.juju.app.biz.base;
 
 import android.util.Log;
 
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
+
+import org.xutils.db.Selector;
+import org.xutils.ex.DbException;
 
 import java.util.List;
 import java.util.Map;
@@ -58,8 +59,8 @@ public interface IDAO<T, PK> {
 
 
 
-    //参考DbUtils
-    public List<T> findAll(String sql) throws DbException;
+//    //参考DbUtils
+//    public List<T> findAll(String sql) throws DbException;
 
     /**
      * 通过属性查找，返回列表或对象

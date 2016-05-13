@@ -33,11 +33,11 @@ import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CustomDialog;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -167,25 +167,25 @@ public class RegistActivity extends BaseActivity implements CreateUIHelper {
      *******************************************事件函数******************************************
      */
     //结束注册
-    @OnClick(R.id.img_back)
+    @Event(R.id.img_back)
     private void onClickImgBack(ImageView view) {
         ActivityUtil.finish(RegistActivity.this);
     }
 
     //结束注册
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void onClickTxtLeft(TextView view) {
         ActivityUtil.finish(RegistActivity.this);
     }
 
     //点击图片拍照
-    @OnClick(R.id.img_photo)
+    @Event(R.id.img_photo)
     private void onClickImgPhoto(View view) {
         showCamera();
     }
 
     //明文显示密码
-    @OnClick(R.id.img_hide)
+    @Event(R.id.img_hide)
     private void onClickImgHide(View view) {
         img_hide.setVisibility(View.GONE);
         img_show.setVisibility(View.VISIBLE);
@@ -201,7 +201,7 @@ public class RegistActivity extends BaseActivity implements CreateUIHelper {
     }
 
     //密文显示密码
-    @OnClick(R.id.img_show)
+    @Event(R.id.img_show)
     private void onClickImgShow(View view) {
         img_show.setVisibility(View.GONE);
         img_hide.setVisibility(View.VISIBLE);
@@ -216,7 +216,7 @@ public class RegistActivity extends BaseActivity implements CreateUIHelper {
         }
     }
 
-    @OnClick(R.id.btn_register)
+    @Event(R.id.btn_register)
     private void onClickBtnRegister(View view) {
         boolean bool = validateRegist();
         if(bool) {

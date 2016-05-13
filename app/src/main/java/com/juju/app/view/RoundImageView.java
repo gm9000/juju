@@ -17,7 +17,8 @@ import android.util.AttributeSet;
 import android.widget.ImageView;
 
 import com.juju.app.R;
-import com.lidroid.xutils.bitmap.core.AsyncDrawable;
+
+import org.xutils.image.AsyncDrawable;
 
 
 /**

@@ -20,8 +20,10 @@ import android.widget.Toast;
 
 import com.juju.app.R;
 import com.juju.app.bean.groupchat.GroupChatInitBean;
+import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.golobal.Constants;
 import com.juju.app.utils.DateUtil;
+import com.juju.app.utils.Logger;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.SwipeLayout;
 import com.juju.app.view.groupchat.IMGroupAvatar;
@@ -42,9 +44,13 @@ import java.util.Map;
  */
 public class GroupChatListAdapter extends BaseAdapter {
 
+    private Logger logger = Logger.getLogger(GroupChatListAdapter.class);
+
+    private List<RecentInfo> recentSessionList = new ArrayList<>();
+
+
     private LayoutInflater mInflater = null;
     private Context context;
-    private List<GroupChatInitBean> groupChats;
     private LayoutInflater layoutInflater;
 
 
@@ -56,15 +62,15 @@ public class GroupChatListAdapter extends BaseAdapter {
 
     @Override
     public int getCount() {
-        return groupChats.size();
+        return recentSessionList.size();
     }
 
     @Override
-    public GroupChatInitBean getItem(int position) {
-        if (position >= groupChats.size() || position < 0) {
+    public RecentInfo getItem(int position) {
+        if (position >= recentSessionList.size() || position < 0) {
             return null;
         }
-        return groupChats.get(position);
+        return recentSessionList.get(position);
     }
 
     @Override
@@ -113,7 +119,7 @@ public class GroupChatListAdapter extends BaseAdapter {
 //    }
 
     private View renderGroup(int position,View convertView, ViewGroup parent){
-        GroupChatInitBean groupChatInitBean = groupChats.get(position);
+        RecentInfo recentInfo = recentSessionList.get(position);
         GroupViewHolder holder;
         if (null == convertView) {
             convertView = mInflater.inflate(R.layout.adapter_item_chat_group, parent,false);
@@ -129,8 +135,7 @@ public class GroupChatListAdapter extends BaseAdapter {
             holder = (GroupViewHolder)convertView.getTag();
         }
 
-        if(groupChatInitBean.isTop()){
-            // todo   R.color.top_session_background
+        if(recentInfo.isTop()){
             convertView.setBackgroundColor(Color.parseColor("#f4f4f4f4"));
         }else{
             convertView.setBackgroundColor(Color.WHITE);
@@ -146,7 +151,7 @@ public class GroupChatListAdapter extends BaseAdapter {
 //            holder.noDisturb.setVisibility(View.GONE);
 //        }
 
-        handleGroupContact(holder, groupChatInitBean);
+        handleGroupContact(holder, recentInfo);
         return convertView;
     }
 
@@ -155,13 +160,13 @@ public class GroupChatListAdapter extends BaseAdapter {
 
     }
 
-    public List<GroupChatInitBean> getGroupChats() {
-        return groupChats;
+    public List<RecentInfo> getGroupChats() {
+        return recentSessionList;
     }
 
 
     private void handleGroupContact(GroupViewHolder groupViewHolder,
-                                    GroupChatInitBean groupChatInitBean) {
+                                    RecentInfo recentInfo) {
         String avatarUrl = null;
         String mainName = "";
         String lastContent = "";
@@ -169,11 +174,11 @@ public class GroupChatListAdapter extends BaseAdapter {
         int unReadCount = 0;
 //        int sessionType = DBConstant.SESSION_TYPE_SINGLE;
 
-        mainName = groupChatInitBean.getGroup().getMainName();
-        lastContent = groupChatInitBean.getContent();
+        mainName =recentInfo.getName();
+        lastContent = recentInfo.getLatestMsgData();
         // todo 是不是每次都需要计算
-        lastTime = DateUtil.getSessionTime(groupChatInitBean.getUpdateTime());
-        unReadCount = groupChatInitBean.getUnReadCnt();
+        lastTime = DateUtil.getSessionTime(recentInfo.getUpdateTime());
+        unReadCount = recentInfo.getUnReadCnt();
 //        sessionType = recentInfo.getSessionType();
         // 设置未读消息计数 只有群组有的
 
@@ -197,15 +202,22 @@ public class GroupChatListAdapter extends BaseAdapter {
         }
 
         //头像设置
-        setGroupAvatar(groupViewHolder, groupChatInitBean.getAvatar());
+        setGroupAvatar(groupViewHolder, recentInfo.getAvatar());
         // 设置其它信息
         groupViewHolder.uname.setText(mainName);
         groupViewHolder.lastContent.setText(lastContent);
         groupViewHolder.lastTime.setText(lastTime);
     }
 
-    public void setData(List<GroupChatInitBean> groupChats) {
-        this.groupChats = groupChats;
+//    public void setData(List<GroupChatInitBean> groupChats) {
+//        this.groupChats = groupChats;
+//        notifyDataSetChanged();
+//    }
+
+    public void setData(List<RecentInfo> recentSessionList) {
+        logger.d("recent#set New recent session list");
+        logger.d("recent#notifyDataSetChanged");
+        this.recentSessionList = recentSessionList;
         notifyDataSetChanged();
     }
 

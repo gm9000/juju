@@ -3,7 +3,6 @@ package com.juju.app.biz;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.TextMessage;
-import com.lidroid.xutils.exception.DbException;
 
 import java.util.List;
 

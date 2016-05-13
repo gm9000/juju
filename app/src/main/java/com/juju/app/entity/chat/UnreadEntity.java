@@ -5,40 +5,40 @@ import android.support.annotation.IdRes;
 
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.utils.StringUtils;
-import com.lidroid.xutils.db.annotation.Id;
-import com.lidroid.xutils.db.annotation.Table;
-import com.lidroid.xutils.db.annotation.Transient;
+
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
+
 
 /**
  * 未读session实体
  */
-@Table(name = "unread_message", execAfterTableCreated = "CREATE UNIQUE INDEX index_unread_message_session_key " +
+@Table(name = "unread_message", onCreated = "CREATE UNIQUE INDEX index_unread_message_session_key " +
         "ON unread_message(session_key);")
 public class UnreadEntity {
 
 
-    @Id(column = "session_key")
+    @Column(name = "session_key", isId = true, autoGen = false)
     private String sessionKey;
 
-    @Id(column = "peer_id")
+    @Column(name = "peer_id")
     private String peerId;
 
-    @Id(column = "session_type")
+    @Column(name = "session_type")
     private int sessionType;
 
-    @Id(column = "un_read_cnt")
+    @Column(name = "un_read_cnt")
     private int unReadCnt;
 
-    @Id(column = "latest_msg_id")
+    @Column(name = "latest_msg_id")
     private int laststMsgId;
 
-    @Id(column = "latest_msg_data")
+    @Column(name = "latest_msg_data")
     private String latestMsgData;
 
-    @Id(column = "created")
+    @Column(name = "created")
     private long created;
 
-    @Transient
     private boolean isForbidden = false;
 
 //    @Transient

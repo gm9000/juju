@@ -51,6 +51,9 @@ public class OkHttpClientManager {
 
     private static final String TAG = "OkHttpClientManager";
 
+    private Handler mDelivery;
+
+
     private OkHttpClientManager() {
         mOkHttpClient = new OkHttpClient();
         //cookie enabled
@@ -60,6 +63,9 @@ public class OkHttpClientManager {
         mOkHttpClient.setConnectTimeout(10, TimeUnit.SECONDS);
 
         mOkHttpClient.networkInterceptors().add(new StethoInterceptor());
+
+        mDelivery = new Handler(Looper.getMainLooper());
+
     }
 
     public static OkHttpClientManager getInstance() {
@@ -75,5 +81,9 @@ public class OkHttpClientManager {
 
     public OkHttpClient getmOkHttpClient() {
         return mOkHttpClient;
+    }
+
+    public Handler getmDelivery() {
+        return mDelivery;
     }
 }

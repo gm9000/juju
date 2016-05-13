@@ -17,11 +17,12 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
+
+
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.util.List;
 
@@ -78,7 +79,7 @@ public class MyInviteListActivity extends BaseActivity implements MyInviteListAd
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         userNo = userInfoBean.getJujuNo();
         try {
-            inviteList = JujuDbUtils.getInstance(getContext()).findAll(Selector.from(Invite.class).orderBy("local_id", true));
+            inviteList = JujuDbUtils.getInstance(getContext()).selector(Invite.class).orderBy("local_id", true).findAll();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -111,7 +112,7 @@ public class MyInviteListActivity extends BaseActivity implements MyInviteListAd
     public void initParam() {
     }
 
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void cancelOperation(View view){
         ActivityUtil.finish(this);
     }

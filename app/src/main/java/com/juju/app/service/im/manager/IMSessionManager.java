@@ -7,6 +7,7 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.MessageDao;
 import com.juju.app.biz.impl.MessageDaoImpl;
 import com.juju.app.biz.impl.SessionDaoIml;
+import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.RecentInfo;
@@ -64,6 +65,7 @@ public class IMSessionManager extends IMManager {
 
     private MessageDao messageDao;
 
+    private UserInfoBean userInfoBean;
 
     //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMSessionManager instance() {
@@ -79,6 +81,7 @@ public class IMSessionManager extends IMManager {
 
     @Override
     public void doOnStart() {
+        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         sessionDao = new SessionDaoIml(ctx);
         messageDao = new MessageDaoImpl(ctx);
     }
@@ -91,9 +94,12 @@ public class IMSessionManager extends IMManager {
     public void onLocalLoginOk(){
         logger.i("session#loadFromDb");
         List<SessionEntity>  sessionInfoList = sessionDao.findAll4Order("updated:desc");
-        for(SessionEntity sessionInfo:sessionInfoList){
-            sessionMap.put(sessionInfo.getSessionKey(), sessionInfo);
+        if(sessionInfoList != null) {
+            for(SessionEntity sessionInfo:sessionInfoList){
+                sessionMap.put(sessionInfo.getSessionKey(), sessionInfo);
+            }
         }
+        sessionListReady = true;
         triggerEvent(SessionEvent.RECENT_SESSION_LIST_SUCCESS);
     }
 
@@ -191,45 +197,56 @@ public class IMSessionManager extends IMManager {
 
 
     // 获取最近联系人列表，RecentInfo 是sessionEntity unreadEntity user/group 等等实体的封装
-    // todo every time it has to sort, kind of inefficient, change it
     public List<RecentInfo> getRecentListInfo(){
         /**整理topList*/
         List<RecentInfo> recentSessionList = new ArrayList<>();
-        String loginId = BaseApplication.getInstance().getUserInfoBean().getmAccount();
+//        String loginId = BaseApplication.getInstance().getUserInfoBean().getmAccount();
+//        List<SessionEntity> sessionList = getRecentSessionList();
 
-        List<SessionEntity> sessionList = getRecentSessionList();
-//        Map<Integer, UserEntity> userMap = IMContactManager.instance().getUserMap();
+        //群组作为基础信息（以后有可能调整为会话）
+        List<GroupEntity> groupList = IMGroupManager.instance().getGroupList();
+
+        Map<String, User> userMap = IMContactManager.instance().getUserMap();
         Map<String, UnreadEntity> unreadMsgMap = IMUnreadMsgManager.instance().getUnreadMsgMap();
-//        Map<Integer, GroupEntity> groupEntityMap = IMGroupManager.instance().getGroupMap();
+        Map<String, GroupEntity> groupEntityMap = IMGroupManager.instance().getGroupMap();
 //        HashSet<String> topList = ConfigurationSp.instance(ctx,loginId).getSessionTopList();
 
-
-        for(SessionEntity recentSession:sessionList){
-            int sessionType = recentSession.getPeerType();
-            String peerId = recentSession.getPeerId();
-            String sessionKey = recentSession.getSessionKey();
-
+        //是否考虑每次都遍历群组
+        for(GroupEntity groupEntity : groupList) {
+            String sessionKey = groupEntity.getSessionKey();
             UnreadEntity unreadEntity = unreadMsgMap.get(sessionKey);
-            if(sessionType == DBConstant.SESSION_TYPE_GROUP){
-//                GroupEntity groupEntity = groupEntityMap.get(peerId);
-                RecentInfo recentInfo = new RecentInfo(recentSession, null, unreadEntity);
-//                if(topList !=null && topList.contains(sessionKey)){
-//                    recentInfo.setTop(true);
-//                }
-
-                //谁说的这条信息，只有群组需要，例如 【XXX:您好】
-                //不做判断
-//                String lastFromId = recentSession.getTalkId();
-//                UserEntity talkUser = userMap.get(lastFromId);
-//                // 用户已经不存在了
-//                if(talkUser != null){
-//                    String  oriContent =  recentInfo.getLatestMsgData();
-//                    String  finalContent = talkUser.getMainName() + ": "+oriContent;
-//                    recentInfo.setLatestMsgData(finalContent);
-//                }
-                recentSessionList.add(recentInfo);
-            }
+            SessionEntity recentSession = sessionMap.get(sessionKey);
+            RecentInfo recentInfo = new RecentInfo(recentSession, groupEntity, unreadEntity);
+            recentSessionList.add(recentInfo);
         }
+
+//        for(SessionEntity recentSession : sessionList) {
+//            int sessionType = recentSession.getPeerType();
+//            String peerId = recentSession.getPeerId();
+//            String sessionKey = recentSession.getSessionKey();
+//
+//            UnreadEntity unreadEntity = unreadMsgMap.get(sessionKey);
+//            if(sessionType == DBConstant.SESSION_TYPE_GROUP){
+//                GroupEntity groupEntity = groupEntityMap.get(peerId);
+//                RecentInfo recentInfo = new RecentInfo(recentSession, groupEntity, unreadEntity);
+////                if(topList !=null && topList.contains(sessionKey)){
+////                    recentInfo.setTop(true);
+////                }
+//
+//                //谁说的这条信息，只有群组需要，例如 【XXX:您好】
+//                //不做判断
+////                String lastFromId = recentSession.getTalkId();
+////                UserEntity talkUser = userMap.get(lastFromId);
+////                // 用户已经不存在了
+////                if(talkUser != null){
+////                    String  oriContent =  recentInfo.getLatestMsgData();
+////                    String  finalContent = talkUser.getMainName() + ": "+oriContent;
+////                    recentInfo.setLatestMsgData(finalContent);
+////                }
+//                recentSessionList.add(recentInfo);
+//            }
+//        }
+
         sort(recentSessionList);
         return recentSessionList;
     }
@@ -405,5 +422,9 @@ public class IMSessionManager extends IMManager {
 
     public List<SessionEntity> findAll(){
         return sessionDao.findAll();
+    }
+
+    public boolean isSessionListReady() {
+        return sessionListReady;
     }
 }

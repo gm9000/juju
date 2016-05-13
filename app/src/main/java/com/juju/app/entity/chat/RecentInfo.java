@@ -1,7 +1,9 @@
 package com.juju.app.entity.chat;
 
 
+import com.juju.app.entity.User;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.service.im.manager.IMContactManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,8 @@ public class RecentInfo {
     /**是否屏蔽信息*/
     private boolean isForbidden = false;
 
+    private GroupEntity groupEntity;
+
 
     public RecentInfo(){}
 //    public RecentInfo(SessionEntity sessionEntity, UserEntity entity, UnreadEntity unreadEntity){
@@ -54,19 +58,28 @@ public class RecentInfo {
 //    }
 
 
-    public RecentInfo(SessionEntity sessionEntity, GroupEntity groupEntity, UnreadEntity unreadEntity){
-        sessionKey =  sessionEntity.getSessionKey();
-        peerId = sessionEntity.getPeerId();
-        sessionType = DBConstant.SESSION_TYPE_GROUP;
-        latestMsgType = sessionEntity.getLatestMsgType();
-        latestMsgId = sessionEntity.getLatestMsgId();
-        latestMsgData = sessionEntity.getLatestMsgData();
-        updateTime = sessionEntity.getUpdated();
+    public RecentInfo(SessionEntity sessionEntity,
+                      GroupEntity groupEntity, UnreadEntity unreadEntity){
+
+        if(sessionEntity != null) {
+            latestMsgType = sessionEntity.getLatestMsgType();
+            latestMsgId = sessionEntity.getLatestMsgId();
+            latestMsgData = sessionEntity.getLatestMsgData();
+            updateTime = sessionEntity.getUpdated();
+        } else {
+            updateTime = 0l;
+        }
 
         if(unreadEntity !=null)
-        unReadCnt = unreadEntity.getUnReadCnt();
+            unReadCnt = unreadEntity.getUnReadCnt();
 
         if(groupEntity !=null) {
+            this.groupEntity = groupEntity;
+
+            sessionKey =  groupEntity.getSessionKey();
+            peerId = groupEntity.getPeerId();
+            sessionType = DBConstant.SESSION_TYPE_GROUP;
+
             ArrayList<String>  avatarList = new ArrayList<>();
             name = groupEntity.getMainName();
 
@@ -76,21 +89,20 @@ public class RecentInfo {
                 isForbidden = true;
             }
 
-            ArrayList<Integer> list =  new ArrayList<>();
+            ArrayList<String> list =  new ArrayList<String>();
             list.addAll(groupEntity.getlistGroupMemberIds());
 
-//            for(Integer userId:list){
-//                UserEntity entity = IMContactManager.instance().findContact(userId);
-//                if(entity!=null){
-//                    avatarList.add(entity.getAvatar());
-//                }
-//                if(avatarList.size()>=4){
-//                    break;
-//                }
-//            }
+            for(String userNo : list){
+                User entity = IMContactManager.instance().findContact(userNo);
+                if(entity != null){
+                    avatarList.add(entity.getAvatar());
+                }
+                if(avatarList.size() >= 9){
+                    break;
+                }
+            }
             avatar = avatarList;
         }
-        //avatar
     }
 
     public String getSessionKey() {
@@ -188,5 +200,9 @@ public class RecentInfo {
     public void setForbidden(boolean isForbidden)
     {
         this.isForbidden = isForbidden;
+    }
+
+    public GroupEntity getGroupEntity() {
+        return groupEntity;
     }
 }

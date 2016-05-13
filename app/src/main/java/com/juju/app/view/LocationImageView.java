@@ -16,7 +16,7 @@ import android.graphics.drawable.NinePatchDrawable;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.lidroid.xutils.bitmap.core.AsyncDrawable;
+import org.xutils.image.AsyncDrawable;
 
 
 /**

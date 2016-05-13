@@ -18,21 +18,21 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.SessionConstants;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.StringUtils;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -143,7 +143,7 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
     /**
      *******************************************事件函数******************************************
      */
-    @OnClick(R.id.btn_register_next)
+    @Event(R.id.btn_register_next)
     private void onClick4BtnRegisterNext(View view) {
         String yzm = et_yzm.getText().toString();
         SMSSDK.submitVerificationCode("86", phone, yzm);
@@ -151,20 +151,20 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
     }
 
     //结束注册
-    @OnClick(R.id.img_back)
+    @Event(R.id.img_back)
     private void onClickImgBack(ImageView view) {
         ActivityUtil.finish(RegistNext1Activity.this);
     }
 
     //结束注册
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void onClickTxtLeft(TextView view) {
         ActivityUtil.finish(RegistNext1Activity.this);
     }
 
 
     //重新发送
-    @OnClick(R.id.tv_djs)
+    @Event(R.id.tv_djs)
     private void onClickTvDjs(View view) {
         SMSSDK.getVerificationCode("86", phone);
         time = new TimeCount(60000, 1000);//构造CountDownTimer对象
@@ -204,12 +204,53 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
         }
     };
 
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.btn_register_next:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            Log.i(TAG, "业务服务器注册成功");
+//                            //赋值常量
+//                            if(jsonRoot.has("token")) {
+//                                SessionConstants.token = jsonRoot.getString("token");
+//                            }
+//                            if(jsonRoot.has("userNo")) {
+//                                SessionConstants.userNo = jsonRoot.getString("userNo");
+//                            }
+//                            if(jsonRoot.has("inviteInfo")) {
+//                                //获取聚会邀请根元素
+//                                JSONArray inviteInfoArr = jsonRoot.getJSONArray("inviteInfo");
+//                                //处理聚会邀请
+//                                doInviteInfo(inviteInfoArr);
+//                            }
+//                            startActivity(RegistNext1Activity.this, LoginActivity.class);
+//                        } else {
+//                            showMsgDialog(R.string.regist_user_error);
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.i(TAG, "回调解析失败", e);
+//                    }
+//                }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//
+//    }
+
+
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case R.id.btn_register_next:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -240,9 +281,22 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e(TAG, "onFailure", ex);
+    }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
 
     }
+
+    @Override
+    public void onFinished() {
+
+    }
+
+
 
     /**
      *******************************************私有函数******************************************
@@ -294,6 +348,8 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
             }
         }
     }
+
+
 
     /**
      *******************************************内部类******************************************

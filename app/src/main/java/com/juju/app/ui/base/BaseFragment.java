@@ -3,14 +3,15 @@ package com.juju.app.ui.base;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.ViewUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
 import com.juju.app.annotation.CreateFragmentUI;
-import com.juju.app.annotation.CreateUI;
-import com.lidroid.xutils.ViewUtils;
-import com.lidroid.xutils.view.annotation.ViewInject;
+
+import org.xutils.x;
+
 
 /**
  * 项目名称：juju
@@ -26,10 +27,20 @@ public class BaseFragment extends Fragment {
      */
     private View rootView;
 
+    private boolean injected = false;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onViewCreated(View view, Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        if (!injected) {
+            x.view().inject(this, this.getView());
+        }
     }
 
     @Override
@@ -38,8 +49,7 @@ public class BaseFragment extends Fragment {
                 getAnnotation(CreateFragmentUI.class);
         if(createFragmentUI != null) {
             if(rootView == null) {
-                rootView = (View) inflater.inflate(createFragmentUI.viewId(), null);
-                ViewUtils.inject(this, rootView);
+                rootView = x.view().inject(this, inflater, container);
                 findViews();
                 setOnListener();
                 if(this instanceof CreateUIHelper) {
@@ -56,6 +66,7 @@ public class BaseFragment extends Fragment {
 //            if (parent != null) {
 //                parent.removeView(rootView);
 //            }
+            injected = true;
             return rootView;
         }
         return super.onCreateView(inflater, container, savedInstanceState);

@@ -5,9 +5,10 @@ import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
-import com.lidroid.xutils.db.annotation.Column;
-import com.lidroid.xutils.db.annotation.Table;
-import com.lidroid.xutils.db.annotation.Transient;
+
+
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
 
 import java.util.Date;
 
@@ -15,34 +16,33 @@ import java.util.Date;
 public class Plan extends BaseEntity {
 
 
-    @Column(column="address")
+    @Column(name="address")
     private String address;
 
-    @Column(column="latitude")
+    @Column(name="latitude")
     private double latitude;
 
-    @Column(column="longitude")
+    @Column(name="longitude")
     private double longitude;
 
-    @Column(column="startTime")
+    @Column(name="startTime")
     private Date startTime;
 
-    @Column(column="desc")
+    @Column(name="desc")
     private String desc;
 
-    @Column(column="partyId")
+    @Column(name="partyId")
     private String partyId;
 
-    @Column(column="status")
+    @Column(name="status")
     private int status;
 
-    @Column(column="attendNum")
+    @Column(name="attendNum")
     private int addtendNum;
 
-    @Column(column = "signed")
+    @Column(name = "signed")
     private int signed;
 
-    @Transient
     private String distance;
 
     public String getAddress() {

@@ -1,7 +1,7 @@
 package com.juju.app.entity.base;
 
-import com.lidroid.xutils.db.annotation.Column;
-import com.lidroid.xutils.db.annotation.Id;
+
+import org.xutils.db.annotation.Column;
 
 import java.io.Serializable;
 
@@ -14,10 +14,10 @@ import java.io.Serializable;
  */
 public abstract class BaseEntity implements Serializable {
 
-    @Id(column = "local_id")
+    @Column(name = "local_id", isId = true)
     protected long localId;
 
-    @Column(column = "id")
+    @Column(name = "id")
     protected String id;
 
     public long getLocalId() {

@@ -21,6 +21,7 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
@@ -28,14 +29,13 @@ import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CircleCopperImageView;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.imagezoom.utils.DecodeUtils;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +90,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
         String targetNo = userNo==null?userInfoBean.getJujuNo():userNo;
-        BitmapUtilFactory.getInstance(this).display(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo);
+        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
     }
 
 
@@ -188,7 +188,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
         }
     }
 
-    @OnClick(R.id.confirm)
+    @Event(R.id.confirm)
     private void uploadHead(View view){
         if(!headImg.isFillCircle()){
             ToastUtil.showShortToast(this,"图片需充满圆形区域！",1);
@@ -222,7 +222,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
         }
     }
 
-    @OnClick(R.id.cancel)
+    @Event(R.id.cancel)
     private void cancelUpload(View view){
         originHeadImg.setVisibility(View.VISIBLE);
         headImg.setVisibility(View.GONE);
@@ -246,21 +246,66 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
         return Bitmap.createBitmap(bitmap, retX, retY, wh, wh, null, false);
     }
 
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.upload_head:
+//                txt_confirm.setClickable(true);
+//                txt_cancel.setClickable(true);
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            completeLoading();
+//                            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+//                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+//                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
+//                            originHeadImg.setVisibility(View.VISIBLE);
+//                            headImg.setVisibility(View.GONE);
+//                            menuLayout.setVisibility(View.GONE);
+//                        } else {
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        completeLoading();
+//        ToastUtil.showShortToast(this,"上传失败",1);
+//        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+//        BitmapUtilFactory.getInstance(this).display(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
+//        txt_confirm.setClickable(true);
+//        txt_cancel.setClickable(true);
+//        originHeadImg.setVisibility(View.VISIBLE);
+//        headImg.setVisibility(View.GONE);
+//        menuLayout.setVisibility(View.GONE);
+//        System.out.println("TAG's accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
+//                error.getExceptionCode());
+//    }
+
+
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case R.id.upload_head:
                 txt_confirm.setClickable(true);
                 txt_cancel.setClickable(true);
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
                             completeLoading();
                             UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
-                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
+//                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+//                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
                             originHeadImg.setVisibility(View.VISIBLE);
                             headImg.setVisibility(View.GONE);
                             menuLayout.setVisibility(View.GONE);
@@ -276,19 +321,28 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
         completeLoading();
         ToastUtil.showShortToast(this,"上传失败",1);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        BitmapUtilFactory.getInstance(this).display(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
+        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(), BitmapUtilFactory.Option.imageOptions());
         txt_confirm.setClickable(true);
         txt_cancel.setClickable(true);
         originHeadImg.setVisibility(View.VISIBLE);
         headImg.setVisibility(View.GONE);
         menuLayout.setVisibility(View.GONE);
-        System.out.println("TAG's accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-                error.getExceptionCode());
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e(TAG, "onFailure", ex);
     }
 
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
+    }
 
 }

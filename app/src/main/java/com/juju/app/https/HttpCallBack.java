@@ -1,8 +1,10 @@
 package com.juju.app.https;
 
 
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
+import com.squareup.okhttp.Response;
+
+import org.xutils.common.Callback;
+
 
 /**
  * 项目名称：juju
@@ -13,10 +15,11 @@ import com.lidroid.xutils.http.ResponseInfo;
  */
 public interface HttpCallBack {
 
+    public void onSuccess(Object obj, int accessId);
 
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId);
 
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj);
+    public void onCancelled(Callback.CancelledException cex);
 
-    public void onFailure(HttpException error, String msg, int accessId);
-
+    public void onFinished();
 }

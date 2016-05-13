@@ -33,7 +33,7 @@ public class Constants {
     public static final String BASE_IMAGE_CACHE = BASE_PATH + "cache/images/";
 
     //是否是开发模式
-    public static final boolean IS_APP_MODEL = true;
+    public static final boolean IS_APP_MODEL = false;
 
     /**
      ******************************************* 参数设置信息结束 ******************************************
@@ -51,7 +51,6 @@ public class Constants {
     public static final int pageSize = 21;
     public static final int yayaPageSize = 8;
     public static final String SESSION_ID_KEY = "session_id";
-    public static final String GROUP_NAME_KEY = "group_name";
 
 
     /**

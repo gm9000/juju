@@ -15,6 +15,7 @@ import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -32,6 +33,7 @@ import com.juju.app.bean.json.LiveAddressResBean;
 import com.juju.app.bean.json.LoginResBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.media.encoder.MediaEnCoderFactory;
 import com.juju.app.media.util.YuvProcess;
@@ -41,16 +43,15 @@ import com.juju.app.service.MediaProcessService;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.CustomDialog;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
+import org.xutils.common.Callback;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -173,7 +174,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
         boolean bindFlag = bindService(intent, conn, Context.BIND_AUTO_CREATE);
     }
 
-    @OnClick(R.id.img_change)
+    @Event(R.id.img_change)
     private void changeCamera(View view){
         if (camera == null) {
             return;
@@ -191,7 +192,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
         startCamera(camera);
     }
 
-    @OnClick(R.id.img_close)
+    @Event(R.id.img_close)
     private void closeVideo(View view){
         if (mediaProcessService.isProcess()) {
             CustomDialog.Builder builder = new CustomDialog.Builder(this);
@@ -219,7 +220,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
     }
 
-    @OnClick(R.id.img_play)
+    @Event(R.id.img_play)
     private void uploadVideo(View view){
         JlmHttpClient client = new JlmHttpClient(12, HttpConstants.getLiveServerUrl() + "/apply_for_upload", this, null, LiveAddressResBean.class);
         try {
@@ -382,12 +383,56 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
         }
     }
 
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case 12:
+//                if(obj != null && obj.length > 0) {
+//                    LiveAddressResBean liveAddressBean = (LiveAddressResBean)obj[0];
+//                    mediaProcessService.setUpdateUrl(liveAddressBean.getUploadUrl());
+//
+//                    Map<String, Object> valueMap = new HashMap<String, Object>();
+//                    valueMap.put("videoUrl", liveAddressBean.getDownloadUrl());
+//                    JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(22,
+//                            HttpConstants.getUserUrl() + "/publishVideo", this, valueMap, LoginResBean.class);
+//
+//                    //增加注释
+//                    try {
+//                        client.sendPost();
+//                    } catch (UnsupportedEncodingException e) {
+//                        e.printStackTrace();
+//                    } catch (JSONException e) {
+//                        e.printStackTrace();
+//                    }
+//                    mediaProcessService.startEncoding();
+//                    imgPlay.setVisibility(View.GONE);
+//                }
+//                break;
+//            case 22:
+//                if(obj != null && obj.length > 0) {
+//                }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        switch (accessId) {
+//            case 12:
+//                statusText.setText("服务器连接失败!");
+//                break;
+//            case 22:
+//                statusText.setText("视频地址发布失败!");
+//                break;
+//        }
+//    }
+
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case 12:
-                if(obj != null && obj.length > 0) {
-                    LiveAddressResBean liveAddressBean = (LiveAddressResBean)obj[0];
+                if(obj != null) {
+                    LiveAddressResBean liveAddressBean = (LiveAddressResBean)obj;
                     mediaProcessService.setUpdateUrl(liveAddressBean.getUploadUrl());
 
                     Map<String, Object> valueMap = new HashMap<String, Object>();
@@ -408,14 +453,16 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
                 }
                 break;
             case 22:
-                if(obj != null && obj.length > 0) {
+                if(obj != null) {
                 }
                 break;
         }
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e("UploadVideoActivity", "onFailure", ex);
         switch (accessId) {
             case 12:
                 statusText.setText("服务器连接失败!");
@@ -425,6 +472,18 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
                 break;
         }
     }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
+    }
+
+
 
     public class CameraSizeComparator implements Comparator<Camera.Size> {
         //按升序排列

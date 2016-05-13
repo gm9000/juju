@@ -3,7 +3,8 @@ package com.juju.app.entity.chat;
 
 import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.helper.chat.EntityChangeEngine;
-import com.lidroid.xutils.db.annotation.Column;
+
+import org.xutils.db.annotation.Column;
 
 /**
  *
@@ -16,19 +17,19 @@ public abstract class PeerEntity extends BaseEntity {
      * 聊天对象ID（聚聚号或群组）
      */
 
-    @Column(column = "peer_id")
+    @Column(name = "peer_id")
     protected String peerId;
 
-    @Column(column = "main_name")
+    @Column(name = "main_name")
     protected String mainName;
 
-    @Column(column = "avatar")
+    @Column(name = "avatar")
     protected String avatar;
 
-    @Column(column = "created")
+    @Column(name = "created")
     protected int created;
 
-    @Column(column = "updated")
+    @Column(name = "updated")
     protected int updated;
 
     public String getPeerId() {

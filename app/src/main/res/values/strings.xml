@@ -95,6 +95,12 @@
     <string name="chat_create_loading">群聊创建中...</string>
     <string name="chat_name_null">群聊名称不能为空</string>
     <string name="chat_name_over_length">群聊名称超过指定长度</string>
+    <string name="chat_is_null">群聊不存在</string>
+
+    <string name="cancel_top_message">取消置顶</string>
+    <string name="top_message">置顶聊天</string>
+    <string name="cancel_forbid_group_message">取消免打扰</string>
+    <string name="forbid_group_message">免打扰</string>
 
 
 

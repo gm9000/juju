@@ -5,6 +5,8 @@ import com.juju.app.activity.party.PartyActivity;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.ui.base.BaseFragment;
 
+import org.xutils.view.annotation.ContentView;
+
 /**
  * 项目名称：juju
  * 类描述：群聊—Fragment
@@ -13,6 +15,7 @@ import com.juju.app.ui.base.BaseFragment;
  * 版本：V1.0.0
  *
  */
+@ContentView(R.layout.fragment_picture)
 @CreateFragmentUI(viewId = R.layout.fragment_picture)
 public class PictureFragment extends BaseFragment{
 

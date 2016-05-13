@@ -26,24 +26,23 @@ import com.juju.app.entity.User;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.scroll.NoScrollGridView;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.db.sqlite.WhereBuilder;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.db.sqlite.WhereBuilder;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
@@ -129,7 +128,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
     private void initData() {
 
         try {
-            planList = JujuDbUtils.getInstance(this).findAll(Selector.from(Plan.class).where("partyId", "=", partyId));
+            planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("partyId", "=", partyId).findAll();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -168,8 +167,8 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
         PlanVote planVote = null;
 
         try {
-            planVoteList = JujuDbUtils.getInstance(this).findAll(Selector.from(PlanVote.class).where("planId", "=", planId));
-            planVote = JujuDbUtils.getInstance(this).findFirst(Selector.from(PlanVote.class).where("planId", "=", planId).and("attenderNo", "=", userInfoBean.getJujuNo()));
+            planVoteList = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).findAll();
+            planVote = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).and("attenderNo", "=", userInfoBean.getJujuNo()).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -240,13 +239,13 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
         planId = getIntent().getStringExtra(Constants.PLAN_ID);
     }
 
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void cancelOperation(View view){
         ActivityUtil.finish(this);
     }
 
 
-    @OnClick(R.id.btn_operate)
+    @Event(R.id.btn_operate)
     private void changeSignFlag(View view){
         votePlanToServer(planId, !isSigned);
     }
@@ -277,12 +276,69 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
     }
 
 
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.txt_party:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+//                            if(isSigned){
+//
+//                                WhereBuilder whereBuilder = WhereBuilder.b("attenderNo", "=", userTokenInfoBean.getJujuNo());
+//                                whereBuilder.and("planId", "=", planId);
+//                                JujuDbUtils.getInstance(this).delete(PlanVote.class, whereBuilder);
+//                                Plan plan = JujuDbUtils.getInstance(this).findFirst(Selector.from(Plan.class).where("id","=",planId));
+//                                plan.setAddtendNum(plan.getAddtendNum()-1);
+//                                plan.setSigned(0);
+//                                JujuDbUtils.saveOrUpdate(plan);
+//
+//                            }else{
+//                                User user = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", userTokenInfoBean.getJujuNo()));
+//                                PlanVote planVote = new PlanVote();
+//                                planVote.setPlanId(planId);
+//                                planVote.setAttender(user);
+//                                JujuDbUtils.save(planVote);
+//
+//                                Plan plan = JujuDbUtils.getInstance(this).findFirst(Selector.from(Plan.class).where("id","=",planId));
+//                                plan.setAddtendNum(plan.getAddtendNum()+1);
+//                                plan.setSigned(1);
+//                                JujuDbUtils.saveOrUpdate(plan);
+//                            }
+//                            //  TOTO    通知 Plan投票发生变化
+//                            completeLoading();
+//                            ActivityUtil.finish(this);
+//                        } else {
+//                            completeLoading();
+//                            Log.e(TAG,"return status code:"+status);
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    } catch(DbException e){
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        completeLoading();
+//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
+//                error.getExceptionCode());
+//    }
+
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case R.id.txt_party:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -292,19 +348,19 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
                                 WhereBuilder whereBuilder = WhereBuilder.b("attenderNo", "=", userTokenInfoBean.getJujuNo());
                                 whereBuilder.and("planId", "=", planId);
                                 JujuDbUtils.getInstance(this).delete(PlanVote.class, whereBuilder);
-                                Plan plan = JujuDbUtils.getInstance(this).findFirst(Selector.from(Plan.class).where("id","=",planId));
+                                Plan plan = JujuDbUtils.getInstance(this).selector(Plan.class).where("id", "=", planId).findFirst();
                                 plan.setAddtendNum(plan.getAddtendNum()-1);
                                 plan.setSigned(0);
                                 JujuDbUtils.saveOrUpdate(plan);
 
                             }else{
-                                User user = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", userTokenInfoBean.getJujuNo()));
+                                User user = JujuDbUtils.getInstance(getContext()).selector(User.class).where("userNo", "=", userTokenInfoBean.getJujuNo()).findFirst();
                                 PlanVote planVote = new PlanVote();
                                 planVote.setPlanId(planId);
                                 planVote.setAttender(user);
                                 JujuDbUtils.save(planVote);
 
-                                Plan plan = JujuDbUtils.getInstance(this).findFirst(Selector.from(Plan.class).where("id","=",planId));
+                                Plan plan = JujuDbUtils.getInstance(this).selector(Plan.class).where("id", "=", planId).findFirst();
                                 plan.setAddtendNum(plan.getAddtendNum()+1);
                                 plan.setSigned(1);
                                 JujuDbUtils.saveOrUpdate(plan);
@@ -328,11 +384,23 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
         completeLoading();
-        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-                error.getExceptionCode());
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e(TAG, "onFailure", ex);
     }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
+    }
+
+
 
     @Override
     public void onCheckedChanged(RadioGroup group, int checkedId) {
@@ -355,7 +423,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
             Plan plan = planList.get(planIndex);
             planId = plan.getId();
             try {
-                planVoteList = JujuDbUtils.getInstance(this).findAll(Selector.from(PlanVote.class).where("planId", "=", planId));
+                planVoteList = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).findAll();
             } catch (DbException e) {
                 e.printStackTrace();
             }
@@ -385,7 +453,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
 
     }
 
-    @OnClick(R.id.layout_location)
+    @Event(R.id.layout_location)
     private void showMap(View view){
         Plan plan = planList.get(planIndex);
         if(plan.getLatitude()!=0 && plan.getLongitude()!=0) {
@@ -403,4 +471,6 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
         ActivityUtil.startActivity(this, SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,planVoteList.get(position).getAttender().getUserNo()));
 
     }
+
+
 }

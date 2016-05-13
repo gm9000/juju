@@ -6,6 +6,10 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SessionEntity;
 
+import org.xutils.ex.DbException;
+
+import java.util.List;
+
 /**
  * 项目名称：juju
  * 类描述：群组
@@ -18,4 +22,5 @@ public class GroupDaoImpl extends DaoSupport<GroupEntity, Long> {
     public GroupDaoImpl(Context context) {
         super(context);
     }
+
 }

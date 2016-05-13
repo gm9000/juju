@@ -12,17 +12,22 @@ import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
+import com.juju.app.BuildConfig;
 import com.juju.app.activity.MainActivity;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.CacheManager;
+import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.rey.material.app.ThemeManager;
 
 
+import org.xutils.x;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 项目名称：juju
@@ -58,6 +63,8 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        x.Ext.init(this);
+        x.Ext.setDebug(BuildConfig.DEBUG);
         SDKInitializer.initialize(this);
         init();
     }
@@ -70,34 +77,33 @@ public class BaseApplication extends Application {
 
         ThemeManager.init(getApplicationContext(), 2, 0, null);
 
-        Stetho.initialize(Stetho
-                .newInitializerBuilder(this)
-                .enableDumpapp(Stetho.defaultDumperPluginsProvider(this))
-                .enableWebKitInspector(
-                        Stetho.defaultInspectorModulesProvider(this)).build());
+//        Stetho.initializeWithDefaults(this);
 
-//        Stetho.initialize(Stetho.newInitializerBuilder(this)
-//                .enableWebKitInspector(new InspectorModulesProvider() {
-//                    @Override
-//                    public Iterable<ChromeDevtoolsDomain> get() {
-//                        return new Stetho.DefaultInspectorModulesBuilder(getApplicationContext()).provideDatabaseDriver(
-//                                new SqliteDatabaseDriver(getApplicationContext(), new DatabaseFilesProvider() {
-//
-//                                    @Override
-//                                    public List<File> getDatabaseFiles() {
-//                                        List<File> files = new ArrayList<File>();
-//                                        files.add(new File("/mnt/sdcard/Android/data/com.juju.app/cache/App/juju.db"));
-//                                        return files;
-//                                    }
-//                                })
-//                        ).finish();
-//                    }
-//                })
-//                .build());
+        Stetho.initialize(Stetho.newInitializerBuilder(this)
+                .enableWebKitInspector(new InspectorModulesProvider() {
+                    @Override
+                    public Iterable<ChromeDevtoolsDomain> get() {
+                        return new Stetho.DefaultInspectorModulesBuilder(getApplicationContext()).provideDatabaseDriver(
+                                new SqliteDatabaseDriver(getApplicationContext(), new DatabaseFilesProvider() {
+
+                                    @Override
+                                    public List<File> getDatabaseFiles() {
+                                        List<File> files = new ArrayList<File>();
+                                        files.add(getDatabasePath(DBConstant.DB_NAME));
+                                        return files;
+                                    }
+                                })
+                        ).finish();
+                    }
+                })
+                .build());
 
 
         ActiveAndroid.initialize(this);
 
+
+//        OkHttpUtils.getInstance().debug("OkHttpUtils")
+//                .setConnectTimeout(100000, TimeUnit.MILLISECONDS);
 
     }
 
@@ -112,7 +118,7 @@ public class BaseApplication extends Application {
 
     @Override
     public File getDatabasePath(String name) {
-        return new File(CacheManager.getAppDatabasePath(this));
+        return new File(CacheManager.getAppDatabasePath(this)+"/"+name);
     }
 
     /**

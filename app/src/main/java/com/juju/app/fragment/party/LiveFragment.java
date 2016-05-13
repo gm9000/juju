@@ -1,6 +1,7 @@
 package com.juju.app.fragment.party;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -16,17 +17,19 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.VideoProgram;
 import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.NetWorkUtil;
 import com.juju.app.utils.ToastUtil;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
+
 
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
+import org.xutils.common.Callback;
+import org.xutils.view.annotation.ContentView;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -41,6 +44,7 @@ import java.util.Map;
  * 日期：2016/2/18 15:09
  * 版本：V1.0.0
  */
+@ContentView(R.layout.fragment_live)
 @CreateFragmentUI(viewId = R.layout.fragment_live)
 public class LiveFragment extends BaseFragment implements CreateUIHelper,
         AdapterView.OnItemClickListener, HttpCallBack {
@@ -117,12 +121,26 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
         }
     }
 
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        switch (accessId){
+//            case 23:
+//
+//                break;
+//        }
+//    }
+
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case 23:
-                if(obj != null && obj.length > 0) {
-                    GetVideoUrlsResBean videoUrlsResBeann = (GetVideoUrlsResBean)obj[0];
+                if(obj != null) {
+                    GetVideoUrlsResBean videoUrlsResBeann = (GetVideoUrlsResBean)obj;
                     videoProgramList = new ArrayList<VideoProgram>();
                     VideoProgram v1 = new VideoProgram();
                     v1.setCreatorName("聚龙小子");
@@ -165,11 +183,19 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
-        switch (accessId){
-            case 23:
-
-                break;
-        }
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e("LiveFragment", "onFailure", ex);
     }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
+    }
+
 }

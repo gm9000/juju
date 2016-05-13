@@ -5,7 +5,8 @@ import android.os.Bundle;
 
 import com.juju.app.R;
 import com.juju.app.ui.base.BaseActivity;
-import com.lidroid.xutils.view.annotation.ContentView;
+
+import org.xutils.view.annotation.ContentView;
 
 @ContentView(R.layout.activity_upload_photo)
 public class UploadPhotoActivity extends BaseActivity {

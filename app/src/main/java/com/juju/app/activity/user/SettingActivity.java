@@ -24,6 +24,7 @@ import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
@@ -32,18 +33,16 @@ import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.dialog.WarnTipDialog;
-import com.lidroid.xutils.ViewUtils;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
+import org.xutils.x;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -91,7 +90,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewUtils.inject(this);
+        x.view().inject(this);
         initParam();
         initView();
         loadUserInfo();
@@ -147,7 +146,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     private void loadUserInfo() {
         String targetNo = userNo==null?BaseApplication.getInstance().getUserInfoBean().getJujuNo():userNo;
 
-        BitmapUtilFactory.getInstance(this).display(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo);
+        BitmapUtilFactory.getInstance(this).bind(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
         User userInfo = null;
         if(userNo == null) {
             String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
@@ -156,7 +155,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
             }
         }else{
             try {
-                userInfo = JujuDbUtils.getInstance(this).findFirst(Selector.from(User.class).where("userNo","=",userNo));
+                userInfo = JujuDbUtils.getInstance(this).selector(User.class).where("userNo", "=", userNo).findFirst();
             } catch (DbException e) {
                 e.printStackTrace();
             }
@@ -233,26 +232,26 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
 
 
 
-    @OnClick(R.id.head)
+    @Event(R.id.head)
     private void showHeadImg(View view){
         ActivityUtil.startActivity(this, UploadPhotoActivity.class, new BasicNameValuePair(Constants.USER_NO, userNo));
     }
 
-    @OnClick(R.id.layout_nick_name)
+    @Event(R.id.layout_nick_name)
     private void modifyNickName(View view){
         BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
         BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
         ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
     }
 
-    @OnClick(R.id.layout_gender)
+    @Event(R.id.layout_gender)
     private void modifyGender(View view){
         BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_gender));
         BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_gender.getText().toString());
         ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
     }
 
-    @OnClick(R.id.layout_phone)
+    @Event(R.id.layout_phone)
     private void modifyPhone(View view){
         BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_phoneNo));
         BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_phoneNo.getText().toString());
@@ -260,7 +259,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     }
 
 
-    @OnClick(R.id.img_rememberPwd)
+    @Event(R.id.img_rememberPwd)
     private void remenberPwd(View view){
         boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD,true);
         SpfUtil.put(getApplicationContext(), Constants.REMEMBER_PWD, !rememberPwd);
@@ -273,7 +272,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
         }
     }
 
-    @OnClick(R.id.img_autoLogin)
+    @Event(R.id.img_autoLogin)
     private void autoLogin(View view){
         boolean autoLogin = (boolean) SpfUtil.get(getApplicationContext(),Constants.AUTO_LOGIN,true);
         SpfUtil.put(getApplicationContext(), Constants.AUTO_LOGIN, !autoLogin);
@@ -286,11 +285,11 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
         }
     }
 
-    @OnClick(R.id.img_back)
+    @Event(R.id.img_back)
     private void imgBack(View view) {
         toMe();
     }
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void txtBack(View view){
         toMe();
     }
@@ -299,7 +298,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
         ActivityUtil.finish(this);
     }
 
-    @OnClick(R.id.logoutBtn)
+    @Event(R.id.logoutBtn)
     private void clickLogout(View view){
         WarnTipDialog tipdialog = new WarnTipDialog(this,"您确定要退出吗？");
         tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
@@ -331,15 +330,101 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
 
 
 
+
     /**
      *******************************************回调函数******************************************
      */
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.logoutBtn:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
+//                            Intent intent = new Intent(this, LoginActivity.class);
+//                            intent.putExtra(Constants.AUTO_LOGIN,false);
+//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                            this.startActivity(intent);
+//                        } else {
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//            case R.id.txt_jujuNo:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            JSONObject userJson = jsonRoot.getJSONObject("user");
+//                            //   "userNo":"100000001","nickName":"别名-1","userPhone":"13800000001","birthday":1451889752445,"gender":1,"createTime":1451889752445}
+//                            User userInfo = new User();
+//                            userInfo.setUserNo(userJson.getString("userNo"));
+//                            userInfo.setNickName(userJson.getString("nickName"));
+//                            userInfo.setUserPhone(userJson.getString("userPhone"));
+//                            userInfo.setGender(userJson.getInt("gender"));
+//
+//                            txt_gender.setText(userInfo.getGender() == 0 ? "女" : "男");
+//                            txt_jujuNo.setText(userInfo.getUserNo());
+//                            txt_phoneNo.setText(userInfo.getUserPhone());
+//                            txt_nickName.setText(userInfo.getNickName());
+//                            JujuDbUtils.saveOrUpdate(userInfo);
+//                            if(userNo == null) {
+//                                SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+//                            }else{
+//                                txt_title.setText(userInfo.getNickName());
+//                            }
+//
+//                        } else {
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//            case R.id.txt_property:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
+//                            User userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
+//                            userInfo.setUpdate(false);
+//                            JujuDbUtils.saveOrUpdate(userInfo);
+//                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+//                        } else {
+//                            Log.e(TAG,"return status code:"+status);
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
+//                error.getExceptionCode());
+//    }
+
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case R.id.logoutBtn:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -357,8 +442,8 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
                 }
                 break;
             case R.id.txt_jujuNo:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -390,8 +475,8 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
                 }
                 break;
             case R.id.txt_property:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -414,8 +499,20 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
-        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-                error.getExceptionCode());
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e(TAG, "onFailure", ex);
     }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
+    }
+
+
 }

@@ -10,10 +10,11 @@ import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.MessageConstant;
-import com.lidroid.xutils.DbUtils;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.db.sqlite.WhereBuilder;
-import com.lidroid.xutils.exception.DbException;
+
+
+import org.xutils.db.Selector;
+import org.xutils.db.sqlite.WhereBuilder;
+import org.xutils.ex.DbException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -55,8 +56,8 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
     public List<MessageEntity> findAll() {
         List<MessageEntity> messageList = null;
         try {
-            messageList = db.findAll(Selector.from(MessageEntity.class).
-                    orderBy("created desc, msg_id", true));
+            messageList = db.selector(MessageEntity.class)
+                    .orderBy("created desc, msg_id", true).findAll();
         } catch (DbException e) {
             Log.e(TAG, "MessageDaoImpl#findAll error:", e);
         }
@@ -83,16 +84,22 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
         int preMsgId = lastMsgId +1;
         List<MessageEntity> messageList = null;
         try {
-            messageList = db.findAll(Selector.from(MessageEntity.class).where("created", "<=", lastCreateTime)
+            messageList = db.selector(MessageEntity.class)
+                    .where("created", "<=", lastCreateTime)
                     .and("session_key", "=", sessionKey)
                     .and((WhereBuilder.b("msg_id", ">", 90000000).or("msg_id", " <= ", lastMsgId)))
                     .and("msg_id", "!=", preMsgId)
                     .orderBy("created desc, msg_id", true)
-                    .limit(count));
+                    .limit(count).findAll();
         } catch (DbException e) {
             Log.e(TAG, "MessageDaoImpl#findHistoryMsgs error:", e);
         }
-        return formatMessage(messageList);
+        if(messageList != null && messageList.size() >0) {
+            return formatMessage(messageList);
+        } else {
+            messageList = new ArrayList<>();
+        }
+        return messageList;
     }
 
 
@@ -154,14 +161,18 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
     public long getSessionLastTime() {
         long timeLine = 1l;
         String successType = String.valueOf(MessageConstant.MSG_SUCCESS);
-        Selector selector = Selector.from(MessageEntity.class);
-        selector.where("status", "=", successType).orderBy("created", true).offset(0).limit(1);
-
-        List<MessageEntity> list = findAll(selector);
-        if(list != null) {
-            for(MessageEntity entity : list) {
-                timeLine = entity.getCreated();
+        Selector selector = null;
+        try {
+            selector = db.selector(MessageEntity.class);
+            selector.where("status", "=", successType).orderBy("created", true).offset(0).limit(1);
+            List<MessageEntity> list = findAll(selector);
+            if(list != null) {
+                for(MessageEntity entity : list) {
+                    timeLine = entity.getCreated();
+                }
             }
+        } catch (DbException e) {
+            e.printStackTrace();
         }
         return timeLine;
     }

@@ -6,7 +6,6 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.golobal.MessageConstant;
-import com.lidroid.xutils.db.sqlite.Selector;
 
 import java.util.List;
 

@@ -12,10 +12,10 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
+import com.juju.app.entity.User;
 import com.juju.app.golobal.BitmapUtilFactory;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.view.RoundImageView;
-import com.lidroid.xutils.BitmapUtils;
-import com.lidroid.xutils.bitmap.BitmapDisplayConfig;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,8 +34,6 @@ public class PartyListAdapter extends BaseAdapter{
     }
 
     private List<Party> partyList = new ArrayList<Party>();
-    private BitmapUtils bitmapUtils;
-    private BitmapDisplayConfig bdCofig;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private Callback mCallback;
 
@@ -50,13 +48,11 @@ public class PartyListAdapter extends BaseAdapter{
         public void follow(Party party,int follow);
     }
 
-    public PartyListAdapter(LayoutInflater inflater, BitmapUtils bitmapUtils, BitmapDisplayConfig bdCofig, List<Party> list, Callback callback) {
+    public PartyListAdapter(LayoutInflater inflater, List<Party> list, Callback callback) {
         this.inflater = inflater;
         if (list != null) {
             this.partyList = list;
         }
-        this.bitmapUtils = bitmapUtils;
-        this.bdCofig = bdCofig;
         this.mCallback = callback;
     }
 
@@ -100,11 +96,14 @@ public class PartyListAdapter extends BaseAdapter{
                 if (party.getFollowFlag() == 0) {
                     mCallback.follow(party, 1);
                 } else {
-                    mCallback.follow(party,0);
+                    mCallback.follow(party, 0);
                 }
             }
         });
-        BitmapUtilFactory.getInstance(inflater.getContext()).display(imgCreatorHead, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + party.getCreator().getUserNo());
+
+        BitmapUtilFactory.getInstance(inflater.getContext()).bind(imgCreatorHead,
+                HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                        + party.getCreator().getUserNo(), BitmapUtilFactory.Option.imageOptions());
         txtCreatorName.setText(party.getCreator().getNickName());
         txtPartyName.setText(party.getName());
         if(party.getTime()!=null) {

@@ -1,7 +1,11 @@
 package com.juju.app.fragment;
 
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextThemeWrapper;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
@@ -19,29 +23,30 @@ import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.UnreadEntity;
+import com.juju.app.event.GroupEvent;
 import com.juju.app.event.SessionEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
-import com.juju.app.service.im.manager.IMLoginManager;
-import com.juju.app.service.im.manager.IMMessageManager;
+import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.manager.IMUnreadMsgManager;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
-import com.juju.app.utils.NetWorkUtil;
-import com.juju.app.utils.StringUtils;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
-import com.lidroid.xutils.view.annotation.event.OnItemClick;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +59,7 @@ import java.util.List;
  * 版本：V1.0.0
  *
  */
+@ContentView(R.layout.fragment_group_chat)
 @CreateFragmentUI(viewId = R.layout.fragment_group_chat)
 public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
 
@@ -71,20 +77,19 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
 //    @ViewInject(R.id.tv_connect_errormsg)
 //    public TextView errorText;
 
-
     /**
      * 群组列表
      */
-    @ViewInject(R.id.ContactListView)
-    private ListView lvContact;
+    @ViewInject(R.id.contactListView)
+    private ListView contactListView;
 
 
     @ViewInject(R.id.layout_no_chat)
     private View noChatView;
 
 
-    private List<GroupChatInitBean> groupChats;
-    private GroupChatListAdapter adapter = null;
+//    private List<GroupChatInitBean> groupChats;
+    private GroupChatListAdapter contactAdapter = null;
     private IMService imService;
 
     //聊天服务连接器
@@ -116,6 +121,7 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
     public void onCreate(Bundle savedInstanceState) {
         imServiceConnector.connect(getActivity());
         super.onCreate(savedInstanceState);
+
     }
 
 
@@ -126,23 +132,43 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
         }
         imServiceConnector.disconnect(getActivity());
         super.onDestroy();
+
+
     }
 
-    @OnItemClick(R.id.ContactListView)
-    public void onItemClickListView(AdapterView<?> parent, View view, int position, long id) {
+
+    @Event(value = R.id.contactListView, type = AdapterView.OnItemClickListener.class)
+    private void onImageItemClick(AdapterView<?> parent, View view, int position, long id) {
         //点击群聊列表，跳转到群聊面板
-        if(adapter.getGroupChats().size() > 0) {
-            GroupChatInitBean bean = adapter.getGroupChats().get(position);
+        if(contactAdapter.getGroupChats().size() > 0) {
+            RecentInfo bean = contactAdapter.getGroupChats().get(position);
             List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
             BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
-                    bean.getSessionId());
-            BasicNameValuePair nameValue = new BasicNameValuePair(Constants.GROUP_NAME_KEY,
-                    bean.getGroup().getMainName());
+                    bean.getSessionKey());
+
+
             valuePairs.add(markerIdValue);
-            valuePairs.add(nameValue);
             ActivityUtil.startActivity(getActivity(), ChatActivity.class,
                     valuePairs.toArray(new BasicNameValuePair[]{}));
         }
+    }
+
+
+    @Event(value = R.id.contactListView, type = AdapterView.OnItemLongClickListener.class)
+    private boolean onItemLongClick(AdapterView<?> parent, View view,
+                                   int position, long id) {
+
+        RecentInfo recentInfo = contactAdapter.getItem(position);
+        if (recentInfo == null) {
+            logger.e("recent#onItemLongClick null recentInfo -> position:%d", position);
+            return false;
+        }
+        if (recentInfo.getSessionType() == DBConstant.SESSION_TYPE_SINGLE) {
+//            handleContactItemLongClick(getActivity(),recentInfo);
+        } else {
+            handleGroupItemLongClick(getActivity(), recentInfo);
+        }
+        return true;
     }
 
 
@@ -163,95 +189,91 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
 
     @Override
     public void loadData() {
-        initTestData();
-
-
+//        initTestData();
         initGroupsInfo();
     }
 
     @Override
     public void initView() {
-        adapter = new GroupChatListAdapter(getActivity());
-        adapter.setData(groupChats);
-        lvContact.setAdapter(adapter);
+        contactAdapter = new GroupChatListAdapter(getActivity());
+        contactListView.setAdapter(contactAdapter);
 
-//        IMLoginManager.instance().joinChatRoom();
+        //监听长按事件
 
-        //查询所有消息（方便分析数据）
-//        List<MessageEntity> messageEntities = IMMessageManager.instance().findAll4Order("updated:desc");
-//        for(MessageEntity entity : messageEntities) {
-//            logger.d(entity.toString());
-//        }
+//        contactListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 //
-//        List<SessionEntity> sessionEntities = IMSessionManager.instance().findAll();
-//        for(SessionEntity entity : sessionEntities) {
-//            logger.d(entity.toString());
-//        }
 //
-//        List<UnreadEntity> unreadEntities = IMUnreadMsgManager.instance().findAll();
-//        for(UnreadEntity entity : unreadEntities) {
-//            logger.d(entity.toString());
-//        }
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//                //点击群聊列表，跳转到群聊面板
+//                if(contactAdapter.getGroupChats().size() > 0) {
+//                    RecentInfo bean = contactAdapter.getGroupChats().get(position);
+//                    List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
+//                    BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
+//                            bean.getSessionKey());
+//
+//
+//                    valuePairs.add(markerIdValue);
+//                    ActivityUtil.startActivity(getActivity(), ChatActivity.class,
+//                            valuePairs.toArray(new BasicNameValuePair[]{}));
+//                }
+//            }
+//        });
 
+        contactListView.setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(),
+                true, true));
     }
 
     /**
      * 测试数据
      */
     private void initTestData() {
-        groupChats = new ArrayList<GroupChatInitBean>();
-        for(int i = 1; i<=9 ; i++) {
-            GroupEntity group = new GroupEntity();
-            group.setId("00000" + i);
-            group.setMainName("休闲娱乐" + i);
-//            group.setMemberNum(i);
-            List<String> avatar = new ArrayList<String>();
-            if(i >= 1) {
-                avatar.add("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
-            }
-            if (i >= 2) {
-                avatar.add("http://cdn.duitang.com/uploads/item/201511/07/20151107210255_UzQaN.thumb.700_0.jpeg");
-            }
-            if (i >= 3) {
-                avatar.add("http://cdn.duitang.com/uploads/item/201511/08/20151108093409_2fCkn.thumb.700_0.jpeg");
-            }
-            if (i >= 4) {
-                avatar.add("http://img5.duitang.com/uploads/item/201512/04/20151204095217_m8V5G.thumb.700_0.jpeg");
-            }
-            if (i >= 5) {
-                avatar.add("http://img4.duitang.com/uploads/item/201512/04/20151204095410_2f4kT.thumb.700_0.jpeg");
-            }
-            if (i >= 6) {
-                avatar.add("http://cdn.duitang.com/uploads/item/201601/08/20160108130846_MS4TW.thumb.700_0.png");
-            }
-            if (i >= 7) {
-                avatar.add("http://cdn.duitang.com/uploads/item/201512/22/20151222165532_YetiV.thumb.700_0.jpeg");
-            }
-            if (i >= 8) {
-                avatar.add("http://img4.duitang.com/uploads/item/201509/13/20150913094215_HPrai.thumb.700_0.png");
-            }
-            if (i >= 9) {
-                avatar.add("http://img4.duitang.com/uploads/item/201601/06/20160106131952_xirGJ.thumb.700_0.jpeg");
-            }
-            int unReadCnt = 0;
-            if(i == 1) {
-                group.setMainName("测试讨论组");
-                group.setPeerId("ceshi@conference.juju");
-            }
-            GroupChatInitBean groupChat = new GroupChatInitBean(String.valueOf(i), group, "", System.currentTimeMillis(), 0, avatar);
-            if(i == 5) {
-                groupChat.setSessionId("2_ceshi@conference.juju");
-            }
-            groupChats.add(groupChat);
-        }
-//        Group group2 = new Group();
-//        group2.setId(2l);
-//        group2.setName("学术交流");
-//
-//        GroupChatInitBean groupChat2 = new GroupChatInitBean(group2, "已读", "明天上午去国家" +
-//                "图书馆碰面!", "12:11", "1");
-//        groupChats.add(groupChat1);
-//        groupChats.add(groupChat2);
+//        groupChats = new ArrayList<GroupChatInitBean>();
+//        for(int i = 1; i<=9 ; i++) {
+//            GroupEntity group = new GroupEntity();
+//            group.setId("00000" + i);
+//            group.setMainName("休闲娱乐" + i);
+////            group.setMemberNum(i);
+//            List<String> avatar = new ArrayList<String>();
+//            if(i >= 1) {
+//                avatar.add("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
+//            }
+//            if (i >= 2) {
+//                avatar.add("http://cdn.duitang.com/uploads/item/201511/07/20151107210255_UzQaN.thumb.700_0.jpeg");
+//            }
+//            if (i >= 3) {
+//                avatar.add("http://cdn.duitang.com/uploads/item/201511/08/20151108093409_2fCkn.thumb.700_0.jpeg");
+//            }
+//            if (i >= 4) {
+//                avatar.add("http://img5.duitang.com/uploads/item/201512/04/20151204095217_m8V5G.thumb.700_0.jpeg");
+//            }
+//            if (i >= 5) {
+//                avatar.add("http://img4.duitang.com/uploads/item/201512/04/20151204095410_2f4kT.thumb.700_0.jpeg");
+//            }
+//            if (i >= 6) {
+//                avatar.add("http://cdn.duitang.com/uploads/item/201601/08/20160108130846_MS4TW.thumb.700_0.png");
+//            }
+//            if (i >= 7) {
+//                avatar.add("http://cdn.duitang.com/uploads/item/201512/22/20151222165532_YetiV.thumb.700_0.jpeg");
+//            }
+//            if (i >= 8) {
+//                avatar.add("http://img4.duitang.com/uploads/item/201509/13/20150913094215_HPrai.thumb.700_0.png");
+//            }
+//            if (i >= 9) {
+//                avatar.add("http://img4.duitang.com/uploads/item/201601/06/20160106131952_xirGJ.thumb.700_0.jpeg");
+//            }
+//            int unReadCnt = 0;
+//            if(i == 1) {
+//                group.setMainName("测试讨论组");
+//                group.setPeerId("ceshi@conference.juju");
+//            }
+//            GroupChatInitBean groupChat = new GroupChatInitBean(String.valueOf(i), group, "", System.currentTimeMillis(), 0, avatar);
+//            if(i == 5) {
+//                groupChat.setSessionId("2_ceshi@conference.juju");
+//            }
+//            groupChats.add(groupChat);
+//        }
+
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -278,19 +300,49 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
         }
     }
 
+    //群组事件回调
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4GroupEvent(GroupEvent event){
+        switch (event.getEvent()){
+            case GROUP_INFO_OK:
+            case CHANGE_GROUP_MEMBER_SUCCESS:
+                onRecentContactDataReady();
+//                searchDataReady();
+                break;
+
+            case GROUP_INFO_UPDATED:
+                onRecentContactDataReady();
+                searchDataReady();
+                break;
+            case SHIELD_GROUP_OK:
+                // 更新最下栏的未读计数、更新session
+//                onShieldSuccess(event.getGroupEntity());
+                break;
+            case SHIELD_GROUP_FAIL:
+            case SHIELD_GROUP_TIMEOUT:
+//                onShieldFail();
+                break;
+        }
+    }
+
+
+
+
     /**
      * 查找最近消息
      */
     private void onRecentContactDataReady() {
-//        boolean isUserData = imService.getContactManager().isUserDataReady();
-//        boolean isSessionData = imService.getSessionManager().isSessionListReady();
-//        boolean isGroupData =  imService.getGroupManager().isGroupReady();
-//
-//        if ( !(isUserData&&isSessionData&&isGroupData)) {
-//            return;
-//        }
         IMUnreadMsgManager unreadMsgManager = IMUnreadMsgManager.instance();
         IMSessionManager sessionManager = IMSessionManager.instance();
+        IMGroupManager groupManager = IMGroupManager.instance();
+
+        boolean isUserData = imService.getContactManager().isUserDataReady();
+        boolean isSessionData = sessionManager.isSessionListReady();
+        boolean isGroupData =  groupManager.isGroupReady();
+//
+//        if (!(isUserData && isSessionData && isGroupData)) {
+//            return;
+//        }
 
         int totalUnreadMsgCnt = unreadMsgManager.getTotalUnreadCount();
         logger.d("unread#total cnt %d", totalUnreadMsgCnt);
@@ -298,10 +350,11 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
 
         //获取最新消息
         List<RecentInfo> recentSessionList = sessionManager.getRecentListInfo();
+
 //        setNoChatView(recentSessionList);
-        getGroupChats4RecentList(recentSessionList);
+//        getGroupChats4RecentList(recentSessionList);
         //更新群组列表数据
-        adapter.setData(groupChats);
+        contactAdapter.setData(recentSessionList);
 //        hideProgressBar();
 //        showSearchFrameLayout();
     }
@@ -319,20 +372,19 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
     }
 
     private void getGroupChats4RecentList(List<RecentInfo> recentSessionList) {
-        for(GroupChatInitBean groupChatInitBean : groupChats) {
-            if(StringUtils.isNotBlank(groupChatInitBean.getGroup().getPeerId())) {
-                for(RecentInfo recentInfo : recentSessionList) {
-                    if(recentInfo.getPeerId().equals(groupChatInitBean.getGroup().getPeerId())) {
-                        groupChatInitBean.setUnReadCnt(recentInfo.getUnReadCnt());
-                        groupChatInitBean.setUpdateTime(recentInfo.getUpdateTime());
-//                        groupChatInitBean.setIsTop(true);
-                        groupChatInitBean.setContent(recentInfo.getLatestMsgData());
-                        groupChatInitBean.setSessionId(recentInfo.getSessionKey());
-//                        groupChatInitBean.setState();
-                    }
-                }
-            }
-        }
+//        for(GroupChatInitBean groupChatInitBean : groupChats) {
+//            if(StringUtils.isNotBlank(groupChatInitBean.getGroup().getPeerId())) {
+//                for(RecentInfo recentInfo : recentSessionList) {
+//                    if(recentInfo.getPeerId().equals(groupChatInitBean.getGroup().getPeerId())) {
+//                        groupChatInitBean.setUnReadCnt(recentInfo.getUnReadCnt());
+//                        groupChatInitBean.setUpdateTime(recentInfo.getUpdateTime());
+//                        groupChatInitBean.setContent(recentInfo.getLatestMsgData());
+//                        groupChatInitBean.setSessionId(recentInfo.getSessionKey());
+//                    }
+//                }
+//            }
+//        }
+
     }
 
     /**
@@ -340,6 +392,51 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
      */
     private void initGroupsInfo() {
 
+    }
+
+    /**搜索数据OK
+     * 群组数据准备已经完毕
+     * */
+    public void searchDataReady(){
+        if (imService.getGroupManager().isGroupReady()) {
+//            showSearchFrameLayout();
+        }
+    }
+
+    // 现在只有群组存在免打扰的
+    private void handleGroupItemLongClick(final Context ctx, final RecentInfo recentInfo) {
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(ctx, android.R.style.Theme_Holo_Light_Dialog));
+        builder.setTitle(recentInfo.getName());
+
+        final boolean isTop = false;
+        final boolean isForbidden = recentInfo.isForbidden();
+        int topMessageRes = isTop?R.string.cancel_top_message:R.string.top_message;
+        int forbidMessageRes =isForbidden?R.string.cancel_forbid_group_message:R.string.forbid_group_message;
+
+        String[] items = new String[]{ctx.getString(topMessageRes),ctx.getString(forbidMessageRes)};
+
+        builder.setItems(items, new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:{
+//                        imService.getConfigSp().setSessionTop(recentInfo.getSessionKey(),!isTop);
+                    }
+                    break;
+                    case 1:{
+                        // 底层成功会事件通知
+//                        int shieldType = isForbidden?DBConstant.GROUP_STATUS_ONLINE:DBConstant.GROUP_STATUS_SHIELD;
+//                        imService.getGroupManager().reqShieldGroup(recentInfo.getPeerId(),shieldType);
+                    }
+                    break;
+                }
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.setCanceledOnTouchOutside(true);
+        alertDialog.show();
     }
 
 }

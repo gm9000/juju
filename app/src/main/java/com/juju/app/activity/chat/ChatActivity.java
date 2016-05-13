@@ -13,6 +13,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.provider.Settings;
@@ -47,6 +48,7 @@ import com.juju.app.adapter.ChatAdapter;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
@@ -58,6 +60,7 @@ import com.juju.app.golobal.HandlerConstant;
 import com.juju.app.golobal.IntentConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMMessageManager;
 import com.juju.app.tools.Emoparser;
 import com.juju.app.ui.base.BaseActivity;
@@ -71,16 +74,15 @@ import com.juju.app.view.EmoGridView;
 import com.juju.app.view.MGProgressbar;
 
 import com.juju.app.view.groupchat.YayaEmoGridView;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
-import com.lidroid.xutils.view.annotation.event.OnTouch;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.util.List;
 import java.util.Set;
@@ -172,8 +174,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private LinearLayout soundVolumeLayout;
 
 
-    private String sessionId;
-    private String groupName;
+
 
 
     //键盘布局相关参数
@@ -195,6 +196,11 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private static Handler uiHandler = null;
 
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+//        this.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        super.onCreate(savedInstanceState);
+    }
 
     @Override
     protected void onDestroy() {
@@ -209,7 +215,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         EventBus.getDefault().register(this);
         initHandler();
         imServiceConnector.connect(this);
-        groupName = ChatActivity.this.getIntent().getStringExtra(Constants.GROUP_NAME_KEY);
         currentSessionKey =  ChatActivity.this.getIntent().getStringExtra(Constants.SESSION_ID_KEY);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
@@ -217,18 +222,25 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         loginUser.setGender(1);
         loginUser.setPeerId(userInfoBean.getmAccount());
 
-        //测试使用
-        peerEntity = new PeerEntity() {
-            @Override
-            public int getType() {
-                return DBConstant.SESSION_TYPE_GROUP;
-            }
-        };
-        peerEntity.setPeerId("ceshi@conference.juju");
+
+        String[] sessionKeyArr = currentSessionKey.split("_");
+        if(sessionKeyArr.length > 1) {
+            //测试使用
+            peerEntity = new PeerEntity() {
+                @Override
+                public int getType() {
+                    return DBConstant.SESSION_TYPE_GROUP;
+                }
+            };
+            peerEntity.setPeerId(sessionKeyArr[1]);
+        }
+
+
     }
 
     @Override
     public void initView() {
+
         initTitleView();
         initSoftInputMethod();
         initEmo();
@@ -246,19 +258,19 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     }
 
     //结束群聊
-    @OnClick(R.id.img_back)
+    @Event(R.id.img_back)
     private void goBack(ImageView view) {
         ActivityUtil.finish(ChatActivity.this);
     }
 
     //结束群聊
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void goBack1(TextView view) {
         ActivityUtil.finish(ChatActivity.this);
     }
 
     //"十字"按键
-    @OnClick(R.id.show_add_photo_btn)
+    @Event(R.id.show_add_photo_btn)
     private void onClick4AddPhotoBtn(View view) {
         recordAudioBtn.setVisibility(View.GONE);
         keyboardInputImg.setVisibility(View.GONE);
@@ -290,7 +302,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     }
 
     //"表情"按键
-    @OnClick(R.id.show_emo_btn)
+    @Event(R.id.show_emo_btn)
     private void onClick4AddEmoBtn(View view) {
         recordAudioBtn.setVisibility(View.GONE);
         keyboardInputImg.setVisibility(View.GONE);
@@ -322,7 +334,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     }
 
     //"发送"按键
-    @OnClick(R.id.send_message_btn)
+    @Event(R.id.send_message_btn)
     private void onClick4SendBtn(View view) {
         logger.d("chat_activity#send btn clicked");
         String content = messageEdt.getText().toString();
@@ -332,16 +344,21 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                     getResources().getString(R.string.message_null), Toast.LENGTH_LONG).show();
             return;
         }
-        //构造消息实体
-        MessageEntity textMessage = TextMessage.buildForSend(content, loginUser, peerEntity);
-        IMMessageManager.instance().sendText(textMessage);
-        messageEdt.setText("");
-        pushList(textMessage);
+        if(peerEntity != null) {
+            //构造消息实体
+            MessageEntity textMessage = TextMessage.buildForSend(content, loginUser, peerEntity);
+            IMMessageManager.instance().sendText(textMessage);
+            messageEdt.setText("");
+            pushList(textMessage);
+        } else {
+            ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_is_null, 0);
+
+        }
         scrollToBottomListItem();
     }
 
 
-    @OnClick(R.id.tt_new_msg_tip)
+    @Event(R.id.tt_new_msg_tip)
     private void onClick4NewMsgTip(View view) {
         scrollToBottomListItem();
         textView_new_msg_tip.setVisibility(View.GONE);
@@ -375,7 +392,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
 
 
-    @OnClick(R.id.take_photo_btn)
+    @Event(R.id.take_photo_btn)
     private void onClick4BtnTakePhoto(View view) {
 //        if (albumList.size() < 1) {
 //            Toast.makeText(MessageActivity.this,
@@ -394,7 +411,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         scrollToBottomListItem();
     }
 
-    @OnClick(R.id.take_camera_btn)
+    @Event(R.id.take_camera_btn)
     private void onClick4BtnTakCamera(View view) {
 //        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 //        takePhotoSavePath = CommonUtil.getImageSavePath(String.valueOf(System.currentTimeMillis())
@@ -405,7 +422,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         scrollToBottomListItem();
     }
 
-    @OnClick(R.id.show_keyboard_btn)
+    @Event(R.id.show_keyboard_btn)
     private void onClick4BtnShowKeyboard(View view) {
         recordAudioBtn.setVisibility(View.GONE);
         keyboardInputImg.setVisibility(View.GONE);
@@ -414,7 +431,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         addEmoBtn.setVisibility(View.VISIBLE);
     }
 
-    @OnClick(R.id.voice_btn)
+    @Event(R.id.voice_btn)
     private void onClick4BtnVoice(View view) {
         inputManager.hideSoftInputFromWindow(messageEdt.getWindowToken(), 0);
         messageEdt.setVisibility(View.GONE);
@@ -430,7 +447,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
 
 
-    @OnTouch(R.id.record_voice_btn)
+    @Event(value = R.id.record_voice_btn, type = View.OnTouchListener.class)
     private void onTouch4TxtMessage(View v, MotionEvent event) {
 
     }
@@ -487,7 +504,12 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         img_back.setVisibility(View.VISIBLE);
         txt_left.setText(R.string.group_chat);
         txt_left.setVisibility(View.VISIBLE);
-        txt_title.setText(groupName);
+
+        String[] sessionKeyArr = currentSessionKey.split("_");
+        if(sessionKeyArr.length > 1) {
+            GroupEntity groupEntity = IMGroupManager.instance().getGroupMap().get(sessionKeyArr[1]);
+            txt_title.setText(groupEntity.getMainName());
+        }
         img_right.setImageResource(R.mipmap.icon_groupinfo);
     }
 

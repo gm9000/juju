@@ -13,6 +13,7 @@ import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.LoginEvent;
 import com.juju.app.event.PriorityEvent;
 import com.juju.app.golobal.Constants;
+import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.service.im.manager.IMMessageManager;
@@ -60,6 +61,10 @@ public class IMService extends Service {
     //其他服务管理器
     private IMOtherManager otherManager = IMOtherManager.instance();
 
+    //联系人服务管理器
+    private IMContactManager contactMgr = IMContactManager.instance();
+
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -87,6 +92,8 @@ public class IMService extends Service {
         sessionMgr.onStartIMManager(ctx, this);
         unReadMsgMgr.onStartIMManager(ctx, this);
         groupMgr.onStartIMManager(ctx, this);
+        contactMgr.onStartIMManager(ctx, this);
+
 
         otherManager.onStartIMManager(ctx, this);
         //服务kill掉后能重启
@@ -142,6 +149,7 @@ public class IMService extends Service {
         groupMgr.onNormalLoginOk();
         unReadMsgMgr.onNormalLoginOk();
         sessionMgr.onNormalLoginOk();
+        contactMgr.onNormalLoginOk();
     }
 
     /**
@@ -149,10 +157,14 @@ public class IMService extends Service {
      * autoLogin -> DB(loginInfo,loginId...) -> loginSucsess
      */
     private void onLocalLoginOk(){
-        Context ctx = getApplicationContext();
+//        Context ctx = getApplicationContext();
         groupMgr.onLocalLoginOk();
         sessionMgr.onLocalLoginOk();
+        contactMgr.onLocalLoginOk();
+
         messageMgr.onLoginSuccess();
+
+
     }
 
     /**
@@ -162,6 +174,9 @@ public class IMService extends Service {
     private void onLocalNetOk(){
         sessionMgr.onLocalNetOk();
         unReadMsgMgr.onLocalNetOk();
+        contactMgr.onLocalNetOk();
+        groupMgr.onLocalNetOk();
+
     }
 
     private void handleLogout() {
@@ -169,6 +184,7 @@ public class IMService extends Service {
         messageMgr.reset();
         sessionMgr.reset();
         unReadMsgMgr.reset();
+        contactMgr.reset();
     }
 
 
@@ -217,5 +233,12 @@ public class IMService extends Service {
         return sessionMgr;
     }
 
+    public IMGroupManager getGroupManager() {
+        return groupMgr;
+    }
+
+    public IMContactManager getContactManager() {
+        return contactMgr;
+    }
 
 }

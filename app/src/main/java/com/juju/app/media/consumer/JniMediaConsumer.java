@@ -2,7 +2,6 @@ package com.juju.app.media.consumer;
 
 import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.media.jni.NativeLiveProcess;
-import com.lidroid.xutils.HttpUtils;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -37,7 +36,7 @@ public class JniMediaConsumer extends MediaConsumer{
             @Override
             public void run() {
                 isConsuming = true;
-                HttpUtils uploadHttp = new HttpUtils();
+//                HttpUtils uploadHttp = new HttpUtils();
                 int initStauts = mediaProcesser.init("{\"mediaServerIp\":\""+ GlobalVariable.liveServerIp+"\",\"mediaServerPort\":"+GlobalVariable.liveServerPort+"}");
                 mediaChannel = mediaProcesser.start("{\"width\":1280,\"height\":720,\"frameRate\":25,\"videBitRate\":8500000,\"sampleRate\":10000,\"audioBitRate\":8000000}");
 

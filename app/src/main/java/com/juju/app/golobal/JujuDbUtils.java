@@ -2,22 +2,32 @@ package com.juju.app.golobal;
 
 import android.content.Context;
 
+import com.juju.app.config.CacheManager;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
-import com.lidroid.xutils.DbUtils;
-import com.lidroid.xutils.exception.DbException;
+
+import org.xutils.DbManager;
+import org.xutils.ex.DbException;
+import org.xutils.x;
+
+import java.io.File;
+
 
 public class JujuDbUtils {
 
-    private static DbUtils mInstance = null;
+    private static DbManager mInstance = null;
 
-    public static DbUtils getInstance(final Context context) {
+    public static DbManager getInstance(final Context context) {
         if (mInstance == null) {
             synchronized (JujuDbUtils.class){
                 if (mInstance == null) {
-                    mInstance = DbUtils.create(context.getApplicationContext(),DBConstant.DB_NAME);
-                    mInstance.configAllowTransaction(true);
-                    mInstance.configDebug(true);
+                    String dbDir =  CacheManager.getAppDatabasePath(context);
+                    File dbFile = new File(dbDir);
+                    DbManager.DaoConfig daoConfig = new DbManager.DaoConfig();
+                    daoConfig.setDbName(DBConstant.DB_NAME);
+                    daoConfig.setAllowTransaction(true);
+                    daoConfig.setDbDir(dbFile);
+                    mInstance = x.getDb(daoConfig);
                 }
             }
         }

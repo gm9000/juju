@@ -38,8 +38,11 @@ import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.LocationImageView;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
+
+
+import org.xutils.common.Callback;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,6 +51,7 @@ import java.util.List;
 import java.util.Random;
 
 @SuppressLint("ValidFragment")
+@ContentView(R.layout.fragment_location)
 @CreateFragmentUI(viewId = R.layout.fragment_location)
 public class LocationFragment extends BaseFragment implements CreateUIHelper, BaiduMap.OnMarkerClickListener {
 
@@ -271,7 +275,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         if(clickUserNo != null){
             User clickUser = null;
             try {
-                clickUser = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo","=",clickUserNo));
+                clickUser = JujuDbUtils.getInstance(getContext()).selector(User.class).where("userNo", "=", clickUserNo).findFirst();
             } catch (DbException e) {
                 e.printStackTrace();
             }
@@ -331,7 +335,32 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         }
 
         public BitmapDescriptor getBitmapDescriptor() {
-            File headFile = BitmapUtilFactory.getInstance(getContext()).getBitmapFileFromDiskCache(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo);
+            File headFile = (File) BitmapUtilFactory.getInstance(getContext()).loadFile(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo, BitmapUtilFactory.Option.imageOptions(), new Callback.CacheCallback<File>(){
+                @Override
+                public void onSuccess(File result) {
+
+                }
+
+                @Override
+                public void onError(Throwable ex, boolean isOnCallback) {
+
+                }
+
+                @Override
+                public void onCancelled(CancelledException cex) {
+
+                }
+
+                @Override
+                public void onFinished() {
+
+                }
+
+                @Override
+                public boolean onCache(File result) {
+                    return false;
+                }
+            });
              headImg.setImageURI(Uri.parse(headFile.getAbsolutePath()));
 
 

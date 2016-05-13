@@ -1,7 +1,8 @@
 package com.juju.app.entity;
 
 import com.juju.app.entity.base.BaseEntity;
-import com.lidroid.xutils.db.annotation.Table;
+
+import org.xutils.db.annotation.Table;
 
 @Table(name = "video_program")
 public class VideoProgram extends BaseEntity {

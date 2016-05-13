@@ -13,7 +13,7 @@ public class HttpConstants {
 
 
     //HTTP请求、响应类型
-    public static final String CONTENT_TYPE = "application/json";
+    public static final String CONTENT_TYPE = "application/json;charset=utf-8";
     public static final String CONNECTION_CLOSE = "close";
 
 
@@ -27,15 +27,28 @@ public class HttpConstants {
 
     private static String LIVE_SERVER_URL = "";
 
-    public static synchronized void initURL() {
+    private static String PORTRAIT_URL = "";
+
+    public static void initURL() {
         USER_URL = "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort
                 + "/juju/bServer/user";
         LIVE_SERVER_URL = "http://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/stream";
+
+        initURL_A();
+        initPortraitURL();
     }
 
-    public static synchronized void initURL_A() {
+    public static void initURL_A() {
         A_USER_URL = "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort
                 + "/juju/aServer/user";
+    }
+
+    //    http://219.143.237.229:8080/juju/bServer/user/getPortraitSmall?targetNo=100000006
+
+
+    private static void initPortraitURL() {
+        PORTRAIT_URL =  "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort
+                + "/juju/bServer/user/getPortraitSmall?targetNo=";
     }
 
     public static String getUserUrl() {
@@ -48,8 +61,18 @@ public class HttpConstants {
         return LIVE_SERVER_URL;
     }
 
+    public static String getPortraitUrl() {
+        return PORTRAIT_URL;
+    }
 
 
+    public enum  ResThreadType {
 
+        //主线程
+        MAIN,
 
+        //异步回调线程
+        ASYN
+
+    }
 }

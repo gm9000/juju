@@ -1,17 +1,19 @@
 package com.juju.app.entity;
 
 import com.juju.app.entity.base.BaseEntity;
-import com.lidroid.xutils.db.annotation.Column;
-import com.lidroid.xutils.db.annotation.Foreign;
-import com.lidroid.xutils.db.annotation.Table;
+
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
+
 
 @Table(name = "plan_vote")
 public class PlanVote extends BaseEntity {
 
-    @Column(column="planId")
+    @Column(name="planId")
     private String planId;
 
-    @Foreign(column = "attenderNo",foreign = "userNo")
+//    @Foreign(column = "attenderNo",foreign = "userNo")
+    @Column(name="attenderNo")
     private User attender;
 
     public String getPlanId() {

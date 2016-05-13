@@ -21,6 +21,7 @@ import com.juju.app.entity.User;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
@@ -31,17 +32,13 @@ import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CustomDialog;
 import com.juju.app.view.XEditText;
-import com.lidroid.xutils.ViewUtils;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
@@ -176,13 +173,13 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
         propertyValue = getIntent().getStringExtra(Constants.PROPERTY_VALUE);
     }
 
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void cancelModify(View view){
         ActivityUtil.finish(this);
     }
 
 
-    @OnClick(R.id.txt_male)
+    @Event(R.id.txt_male)
     private void selectMale(View view){
         if(propertyValue.equals(getString(R.string.female))){
             txt_female.setCompoundDrawables(null,null,null,null);
@@ -194,7 +191,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
         ActivityUtil.finish(this);
     }
 
-    @OnClick(R.id.txt_female)
+    @Event(R.id.txt_female)
     private void selectFemale(View view){
         if(propertyValue.equals(getString(R.string.male))){
             txt_male.setCompoundDrawables(null,null,null,null);
@@ -206,7 +203,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
         ActivityUtil.finish(this);
     }
 
-    @OnClick(R.id.btn_change_phone)
+    @Event(R.id.btn_change_phone)
     private void changePhone(View view){
         btnChangePhone.setVisibility(View.GONE);
         layoutPhone.setVisibility(View.VISIBLE);
@@ -215,7 +212,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
         btnSubmit.setEnabled(false);
     }
 
-    @OnClick(R.id.btn_yzm)
+    @Event(R.id.btn_yzm)
     private void getYzm(View view){
         if(txtPhone.getText().toString().equals(propertyValue)){
             ToastUtil.showShortToast(this,getString(R.string.phone_same),1);
@@ -264,7 +261,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
         SMSSDK.registerEventHandler(eh); //注册短信回调
     }
 
-    @OnClick(R.id.btn_submit)
+    @Event(R.id.btn_submit)
     private void submitChangePhone(View view){
         String yzm = txtYzm.getText().toString();
         SMSSDK.submitVerificationCode("86",newPhone, yzm);
@@ -272,7 +269,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
 
 
 
-    @OnClick(R.id.txt_right)
+    @Event(R.id.txt_right)
     private void save(View view){
 
         Map<String, Object> valueMap = new HashMap<String, Object>();
@@ -300,12 +297,70 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
         }
     }
 
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.txt_property:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            userInfo.setUpdate(false);
+//                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+//                            JujuDbUtils.saveOrUpdate(userInfo);
+//                            ActivityUtil.finish(this);
+//                        } else {
+//                            Log.e(TAG,"return status code:"+status);
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//            case R.id.txt_phone:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            userInfo.setUpdate(false);
+//                            userInfo.setUserPhone(newPhone);
+//                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+//                            JujuDbUtils.saveOrUpdate(userInfo);
+//                            ActivityUtil.finish(this);
+//                        } else {
+//                            String desc = jsonRoot.getString("desc");
+//                            if(desc != null) {
+//                                showMsgDialog(getResValue(desc));
+//                            }else{
+//                               ToastUtil.showShortToast(this,"unknown error",1);
+//                            }
+//
+//                            Log.e(TAG,"return status code:"+status);
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
+//                error.getExceptionCode());
+//    }
+
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case R.id.txt_property:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -323,8 +378,8 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
                 }
                 break;
             case R.id.txt_phone:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -353,10 +408,22 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
-        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-                error.getExceptionCode());
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e(TAG, "onFailure", ex);
     }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
+    }
+
+
 
 
     @Override
@@ -410,6 +477,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
             e.printStackTrace();
         }
     }
+
 
     /**
      *******************************************内部类******************************************

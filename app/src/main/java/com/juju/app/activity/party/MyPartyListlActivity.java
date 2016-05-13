@@ -26,14 +26,15 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.db.sqlite.WhereBuilder;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
+
 
 import org.apache.http.message.BasicNameValuePair;
+import org.xutils.db.Selector;
+import org.xutils.db.sqlite.WhereBuilder;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.util.List;
 
@@ -93,11 +94,11 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
     private void initData() {
 
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        Selector selector = Selector.from(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo());
         try {
-            totalSize = JujuDbUtils.getInstance(this).count(selector);
+            Selector selector = JujuDbUtils.getInstance(this).selector(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo());
+            totalSize = selector.count();
             selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);;
-            partyList = JujuDbUtils.getInstance(this).findAll(selector);
+            partyList = selector.findAll();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -147,7 +148,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
     public void initParam() {
     }
 
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void cancelOperation(View view){
         ActivityUtil.finish(this);
     }
@@ -185,11 +186,11 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
         int preSum = partyList.size();
 
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        Selector selector = Selector.from(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo());
         try {
-            totalSize = JujuDbUtils.getInstance(getContext()).count(selector);
+            Selector selector = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("createUserNo", "=", userInfoBean.getJujuNo());
+            totalSize = selector.count();
             selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
-            List<Party> pagePartyList = JujuDbUtils.getInstance(getContext()).findAll(selector);
+            List<Party> pagePartyList = selector.findAll();
             partyList.addAll(pagePartyList);
         } catch (DbException e) {
             e.printStackTrace();
@@ -210,7 +211,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
 
         try {
             Party party = partyList.get(position);
-            JujuDbUtils.getInstance(this).delete(Plan.class, WhereBuilder.b("partyId","=",party.getId()));
+            JujuDbUtils.getInstance(this).delete(Plan.class, WhereBuilder.b("partyId", "=", party.getId()));
             JujuDbUtils.delete(party);
         } catch (DbException e) {
             e.printStackTrace();

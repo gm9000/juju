@@ -17,9 +17,11 @@ import com.juju.app.R;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.CustomDialog;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
+
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
+
 
 @ContentView(R.layout.activity_play_video)
 public class PlayVideoActivity extends BaseActivity{
@@ -84,7 +86,7 @@ public class PlayVideoActivity extends BaseActivity{
     }
 
 
-    @OnClick(R.id.img_close)
+    @Event(R.id.img_close)
     private void closeVideo(View view){
         stopPlay();
         ActivityUtil.finish(this);

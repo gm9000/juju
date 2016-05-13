@@ -48,9 +48,10 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ToastUtil;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
+
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 
 @ContentView(R.layout.layout_plan_location)
@@ -229,7 +230,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetGeoCoderR
 
     }
 
-    @OnClick(R.id.btn_search)
+    @Event(R.id.btn_search)
     private void searchAddress(View view){
 
         if(txt_search.getText().toString().equals("")){
@@ -241,7 +242,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetGeoCoderR
         mSearch.geocode(new GeoCodeOption().city(city).address(txt_search.getText().toString()));
     }
 
-    @OnClick(R.id.btn_confirm)
+    @Event(R.id.btn_confirm)
     private void confirmLocation(View view){
         Intent intent = getIntent();
         intent.putExtra(Constants.ADDRESS,address);
@@ -251,7 +252,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetGeoCoderR
         ActivityUtil.finish(this);
     }
 
-    @OnClick(R.id.btn_cancel)
+    @Event(R.id.btn_cancel)
     private void cancel(View view){
         setResult(RESULT_CANCELED);
         ActivityUtil.finish(this);

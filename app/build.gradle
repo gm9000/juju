@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.juju.app"
-        minSdkVersion 10
+        minSdkVersion 14
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -42,7 +42,6 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     androidTestCompile 'junit:junit:4.12'
     compile files('libs/commons-lang-2.4.jar')
-    compile files('libs/xUtils-2.6.14.jar')
     compile files('libs/jackson-annotations-2.6.0.jar')
     compile files('libs/jackson-core-2.6.0.jar')
     compile files('libs/jackson-databind-2.6.0.jar')
@@ -72,7 +71,8 @@ dependencies {
     compile 'com.squareup.okhttp:okhttp:2.4.0'
     compile 'com.squareup.okhttp:okhttp-urlconnection:2.4.0'
     compile 'com.michaelpardo:activeandroid:3.1.0-SNAPSHOT'
-
+    compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
+    compile 'org.xutils:xutils:3.3.34'
     compile files('libs/locSDK_6.13.jar')
 }
 

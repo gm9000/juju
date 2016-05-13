@@ -80,7 +80,7 @@
     </LinearLayout>
 
     <ListView
-        android:id="@+id/ContactListView"
+        android:id="@+id/contactListView"
         android:layout_width="fill_parent"
         android:layout_height="fill_parent"
         android:layout_marginTop="0dp"
@@ -89,8 +89,7 @@
         android:divider="@null"
         android:listSelector="@android:color/transparent"
         android:paddingBottom="0dp"
-        android:layout_below="@+id/layout_no_chat"
-        />
+        android:layout_below="@+id/layout_no_chat" />
 
     <ProgressBar
         android:id="@+id/progress_bar"

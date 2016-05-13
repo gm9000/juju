@@ -1,28 +1,33 @@
 package com.juju.app.ui.base;
 
+import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.juju.app.R;
 import com.juju.app.annotation.CreateUI;
+import com.juju.app.annotation.SystemColor;
 import com.juju.app.golobal.Constants;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.TipsToastUtil;
 import com.juju.app.view.CustomDialog;
 import com.kaopiz.kprogresshud.KProgressHUD;
-import com.lidroid.xutils.ViewUtils;
+import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.xutils.x;
 
 /**
  * 项目名称：juju
@@ -44,7 +49,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ViewUtils.inject(this);
+        x.view().inject(this);
+        setSystemColor();
         //初始化数据
         if(this instanceof CreateUIHelper) {
             CreateUIHelper uiHelper = (CreateUIHelper) this;
@@ -316,5 +322,50 @@ public abstract class BaseActivity extends AppCompatActivity {
         return resId;
     }
 
+    @SuppressLint("NewApi")
+    private void setSystemColor() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            int color = R.color.blue;
+            final SystemColor createUI = this.getClass().getAnnotation(SystemColor.class);
+            if(createUI != null) {
+                if(createUI.isApply()) {
+                    color = createUI.colorValue();
+                    setStatusBarAndNavigationBar(true, true, color);
+                } else {
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+                }
+            } else {
+                setStatusBarAndNavigationBar(true, true, color);
+            }
+        }
+    }
+
+    @SuppressLint("NewApi")
+    private void setStatusBarAndNavigationBar(boolean isSetStatusBar,
+                                              boolean isSetNavigationBar, int color) {
+        if(!(isSetStatusBar && isSetNavigationBar))
+            return;
+
+        if(isSetStatusBar) {
+            //透明状态栏
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+        }
+        if(isSetNavigationBar) {
+            //透明导航栏
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        }
+        SystemBarTintManager tintManager = new SystemBarTintManager(this);
+        if(isSetStatusBar) {
+            tintManager.setStatusBarTintEnabled(true);
+            //此处可以重新指定状态栏颜色
+            tintManager.setStatusBarTintResource(color);
+        }
+        if(isSetNavigationBar) {
+            tintManager.setNavigationBarTintEnabled(true);
+            //此处可以重新指定导航栏颜色
+            tintManager.setNavigationBarTintResource(color);
+        }
+    }
 
 }

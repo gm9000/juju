@@ -3,23 +3,30 @@ package com.juju.app.service.im.manager;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
+import com.juju.app.biz.impl.UserDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
+import com.juju.app.event.JoinChatRoomEvent;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.thread.GetGroupUserThread;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.Logger;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
+import com.juju.app.utils.StringUtils;
+
 
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +47,14 @@ public class IMGroupManager extends IMManager {
     private volatile static IMGroupManager inst;
 
     //正式群,临时群都会有的，存在竞争 如果不同时请求的话
-    private Map<String, GroupEntity> groupMap = new ConcurrentHashMap<>();
+    private Map<String, GroupEntity> groupMap = new ConcurrentHashMap<String, GroupEntity>();
 
     private boolean isGroupReady = false;
 
 
     private DaoSupport groupDao;
+
+    private DaoSupport userDao;
 
     private UserInfoBean userInfoBean;
 
@@ -64,6 +73,7 @@ public class IMGroupManager extends IMManager {
     @Override
     public void doOnStart() {
         groupDao = new GroupDaoImpl(ctx);
+        userDao = new UserDaoImpl(ctx);
         userInfoBean = BaseApplication.getInstance().getUserInfoBean();
     }
 
@@ -91,16 +101,18 @@ public class IMGroupManager extends IMManager {
      * */
     public void onLocalLoginOk(){
         logger.i("group#loadFromDb");
-
 //        if(!EventBus.getDefault().isRegistered(inst)){
 //            EventBus.getDefault().register(inst);
 //        }
-
         // 加载本地group
         List<GroupEntity> localGroupInfoList = groupDao.findAll();
-//        for(GroupEntity groupInfo: localGroupInfoList){
-//            groupMap.put(groupInfo.getPeerId(), groupInfo);
-//        }
+        if(localGroupInfoList != null) {
+            for(GroupEntity groupInfo: localGroupInfoList){
+                if(StringUtils.isNotBlank(groupInfo.getPeerId())) {
+                    groupMap.put(groupInfo.getPeerId(), groupInfo);
+                }
+            }
+        }
         triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_OK));
     }
 
@@ -130,7 +142,7 @@ public class IMGroupManager extends IMManager {
 
     /**
      * 联系人页面正式群的请求
-     * todo 正式群与临时群逻辑上的分开的，但是底层应该是想通的
+     * todo 正式群与临时群逻辑上的分开的，但是底层应该是相通的
      */
     private void reqGetNormalGroupList() {
         Map<String, Object> valueMap = new HashMap<String, Object>();
@@ -139,39 +151,49 @@ public class IMGroupManager extends IMManager {
         valueMap.put("index", 0);
         valueMap.put("size", Integer.MAX_VALUE);
 
-
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
                 0, HttpConstants.getUserUrl() + "/getGroups",
-                new HttpCallBack() {
+                new HttpCallBack4OK() {
+
                     @Override
-                    public void onSuccess(ResponseInfo<String> responseInfo, int accessId,
-                                          Object... obj) {
-                        if(obj[0] instanceof JSONObject) {
-                            JSONObject jsonObj = (JSONObject)obj[0];
+                    public void onSuccess4OK(Object obj, int accessId) {
+                        if(obj instanceof JSONObject) {
+                            JSONObject jsonObj = (JSONObject)obj;
                             try {
                                 int status = jsonObj.getInt("status");
                                 if(status == 0) {
                                     JSONArray jsonArray = jsonObj.getJSONArray("groups");
                                     if(jsonArray != null && jsonArray.length() >0) {
-                                        CountDownLatch countDownLatch = new CountDownLatch(jsonArray.length());
+                                        CountDownLatch countDownLatch = new CountDownLatch
+                                                (jsonArray.length());
                                         for (int i = 0; i <jsonArray.length(); i++) {
                                             JSONObject jsonObject = (JSONObject)jsonArray.get(i);
                                             String id = jsonObject.getString("id");
                                             String name = jsonObject.getString("name");
                                             String desc = jsonObject.getString("desc");
 
-                                            JSONObject jsonCreator = jsonObject.getJSONObject("creator");
+                                            JSONObject jsonCreator = jsonObject
+                                                    .getJSONObject("creator");
                                             String userNo = jsonCreator.getString("userNo");
-                                            GetGroupUserThread thread = new GetGroupUserThread(countDownLatch, id,  name,
-                                                     desc,  userNo,  userInfoBean,  groupDao);
+                                            GetGroupUserThread thread = new
+                                                    GetGroupUserThread(countDownLatch, id,  name,
+                                                    desc,  userNo,  userInfoBean,  groupDao, userDao, groupMap,
+                                                    IMContactManager.instance().getUserMap());
+                                            //考虑使用线程池
                                             Thread t = new Thread(thread, "GetGroupUserThread");
                                             t.start();
                                         }
                                         countDownLatch.await();
+                                        //群组及群组下用户持久化完毕
+
+
+                                        //通知群组信息更新
+                                        isGroupReady = true;
+                                        triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
                                     }
                                 }
                             } catch (JSONException e) {
-                               logger.error(e);
+                                logger.error(e);
                             } catch (InterruptedException e) {
                                 logger.error(e);
                             }
@@ -179,21 +201,43 @@ public class IMGroupManager extends IMManager {
                     }
 
                     @Override
-                    public void onFailure(HttpException error, String msg, int accessId) {
-
+                    public void onFailure4OK(Exception e, int accessId) {
+                        logger.error(e);
                     }
                 }, valueMap, JSONObject.class);
         try {
-            client.sendGet();
+            client.sendGet4OK();
         } catch (UnsupportedEncodingException e) {
             logger.error(e);
         } catch (JSONException e) {
             logger.error(e);
         }
-
-
-
         logger.i("group#send packet to server");
     }
 
+    public void joinChatRoom(GroupEntity groupEntity) {
+        JoinChatRoomEvent joinChatRoomEvent = new JoinChatRoomEvent();
+        joinChatRoomEvent.groupEntity = groupEntity;
+        joinChatRoomEvent.event = JoinChatRoomEvent.Event.JOIN_REQ;
+        triggerEvent(joinChatRoomEvent);
+    }
+
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void test(GroupEntity entity) {
+//
+//    }
+
+
+    public List<GroupEntity> getGroupList() {
+        List<GroupEntity> recentInfoList = new ArrayList<>(groupMap.values());
+        return recentInfoList;
+    }
+
+    public boolean isGroupReady() {
+        return isGroupReady;
+    }
+
+    public Map<String, GroupEntity> getGroupMap() {
+        return groupMap;
+    }
 }

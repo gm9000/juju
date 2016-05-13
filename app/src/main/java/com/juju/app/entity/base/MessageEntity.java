@@ -3,39 +3,39 @@ package com.juju.app.entity.base;
 
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.chat.EntityChangeEngine;
-import com.lidroid.xutils.db.annotation.Column;
-import com.lidroid.xutils.db.annotation.Id;
-import com.lidroid.xutils.db.annotation.Table;
-import com.lidroid.xutils.db.annotation.Transient;
 
-@Table(name = "message", execAfterTableCreated = "CREATE INDEX index_message_id ON message(id);")
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
+
+
+@Table(name = "message", onCreated = "CREATE INDEX index_message_id ON message(id);")
 public class MessageEntity extends BaseEntity implements java.io.Serializable {
 
 
 	/**
 	 * 消息ID　APP维护
 	 */
-	@Column(column = "msg_id")
+	@Column(name = "msg_id")
 	protected int msgId;
 
 
 	/**
 	 * 消息发送人ID
 	 */
-	@Column(column = "from_id")
+	@Column(name = "from_id")
 	protected String fromId;
 
 	/**
 	 * 消息接收人
 	 */
-	@Column(column = "to_id")
+	@Column(name = "to_id")
 	protected String toId;
 
 	/** Not-null value. */
 	/**
 	 * sessionType + "_" + peerId;  消息类型_消息发送人ID
 	 */
-	@Column(column = "session_key")
+	@Column(name = "session_key")
 	protected String sessionKey;
 
 	/** Not-null value. */
@@ -43,35 +43,35 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 	/**
 	 * 消息类容
 	 */
-	@Column(column = "content")
+	@Column(name = "content")
 	protected String content;
 
 	/**
 	 * 消息类型
 	 */
-	@Column(column = "msg_type")
+	@Column(name = "msg_type")
 	protected int msgType;
 
 	/**
 	 * 显示类型
 	 */
-	@Column(column = "display_type")
+	@Column(name = "display_type")
 	protected int displayType;
 
 
-	@Column(column = "status")
+	@Column(name = "status")
 	protected int status;
 
 	/**
 	 * 创建时间
 	 */
-	@Column(column = "created")
+	@Column(name = "created")
 	protected Long created;
 
 	/**
 	 * 更新时间
 	 */
-	@Column(column = "updated")
+	@Column(name = "updated")
 	protected Long updated;
 
 	// KEEP FIELDS - put your custom fields here
@@ -80,7 +80,6 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 	/**
 	 * 此属性为临时使用
 	 */
-	@Transient
 	protected boolean isGIfEmo;
 	// KEEP FIELDS END
 

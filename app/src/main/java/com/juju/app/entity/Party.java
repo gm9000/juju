@@ -6,10 +6,10 @@ import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
-import com.lidroid.xutils.db.annotation.Column;
-import com.lidroid.xutils.db.annotation.Foreign;
-import com.lidroid.xutils.db.annotation.Table;
-import com.lidroid.xutils.db.annotation.Transient;
+
+
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
 
 import java.util.Date;
 
@@ -17,21 +17,21 @@ import java.util.Date;
 @Table(name = "party")
 public class Party extends BaseEntity {
 
-    @Column(column = "name")
+    @Column(name = "name")
     private String name;
-    @Column(column = "desc")
+    @Column(name = "desc")
     private String desc;
-    @Column(column = "time")
+    @Column(name = "time")
     private Date time;
 
     //  -1：草稿箱  0：召集中   1：进行中   2：已结束
-    @Column(column = "status")
+    @Column(name = "status")
     private int status;
 
-    @Column(column = "followFlag")
+    @Column(name = "followFlag")
     private int followFlag;
 
-    @Column(column = "attendFlag")
+    @Column(name = "attendFlag")
     private int attendFlag;
 
     public boolean isHidden() {
@@ -42,14 +42,24 @@ public class Party extends BaseEntity {
         this.hidden = hidden;
     }
 
-    @Transient
     private boolean hidden;
 
-    @Foreign(column = "createUserNo",foreign = "userNo")
+//    @Foreign(column = "createUserNo",foreign = "userNo")
+//    private User creator;
+
+    @Column(name = "user_no")
+    private String userNo;
+
+//    @Foreign(column = "groupId",foreign = "id")
+//    private GroupEntity group;
+
+    @Column(name = "group_id")
+    private String groupId;
+
+
     private User creator;
 
-    @Foreign(column = "groupId",foreign = "id")
-    private GroupEntity group;
+
 
     public String getName() {
         return name;
@@ -100,19 +110,43 @@ public class Party extends BaseEntity {
         this.attendFlag = attendFlag;
     }
 
+//    public User getCreator() {
+//        return creator;
+//    }
+//
+//    public void setCreator(User creator) {
+//        this.creator = creator;
+//    }
+//
+//    public GroupEntity getGroup() {
+//        return group;
+//    }
+//
+//    public void setGroup(GroupEntity group) {
+//        this.group = group;
+//    }
+
+    public String getUserNo() {
+        return userNo;
+    }
+
+    public void setUserNo(String userNo) {
+        this.userNo = userNo;
+    }
+
+    public String getGroupId() {
+        return groupId;
+    }
+
+    public void setGroupId(String groupId) {
+        this.groupId = groupId;
+    }
+
     public User getCreator() {
         return creator;
     }
 
     public void setCreator(User creator) {
         this.creator = creator;
-    }
-
-    public GroupEntity getGroup() {
-        return group;
-    }
-
-    public void setGroup(GroupEntity group) {
-        this.group = group;
     }
 }

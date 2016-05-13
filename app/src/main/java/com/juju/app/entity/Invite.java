@@ -1,8 +1,10 @@
 package com.juju.app.entity;
 
 import com.juju.app.entity.base.BaseEntity;
-import com.lidroid.xutils.db.annotation.Column;
-import com.lidroid.xutils.db.annotation.Table;
+
+
+import org.xutils.db.annotation.Column;
+import org.xutils.db.annotation.Table;
 
 import java.util.Date;
 
@@ -10,29 +12,29 @@ import java.util.Date;
 @Table(name = "invite")
 public class Invite extends BaseEntity {
 
-    @Column(column = "userNo")
+    @Column(name = "userNo")
     private String userNo;
 
-    @Column(column = "nickName")
+    @Column(name = "nickName")
     private String nickName;
 
-    @Column(column = "time")
+    @Column(name = "time")
     private Date time;
 
     //  0：未通过   1：通过    -1：等待验证
-    @Column(column = "status")
+    @Column(name = "status")
     private int status;
 
 
     //  0：邀请   1：被邀请
-    @Column(column = "flag")
+    @Column(name = "flag")
     private int flag;
 
 
-    @Column(column = "groupId")
+    @Column(name = "groupId")
     private String groupId;
 
-    @Column(column = "groupName")
+    @Column(name = "groupName")
     private String groupName;
 
     public String getUserNo() {

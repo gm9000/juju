@@ -32,24 +32,24 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.SpfUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.scroll.NoScrollListView;
 import com.juju.app.view.wheel.dialog.SelectDateTimeDialog;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
@@ -160,11 +160,11 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         groupDao = new GroupDaoImpl(this);
         if(partyId!=null){
             try {
-                party = JujuDbUtils.getInstance(this).findFirst(Selector.from(Party.class).where("id","=",partyId));
-                groupId = party.getGroup().getId();
+                party = JujuDbUtils.getInstance(this).selector(Party.class).where("id", "=", partyId).findFirst();
+                groupId = party.getGroupId();
                 wrapParty(party);
 
-                List<Plan> planList = JujuDbUtils.getInstance(this).findAll(Selector.from(Plan.class).where("partyId","=",partyId));
+                List<Plan> planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("partyId", "=", partyId).findAll();
                 if(planList!=null){
                     wrapPlanList(planList);
                 }else{
@@ -220,18 +220,18 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
     }
 
-    @OnClick(R.id.layout_plan_list)
+    @Event(R.id.layout_plan_list)
     private void hiddenSoftKey(View view){
         inputManager.hideSoftInputFromWindow(layout_planList.getWindowToken(), 0);
     }
 
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void cancelOperation(View view){
         ActivityUtil.finish(this);
     }
 
 
-    @OnClick(R.id.txt_time)
+    @Event(R.id.txt_time)
     private void showSelectTimeDialog(View view) {
         SelectDateTimeDialog mSelectDateTimeDialog = new SelectDateTimeDialog(this);
         mSelectDateTimeDialog.setOnClickListener(new SelectDateTimeDialog.OnClickListener() {
@@ -264,18 +264,18 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     }
 
 
-    @OnClick(R.id.img_select_location)
+    @Event(R.id.img_select_location)
     private void selectLocation(View view){
         Intent intent=new Intent(this,PlanLocationActivity.class);
         startActivityForResult(intent, CMD_REQ_LOCATION);
     }
 
-    @OnClick(R.id.txt_right)
+    @Event(R.id.txt_right)
     private void save(View view){
         savePartyToServer(false);
     }
 
-    @OnClick(R.id.btn_publish)
+    @Event(R.id.btn_publish)
     private void publishParty(View view){
         savePartyToServer(true);
     }
@@ -331,13 +331,17 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             party.setStatus(-1);
             User creator = null;
             try {
-                creator = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
+                creator = JujuDbUtils.getInstance(getContext()).selector(User.class)
+                        .where("user_no", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()).findFirst();
+                if(creator != null) {
+                    party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+                }
             } catch (DbException e) {
                 e.printStackTrace();
             }
-            party.setCreator(creator);
-            if(party.getGroup()==null){
-                GroupEntity group = groupDao.findById(groupId);
+
+            if(StringUtils.isBlank(party.getGroupId())){
+                GroupEntity group = groupDao.findUniByProperty("id", party.getGroupId());
                 // TODO 组信息正常保存后需要删除下面的代码
                 if(group == null) {
                     group = new GroupEntity();
@@ -347,7 +351,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                     group.setCreatorId(creator.getUserNo());
                     groupDao.save(group);
                 }
-                party.setGroup(group);
+                party.setGroupId(party.getGroupId());
             }
             JujuDbUtils.saveOrUpdate(party);
 
@@ -373,7 +377,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     }
 
 
-    @OnClick(R.id.img_add_plan)
+    @Event(R.id.img_add_plan)
     private void addPlan(View view){
 
         if(txt_time.getText().toString().equals("") || txt_location.getText().toString().equals("")) {
@@ -411,12 +415,145 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         longitude = 0;
     }
 
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.txt_party:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            completeLoading();
+//                            partyId = jsonRoot.getString("partyId");
+//
+//
+//                            if(party == null) {
+//                                party = new Party();
+//                            }
+//                            party.setName(txt_partyTitle.getText().toString());
+//                            party.setDesc(txt_description.getText().toString());
+//                            party.setId(partyId);
+//                            User creator = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
+//                            party.setCreator(creator);
+//
+//                            if(party.getGroup()==null){
+//                                GroupEntity group = groupDao.findById(groupId);
+//                                // TODO 组信息正常保存后需要删除下面的代码
+//                                if(group == null) {
+//                                    group = new GroupEntity();
+//                                    group.setId(groupId);
+//                                    group.setMainName("聚龙小组");
+//                                    group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
+//                                    group.setCreatorId(creator.getUserNo());
+//                                    groupDao.save(group);
+//                                }
+//                                party.setGroup(group);
+//                            }
+//                            party.setStatus(0); //  召集中
+//
+//                            String planIds = jsonRoot.getString("planIds");
+//                            if(planIds==null || planIds.equals("")){
+//                                JujuDbUtils.saveOrUpdate(party);
+//                            }
+//                            String[] planIdArray = planIds.split(",");
+//                            List<Plan> planList = planListAdapter.getPlanList();
+//                            if(planList.size() == planIdArray.length){
+//                                for(int i=0; i<planList.size(); i++){
+//                                    Plan plan = planList.get(i);
+//                                    plan.setPartyId(partyId);
+//                                    plan.setId(planIdArray[i]);
+//                                    plan.setSigned(1);
+//
+//                                    if(i==0){
+//                                        party.setTime(plan.getStartTime());
+//                                        JujuDbUtils.save(party);
+//                                    }
+//
+//                                    PlanVote planVote = new PlanVote();
+//                                    planVote.setPlanId(plan.getId());
+//                                    planVote.setAttender(creator);
+//                                    JujuDbUtils.save(planVote);
+//
+//                                    plan.setAddtendNum(1);
+//                                    JujuDbUtils.save(plan);
+//                                }
+//                            }else{
+//                                Log.e(TAG,"planId return length error:"+planIdArray.length);
+//                            }
+//
+//                            ActivityUtil.finish(this);
+//                        } else {
+//                            completeLoading();
+//                            Log.e(TAG,"return status code:"+status);
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    } catch(DbException e){
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        completeLoading();
+//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
+//                error.getExceptionCode());
+//    }
+
     @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        Plan curPlan = (Plan)listview_plan.getItemAtPosition(position);
+        txt_planTime.setText(dateFormat.format(curPlan.getStartTime()));
+        txt_planAddress.setText(curPlan.getAddress());
+        txt_planDesc.setText((curPlan.getDesc()==null||curPlan.getDesc().equals(""))?getResources().getString(R.string.nodescription):"\t\t"+curPlan.getDesc());
+        layout_planInfo.setVisibility(View.VISIBLE);
+
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case CMD_REQ_LOCATION:
+                    latitude = data.getDoubleExtra(Constants.LATITUDE,0f);
+                    longitude = data.getDoubleExtra(Constants.LONGITUDE, 0f);
+                    String address = data.getStringExtra(Constants.ADDRESS);
+                    txt_location.setText(address);
+                    break;
+
+            }
+            super.onActivityResult(requestCode, resultCode, data);
+
+        }else{
+        }
+    }
+
+    public void deletePlan(int deleteIndex) {
+        List<Plan> planList = planListAdapter.getPlanList();
+        Plan curPlan = planList.get(deleteIndex);
+        if(curPlan.getPartyId()!=null){
+            JujuDbUtils.delete(curPlan);
+        }
+        planList.remove(deleteIndex);
+        planListAdapter.notifyDataSetChanged();
+        if(planListAdapter.getCount()==0) {
+            txt_noPlan.setVisibility(View.VISIBLE);
+        }
+        layout_plan.setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onSuccess(Object obj, int accessId) {
         switch (accessId) {
             case R.id.txt_party:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
@@ -430,11 +567,14 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                             party.setName(txt_partyTitle.getText().toString());
                             party.setDesc(txt_description.getText().toString());
                             party.setId(partyId);
-                            User creator = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
-                            party.setCreator(creator);
+                            User creator = JujuDbUtils.getInstance(getContext())
+                                    .selector(User.class).where("user_no", "=",
+                                            BaseApplication.getInstance().getUserInfoBean().getJujuNo()).findFirst();
+                            party.setUserNo(creator.getUserNo());
 
-                            if(party.getGroup()==null){
-                                GroupEntity group = groupDao.findById(groupId);
+                            //TODO 是否需要保存组信息？
+                            if(StringUtils.isBlank(party.getGroupId())){
+                                GroupEntity group = groupDao.findUniByProperty("id", groupId);
                                 // TODO 组信息正常保存后需要删除下面的代码
                                 if(group == null) {
                                     group = new GroupEntity();
@@ -444,7 +584,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                                     group.setCreatorId(creator.getUserNo());
                                     groupDao.save(group);
                                 }
-                                party.setGroup(group);
+                                party.setGroupId(groupId);
                             }
                             party.setStatus(0); //  召集中
 
@@ -492,55 +632,25 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                 }
                 break;
         }
+
     }
 
     @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
         completeLoading();
-        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-                error.getExceptionCode());
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e(TAG, "onFailure", ex);
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Plan curPlan = (Plan)listview_plan.getItemAtPosition(position);
-        txt_planTime.setText(dateFormat.format(curPlan.getStartTime()));
-        txt_planAddress.setText(curPlan.getAddress());
-        txt_planDesc.setText((curPlan.getDesc()==null||curPlan.getDesc().equals(""))?getResources().getString(R.string.nodescription):"\t\t"+curPlan.getDesc());
-        layout_planInfo.setVisibility(View.VISIBLE);
+    public void onCancelled(Callback.CancelledException cex) {
 
     }
-
 
     @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (resultCode == RESULT_OK) {
-            switch (requestCode) {
-                case CMD_REQ_LOCATION:
-                    latitude = data.getDoubleExtra(Constants.LATITUDE,0f);
-                    longitude = data.getDoubleExtra(Constants.LONGITUDE, 0f);
-                    String address = data.getStringExtra(Constants.ADDRESS);
-                    txt_location.setText(address);
-                    break;
+    public void onFinished() {
 
-            }
-            super.onActivityResult(requestCode, resultCode, data);
-
-        }else{
-        }
     }
 
-    public void deletePlan(int deleteIndex) {
-        List<Plan> planList = planListAdapter.getPlanList();
-        Plan curPlan = planList.get(deleteIndex);
-        if(curPlan.getPartyId()!=null){
-            JujuDbUtils.delete(curPlan);
-        }
-        planList.remove(deleteIndex);
-        planListAdapter.notifyDataSetChanged();
-        if(planListAdapter.getCount()==0) {
-            txt_noPlan.setVisibility(View.VISIBLE);
-        }
-        layout_plan.setVisibility(View.VISIBLE);
-    }
+
 }

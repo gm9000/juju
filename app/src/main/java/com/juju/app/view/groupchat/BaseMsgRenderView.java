@@ -10,6 +10,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.golobal.MessageConstant;
@@ -67,17 +68,17 @@ public abstract class BaseMsgRenderView extends RelativeLayout{
     }
 
     /**控件赋值*/
-    public void render(final MessageEntity entity, UserEntity userEntity,final Context ctx){
+    public void render(final MessageEntity entity, User user,final Context ctx){
         this.messageEntity = entity;
-        if(userEntity == null){
+        if(user == null){
             // 没有找到对应的用户信息 todo
             // 请求用户信息 设定默认头像、默认姓名、
-            userEntity=new UserEntity();
-            userEntity.setMainName("未知");
-            userEntity.setRealName("未知");
+            user = new User();
+            user.setNickName("未知");
+//            userEntity.setRealName("未知");
         }
 
-        String avatar = userEntity.getAvatar();
+        String avatar = user.getAvatar();
         int msgStatus = messageEntity.getStatus();
 
         //头像设置
@@ -86,13 +87,13 @@ public abstract class BaseMsgRenderView extends RelativeLayout{
         portrait.setImageUrl(avatar);
         // 设定姓名 应该消息都是有的
        if(!isMine){
-           name.setText(userEntity.getMainName());
+           name.setText(user.getNickName());
            name.setVisibility(View.VISIBLE);
        }
 
 
         /**头像的跳转事件暂时放在这里， todo 业务结合紧密，但是应该不会改了*/
-        final String userId = userEntity.getPeerId();
+        final String userId = user.getUserNo();
         portrait.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {

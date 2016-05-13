@@ -76,7 +76,7 @@ public class PlanVoteListAdapter extends BaseAdapter {
 
         final PlanVote planVote = planVoteList.get(position);
 
-        BitmapUtilFactory.getInstance(context).display(img_head, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + planVote.getAttender().getUserNo());
+        BitmapUtilFactory.getInstance(context).bind(img_head, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + planVote.getAttender().getUserNo(), BitmapUtilFactory.Option.imageOptions());
         txt_nickName.setText(planVote.getAttender().getNickName());
 
         return convertView;

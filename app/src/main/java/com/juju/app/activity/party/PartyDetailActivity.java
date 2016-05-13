@@ -34,6 +34,7 @@ import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
@@ -42,17 +43,14 @@ import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.scroll.NoScrollListView;
-import com.lidroid.xutils.bitmap.BitmapDisplayConfig;
-import com.lidroid.xutils.db.sqlite.Selector;
-import com.lidroid.xutils.exception.DbException;
-import com.lidroid.xutils.exception.HttpException;
-import com.lidroid.xutils.http.ResponseInfo;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
-import com.lidroid.xutils.view.annotation.event.OnClick;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
+import org.xutils.ex.DbException;
+import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.Event;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -121,7 +119,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
         Party party = null;
         try {
-            party = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(Party.class).where("id","=",partyId));
+            party = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("id", "=", partyId).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -129,14 +127,25 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         txt_partyTitle.setText(party.getName());
         txt_description.setText("\t\t" + party.getDesc());
 
+        String userNo = party.getUserNo();
+//        User creator = party.getCreator();
         User creator = party.getCreator();
-        BitmapUtilFactory.getInstance(this).display(img_head, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + creator.getUserNo());
+        try {
+            if(creator == null) {
+                creator = JujuDbUtils.getInstance(getContext())
+                        .selector(User.class).where("user_no", "=", userNo).findFirst();
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        BitmapUtilFactory.getInstance(this).bind(img_head,
+                HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + creator.getUserNo());
         txt_nickName.setText(creator.getNickName());
 
         isOwner = creator.getUserNo().equals(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
 
         try {
-            planList = JujuDbUtils.getInstance(this).findAll(Selector.from(Plan.class).where("partyId","=",partyId));
+            planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("partyId", "=", partyId).findAll();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -184,13 +193,13 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
     }
 
-    @OnClick(R.id.txt_left)
+    @Event(R.id.txt_left)
     private void cancelOperation(View view){
         ActivityUtil.finish(this);
     }
 
 
-    @OnClick(R.id.btn_start)
+    @Event(R.id.btn_start)
     private void startParty(View view){
         String planId = null;
         for(Plan plan:planList){
@@ -236,7 +245,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         super.onResume();
         if(JujuDbUtils.needRefresh(Plan.class)){
             try {
-                planList = JujuDbUtils.getInstance(this).findAll(Selector.from(Plan.class).where("partyId","=",partyId));
+                planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("partyId", "=", partyId).findAll();
             } catch (DbException e) {
                 e.printStackTrace();
             }
@@ -247,45 +256,45 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
     }
 
-    @Override
-    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-        switch (accessId) {
-            case R.id.txt_party:
-                if(obj != null && obj.length > 0) {
-                    JSONObject jsonRoot = (JSONObject)obj[0];
-                    try {
-                        int status = jsonRoot.getInt("status");
-                        if(status == 0) {
-                            completeLoading();
-                            partyId = jsonRoot.getString("partyId");
-                            Party party = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(Party.class).where("id", "=", partyId));
-                            party.setStatus(1);
-                            party.setFollowFlag(1);
-                            party.setAttendFlag(1);
-                            JujuDbUtils.saveOrUpdate(party);
-                            //  TOTO    通知 Party已经启动
-                            ActivityUtil.finish(this);
-                        } else {
-                            completeLoading();
-                            Log.e(TAG,"return status code:"+status);
-                        }
-                    } catch (JSONException e) {
-                        Log.e(TAG, "回调解析失败", e);
-                        e.printStackTrace();
-                    } catch(DbException e){
-                        e.printStackTrace();
-                    }
-                }
-                break;
-        }
-    }
-
-    @Override
-    public void onFailure(HttpException error, String msg, int accessId) {
-        completeLoading();
-        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-                error.getExceptionCode());
-    }
+//    @Override
+//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
+//        switch (accessId) {
+//            case R.id.txt_party:
+//                if(obj != null && obj.length > 0) {
+//                    JSONObject jsonRoot = (JSONObject)obj[0];
+//                    try {
+//                        int status = jsonRoot.getInt("status");
+//                        if(status == 0) {
+//                            completeLoading();
+//                            partyId = jsonRoot.getString("partyId");
+//                            Party party = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(Party.class).where("id", "=", partyId));
+//                            party.setStatus(1);
+//                            party.setFollowFlag(1);
+//                            party.setAttendFlag(1);
+//                            JujuDbUtils.saveOrUpdate(party);
+//                            //  TOTO    通知 Party已经启动
+//                            ActivityUtil.finish(this);
+//                        } else {
+//                            completeLoading();
+//                            Log.e(TAG,"return status code:"+status);
+//                        }
+//                    } catch (JSONException e) {
+//                        Log.e(TAG, "回调解析失败", e);
+//                        e.printStackTrace();
+//                    } catch(DbException e){
+//                        e.printStackTrace();
+//                    }
+//                }
+//                break;
+//        }
+//    }
+//
+//    @Override
+//    public void onFailure(HttpException error, String msg, int accessId) {
+//        completeLoading();
+//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
+//                error.getExceptionCode());
+//    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -332,10 +341,61 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         return true;
     }
 
-    @OnClick(R.id.txt_fullDesc)
+    @Event(R.id.txt_fullDesc)
     public void hiddenFullDesc(View v){
         txt_fullDesc.setVisibility(View.GONE);
         txt_fullDesc.setText(R.string.nodescription);
     }
+
+    @Override
+    public void onSuccess(Object obj, int accessId) {
+        switch (accessId) {
+            case R.id.txt_party:
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
+                    try {
+                        int status = jsonRoot.getInt("status");
+                        if(status == 0) {
+                            completeLoading();
+                            partyId = jsonRoot.getString("partyId");
+                            Party party = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("id", "=", partyId).findFirst();
+                            party.setStatus(1);
+                            party.setFollowFlag(1);
+                            party.setAttendFlag(1);
+                            JujuDbUtils.saveOrUpdate(party);
+                            //  TOTO    通知 Party已经启动
+                            ActivityUtil.finish(this);
+                        } else {
+                            completeLoading();
+                            Log.e(TAG,"return status code:"+status);
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "回调解析失败", e);
+                        e.printStackTrace();
+                    } catch(DbException e){
+                        e.printStackTrace();
+                    }
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+        completeLoading();
+        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
+        Log.e(TAG, "onFailure", ex);
+    }
+
+    @Override
+    public void onCancelled(Callback.CancelledException cex) {
+
+    }
+
+    @Override
+    public void onFinished() {
+
+    }
+
 
 }

@@ -10,9 +10,9 @@ import com.juju.app.R;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.CreateUIHelper;
-import com.lidroid.xutils.ViewUtils;
-import com.lidroid.xutils.view.annotation.ContentView;
-import com.lidroid.xutils.view.annotation.ViewInject;
+
+import org.xutils.view.annotation.ContentView;
+import org.xutils.x;
 
 
 /**
@@ -30,6 +30,6 @@ public class AddGroupChatActivity extends Activity  {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        ViewUtils.inject(this);
+        x.view().inject(this);
     }
 }

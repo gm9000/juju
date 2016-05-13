@@ -54,7 +54,7 @@ public class IMMessageManager extends IMManager {
     private MessageDaoImpl publicMessageDao;
 
 
-    //双重判断+volatile（禁止JMM重排序）保证线程安全
+    //双重验证+volatile（禁止JMM重排序）保证线程安全
     public static IMMessageManager instance() {
         if(inst == null) {
             synchronized (IMMessageManager.class) {
@@ -93,7 +93,7 @@ public class IMMessageManager extends IMManager {
      */
     @Override
     public void reset() {
-
+        EventBus.getDefault().unregister(inst);
     }
 
 
@@ -106,7 +106,7 @@ public class IMMessageManager extends IMManager {
             final MessageEntity dbMessage = msgEntity.clone();
             messageDao.saveOrUpdate(dbMessage);
             try {
-                socketService.sendMessage("ceshi@conference.juju",
+                socketService.sendMessage(msgEntity.getToId(),
                         msgEntity.getContent(), uuid, new XMPPServiceCallbackImpl() {
                             @Override
                             public void onSuccess(Object t) {
@@ -235,7 +235,7 @@ public class IMMessageManager extends IMManager {
         // 降序结果输出desc
         List<MessageEntity> listMsg = publicMessageDao.findHistoryMsgs(sessionKey, lastMsgId, lastCreateTime, count);
         // asyn task refresh
-        int resSize = listMsg.size();
+        int resSize = listMsg == null ? 0 : listMsg.size();
         logger.d("LoadHistoryMsg return size is %d", resSize);
         if (resSize == 0 || pullTimes == 1 || pullTimes % 3 == 0) {
             //刷新历史记录
