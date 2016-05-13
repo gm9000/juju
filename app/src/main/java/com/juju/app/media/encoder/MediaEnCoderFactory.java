@@ -42,6 +42,7 @@ public class MediaEnCoderFactory {
         switch (sSuggestedMode){
             case MODE_MEDIACODEC_API:
                 encoder = new MediaCodecEncoder(width, height, framerate,inputQueue, outputQueue, queueSize);
+//                encoder = new MediaRecorderEncoder(width, height, framerate, inputQueue, outputQueue, queueSize);
                 break;
             case MODE_MEDIARECORDER_API:
                 encoder = new MediaRecorderEncoder(width, height, framerate, inputQueue, outputQueue, queueSize);

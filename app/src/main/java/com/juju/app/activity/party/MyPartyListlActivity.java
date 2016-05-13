@@ -36,6 +36,7 @@ import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @ContentView(R.layout.layout_my_party_list)
@@ -101,6 +102,10 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
             partyList = selector.findAll();
         } catch (DbException e) {
             e.printStackTrace();
+        }
+
+        if(partyList == null) {
+            partyList = new ArrayList<Party>();
         }
 
         if(partyList.size() >= totalSize){

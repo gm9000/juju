@@ -3,133 +3,110 @@
     android:id="@+id/layout_main"
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    >
+    android:layout_height="match_parent">
 
-    <!--标题 -->
-    <!--<include-->
-        <!--android:id="@+id/layout_play_bar"-->
-        <!--layout="@layout/layout_title" />-->
-
-        <VideoView
-            android:id="@+id/video_play_win"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentTop="true" />
-        <SurfaceView
-            android:id="@+id/video_play_view"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            />
-        <ImageView
-            android:id="@+id/img_change"
-            android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:src="@mipmap/camera_change"/>
-        <TextView
-            android:id="@+id/statusText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_alignParentTop="true"
-            android:layout_marginRight="40dp"
-            android:layout_alignParentRight="true"
-            android:textColor="@color/white"
-            android:padding="5dp"
-            />
-        <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-        <ImageView
-            android:id="@+id/img_close"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="10dp"
-            android:layout_alignParentRight="true"
-            android:layout_marginRight="10dp"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
-            android:src="@mipmap/close"/>
-        <ImageView
-            android:id="@+id/img_play"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:src="@mipmap/upload"/>
-
-    <RelativeLayout
-        android:id="@+id/layout_right_menu"
+    <VideoView
+        android:id="@+id/video_play_win"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true" />
+    <SurfaceView
+        android:id="@+id/video_play_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        />
+    <android.support.v4.widget.SlidingPaneLayout
+        android:id="@+id/layout_sliding"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="5dp">
-
-        <ListView
-            android:id="@+id/live_discuss_listView"
-            android:layout_marginBottom="40dp"
-            android:layout_width="wrap_content"
-            android:layout_height="0dp"
-            android:layout_alignParentBottom="true"/>
-        <EditText
-            android:id="@+id/txt_discuss"
+        android:layout_marginBottom="10dp">
+        <View
             android:layout_width="match_parent"
-            android:layout_toLeftOf="@+id/btn_send"
-            android:layout_height="30dp"
-            android:layout_alignParentBottom="true"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="2dp"
-            android:paddingLeft="2dp"
-            android:background="@drawable/discuss_input_border"
-            android:drawableLeft="@mipmap/edit"
-            android:hint="@string/live_discuss"
-            android:singleLine="true"
-            />
-        <Button
-            android:id="@+id/btn_send"
-            android:layout_toLeftOf="@+id/img_weixin"
-            android:text="@string/send"
-            android:textColor="@color/white"
-            android:textSize="10sp"
-            android:layout_width="45dp"
-            android:layout_height="30dp"
-            android:background="@drawable/btn_bg_blue"
-            android:layout_alignParentBottom="true"
-            android:layout_marginRight="10dp"
-            android:src="@mipmap/circle_close"/>
-        <ImageView
-            android:id="@+id/img_weixin"
-            android:layout_toLeftOf="@+id/img_pyq"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentBottom="true"
-            android:layout_marginRight="2dp"
-            android:src="@mipmap/weixin"/>
-        <ImageView
-            android:id="@+id/img_pyq"
-            android:layout_toLeftOf="@+id/img_weibo"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentBottom="true"
-            android:layout_marginRight="2dp"
-            android:src="@mipmap/pyq"/>
-        <ImageView
-            android:id="@+id/img_weibo"
-            android:layout_toLeftOf="@+id/img_copy"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentBottom="true"
-            android:layout_marginRight="2dp"
-            android:src="@mipmap/weibo"/>
-        <ImageView
-            android:id="@+id/img_copy"
-            android:layout_width="30dp"
-            android:layout_height="30dp"
-            android:layout_alignParentRight="true"
-            android:layout_alignParentBottom="true"
-            android:layout_marginRight="2dp"
-            android:src="@mipmap/copy"/>
-    </RelativeLayout>
+            android:layout_height="match_parent"/>
+        <RelativeLayout
+            android:id="@+id/layout_right_menu"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
 
-    <!--底部菜单 -->
+            <ListView
+                android:id="@+id/live_discuss_listView"
+                android:layout_marginBottom="40dp"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:scrollbars="none"
+                android:layout_alignParentBottom="true"/>
+            <EditText
+                android:id="@+id/txt_discuss"
+                android:layout_width="match_parent"
+                android:layout_toLeftOf="@+id/btn_send"
+                android:layout_height="30dp"
+                android:layout_alignParentBottom="true"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="2dp"
+                android:paddingLeft="2dp"
+                android:background="@drawable/discuss_input_border"
+                android:drawableLeft="@mipmap/edit"
+                android:hint="@string/live_discuss"
+                android:singleLine="true"
+                />
+            <Button
+                android:id="@+id/btn_send"
+                android:layout_toLeftOf="@+id/img_share"
+                android:text="@string/send"
+                android:textColor="@color/white"
+                android:textSize="10sp"
+                android:layout_width="45dp"
+                android:layout_height="30dp"
+                android:background="@drawable/btn_bg_blue"
+                android:layout_alignParentBottom="true"
+                android:layout_marginRight="20dp"/>
+            <ImageView
+                android:id="@+id/img_share"
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_alignParentBottom="true"
+                android:layout_marginRight="30dp"
+                android:layout_alignParentRight="true"
+                android:src="@mipmap/share"/>
 
+        </RelativeLayout>
+
+    </android.support.v4.widget.SlidingPaneLayout>
+
+    <ImageView
+        android:id="@+id/img_change"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@mipmap/camera_change"/>
+    <TextView
+        android:id="@+id/statusText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginRight="40dp"
+        android:layout_alignParentRight="true"
+        android:textColor="@color/white"
+        android:padding="5dp"
+        />
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content" />
+    <ImageView
+        android:id="@+id/img_close"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="10dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="10dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:src="@mipmap/close"/>
+    <ImageView
+        android:id="@+id/img_upload"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:src="@mipmap/upload"/>
 </RelativeLayout>

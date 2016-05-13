@@ -275,7 +275,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         if(clickUserNo != null){
             User clickUser = null;
             try {
-                clickUser = JujuDbUtils.getInstance(getContext()).selector(User.class).where("userNo", "=", clickUserNo).findFirst();
+                clickUser = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo","=",clickUserNo));
             } catch (DbException e) {
                 e.printStackTrace();
             }
