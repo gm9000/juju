@@ -38,6 +38,7 @@ import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
+import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.ClearEditText;
 import com.juju.app.view.RoundImageView;
 import com.squareup.okhttp.Response;
@@ -240,51 +241,48 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     /**
      *******************************************回调函数******************************************
      */
-//    @Override
-//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-//        switch (accessId) {
-//            case R.id.loginBtn:
-//                if(obj != null && obj.length > 0) {
-//                JSONObject jsonRoot = (JSONObject)obj[0];
-//                try {
-//                    int status = jsonRoot.getInt("status");
-//                    String description = "";
-//                    if(jsonRoot.has("description")) {
-//                        description = jsonRoot.getString("description");
-//                    }
-//                    jujuNo = jsonRoot.getString("userNo");
-//                    token = jsonRoot.getString("token");
-//                    if(status == 0) {
-//                        saveUserInfo();
-//                        startActivity(LoginActivity.this, MainActivity.class);
-//                        //登陆聊天服务
-//                        IMLoginManager.instance().login();
-//                    } else {
-//                        final int resId = getResValue(description);
-//                        if(resId > 0) {
-//                            showMsgDialog(resId);
-//                        } else {
-//                            showMsgDialog(R.string.error_login_psw);
-//                        }
-//                        clearUserInfo(true, true);
-//                    }
-//                } catch (JSONException e) {
-//                    Log.e(TAG, "回调解析失败", e);
-//                    completeLoadingCommon();
-//                    showMsgDialog(R.string.error_login_psw);
-//                }
-//            }
-//                break;
-//        }
-//    }
-//
-//    @Override
-//    public void onFailure(HttpException error, String msg, int accessId) {
-//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-//                error.getExceptionCode());
-//        completeLoadingCommon();
-//        showMsgDialog(R.string.error_login_psw);
-//    }
+
+    @Override
+    public void onSuccess4OK(Object obj, int accessId) {
+        Log.d(TAG, "回调线程:" + Thread.currentThread().getName());
+        switch (accessId) {
+            case R.id.loginBtn:
+                if(obj != null) {
+                    LoginActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            completeLoadingCommon();
+                        }
+                    });
+                    JSONObject jsonRoot = (JSONObject)obj;
+                    int status = JSONUtils.getInt(jsonRoot, "status", -1);
+                    String description = JSONUtils.getString(jsonRoot, "description", "");
+                    jujuNo = JSONUtils.getString(jsonRoot, "userNo", "");
+                    token = JSONUtils.getString(jsonRoot, "token", "");
+                    if(status == 0) {
+                        saveUserInfo();
+                        startActivity(LoginActivity.this, MainActivity.class);
+                        //登陆聊天服务
+                        IMLoginManager.instance().login();
+                    } else {
+                        final int resId = getResValue(description);
+                        if(resId > 0) {
+                            showMsgDialog(resId);
+                        } else {
+                            showMsgDialog(R.string.error_login_psw);
+                        }
+                        clearUserInfo(true, true);
+                    }
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onFailure4OK(Exception e, int accessId) {
+        completeLoadingCommon();
+        showMsgDialog(R.string.error_login_psw);
+    }
 
 
     ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -447,56 +445,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     }
 
 
-    @Override
-    public void onSuccess4OK(Object obj, int accessId) {
-        Log.d(TAG, "回调线程:" + Thread.currentThread().getName());
-        switch (accessId) {
-            case R.id.loginBtn:
-                if(obj != null) {
-                    LoginActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            completeLoadingCommon();
-                        }
-                    });
-                    JSONObject jsonRoot = (JSONObject)obj;
-                    try {
-                        int status = jsonRoot.getInt("status");
-                        String description = "";
-                        if(jsonRoot.has("description")) {
-                            description = jsonRoot.getString("description");
-                        }
-                        jujuNo = jsonRoot.getString("userNo");
-                        token = jsonRoot.getString("token");
-                        if(status == 0) {
-                            saveUserInfo();
-                            startActivity(LoginActivity.this, MainActivity.class);
-                            //登陆聊天服务
-                            IMLoginManager.instance().login();
-                        } else {
-                            final int resId = getResValue(description);
-                            if(resId > 0) {
-                                showMsgDialog(resId);
-                            } else {
-                                showMsgDialog(R.string.error_login_psw);
-                            }
-                            clearUserInfo(true, true);
-                        }
-                    } catch (JSONException e) {
-                        Log.e(TAG, "回调解析失败", e);
-                        completeLoadingCommon();
-                        showMsgDialog(R.string.error_login_psw);
-                    }
-                }
-                break;
-        }
-    }
-
-    @Override
-    public void onFailure4OK(Exception e, int accessId) {
-        completeLoadingCommon();
-        showMsgDialog(R.string.error_login_psw);
-    }
 
 
     /**
