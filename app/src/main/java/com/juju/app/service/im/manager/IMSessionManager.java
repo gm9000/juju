@@ -59,8 +59,6 @@ public class IMSessionManager extends IMManager {
     //SessionManager 状态字段
     private boolean sessionListReady = false;
 
-    private IMLoginManager imLoginManager = IMLoginManager.instance();
-
     private DaoSupport sessionDao;
 
     private MessageDao messageDao;
@@ -94,10 +92,8 @@ public class IMSessionManager extends IMManager {
     public void onLocalLoginOk(){
         logger.i("session#loadFromDb");
         List<SessionEntity>  sessionInfoList = sessionDao.findAll4Order("updated:desc");
-        if(sessionInfoList != null) {
-            for(SessionEntity sessionInfo:sessionInfoList){
-                sessionMap.put(sessionInfo.getSessionKey(), sessionInfo);
-            }
+        for(SessionEntity sessionInfo:sessionInfoList){
+            sessionMap.put(sessionInfo.getSessionKey(), sessionInfo);
         }
         sessionListReady = true;
         triggerEvent(SessionEvent.RECENT_SESSION_LIST_SUCCESS);

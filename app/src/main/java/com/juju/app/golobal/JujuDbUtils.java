@@ -70,4 +70,16 @@ public class JujuDbUtils {
     public static boolean needRefresh(Class entityClass){
         return GlobalVariable.get(entityClass.getSimpleName() + "needRefresh",Boolean.class,false);
     }
+
+    public static void replace(Object entity){
+        try {
+            mInstance.replace(entity);
+            GlobalVariable.put(entity.getClass().getSimpleName()+"needRefresh",true);
+            if(entity instanceof PlanVote){
+                GlobalVariable.put(Plan.class.getSimpleName()+"needRefresh",true);
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+    }
 }

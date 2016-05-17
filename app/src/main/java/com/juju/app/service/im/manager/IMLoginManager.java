@@ -10,6 +10,7 @@ import com.juju.app.event.LoginEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
+import com.juju.app.utils.ThreadPoolUtil;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
@@ -48,6 +49,7 @@ public class IMLoginManager extends IMManager {
     public void doOnStart() {
         messageDao = new MessageDaoImpl(ctx);
         socketService = new XMPPServiceImpl(ctx.getContentResolver(), service, messageDao);
+        Log.d(TAG, "IMLoginManager#doOnStart#this============="+socketService.toString());
         //登录成功后，为MessageManager设置XMPP服务， 暂时这样处理
         IMMessageManager.instance().setSocketService(socketService);
         IMUnreadMsgManager.instance().setSocketService(socketService);
@@ -79,7 +81,7 @@ public class IMLoginManager extends IMManager {
     }
 
     public void login() {
-        new Thread(new Runnable() {
+        ThreadPoolUtil.instance().executeImTask(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -97,17 +99,17 @@ public class IMLoginManager extends IMManager {
                     Log.e(TAG, "login>>消息服务登录异常");
                 }
             }
-        }).start();
+        });
     }
 
     public void logout() {
-        new Thread(new Runnable() {
+        ThreadPoolUtil.instance().executeImTask(new Runnable() {
             @Override
             public void run() {
                 Log.d(TAG, "app logout");
                 socketService.logout();
             }
-        }).start();
+        });
     }
 
 

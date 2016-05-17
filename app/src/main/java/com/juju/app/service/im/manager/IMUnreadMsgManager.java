@@ -294,7 +294,7 @@ public class IMUnreadMsgManager extends IMManager {
     private void joinChatRooms(final GroupEntity groupEntity) {
         final List<String> chatRoomIds = new ArrayList<String>();
         chatRoomIds.add(groupEntity.getPeerId());
-        ThreadPoolUtil.instance().addMessageTask(new Runnable() {
+        ThreadPoolUtil.instance().executeImTask(new Runnable() {
             @Override
             public void run() {
                 JoinChatRoomEvent joinChatRoomEvent = new JoinChatRoomEvent();
@@ -324,9 +324,10 @@ public class IMUnreadMsgManager extends IMManager {
      */
     private void joinChatRooms(List<String> chatRoomIds) throws SmackException.NoResponseException,
             XMPPException, SmackException.NotConnectedException, JUJUXMPPException {
-        logger.i("unread#joinChatRooms");
+        logger.i("unread#joinChatRooms,size:"+chatRoomIds.size());
             for(String chatRoomId : chatRoomIds) {
                 String chatRoom = DBConstant.SESSION_TYPE_GROUP + "_" + chatRoomId;
+                logger.i("chatRoom:"+chatRoom);
                 long time = (long) SpfUtil.get(ctx, chatRoom, System.currentTimeMillis()-24*60*60*1000l);
                 socketService.joinChatRoom(chatRoomId, time);
             }
@@ -338,7 +339,7 @@ public class IMUnreadMsgManager extends IMManager {
     public void reqUnreadMsgContactList(GroupEntity groupEntity) {
         final List<String> chatRoomIds = new ArrayList<String>();
         chatRoomIds.add(groupEntity.getPeerId());
-        ThreadPoolUtil.instance().addMessageTask(new Runnable() {
+        ThreadPoolUtil.instance().executeImTask(new Runnable() {
             @Override
             public void run() {
                 reqUnreadMsgContactList(chatRoomIds);
@@ -390,9 +391,11 @@ public class IMUnreadMsgManager extends IMManager {
                                     unReadDao.replaceInto(unreadEntity);
                                     //需进一步优化
                                     if(unreadEntity.getUnReadCnt() >0) {
-//                                        MergeMessageThread mergeMessageThread = new MergeMessageThread
-//                                                (chatRoomId, created, unreadEntity.getUnReadCnt(), socketService);
-//                                        new Thread(mergeMessageThread, MergeMessageThread.class.getSimpleName()).start();
+                                        MergeMessageThread mergeMessageThread = new MergeMessageThread
+                                                (chatRoomId, created, unreadEntity.getUnReadCnt(), socketService);
+                                        Thread thread = new Thread(mergeMessageThread,
+                                                MergeMessageThread.class.getSimpleName());
+                                        ThreadPoolUtil.instance().executeImTask(thread);
                                     }
                                 }
                             } catch (JSONException e) {

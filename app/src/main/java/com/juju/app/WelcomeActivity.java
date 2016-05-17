@@ -25,7 +25,7 @@ import org.xutils.view.annotation.ViewInject;
 
 @ContentView(R.layout.activity_welcome)
 @SystemColor(isApply = false)
-public class WelcomeActivity extends BaseActivity implements Runnable  {
+public class WelcomeActivity extends BaseActivity  {
 
     private final String tag = getClass().getName();
 
@@ -53,7 +53,8 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
         //透明导航栏
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         HttpConstants.initURL();
-        new Thread(this).start();
+        startAnimation();
+//        new Thread(this).start();
     }
 
     private void clearDatabase() {
@@ -66,16 +67,16 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
         }
     }
 
-    @Override
-    public void run() {
-
-//            Log.i(tag, "等待1秒切换到登陆界面。。。");
-//            Thread.sleep(1000);
-//            startActivity(new Intent(WelcomeActivity.this, LoginActivity.class));
-
-            startAnimation();
-
-    }
+//    @Override
+//    public void run() {
+//
+////            Log.i(tag, "等待1秒切换到登陆界面。。。");
+////            Thread.sleep(1000);
+////            startActivity(new Intent(WelcomeActivity.this, LoginActivity.class));
+//
+//            startAnimation();
+//
+//    }
 
     /**
      * 渐变展示启动屏

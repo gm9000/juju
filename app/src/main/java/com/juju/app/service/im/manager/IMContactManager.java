@@ -78,14 +78,11 @@ public class IMContactManager extends IMManager {
      */
     public void onLocalLoginOk() {
         logger.d("contact#loadAllUserInfo");
-
         List<User> userlist = userDao.findAll();
         logger.d("contact#loadAllUserInfo dbsuccess");
-
         for(User userInfo:userlist){
             userMap.put(userInfo.getUserNo(), userInfo);
         }
-
         userDataReady = true;
         triggerEvent(UserInfoEvent.USER_INFO_OK);
     }

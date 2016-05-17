@@ -16,6 +16,7 @@ import com.juju.app.service.im.thread.GetGroupUserThread;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ThreadPoolUtil;
 
 
 import org.greenrobot.eventbus.EventBus;
@@ -166,6 +167,7 @@ public class IMGroupManager extends IMManager {
                                     if(jsonArray != null && jsonArray.length() >0) {
                                         CountDownLatch countDownLatch = new CountDownLatch
                                                 (jsonArray.length());
+                                        System.out.println("执行id length===================="+jsonArray.length());
                                         for (int i = 0; i <jsonArray.length(); i++) {
                                             JSONObject jsonObject = (JSONObject)jsonArray.get(i);
                                             String id = jsonObject.getString("id");
@@ -179,13 +181,12 @@ public class IMGroupManager extends IMManager {
                                                     GetGroupUserThread(countDownLatch, id,  name,
                                                     desc,  userNo,  userInfoBean,  groupDao, userDao, groupMap,
                                                     IMContactManager.instance().getUserMap());
-                                            //考虑使用线程池
                                             Thread t = new Thread(thread, "GetGroupUserThread");
-                                            t.start();
+                                            ThreadPoolUtil.instance().executeImTask(t);
                                         }
                                         countDownLatch.await();
                                         //群组及群组下用户持久化完毕
-
+                                        System.out.println("执行id完毕====================");
 
                                         //通知群组信息更新
                                         isGroupReady = true;

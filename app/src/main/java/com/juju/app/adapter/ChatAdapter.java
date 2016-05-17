@@ -15,13 +15,11 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.juju.app.R;
-import com.juju.app.bean.groupchat.TimeTileMessageBean;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.RenderType;
-import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.tools.Emoparser;
@@ -32,7 +30,6 @@ import com.juju.app.utils.Logger;
 import com.juju.app.view.groupchat.MessageOperatePopup;
 import com.juju.app.view.groupchat.TextRenderView;
 import com.juju.app.view.groupchat.TimeRenderView;
-import com.mogujie.widget.imageview.MGWebImageView;
 
 import java.util.ArrayList;
 import java.util.Collections;

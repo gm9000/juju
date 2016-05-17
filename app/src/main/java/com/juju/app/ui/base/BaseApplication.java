@@ -4,16 +4,12 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Intent;
 
-import com.activeandroid.ActiveAndroid;
 import com.baidu.mapapi.SDKInitializer;
 import com.facebook.stetho.InspectorModulesProvider;
 import com.facebook.stetho.Stetho;
 import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
-import com.facebook.stetho.inspector.database.DefaultDatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
-import com.juju.app.BuildConfig;
-import com.juju.app.activity.MainActivity;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.CacheManager;
 import com.juju.app.golobal.DBConstant;
@@ -27,7 +23,6 @@ import org.xutils.x;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 项目名称：juju
@@ -46,7 +41,7 @@ public class BaseApplication extends Application {
 //
 //    private String
 
-    private List<Activity> mActivities = new ArrayList<Activity>();
+    private List<Activity> mActivities = new ArrayList<>();
 
 
 
@@ -63,22 +58,25 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-        x.Ext.init(this);
-        x.Ext.setDebug(BuildConfig.DEBUG);
-        SDKInitializer.initialize(this);
-        init();
+        initFramework();
+        initDebug();
+        initService();
     }
 
 
-    private void init() {
-        startIMService();
+    //初始化系统框架
+    private void initFramework() {
+        x.Ext.init(this);
+        SDKInitializer.initialize(this);
+
         //初始化图片加载器
         ImageLoaderUtil.initImageLoaderConfig(getApplicationContext());
-
+        //初始化皮肤管理器
         ThemeManager.init(getApplicationContext(), 2, 0, null);
+    }
 
-//        Stetho.initializeWithDefaults(this);
-
+    //初始化DEBUG模式
+    private void initDebug() {
         Stetho.initialize(Stetho.newInitializerBuilder(this)
                 .enableWebKitInspector(new InspectorModulesProvider() {
                     @Override
@@ -95,16 +93,18 @@ public class BaseApplication extends Application {
                                 })
                         ).finish();
                     }
-                })
-                .build());
+                }).build());
 
+        Stetho.initializeWithDefaults(this);
 
-        ActiveAndroid.initialize(this);
+        //监测内存泄漏
+//        LeakCanary.install(this);
+//        x.Ext.setDebug(BuildConfig.DEBUG);
+    }
 
-
-//        OkHttpUtils.getInstance().debug("OkHttpUtils")
-//                .setConnectTimeout(100000, TimeUnit.MILLISECONDS);
-
+    //初始化系统服务
+    private void initService() {
+        startIMService();
     }
 
 
@@ -147,7 +147,6 @@ public class BaseApplication extends Application {
         return userInfoBean;
     }
 
-
     //启动IM服务
     private void startIMService() {
         Intent intent = new Intent();
@@ -161,4 +160,5 @@ public class BaseApplication extends Application {
         intent.setClass(this, IMService.class);
         stopService(intent);
     }
+
 }

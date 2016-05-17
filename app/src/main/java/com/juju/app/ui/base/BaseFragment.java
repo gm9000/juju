@@ -62,10 +62,6 @@ public class BaseFragment extends Fragment {
                     }
                 }
             }
-//            ViewGroup parent = (ViewGroup) rootView.getParent();
-//            if (parent != null) {
-//                parent.removeView(rootView);
-//            }
             injected = true;
             return rootView;
         }
@@ -99,6 +95,7 @@ public class BaseFragment extends Fragment {
     protected void setOnListener() {
 
     }
+
 
     protected View findViewById(int viewId) {
         if (rootView == null)

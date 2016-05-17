@@ -66,13 +66,4 @@ public class HttpConstants {
     }
 
 
-    public enum  ResThreadType {
-
-        //主线程
-        MAIN,
-
-        //异步回调线程
-        ASYN
-
-    }
 }

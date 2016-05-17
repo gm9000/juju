@@ -79,13 +79,6 @@ public class IMService extends Service {
         Log.d(TAG, "threadId" + Thread.currentThread().getId());
         super.onCreate();
         EventBus.getDefault().register(this);
-//        startForeground((int) System.currentTimeMillis(), new Notification());
-    }
-
-
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand" + this.toString());
         Context ctx = getApplicationContext();
         loginMgr.onStartIMManager(ctx, this);
         messageMgr.onStartIMManager(ctx, this);
@@ -96,9 +89,27 @@ public class IMService extends Service {
 
 
         otherManager.onStartIMManager(ctx, this);
-        //服务kill掉后能重启
-        return START_STICKY;
+//        startForeground((int) System.currentTimeMillis(), new Notification());
     }
+
+
+
+//    @Override
+//    public int onStartCommand(Intent intent, int flags, int startId) {
+//        Log.d(TAG, "onStartCommand" + this.toString());
+////        Context ctx = getApplicationContext();
+////        loginMgr.onStartIMManager(ctx, this);
+////        messageMgr.onStartIMManager(ctx, this);
+////        sessionMgr.onStartIMManager(ctx, this);
+////        unReadMsgMgr.onStartIMManager(ctx, this);
+////        groupMgr.onStartIMManager(ctx, this);
+////        contactMgr.onStartIMManager(ctx, this);
+////
+////
+////        otherManager.onStartIMManager(ctx, this);
+//        //服务kill掉后能重启
+//        return START_NOT_STICKY;
+//    }
 
 
     @Override
@@ -146,6 +157,7 @@ public class IMService extends Service {
      */
     private void onNormalLoginOk() {
         logger.d("imservice#onLogin Successful");
+        //先获取群组
         groupMgr.onNormalLoginOk();
         unReadMsgMgr.onNormalLoginOk();
         sessionMgr.onNormalLoginOk();

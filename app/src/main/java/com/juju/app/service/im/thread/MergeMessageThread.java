@@ -2,6 +2,7 @@ package com.juju.app.service.im.thread;
 
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.event.UnreadEvent;
+import com.juju.app.golobal.Constants;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.iq.RedisResIQ;
 import com.juju.app.service.im.manager.IMMessageManager;
@@ -37,7 +38,7 @@ public class MergeMessageThread implements Runnable{
 
     private long time;
 
-    private int length = 15;
+    private int length = Constants.MSG_CNT_PER_PAGE;
 
     private Object obj = new Object();
 
@@ -86,7 +87,6 @@ public class MergeMessageThread implements Runnable{
                             } catch (JSONException e) {
                                 e.printStackTrace();
                             }
-//                            triggerEvent(new UnreadEvent(UnreadEvent.Event.UNREAD_MSG_LIST_OK));
                             synchronized (obj) {
                                 obj.notify();
                             }

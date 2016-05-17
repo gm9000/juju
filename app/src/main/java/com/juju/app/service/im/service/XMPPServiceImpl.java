@@ -235,6 +235,8 @@ public class XMPPServiceImpl implements
         xmppConnection.connect();
         xmppConnection.login(userName, password, serviceName);
         boolean isOk = xmppConnection.isAuthenticated();
+        Log.d(TAG, "login#isOk============:"+isOk);
+        Log.d(TAG, "login#this============="+this.toString());
         return isOk;
     }
 
@@ -415,10 +417,12 @@ public class XMPPServiceImpl implements
     @Override
     public void joinChatRoom(String chatRoom, long lastUpdateTime) throws JUJUXMPPException, XMPPException,
             SmackException.NotConnectedException, SmackException.NoResponseException {
+        Log.d(TAG, "joinChatRoom#xmppConnection:"+xmppConnection);
+        Log.d(TAG, "joinChatRoom#this============="+this.toString());
         MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(xmppConnection);
 //        String jid = BaseApplication.getInstance().getUserInfoBean().getmRoomName()+
 //                "@"+BaseApplication.getInstance().getUserInfoBean().getmMucServiceName()+".juju";
-        Log.d(TAG, "chatRoom:"+chatRoom);
+        Log.d(TAG, "joinChatRoom#chatRoom:"+chatRoom);
         multiUserChat = multiUserChatManager.getMultiUserChat(chatRoom);
         if(multiUserChat != null) {
             DiscussionHistory history = new DiscussionHistory();

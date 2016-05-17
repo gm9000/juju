@@ -29,6 +29,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.LockSupport;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * 项目名称：juju
@@ -41,10 +45,20 @@ public class GetGroupUserThread implements Runnable {
 
     private Logger logger = Logger.getLogger(GetGroupUserThread.class);
 
-    private final long TIME_WAIT = 10000l;
+
+    //回调超时时间为10秒
+    private final int TIME_WAIT = 10;
+
+//    ReentrantLock lock = new ReentrantLock();
+//
+//    Condition condition = null;
 
     //计数器
     private CountDownLatch countDownLatch;
+
+    //采用synchronized或CountDownLatch
+    private CountDownLatch myCountDownLatch = new CountDownLatch(1);
+
 
     //group MAP(共享数据，原子操作可保证线程安全)
     private volatile Map<String, GroupEntity> groupMap;
@@ -81,9 +95,10 @@ public class GetGroupUserThread implements Runnable {
 
     @Override
     public void run() {
+//        condition = lock.newCondition();
         execute();
         //计数器-1
-        System.out.println("执行id===================="+id);
+        System.out.println("执行id====================" + id);
         countDownLatch.countDown();
     }
 
@@ -98,90 +113,85 @@ public class GetGroupUserThread implements Runnable {
 
                     @Override
                     public void onSuccess4OK(Object obj, int accessId) {
-                        synchronized (object) {
-                            if(obj instanceof JSONObject) {
-                                JSONObject jsonObject = (JSONObject)obj;
-                                try {
-                                    int status = jsonObject.getInt("status");
-                                    if(status == 0) {
-                                        JSONArray jsonArray = jsonObject.getJSONArray("users");
-                                        if(jsonArray != null && jsonArray.length() >0) {
-                                            String peerId = id+"@"+userInfoBean.getmMucServiceName()
-                                                    +"."+userInfoBean.getmServiceName();
-                                            StringBuilder userNoSbf = new StringBuilder();
-                                            StringBuilder avatarSbf = new StringBuilder();
-                                            for (int i = 0; i <jsonArray.length() ; i++) {
-                                                JSONObject jsonUser = (JSONObject) jsonArray.get(i);
-                                                String userNo = jsonUser.getString("userNo");
-                                                String nickName = jsonUser.getString("nickName");
-                                                String userPhone = jsonUser.getString("userPhone");
-                                                String birthday = jsonUser.getString("birthday");
-                                                int gender = jsonUser.getInt("gender");
-                                                String createTime = jsonUser.getString("createTime");
+                        if(obj instanceof JSONObject) {
+                            JSONObject jsonObject = (JSONObject)obj;
+                            try {
+                                int status = jsonObject.getInt("status");
+                                if(status == 0) {
+                                    JSONArray jsonArray = jsonObject.getJSONArray("users");
+                                    if(jsonArray != null && jsonArray.length() >0) {
+                                        String peerId = id+"@"+userInfoBean.getmMucServiceName()
+                                                +"."+userInfoBean.getmServiceName();
+                                        StringBuilder userNoSbf = new StringBuilder();
+                                        StringBuilder avatarSbf = new StringBuilder();
+                                        for (int i = 0; i <jsonArray.length() ; i++) {
+                                            JSONObject jsonUser = (JSONObject) jsonArray.get(i);
+                                            String userNo = jsonUser.getString("userNo");
+                                            String nickName = jsonUser.getString("nickName");
+                                            String userPhone = jsonUser.getString("userPhone");
+                                            String birthday = jsonUser.getString("birthday");
+                                            int gender = jsonUser.getInt("gender");
+                                            String createTime = jsonUser.getString("createTime");
 
-                                                Date birthdayDate = null;
-                                                Date createTimeDate = null;
+                                            Date birthdayDate = null;
+                                            Date createTimeDate = null;
 
-                                                if(StringUtils.isNotBlank(birthday)) {
-                                                    try {
-                                                        birthdayDate = DateUtils.parseDate(birthday,
-                                                                new String[] {"yyyy-MM-dd HH:mm:ss"});
-                                                    } catch (ParseException e) {
+                                            if(StringUtils.isNotBlank(birthday)) {
+                                                try {
+                                                    birthdayDate = DateUtils.parseDate(birthday,
+                                                            new String[] {"yyyy-MM-dd HH:mm:ss"});
+                                                } catch (ParseException e) {
 
-                                                    }
-                                                }
-                                                if(StringUtils.isNotBlank(createTime)) {
-                                                    try {
-                                                        createTimeDate = DateUtils.parseDate(createTime,
-                                                                new String[] {"yyyy-MM-dd HH:mm:ss"});
-                                                    } catch (ParseException e) {
-
-                                                    }
-                                                }
-
-                                                User userEntity = new User(userNo,  userPhone,  "",
-                                                 gender,  nickName,  createTimeDate,  birthdayDate,
-                                                        HttpConstants.getPortraitUrl()+userNo);
-
-                                                saveUsers(userEntity);
-                                                userMap.put(userNo, userEntity);
-                                                userNoSbf.append(userNo);
-//                                                avatarSbf.append(HttpConstants.getPortraitUrl()+userNo);
-                                                if(i < jsonArray.length() - 1) {
-                                                    userNoSbf.append(",");
-//                                                    avatarSbf.append(",");
                                                 }
                                             }
-                                            GroupEntity groupEntity = new GroupEntity(0l, id,
-                                                    peerId, 0, name, avatarSbf.toString(), creatorId,
-                                                    jsonArray.length(), userNoSbf.toString(),
-                                                    0, DBConstant.GROUP_STATUS_ONLINE, 0, 0, desc);
-                                            groupDao.replaceInto(groupEntity);
-                                            groupMap.put(groupEntity.getPeerId(), groupEntity);
+                                            if(StringUtils.isNotBlank(createTime)) {
+                                                try {
+                                                    createTimeDate = DateUtils.parseDate(createTime,
+                                                            new String[] {"yyyy-MM-dd HH:mm:ss"});
+                                                } catch (ParseException e) {
 
-                                            IMGroupManager.instance().joinChatRoom(groupEntity);
+                                                }
+                                            }
+
+                                            User userEntity = new User(userNo,  userPhone,  "",
+                                                    gender,  nickName,  createTimeDate,  birthdayDate,
+                                                    HttpConstants.getPortraitUrl()+userNo);
+
+                                            saveUsers(userEntity);
+                                            userMap.put(userNo, userEntity);
+                                            userNoSbf.append(userNo);
+//                                                avatarSbf.append(HttpConstants.getPortraitUrl()+userNo);
+                                            if(i < jsonArray.length() - 1) {
+                                                userNoSbf.append(",");
+//                                                    avatarSbf.append(",");
+                                            }
                                         }
-                                    }
-                                } catch (JSONException e) {
-                                    logger.error(e);
-                                }
-                            }
-                            object.notify();
-                        }
-                    }
+                                        GroupEntity groupEntity = new GroupEntity(0l, id,
+                                                peerId, 0, name, avatarSbf.toString(), creatorId,
+                                                jsonArray.length(), userNoSbf.toString(),
+                                                0, DBConstant.GROUP_STATUS_ONLINE, 0, 0, desc);
+                                        groupDao.replaceInto(groupEntity);
+                                        groupMap.put(groupEntity.getPeerId(), groupEntity);
 
+                                        IMGroupManager.instance().joinChatRoom(groupEntity);
+                                    }
+                                }
+                            } catch (JSONException e) {
+                                logger.error(e);
+                            }
+                        }
+                        System.out.println("返回结果id:" + Thread.currentThread().getName());
+                        myCountDownLatch.countDown();
+                    }
                     @Override
                     public void onFailure4OK(Exception e, int accessId) {
-                        synchronized (object) {
-                            object.notify();
-                        }
+                        myCountDownLatch.countDown();
                     }
                 }, valueMap, JSONObject.class);
         try {
+            System.out.println("请求前id:"+Thread.currentThread().getName());
             client.sendGet4OK();
-            synchronized (object) {
-                object.wait(TIME_WAIT);
-            }
+            myCountDownLatch.await(TIME_WAIT, TimeUnit.SECONDS);
         } catch (UnsupportedEncodingException e) {
             logger.error(e);
         } catch (JSONException e) {
@@ -189,6 +199,7 @@ public class GetGroupUserThread implements Runnable {
         } catch (InterruptedException e) {
             logger.error(e);
         }
+
     }
 
     private void saveUsers(User user) {

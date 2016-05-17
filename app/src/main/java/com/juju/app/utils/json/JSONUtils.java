@@ -21,7 +21,7 @@ import org.json.JSONObject;
  */
 public class JSONUtils {
 
-    public static boolean isPrintException = true;
+    public static boolean isPrintException = false;
 
     private JSONUtils() {
         throw new AssertionError();

@@ -1,6 +1,11 @@
 package com.juju.app.activity;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -16,7 +21,6 @@ import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
-import com.juju.app.entity.Person;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.fragment.GroupChatFragment;
@@ -27,6 +31,7 @@ import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMMessageManager;
 import com.juju.app.service.im.manager.IMSessionManager;
@@ -113,11 +118,21 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         }
         userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
-        Person person = new Person();
-        person.setName("gm");
-        person.setAge(30);
 
-        person.save();
+//        Intent intent = new Intent();
+//        intent.setClass(this, IMService.class);
+//        bindService(intent, new ServiceConnection() {
+//            @Override
+//            public void onServiceConnected(ComponentName name, IBinder service) {
+//
+//            }
+//
+//            @Override
+//            public void onServiceDisconnected(ComponentName name) {
+//
+//            }
+//        }, Context.BIND_AUTO_CREATE);
+
 //        testSqlLite();
     }
 
@@ -291,22 +306,6 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 //        return serviceInfo.toString();
 //    }
 
-    private void testSqlLite() {
-        List<MessageEntity> entrys = IMMessageManager.instance().getPublicMessageDao().findAll();
-        if(entrys != null && entrys.size() >0) {
-            for(MessageEntity entry : entrys) {
-                Log.d(TAG, "MessageEntity entry:" + JacksonUtil.turnObj2String(entry));
-            }
-        }
-        List<SessionEntity> entrys2 = null;
-        entrys2 = IMSessionManager.instance().getSessionDao().
-                findAll();
-        if(entrys2 != null && entrys2.size() >0) {
-            for(SessionEntity entry : entrys2) {
-                Log.d(TAG, "SessionEntity entry:" + JacksonUtil.turnObj2String(entry));
-            }
-        }
-    }
 
     //显示未读消息总数
     public void setUnreadMessageCnt(int unreadNum) {

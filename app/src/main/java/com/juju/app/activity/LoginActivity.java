@@ -1,16 +1,10 @@
 package com.juju.app.activity;
 
-import android.content.ComponentName;
-import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -26,11 +20,10 @@ import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.golobal.JujuDbUtils;
-import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
-import com.juju.app.https.OkHttpClientManager;
 import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
@@ -41,13 +34,10 @@ import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.ClearEditText;
 import com.juju.app.view.RoundImageView;
-import com.squareup.okhttp.Response;
 
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xutils.common.Callback;
-import org.xutils.db.Selector;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
@@ -57,7 +47,6 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
-import java.util.concurrent.Executors;
 
 @ContentView(R.layout.activity_login)
 @CreateUI(isLoadData = true, isInitView = true)
@@ -84,24 +73,14 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     @ViewInject(R.id.nickName)
     private TextView nickName;
 
-
-//    @ViewInject(R.id.rememberPwdChk)
-//    private CheckBox chk_rememberPwd;
-//
-//    @ViewInject(R.id.autoLoginChk)
-//    private CheckBox chk_autoLogin;
-
     @ViewInject(R.id.login_main)
     private RelativeLayout layout_login_main;
 
     @ViewInject(R.id.loginBtn)
     private Button btn_login;
 
-    @ViewInject(R.id.txt_regist_newuser)
-    private TextView txt_regist_newuser;
+    private IMService imService;
 
-    @ViewInject(R.id.txt_foreget_psw)
-    private TextView txt_foreget_psw;
 
 
 
@@ -111,7 +90,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     private String userNo;
     private String pwd;
 
-    private IMService iMService;
 
 
 
@@ -122,28 +100,13 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setListeners();
-        boolean autoLogin = getIntent().getBooleanExtra(Constants.AUTO_LOGIN,true);
-        if(autoLogin) {
-            autoLogin = (boolean) SpfUtil.get(getApplicationContext(), Constants.AUTO_LOGIN, true);
-            if (autoLogin && !pwd.equals("")) {
-                onClickBtnLogin(btn_login);
-            }
-        }
     }
 
     @Override
     public void loadData() {
-
-        Map<Object, View> viewMap = new HashMap<Object, View>();
-//        pwdChecked = (boolean) SpfUtil.get(LoginActivity.this, "pwdChecked", false);
-//        autoLoginChecked = (boolean) SpfUtil.get(LoginActivity.this,
-//                "autoLoginChecked", false);
+        imServiceConnector.connect(LoginActivity.this);
         userNo = (String)SpfUtil.get(LoginActivity.this, "userNo", "");
         pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
-//        if(pwdChecked) {
-//            pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
-//        }
-
     }
 
     @Override
@@ -153,8 +116,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         if(rememberPwd) {
             txt_password.setText(pwd);
         }
-//        chk_rememberPwd.setChecked(pwdChecked);
-//        chk_autoLogin.setChecked(autoLoginChecked);
         setLoginBtnBackgroud();
         layout_login_main.setFocusableInTouchMode(true);
 
@@ -164,16 +125,13 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     BitmapUtilFactory.Option.imageOptions());
         }
 
-        if(BaseApplication.getInstance().getUserInfoBean().getUserName()!=null){
+        if(BaseApplication.getInstance().getUserInfoBean().getUserName() != null){
             nickName.setText(BaseApplication.getInstance().getUserInfoBean().getUserName());
         }
-
-//        bindXMPPService();
     }
 
     @Override
     protected void onResume() {
-
         super.onResume();
         Log.d(TAG, "onResume");
     }
@@ -188,7 +146,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     @Override
     protected void onDestroy() {
         super.onDestroy();
-//        unbindXMPPService();
+        imServiceConnector.disconnect(LoginActivity.this);
         Log.d(TAG, "onDestroy");
 
     }
@@ -256,22 +214,30 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     });
                     JSONObject jsonRoot = (JSONObject)obj;
                     int status = JSONUtils.getInt(jsonRoot, "status", -1);
-                    String description = JSONUtils.getString(jsonRoot, "description", "");
+                    final String description = JSONUtils.getString(jsonRoot, "description", "");
                     jujuNo = JSONUtils.getString(jsonRoot, "userNo", "");
                     token = JSONUtils.getString(jsonRoot, "token", "");
                     if(status == 0) {
                         saveUserInfo();
                         startActivity(LoginActivity.this, MainActivity.class);
                         //登陆聊天服务
-                        IMLoginManager.instance().login();
-                    } else {
-                        final int resId = getResValue(description);
-                        if(resId > 0) {
-                            showMsgDialog(resId);
-                        } else {
-                            showMsgDialog(R.string.error_login_psw);
+                        if(imService != null) {
+                            imService.getLoginManager().login();
                         }
-                        clearUserInfo(true, true);
+                    } else {
+                        LoginActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                final int resId = getResValue(description);
+                                if (resId > 0) {
+                                    showMsgDialog(resId);
+                                } else {
+                                    showMsgDialog(R.string.error_login_psw);
+                                }
+                                clearUserInfo(true, true);
+
+                            }
+                        });
                     }
                 }
                 break;
@@ -280,27 +246,17 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
     @Override
     public void onFailure4OK(Exception e, int accessId) {
-        completeLoadingCommon();
-        showMsgDialog(R.string.error_login_psw);
+        LoginActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                completeLoadingCommon();
+                showMsgDialog(R.string.error_login_psw);
+            }
+        });
     }
 
 
-    ServiceConnection mServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-//            iMService = ((IMService.IMServiceBinder) service).getService();
-//            iMService.getLoginManager().onStartIMManager(BaseApplication.getInstance());
-//            Log.d(TAG, "开始连接XMPP服务器"+iMService.toString());
-        }
 
-        @Override
-        public void onServiceDisconnected(ComponentName name) {
-//            mXxService.unRegisterConnectionStatusCallback();
-//            iMService = null;
-//            Log.d(TAG, "断开XMPP服务器"+iMService.toString());
-        }
-
-    };
 
     /**
      *******************************************私有函数******************************************
@@ -424,25 +380,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         }
     }
 
-    private void bindXMPPService() {
-        Intent mServiceIntent = new Intent(this, IMService.class);
-        mServiceIntent.setAction("com.juju.app.service.XMMP");
-        bindService(mServiceIntent, mServiceConnection,
-                Context.BIND_AUTO_CREATE + Context.BIND_DEBUG_UNBIND);
-
-    }
-
-    private void unbindXMPPService() {
-//        try {
-//            unbindService(mServiceConnection);
-//        } catch (IllegalArgumentException e) {
-//            e.printStackTrace();
-//        }
-    }
-
-    private void unBindService() {
-
-    }
 
 
 
@@ -468,8 +405,27 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         }
     }
 
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    public void onMessageEvent(String event){
-//        System.out.println("线程ID=" + Thread.currentThread().getId());
-//    }
+        /**
+         * IMServiceConnector
+         */
+        private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+            @Override
+            public void onIMServiceConnected() {
+                logger.d("login_activity#onIMServiceConnected");
+                imService = imServiceConnector.getIMService();
+                boolean autoLogin = getIntent().getBooleanExtra(Constants.AUTO_LOGIN, true);
+                if(autoLogin) {
+                    autoLogin = (boolean) SpfUtil.get(getApplicationContext(), Constants.AUTO_LOGIN, true);
+                    if (autoLogin && !pwd.equals("")) {
+                        onClickBtnLogin(btn_login);
+                    }
+                }
+            }
+
+            @Override
+            public void onServiceDisconnected() {
+                showMsgDialog(R.string.system_service_error);
+            }
+        };
+
 }

@@ -13,9 +13,11 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.Selection;
@@ -347,7 +349,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         if(peerEntity != null) {
             //构造消息实体
             MessageEntity textMessage = TextMessage.buildForSend(content, loginUser, peerEntity);
-            IMMessageManager.instance().sendText(textMessage);
+            imService.getMessageManager().sendText(textMessage);
             messageEdt.setText("");
             pushList(textMessage);
         } else {
@@ -856,7 +858,8 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                 int preSum = mlist.getCount();
                 MessageEntity messageEntity = adapter.getTopMsgEntity();
                 if (messageEntity != null) {
-                    List<MessageEntity> historyMsgInfo = IMMessageManager.instance().loadHistoryMsg(messageEntity, historyTimes);
+                    List<MessageEntity> historyMsgInfo = imService.getMessageManager()
+                            .loadHistoryMsg(messageEntity, historyTimes);
                     if (historyMsgInfo.size() > 0) {
                         historyTimes++;
                         adapter.loadHistoryList(historyMsgInfo);
@@ -1076,7 +1079,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private void reqHistoryMsg() {
         historyTimes++;
         //拉取历史信息
-        List<MessageEntity> msgList = IMMessageManager.instance().
+        List<MessageEntity> msgList = imService.getMessageManager().
                 loadHistoryMsg(historyTimes, currentSessionKey, peerEntity);
         pushList(msgList);
         scrollToBottomListItem();
@@ -1099,4 +1102,5 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
         }
     };
+
 }

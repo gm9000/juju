@@ -1,20 +1,16 @@
 package com.juju.app.https;
 
-import android.annotation.SuppressLint;
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.juju.app.bean.json.BaseReqBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.utils.JacksonUtil;
-import com.juju.app.utils.StringUtils;
 import com.juju.app.view.imagezoom.utils.BitmapUtils;
 
 import com.squareup.okhttp.CacheControl;
 import com.squareup.okhttp.Call;
 import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.Headers;
 import com.squareup.okhttp.MediaType;
 import com.squareup.okhttp.MultipartBuilder;
 import com.squareup.okhttp.Request;
@@ -25,7 +21,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.HttpManager;
 import org.xutils.http.RequestParams;
-import org.xutils.http.body.MultipartBody;
 import org.xutils.x;
 
 import java.io.File;
@@ -38,7 +33,7 @@ import java.util.Set;
 
 /**
  * 项目名称：juju
- * 类描述：基于Xutils框架 http封装类
+ * 类描述：http封装类
  * 创建人：gm
  * 日期：2016/2/17 16:50
  * 版本：V1.0.0
@@ -58,9 +53,10 @@ public class JlmHttpClient<Req> {
     private String url;
 
     /**
-     * 回调函数，完成Http请求需要实现此接口
+     * Xutil回调函数，完成Http请求需要实现此接口
      */
     private HttpCallBack callBack;
+
 
     private HttpCallBack4OK callBack4OK;
 
@@ -73,8 +69,6 @@ public class JlmHttpClient<Req> {
      * 响应封装对象，可为空
      */
     private Class res;
-
-    HttpConstants.ResThreadType resThreadType;
 
 
     public JlmHttpClient(int accessId, String url,
@@ -99,9 +93,9 @@ public class JlmHttpClient<Req> {
                          HttpCallBack4OK callBack4OK, Req req, Class resClass) {
         this.accessId = accessId;
         this.url = url;
+        this.callBack4OK = callBack4OK;
         this.req = req;
         this.res = resClass;
-        this.callBack4OK = callBack4OK;
     }
 
 
@@ -258,13 +252,11 @@ public class JlmHttpClient<Req> {
                     int size = (int)inputArray[0];
                     RequestBody fileBodySmall = RequestBody.create(
                             MediaType.parse("application/octet-stream"), (byte[])inputArray[1], 0, size);
-
                     //根据文件名设置contentType
                     multipartBuilder.addFormDataPart(key, key, fileBodySmall);
                 }else if(obj instanceof File){
                     RequestBody fileBody = RequestBody.create(
                             MediaType.parse("application/octet-stream"), (File)obj);
-
                     multipartBuilder.addFormDataPart(key, key,fileBody);
                 }
                 RequestBody requestBody = multipartBuilder.build();
@@ -304,21 +296,10 @@ public class JlmHttpClient<Req> {
     private void doSend(Request request) {
         final Call call = OkHttpClientManager.getInstance().getmOkHttpClient().newCall(request);
         call.enqueue(new Callback() {
-
             @Override
             public void onFailure(Request request, final IOException e) {
-                if(resThreadType == HttpConstants.ResThreadType.MAIN) {
-                    OkHttpClientManager.getInstance().getmDelivery().post(new Runnable() {
-                        @Override
-                        public void run() {
-                            callBack4OK.onFailure4OK(e, accessId);
-                        }
-                    });
-                } else {
-                    callBack4OK.onFailure4OK(e, accessId);
-                }
+                callBack4OK.onFailure4OK(e, accessId);
             }
-
             @Override
             public void onResponse(final Response response) throws IOException {
                 //String 类型
@@ -561,27 +542,4 @@ public class JlmHttpClient<Req> {
             }
         });
     }
-
-
-//
-//    private void doSendNoCache(RequestParams params, HttpRequest.HttpMethod httpMethod) {
-//        HttpUtils http = new HttpUtils();
-//        http.configCurrentHttpCacheExpiry(0);
-//        http.send(httpMethod, url, params,
-//                new RequestCallBack<String>() {
-//                    @Override
-//                    public void onSuccess(ResponseInfo<String> responseInfo) {
-//                        if (res == null || res.isAssignableFrom(String.class)) {
-//                            callBack.onSuccess(responseInfo, accessId);
-//                        } else {
-//                            callBack.onSuccess(responseInfo, accessId,
-//                                    JacksonUtil.turnString2Obj(responseInfo.result, res));
-//                        }
-//                    }
-//                    @Override
-//                    public void onFailure(HttpException error, String msg) {
-//                        callBack.onFailure(error, msg, accessId);
-//                    }
-//                });
-//    }
 }

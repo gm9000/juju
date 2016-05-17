@@ -131,6 +131,7 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
         } catch (DbException e) {
             Log.e(TAG, "execute findAll error:"+clazz.getSimpleName(), e);
         }
+        if(list == null) list = new ArrayList<>();
         return list;
     }
 
@@ -149,11 +150,12 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
         File file = null;
         String dbDir =  CacheManager.getAppDatabasePath(context);
         file = new File(dbDir);
-        if(file != null && file.isDirectory()) {
-            DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
-                    .setDbDir(file).setDbName(DBConstant.DB_NAME);
-            this.db = x.getDb(daoConfig);
+        if(!file.isDirectory()) {
+            file.mkdirs();
         }
+        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
+                .setDbDir(file).setDbName(DBConstant.DB_NAME);
+        this.db = x.getDb(daoConfig);
         createTable();
     }
 
@@ -280,7 +282,7 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
         } catch (DbException e) {
             e.printStackTrace();
         }
-
+        if(list == null) list = new ArrayList<>();
         return list;
     }
 

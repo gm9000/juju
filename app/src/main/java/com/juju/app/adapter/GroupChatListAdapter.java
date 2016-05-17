@@ -1,39 +1,25 @@
 package com.juju.app.adapter;
 
-import android.annotation.SuppressLint;
-import android.app.Activity;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.Intent;
-import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.Window;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.juju.app.R;
-import com.juju.app.bean.groupchat.GroupChatInitBean;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.golobal.Constants;
 import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.Logger;
-import com.juju.app.utils.ViewHolderUtil;
-import com.juju.app.view.SwipeLayout;
 import com.juju.app.view.groupchat.IMGroupAvatar;
-import com.mogujie.tools.ScreenTools;
+import com.juju.libs.tools.ScreenTools;
 
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 项目名称：juju
@@ -185,7 +171,7 @@ public class GroupChatListAdapter extends BaseAdapter {
         if (unReadCount > 0) {
             groupViewHolder.msgCount.setBackgroundResource(R.drawable.tt_message_notify);
             groupViewHolder.msgCount.setVisibility(View.VISIBLE);
-            ((RelativeLayout.LayoutParams)groupViewHolder.msgCount.getLayoutParams()).leftMargin=ScreenTools.instance(this.mInflater.getContext()).dip2px(-10);
+            ((RelativeLayout.LayoutParams)groupViewHolder.msgCount.getLayoutParams()).leftMargin= ScreenTools.instance(this.mInflater.getContext()).dip2px(-10);
             ((RelativeLayout.LayoutParams)groupViewHolder.msgCount.getLayoutParams()).topMargin=ScreenTools.instance(this.mInflater.getContext()).dip2px(3);
             groupViewHolder.msgCount.getLayoutParams().width = RelativeLayout.LayoutParams.WRAP_CONTENT;
             groupViewHolder.msgCount.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
