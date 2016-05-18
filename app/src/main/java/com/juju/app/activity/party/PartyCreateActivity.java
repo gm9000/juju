@@ -164,7 +164,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                 groupId = party.getGroupId();
                 wrapParty(party);
 
-                List<Plan> planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("partyId", "=", partyId).findAll();
+                List<Plan> planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("party_id", "=", partyId).findAll();
                 if(planList!=null){
                     wrapPlanList(planList);
                 }else{

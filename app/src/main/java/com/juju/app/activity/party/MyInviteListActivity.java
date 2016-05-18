@@ -2,7 +2,6 @@ package com.juju.app.activity.party;
 
 import android.os.Bundle;
 import android.view.View;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
@@ -17,7 +16,6 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
-
 
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;

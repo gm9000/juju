@@ -9,7 +9,7 @@ import org.xutils.db.annotation.Table;
 @Table(name = "plan_vote")
 public class PlanVote extends BaseEntity {
 
-    @Column(name="planId")
+    @Column(name="plan_id")
     private String planId;
 
 //    @Foreign(column = "attenderNo",foreign = "userNo")

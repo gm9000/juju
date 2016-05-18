@@ -155,7 +155,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
             }
         }else{
             try {
-                userInfo = JujuDbUtils.getInstance(this).selector(User.class).where("userNo", "=", userNo).findFirst();
+                userInfo = JujuDbUtils.getInstance(this).selector(User.class).where("user_no", "=", userNo).findFirst();
             } catch (DbException e) {
                 e.printStackTrace();
             }

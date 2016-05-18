@@ -128,7 +128,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
     private void initData() {
 
         try {
-            planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("partyId", "=", partyId).findAll();
+            planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("party_id", "=", partyId).findAll();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -167,7 +167,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
         PlanVote planVote = null;
 
         try {
-            planVoteList = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).findAll();
+            planVoteList = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("plan_id", "=", planId).findAll();
             if(planVoteList != null) {
                 for(PlanVote planVote1 : planVoteList) {
                     User dbUser = JujuDbUtils.getInstance(this).selector(User.class)
@@ -175,7 +175,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
                     planVote1.setAttender(dbUser);
                 }
             }
-            planVote = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).and("attender_no", "=", userInfoBean.getJujuNo()).findFirst();
+            planVote = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("plan_id", "=", planId).and("attender_no", "=", userInfoBean.getJujuNo()).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -431,7 +431,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
             Plan plan = planList.get(planIndex);
             planId = plan.getId();
             try {
-                planVoteList = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("planId", "=", planId).findAll();
+                planVoteList = JujuDbUtils.getInstance(this).selector(PlanVote.class).where("plan_id", "=", planId).findAll();
                 if(planVoteList != null) {
                     for(PlanVote planVote : planVoteList) {
                         User dbUser = JujuDbUtils.getInstance(this).selector(User.class)

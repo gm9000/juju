@@ -3,10 +3,8 @@ package com.juju.app.entity;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
-import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
-
 
 import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
@@ -28,10 +26,10 @@ public class Party extends BaseEntity {
     @Column(name = "status")
     private int status;
 
-    @Column(name = "followFlag")
+    @Column(name = "follow_flag")
     private int followFlag;
 
-    @Column(name = "attendFlag")
+    @Column(name = "attend_flag")
     private int attendFlag;
 
     public boolean isHidden() {
