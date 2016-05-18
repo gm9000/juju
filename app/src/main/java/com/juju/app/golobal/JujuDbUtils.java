@@ -5,6 +5,7 @@ import android.content.Context;
 import com.juju.app.config.CacheManager;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
+import com.juju.app.ui.base.BaseApplication;
 
 import org.xutils.DbManager;
 import org.xutils.ex.DbException;
@@ -21,13 +22,7 @@ public class JujuDbUtils {
         if (mInstance == null) {
             synchronized (JujuDbUtils.class){
                 if (mInstance == null) {
-                    String dbDir =  CacheManager.getAppDatabasePath(context);
-                    File dbFile = new File(dbDir);
-                    DbManager.DaoConfig daoConfig = new DbManager.DaoConfig();
-                    daoConfig.setDbName(DBConstant.DB_NAME);
-                    daoConfig.setAllowTransaction(true);
-                    daoConfig.setDbDir(dbFile);
-                    mInstance = x.getDb(daoConfig);
+                    mInstance = x.getDb(BaseApplication.getInstance().getDaoConfig());
                 }
             }
         }
