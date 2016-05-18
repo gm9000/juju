@@ -8,11 +8,14 @@ import com.juju.app.biz.base.IDAO;
 import com.juju.app.config.CacheManager;
 import com.juju.app.exceptions.JUJUSQLException;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.StringUtils;
 
 
 import org.xutils.DbManager;
+import org.xutils.db.DbManagerImpl;
 import org.xutils.db.Selector;
+import org.xutils.db.table.TableEntity;
 import org.xutils.ex.DbException;
 import org.xutils.x;
 
@@ -147,32 +150,20 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
     }
 
     private void init() {
-        File file = null;
-        String dbDir =  CacheManager.getAppDatabasePath(context);
-        file = new File(dbDir);
-        if(!file.isDirectory()) {
-            file.mkdirs();
-        }
-        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
-                .setDbDir(file).setDbName(DBConstant.DB_NAME);
-        this.db = x.getDb(daoConfig);
-        createTable();
+        this.db = x.getDb(BaseApplication.getInstance().getDaoConfig());
     }
 
-    private void createTable() {
+//    private void createTabled() {
 //        try {
-//            if(!db.tableIsExist(clazz)) {
-//                db.createTableIfNotExist(clazz);
-//                execAfterTableCreated();
-//            }
+//            execAfterTableCreated();
 //        } catch (DbException e) {
-//            Log.e(TAG, "execute init error:" + clazz.getSimpleName(), e);
+//            Log.e("TAG", "execute execAfterTableCreated error", e);
 //        }
-    }
+//    }
 
-    protected void execAfterTableCreated() {
-
-    }
+//    protected void execAfterTableCreated() throws DbException{
+//
+//    }
 
     @Override
     public void deleteById(PK id) {

@@ -17,6 +17,7 @@ import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ThreadPoolUtil;
+import com.juju.app.utils.json.JSONUtils;
 
 
 import org.greenrobot.eventbus.EventBus;
@@ -33,6 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 项目名称：juju
@@ -172,7 +174,7 @@ public class IMGroupManager extends IMManager {
                                             JSONObject jsonObject = (JSONObject)jsonArray.get(i);
                                             String id = jsonObject.getString("id");
                                             String name = jsonObject.getString("name");
-                                            String desc = jsonObject.getString("desc");
+                                            String desc = JSONUtils.getString(jsonObject, "desc", "");
 
                                             JSONObject jsonCreator = jsonObject
                                                     .getJSONObject("creator");
@@ -184,7 +186,8 @@ public class IMGroupManager extends IMManager {
                                             Thread t = new Thread(thread, "GetGroupUserThread");
                                             ThreadPoolUtil.instance().executeImTask(t);
                                         }
-                                        countDownLatch.await();
+                                        //最长等待时间为60秒
+                                        countDownLatch.await(60, TimeUnit.SECONDS);
                                         //群组及群组下用户持久化完毕
                                         System.out.println("执行id完毕====================");
 

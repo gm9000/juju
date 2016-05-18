@@ -1,5 +1,7 @@
 package com.juju.app.golobal;
 
+import org.xutils.DbManager;
+
 /**
  * @author : yingmu on 15-1-5.
  * @email : yingmu@mogujie.com.
@@ -73,5 +75,8 @@ public interface DBConstant {
     /**depart status Type*/
     public final int  DEPT_STATUS_OK= 0;
     public final int  DEPT_STATUS_DELETE =1;
+
+
+    public DbManager.DaoConfig daoConfig = null;
 
 }

@@ -18,6 +18,9 @@ import com.juju.app.utils.ImageLoaderUtil;
 import com.rey.material.app.ThemeManager;
 
 
+import org.xutils.DbManager;
+import org.xutils.db.table.TableEntity;
+import org.xutils.ex.DbException;
 import org.xutils.x;
 
 import java.io.File;
@@ -37,11 +40,22 @@ public class BaseApplication extends Application {
 
     private UserInfoBean userInfoBean = new UserInfoBean();
 
-//    private String mAccount = "admin@219.143.237.230";
+    private DbManager.DaoConfig daoConfig;
+
+    public DbManager.DaoConfig getDaoConfig() {
+        return daoConfig;
+    }
+
+    public void setDaoConfig(DbManager.DaoConfig daoConfig) {
+        this.daoConfig = daoConfig;
+    }
+
+    //    private String mAccount = "admin@219.143.237.230";
 //
 //    private String
 
     private List<Activity> mActivities = new ArrayList<>();
+
 
 
 
@@ -52,13 +66,13 @@ public class BaseApplication extends Application {
 
         }
         return mInstance;
-
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
         initFramework();
+        initConfig();
         initDebug();
         initService();
     }
@@ -68,11 +82,38 @@ public class BaseApplication extends Application {
     private void initFramework() {
         x.Ext.init(this);
         SDKInitializer.initialize(this);
-
         //初始化图片加载器
         ImageLoaderUtil.initImageLoaderConfig(getApplicationContext());
         //初始化皮肤管理器
         ThemeManager.init(getApplicationContext(), 2, 0, null);
+    }
+
+    //初始化系统配置
+    private void initConfig() {
+        File file = null;
+        String dbDir =  CacheManager.getAppDatabasePath(getApplicationContext());
+        file = new File(dbDir);
+        if(!file.isDirectory()) {
+            file.mkdirs();
+        }
+        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
+                .setDbDir(file)
+                .setDbName(DBConstant.DB_NAME)
+                .setTableCreateListener(new DbManager.TableCreateListener() {
+                    @Override
+                    public void onTableCreated(DbManager db, TableEntity<?> table) {
+                        if("message".equalsIgnoreCase(table.getName())) {
+                            try {
+                                db.execNonQuery("CREATE INDEX index_message_created ON message(created)");
+                                db.execNonQuery("CREATE UNIQUE INDEX index_message_session_key_msg_id " +
+                                        "on message(session_key, msg_id)");
+                            } catch (DbException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+                });
+        BaseApplication.getInstance().setDaoConfig(daoConfig);
     }
 
     //初始化DEBUG模式

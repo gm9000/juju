@@ -36,17 +36,14 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
         super(context);
     }
 
-    @Override
-    protected void execAfterTableCreated() {
-        super.execAfterTableCreated();
-        //创建索引
-        try {
-            db.execNonQuery("CREATE INDEX index_message_created ON message(created)");
-            db.execNonQuery("CREATE UNIQUE INDEX index_message_session_key_msg_id on message(session_key, msg_id)");
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
-    }
+//    @Override
+//    protected void execAfterTableCreated() throws DbException{
+//        super.execAfterTableCreated();
+//        //创建索引
+//        db.execNonQuery("CREATE INDEX index_message_created ON message(created)");
+//        db.execNonQuery("CREATE UNIQUE INDEX index_message_session_key_msg_id " +
+//                "on message(session_key, msg_id)");
+//    }
 
     /**
      * 查询所有文本聊天记录 （重写）

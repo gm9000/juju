@@ -257,7 +257,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                             userInfo.setUserPhone(userJson.getString("userPhone"));
                             userInfo.setGender(userJson.getInt("gender"));
 
-                            JujuDbUtils.saveOrUpdate(userInfo);
+                            JujuDbUtils.replace(userInfo);
                             SpfUtil.put(getActivity().getApplicationContext(),Constants.USER_INFO,userInfo);
 
                             img_gender.setImageResource(userInfo.getGender() == 0 ? R.mipmap.ic_sex_female : R.mipmap.ic_sex_male);
