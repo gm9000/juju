@@ -20,12 +20,12 @@ import org.xutils.x;
  * 日期：2016/2/18 15:07
  * 版本：V1.0.0
  */
-public class BaseFragment extends Fragment {
+public abstract class BaseFragment extends Fragment {
 
     /**
      * fragment根视图
      */
-    private View rootView;
+    protected View rootView;
 
     private boolean injected = false;
 

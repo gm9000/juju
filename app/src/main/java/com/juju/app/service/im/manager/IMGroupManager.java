@@ -9,6 +9,7 @@ import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.JoinChatRoomEvent;
+import com.juju.app.helper.IMUIHelper;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
@@ -159,7 +160,7 @@ public class IMGroupManager extends IMManager {
                 new HttpCallBack4OK() {
 
                     @Override
-                    public void onSuccess4OK(Object obj, int accessId) {
+                    public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
                         if(obj instanceof JSONObject) {
                             JSONObject jsonObj = (JSONObject)obj;
                             try {
@@ -205,7 +206,7 @@ public class IMGroupManager extends IMManager {
                     }
 
                     @Override
-                    public void onFailure4OK(Exception e, int accessId) {
+                    public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
                         logger.error(e);
                     }
                 }, valueMap, JSONObject.class);
@@ -243,5 +244,16 @@ public class IMGroupManager extends IMManager {
 
     public Map<String, GroupEntity> getGroupMap() {
         return groupMap;
+    }
+
+    public List<GroupEntity>  getSearchAllGroupList(String key){
+        List<GroupEntity> searchList = new ArrayList<>();
+        for(Map.Entry<String,GroupEntity> entry:groupMap.entrySet()){
+            GroupEntity groupEntity = entry.getValue();
+            if (IMUIHelper.handleGroupSearch(key, groupEntity)) {
+                searchList.add(groupEntity);
+            }
+        }
+        return searchList;
     }
 }

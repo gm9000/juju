@@ -67,7 +67,13 @@ public class RecentInfo {
             latestMsgData = sessionEntity.getLatestMsgData();
             updateTime = sessionEntity.getUpdated();
         } else {
-            updateTime = 0l;
+            //按组创建时间
+            if(groupEntity != null) {
+                updateTime = groupEntity.getCreated();
+            } else {
+                updateTime = 0l;
+            }
+
         }
 
         if(unreadEntity !=null)

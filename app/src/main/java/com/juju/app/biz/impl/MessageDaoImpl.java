@@ -86,7 +86,8 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
                     .and("session_key", "=", sessionKey)
                     .and((WhereBuilder.b("msg_id", ">", 90000000).or("msg_id", " <= ", lastMsgId)))
                     .and("msg_id", "!=", preMsgId)
-                    .orderBy("created desc, msg_id", true)
+                    .orderBy("created", true)
+                    .orderBy("msg_id", true)
                     .limit(count).findAll();
         } catch (DbException e) {
             Log.e(TAG, "MessageDaoImpl#findHistoryMsgs error:", e);

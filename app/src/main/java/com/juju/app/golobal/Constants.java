@@ -33,7 +33,7 @@ public class Constants {
     public static final String BASE_IMAGE_CACHE = BASE_PATH + "cache/images/";
 
     //是否是开发模式
-    public static final boolean IS_APP_MODEL = false;
+    public static final boolean IS_APP_MODEL = true;
 
     /**
      ******************************************* 参数设置信息结束 ******************************************

@@ -27,10 +27,10 @@ public abstract class PeerEntity extends BaseEntity {
     protected String avatar;
 
     @Column(name = "created")
-    protected int created;
+    protected long created;
 
     @Column(name = "updated")
-    protected int updated;
+    protected long updated;
 
     public String getPeerId() {
         return peerId;
@@ -56,19 +56,19 @@ public abstract class PeerEntity extends BaseEntity {
         this.avatar = avatar;
     }
 
-    public int getCreated() {
+    public long getCreated() {
         return created;
     }
 
-    public void setCreated(int created) {
+    public void setCreated(long created) {
         this.created = created;
     }
 
-    public int getUpdated() {
+    public long getUpdated() {
         return updated;
     }
 
-    public void setUpdated(int updated) {
+    public void setUpdated(long updated) {
         this.updated = updated;
     }
 

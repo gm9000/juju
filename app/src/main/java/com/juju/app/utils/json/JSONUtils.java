@@ -104,6 +104,23 @@ public class JSONUtils {
         return getLong(jsonData, key, (Long)defaultValue);
     }
 
+
+    /**
+     * get Int from jsonObject
+     *
+     * @param jsonObject
+     * @param key
+     * @return <ul>
+     *         <li>if jsonObject is null, return defaultValue</li>
+     *         <li>if key is null or empty, return defaultValue</li>
+     *         <li>if {@link JSONObject#getInt(String)} exception, return defaultValue</li>
+     *         <li>return {@link JSONObject#getInt(String)}</li>
+     *         </ul>
+     */
+    public static Integer getInt(JSONObject jsonObject, String key) {
+       return getInt(jsonObject, key, 0);
+    }
+
     /**
      * get Int from jsonObject
      * 
@@ -255,7 +272,24 @@ public class JSONUtils {
      * @see JSONUtils#getDouble(String, String, Double)
      */
     public static double getDouble(String jsonData, String key, double defaultValue) {
-        return getDouble(jsonData, key, (Double)defaultValue);
+        return getDouble(jsonData, key, (Double) defaultValue);
+    }
+
+
+    /**
+     * get String from jsonObject
+     *
+     * @param jsonObject
+     * @param key
+     * @return <ul>
+     *         <li>if jsonObject is null, return defaultValue</li>
+     *         <li>if key is null or empty, return defaultValue</li>
+     *         <li>if {@link JSONObject#getString(String)} exception, return defaultValue</li>
+     *         <li>return {@link JSONObject#getString(String)}</li>
+     *         </ul>
+     */
+    public static String getString(JSONObject jsonObject, String key) {
+        return  getString(jsonObject, key, "");
     }
 
     /**

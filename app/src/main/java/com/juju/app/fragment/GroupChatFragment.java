@@ -29,8 +29,8 @@ import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.manager.IMUnreadMsgManager;
-import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.ui.base.TitleBaseFragment;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -57,7 +57,7 @@ import java.util.List;
  */
 @ContentView(R.layout.fragment_group_chat)
 @CreateFragmentUI(viewId = R.layout.fragment_group_chat)
-public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
+public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelper {
 
     protected static Logger logger = Logger.getLogger(GroupChatFragment.class);
 
@@ -118,9 +118,16 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
         imServiceConnector.connect(getActivity());
     }
 
+
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return super.onCreateView(inflater, container, savedInstanceState);
+    }
+
+    @Override
+    protected void initHandler() {
+
     }
 
 
@@ -187,11 +194,13 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
     @Override
     public void loadData() {
         initGroupsInfo();
+        topBar.setVisibility(View.GONE);
     }
 
     @Override
     public void initView() {
         showProgressBar();
+        showSearchFrameLayout();
         contactAdapter = new GroupChatListAdapter(getActivity());
         contactListView.setAdapter(contactAdapter);
         contactListView.setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(),
@@ -201,6 +210,7 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4UnreadEvent(UnreadEvent event){
+        logger.d("groupchat_fragment#UnreadEvent# -> %s", event);
         switch (event.event){
             case UNREAD_MSG_RECEIVED:
             case UNREAD_MSG_LIST_OK:
@@ -213,7 +223,7 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
     //会话更新
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEventMainThread(SessionEvent sessionEvent){
-        logger.d("chatfragment#SessionEvent# -> %s", sessionEvent);
+        logger.d("groupchat_fragment#SessionEvent# -> %s", sessionEvent);
         switch (sessionEvent){
             case RECENT_SESSION_LIST_UPDATE:
             case RECENT_SESSION_LIST_SUCCESS:
@@ -226,6 +236,7 @@ public class GroupChatFragment extends BaseFragment implements CreateUIHelper {
     //群组事件回调
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4GroupEvent(GroupEvent event){
+        logger.d("groupchat_fragment#GroupEvent# -> %s", event);
         switch (event.getEvent()){
             case GROUP_INFO_OK:
             case CHANGE_GROUP_MEMBER_SUCCESS:

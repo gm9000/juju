@@ -298,24 +298,24 @@ public class JlmHttpClient<Req> {
         call.enqueue(new Callback() {
             @Override
             public void onFailure(Request request, final IOException e) {
-                callBack4OK.onFailure4OK(e, accessId);
+                callBack4OK.onFailure4OK(e, accessId, req);
             }
             @Override
             public void onResponse(final Response response) throws IOException {
                 //String 类型
                 if (res == null || res.isAssignableFrom(String.class)) {
-                    callBack4OK.onSuccess4OK(response, accessId);
+                    callBack4OK.onSuccess4OK(response, accessId, req);
                 } else if (res.isAssignableFrom(JSONObject.class)) {
                     //JSON类型
                     try {
-                        callBack4OK.onSuccess4OK(new JSONObject(response.body().string()), accessId);
+                        callBack4OK.onSuccess4OK(new JSONObject(response.body().string()), accessId, req);
                     } catch (JSONException e) {
-                        callBack4OK.onFailure4OK(new IOException("转换JSONObject对象失败"), accessId);
+                        callBack4OK.onFailure4OK(new IOException("转换JSONObject对象失败"), accessId, req);
                     }
                 } else {
                     //其他类型
                     callBack4OK.onSuccess4OK(
-                            JacksonUtil.turnString2Obj(response.body().string(), res), accessId);
+                            JacksonUtil.turnString2Obj(response.body().string(), res), accessId, req);
                 }
 
             }
@@ -475,23 +475,23 @@ public class JlmHttpClient<Req> {
             @Override
             public void onSuccess(String responseInfo) {
                 if (res == null || res.isAssignableFrom(String.class)) {
-                    callBack.onSuccess(responseInfo, accessId);
+                    callBack.onSuccess(responseInfo, accessId, req);
                 } else if (res.isAssignableFrom(JSONObject.class)) {
                     try {
-                        callBack.onSuccess(new JSONObject(responseInfo), accessId);
+                        callBack.onSuccess(new JSONObject(responseInfo), accessId, req);
                     } catch (JSONException e) {
                         Log.e(TAG, "转换JSONObject对象失败", e);
-                        callBack.onSuccess(responseInfo, accessId);
+                        callBack.onSuccess(responseInfo, accessId, req);
                     }
                 } else {
                     callBack.onSuccess(JacksonUtil
-                            .turnString2Obj(responseInfo, res), accessId);
+                            .turnString2Obj(responseInfo, res), accessId, req);
                 }
             }
 
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
-                callBack.onFailure(ex, isOnCallback, accessId);
+                callBack.onFailure(ex, isOnCallback, accessId, req);
             }
 
             @Override
@@ -512,23 +512,23 @@ public class JlmHttpClient<Req> {
             @Override
             public void onSuccess(String responseInfo) {
                 if (res == null || res.isAssignableFrom(String.class)) {
-                    callBack.onSuccess(responseInfo, accessId);
+                    callBack.onSuccess(responseInfo, accessId, req);
                 } else if (res.isAssignableFrom(JSONObject.class)) {
                     try {
-                        callBack.onSuccess(new JSONObject(responseInfo), accessId);
+                        callBack.onSuccess(new JSONObject(responseInfo), accessId, req);
                     } catch (JSONException e) {
                         Log.e(TAG, "转换JSONObject对象失败", e);
-                        callBack.onSuccess(responseInfo, accessId);
+                        callBack.onSuccess(responseInfo, accessId, req);
                     }
                 } else {
                     callBack.onSuccess(JacksonUtil
-                            .turnString2Obj(responseInfo, res), accessId);
+                            .turnString2Obj(responseInfo, res), accessId, req);
                 }
             }
 
             @Override
             public void onError(Throwable ex, boolean isOnCallback) {
-                callBack.onFailure(ex, isOnCallback, accessId);
+                callBack.onFailure(ex, isOnCallback, accessId, req);
             }
 
             @Override

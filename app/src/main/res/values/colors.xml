@@ -44,6 +44,11 @@
     <color name="bar_color">#232325</color>
     <color name="half_transparent_light">#AA000000</color>
     <color name="half_transparent_black">#77000000</color>
+    <color name="default_title_color">#343434</color>
+    <color name="default_key_color">#999999</color>
+
+
+
 
 
     <!-- 群聊-->
@@ -54,9 +59,6 @@
     <color name="txt_hint_color">#999999</color>
     <color name="emo_bk_color">#ffffffff</color>
     <color name="default_blue_color">#01aff4</color>
-    <color name="group_manager_group_title">#010101</color>
-    <color name="group_manager_user_title">#666666</color>
-    <color name="list_item_sel_color">#eaeaea</color>
     <color name="contact_name_color">#222222</color>
     <color name="message_body_text_color">#999999</color>
     <color name="message_time_color">#a0a0a0</color>
@@ -68,6 +70,23 @@
     <color name="light_notes_color">#ff999999</color>
     <color name="list_divider_color">#d1d1d1</color>
 
+    <!-- contact -->
+    <color name="contact_default_bk">#dedee0</color>
+    <color name="contact_category_title_bk">#f1f0f6</color>
+    <color name="contact_list_item_bk">#ffffff</color>
+    <color name="contact_category_text_color">#858585</color>
+    <color name="contact_side_word_color">#909293</color>
+    <color name="contact_realname_color">#aaaaaa</color>
+
+
+    <!-- group manager -->
+    <color name="group_manager_group_title">#010101</color>
+    <color name="group_manager_user_title">#666666</color>
+    <color name="list_item_sel_color">#eaeaea</color>
+
+    <!--user detail-->
+    <color name="user_detail_base">#ececec</color>
+    <color name="pickimage_item_bg">#ffffff</color>
 
 
 

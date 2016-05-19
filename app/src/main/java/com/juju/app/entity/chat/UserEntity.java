@@ -171,19 +171,19 @@ public class UserEntity extends PeerEntity{
         this.status = status;
     }
 
-    public int getCreated() {
+    public long getCreated() {
         return created;
     }
 
-    public void setCreated(int created) {
+    public void setCreated(long created) {
         this.created = created;
     }
 
-    public int getUpdated() {
+    public long getUpdated() {
         return updated;
     }
 
-    public void setUpdated(int updated) {
+    public void setUpdated(long updated) {
         this.updated = updated;
     }
 

@@ -254,17 +254,20 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
                 String key = arr[0];
                 String value = arr[1];
                 String orderCmd = "asc";
+                boolean bool = false;
                 if("desc".equalsIgnoreCase(value)) {
                     orderCmd = value;
+                    bool = true;
                 }
-                sbf.append(key);
-                if(i < orders.length -1) {
-                    sbf.append(" "+orderCmd);
-                } else {
-                    lastOrderCmd = "desc".equalsIgnoreCase(orderCmd);
-                }
+                selector.orderBy(key, bool);
+//                sbf.append(key);
+//                if(i < orders.length -1) {
+//                    sbf.append(" "+orderCmd);
+//                } else {
+//                    lastOrderCmd = "desc".equalsIgnoreCase(orderCmd);
+//                }
             }
-            selector.orderBy(sbf.toString(), lastOrderCmd);
+//            selector.orderBy(sbf.toString(), lastOrderCmd);
             try {
                 list = selector.findAll();
             } catch (DbException e) {

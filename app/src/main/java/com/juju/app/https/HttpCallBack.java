@@ -15,9 +15,9 @@ import org.xutils.common.Callback;
  */
 public interface HttpCallBack {
 
-    public void onSuccess(Object obj, int accessId);
+    public void onSuccess(Object obj, int accessId, Object inputParameter);
 
-    public void onFailure(Throwable ex, boolean isOnCallback, int accessId);
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter);
 
     public void onCancelled(Callback.CancelledException cex);
 

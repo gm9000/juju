@@ -19,6 +19,7 @@ import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.ConnectionState;
 import com.juju.app.event.PriorityEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
+import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.callback.FixListenerQueue;
 import com.juju.app.service.im.callback.ListenerQueue;
@@ -184,6 +185,9 @@ public class XMPPServiceImpl implements
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         // 不加这行会报错，因为没有证书
         builder.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
+        if(Constants.IS_APP_MODEL) {
+            builder.setDebuggerEnabled(true);
+        }
         builder.setCompressionEnabled(false);
         builder.setSendPresence(true);
 //        builder.setUsernameAndPassword(userInfoBean.getmAccount(), userInfoBean.getmPassword());

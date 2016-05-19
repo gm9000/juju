@@ -27,6 +27,7 @@ import com.kaopiz.kprogresshud.KProgressHUD;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.greenrobot.eventbus.EventBus;
 import org.xutils.x;
 
 /**
@@ -368,4 +369,9 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
     }
 
+    //发送消息，消息发布者，UI需监听
+    protected void triggerEvent(Object paramObject)
+    {
+        EventBus.getDefault().post(paramObject);
+    }
 }

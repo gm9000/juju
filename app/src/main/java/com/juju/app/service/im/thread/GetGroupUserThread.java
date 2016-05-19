@@ -14,6 +14,7 @@ import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.json.JSONUtils;
 
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -21,6 +22,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.common.Callback;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
@@ -74,7 +76,6 @@ public class GetGroupUserThread implements Runnable {
     private DaoSupport groupDao;
     private DaoSupport userDao;
 
-    private Object object = new Object();
 
     public GetGroupUserThread(CountDownLatch countDownLatch, String id, String name,
                               String desc, String creatorId, UserInfoBean userInfoBean,
@@ -109,10 +110,9 @@ public class GetGroupUserThread implements Runnable {
         valueMap.put("groupId", id);
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
                 0, HttpConstants.getUserUrl() + "/getGroupUsers",
-                new HttpCallBack4OK() {
-
+                new HttpCallBack() {
                     @Override
-                    public void onSuccess4OK(Object obj, int accessId) {
+                    public void onSuccess(Object obj, int accessId, Object inputParameter) {
                         if(obj instanceof JSONObject) {
                             JSONObject jsonObject = (JSONObject)obj;
                             try {
@@ -126,12 +126,12 @@ public class GetGroupUserThread implements Runnable {
                                         StringBuilder avatarSbf = new StringBuilder();
                                         for (int i = 0; i <jsonArray.length() ; i++) {
                                             JSONObject jsonUser = (JSONObject) jsonArray.get(i);
-                                            String userNo = jsonUser.getString("userNo");
-                                            String nickName = jsonUser.getString("nickName");
-                                            String userPhone = jsonUser.getString("userPhone");
-                                            String birthday = jsonUser.getString("birthday");
-                                            int gender = jsonUser.getInt("gender");
-                                            String createTime = jsonUser.getString("createTime");
+                                            String userNo = JSONUtils.getString(jsonUser, "userNo");
+                                            String nickName = JSONUtils.getString(jsonUser, "nickName");
+                                            String userPhone = JSONUtils.getString(jsonUser, "userPhone");
+                                            String birthday = JSONUtils.getString(jsonUser, "birthday");
+                                            int gender = JSONUtils.getInt(jsonUser, "gender");
+                                            String createTime = JSONUtils.getString(jsonUser, "createTime");
 
                                             Date birthdayDate = null;
                                             Date createTimeDate = null;
@@ -152,27 +152,21 @@ public class GetGroupUserThread implements Runnable {
 
                                                 }
                                             }
-
-                                            User userEntity = new User(userNo,  userPhone,  "",
-                                                    gender,  nickName,  createTimeDate,  birthdayDate,
-                                                    HttpConstants.getPortraitUrl()+userNo);
-
+                                            User userEntity = User.buildForReceive(userNo,
+                                                    userPhone,  "",  gender, nickName,
+                                                    createTimeDate,  birthdayDate);
                                             saveUsers(userEntity);
                                             userMap.put(userNo, userEntity);
                                             userNoSbf.append(userNo);
-//                                                avatarSbf.append(HttpConstants.getPortraitUrl()+userNo);
                                             if(i < jsonArray.length() - 1) {
                                                 userNoSbf.append(",");
-//                                                    avatarSbf.append(",");
                                             }
                                         }
-                                        GroupEntity groupEntity = new GroupEntity(0l, id,
-                                                peerId, 0, name, avatarSbf.toString(), creatorId,
-                                                jsonArray.length(), userNoSbf.toString(),
-                                                0, DBConstant.GROUP_STATUS_ONLINE, 0, 0, desc);
+                                        GroupEntity groupEntity = GroupEntity.buildForReceive(id,
+                                                peerId, 0,  name, userNoSbf.toString(), creatorId,
+                                                desc, null, null);
                                         groupDao.replaceInto(groupEntity);
                                         groupMap.put(groupEntity.getPeerId(), groupEntity);
-
                                         IMGroupManager.instance().joinChatRoom(groupEntity);
                                     }
                                 }
@@ -183,14 +177,25 @@ public class GetGroupUserThread implements Runnable {
                         System.out.println("返回结果id:" + Thread.currentThread().getName());
                         myCountDownLatch.countDown();
                     }
+
                     @Override
-                    public void onFailure4OK(Exception e, int accessId) {
+                    public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
                         myCountDownLatch.countDown();
+                    }
+
+                    @Override
+                    public void onCancelled(Callback.CancelledException cex) {
+//                        myCountDownLatch.countDown();
+                    }
+
+                    @Override
+                    public void onFinished() {
+//                        myCountDownLatch.countDown();
                     }
                 }, valueMap, JSONObject.class);
         try {
             System.out.println("请求前id:"+Thread.currentThread().getName());
-            client.sendGet4OK();
+            client.sendGet();
             myCountDownLatch.await(TIME_WAIT, TimeUnit.SECONDS);
         } catch (UnsupportedEncodingException e) {
             logger.error(e);

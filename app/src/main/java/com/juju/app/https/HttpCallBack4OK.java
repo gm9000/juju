@@ -9,7 +9,7 @@ package com.juju.app.https;
  */
 public interface HttpCallBack4OK {
 
-    public void onSuccess4OK(Object obj, int accessId);
+    public void onSuccess4OK(Object obj, int accessId, Object inputParameter);
 
-    public void onFailure4OK(Exception e, int accessId);
+    public void onFailure4OK(Exception e, int accessId, Object inputParameter);
 }

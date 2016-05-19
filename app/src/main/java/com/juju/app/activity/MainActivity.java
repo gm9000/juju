@@ -20,9 +20,13 @@ import com.juju.app.R;
 import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.biz.DaoSupport;
+import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SessionEntity;
+import com.juju.app.event.GroupEvent;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
@@ -32,6 +36,7 @@ import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMMessageManager;
 import com.juju.app.service.im.manager.IMSessionManager;
@@ -45,6 +50,7 @@ import com.juju.app.utils.Logger;
 import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
+import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
@@ -59,6 +65,7 @@ import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -102,8 +109,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     private int index;
     private int currentTabIndex;// 当前fragment的index
 
-
     private UserInfoBean userInfoBean;
+
+    private IMService imService;
+
+    private DaoSupport groupDao;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,28 +123,19 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     }
 
     @Override
+    protected void onDestroy() {
+        imServiceConnector.disconnect(MainActivity.this);
+        super.onDestroy();
+    }
+
+    @Override
     public void loadData() {
+        imServiceConnector.connect(MainActivity.this);
         if(GlobalVariable.isSkipLogin()){
             return;
         }
+        groupDao = new GroupDaoImpl(getApplicationContext());
         userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-
-
-//        Intent intent = new Intent();
-//        intent.setClass(this, IMService.class);
-//        bindService(intent, new ServiceConnection() {
-//            @Override
-//            public void onServiceConnected(ComponentName name, IBinder service) {
-//
-//            }
-//
-//            @Override
-//            public void onServiceDisconnected(ComponentName name) {
-//
-//            }
-//        }, Context.BIND_AUTO_CREATE);
-
-//        testSqlLite();
     }
 
     @Override
@@ -365,8 +367,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                             ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_name_over_length, 0);
                             return;
                         }
-                        Map<String, Object> valueMap = new HashMap<String, Object>();
-                        Map<String, Object> groupMap = new HashMap<String, Object>();
+                        Map<String, Object> valueMap = new HashMap<>();
+                        Map<String, Object> groupMap = new HashMap<>();
 
                         valueMap.put("userNo", userInfoBean.getJujuNo());
                         valueMap.put("token", userInfoBean.getToken());
@@ -407,64 +409,123 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     }
 
     @Override
-    public void onSuccess4OK(Object obj, int accessId) {
+    public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
         if(accessId == CREATE_GROUP) {
             completeLoadingCommon();
             if(obj instanceof  JSONObject) {
                 JSONObject result = (JSONObject)obj;
-                try {
-                    int status = result.getInt("status");
-                    if(status == 0) {
-                        String groupId = result.getString("groupId");
-                        //消息服务器创建群组
-                        boolean bool = IMGroupManager.instance().createChatRoom(groupId,
-                                userInfoBean.getmMucServiceName(), userInfoBean.getmServiceName());
-                        //创建成功
-                        if(bool) {
-                            //刷新群组，待实现
-                            Log.d(TAG, "创建群聊成功，groupId："+groupId);
-                        }
-                        //创建失败
-                        else {
-                            //删除业务服务器群组消息
-                            Map<String, Object> valueMap = new HashMap<String, Object>();
+                int status = JSONUtils.getInt(result, "status");
+                if(status == 0) {
+                    String groupId = JSONUtils.getString(result,"groupId");
+                    //消息服务器创建群组
+                    boolean bool = imService.getGroupManager().createChatRoom(groupId,
+                            userInfoBean.getmMucServiceName(), userInfoBean.getmServiceName());
+                    //创建成功
+                    if(bool) {
+                        //刷新群组，待实现
+                        Log.d(TAG, "创建群聊成功，groupId："+groupId);
+                        //刷新群组列表
+                        imService.getGroupManager();
+                        String peerId = groupId+"@"+userInfoBean.getmMucServiceName()
+                                +"."+userInfoBean.getmServiceName();
 
-                            valueMap.put("userNo", userInfoBean.getJujuNo());
-                            valueMap.put("token", userInfoBean.getToken());
-                            valueMap.put("groupId", groupId);
-                            JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
-                                    DELETE_GROUP, HttpConstants.getUserUrl() + "/deleteGroup",
-                                    MainActivity.this, valueMap, JSONObject.class);
-                            try {
-                                //不需要回复
-                                client.sendPost4OK();
-                            } catch (UnsupportedEncodingException e) {
-                                logger.error(e);
-                            } catch (JSONException e) {
-                                logger.error(e);
+                        String name = "";
+                        String desc = "";
+                        if(inputParameter instanceof Map) {
+                            Map<String, Object> parameter = (Map<String, Object>) inputParameter;
+                            Map<String, Object> group = (Map<String, Object>)parameter.get("group");
+                            name = (String)group.get("name");
+                            desc = (String)group.get("desc");
+                        }
+
+                        GroupEntity groupEntity = GroupEntity.buildForCreate(groupId, peerId, 0,
+                                name,  userInfoBean.getJujuNo(),  desc,  null);
+
+                        //更新数据
+                        groupDao.replaceInto(groupEntity);
+
+
+                        //设置置顶
+                        //暂时用APP时间
+                        Date created = new Date();
+                        groupEntity.setCreated(created.getTime());
+
+
+                        //发送群组更新通知
+                        imService.getGroupManager().getGroupMap().put(peerId, groupEntity);
+                        triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
+                    }
+                    //创建失败
+                    else {
+                        //删除业务服务器群组消息
+                        Map<String, Object> valueMap = new HashMap<String, Object>();
+                        valueMap.put("userNo", userInfoBean.getJujuNo());
+                        valueMap.put("token", userInfoBean.getToken());
+                        valueMap.put("groupId", groupId);
+                        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
+                                DELETE_GROUP, HttpConstants.getUserUrl() + "/deleteGroup",
+                                MainActivity.this, valueMap, JSONObject.class);
+                        try {
+                            //不需要回复
+                            client.sendPost4OK();
+                        } catch (UnsupportedEncodingException e) {
+                            logger.error(e);
+                        } catch (JSONException e) {
+                            logger.error(e);
+                        }
+                        MainActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                showMsgDialog(R.string.chat_create_error);
                             }
+                        });
+                    }
+                } else {
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
                             showMsgDialog(R.string.chat_create_error);
                         }
-                    } else {
-                        showMsgDialog(R.string.chat_create_error);
-                    }
-                } catch (JSONException e) {
-                    logger.error(e);
+                    });
                 }
-                if(mDialog != null && mDialog.isShowing())
-                    mDialog.dismiss();
-            }
 
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        //退出创建提示框
+                        if (mDialog != null && mDialog.isShowing()) {
+                            mDialog.hide();
+                        }
+                    }
+                });
+
+            }
         }
     }
 
     @Override
-    public void onFailure4OK(Exception e, int accessId) {
+    public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
         if(accessId == CREATE_GROUP) {
             completeLoadingCommon();
             showMsgDialog(R.string.chat_create_error);
         }
     }
 
+
+    /**
+         * IMServiceConnector
+         */
+        private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+            @Override
+            public void onIMServiceConnected() {
+                logger.d("main_activity#onIMServiceConnected");
+                imService = imServiceConnector.getIMService();
+            }
+
+            @Override
+            public void onServiceDisconnected() {
+
+            }
+        };
 
 }

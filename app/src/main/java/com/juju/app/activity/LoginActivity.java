@@ -201,7 +201,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      */
 
     @Override
-    public void onSuccess4OK(Object obj, int accessId) {
+    public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
         Log.d(TAG, "回调线程:" + Thread.currentThread().getName());
         switch (accessId) {
             case R.id.loginBtn:
@@ -245,7 +245,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     }
 
     @Override
-    public void onFailure4OK(Exception e, int accessId) {
+    public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
         LoginActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {

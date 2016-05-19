@@ -439,7 +439,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     }
 
     @Override
-    public void onSuccess(Object obj, int accessId) {
+    public void onSuccess(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
             case 12:
                 if(obj != null) {
@@ -472,7 +472,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     }
 
     @Override
-    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
         System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
         Log.e("UploadVideoActivity", "onFailure", ex);
         switch (accessId) {

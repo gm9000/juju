@@ -153,6 +153,11 @@
             android:name=".activity.party.MyInviteListActivity"
             android:label="@string/title_activity_my_invite"
             android:theme="@style/AppTheme.NoActionBar"></activity>
+
+        <activity
+            android:name=".activity.SearchActivity"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 

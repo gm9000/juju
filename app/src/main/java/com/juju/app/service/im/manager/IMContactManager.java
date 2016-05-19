@@ -6,6 +6,7 @@ import com.juju.app.entity.User;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.UserInfoEvent;
+import com.juju.app.helper.IMUIHelper;
 import com.juju.app.utils.Logger;
 
 import java.util.ArrayList;
@@ -113,5 +114,17 @@ public class IMContactManager extends IMManager {
 
     public boolean isUserDataReady() {
         return userDataReady;
+    }
+
+    // 确实要将对比的抽离出来 Collections
+    public  List<User> getSearchContactList(String key){
+        List<User> searchList = new ArrayList<>();
+        for(Map.Entry<String, User> entry : userMap.entrySet()){
+            User user = entry.getValue();
+            if (IMUIHelper.handleContactSearch(key, user)) {
+                searchList.add(user);
+            }
+        }
+        return searchList;
     }
 }

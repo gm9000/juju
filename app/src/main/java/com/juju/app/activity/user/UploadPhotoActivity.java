@@ -292,7 +292,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
 
 
     @Override
-    public void onSuccess(Object obj, int accessId) {
+    public void onSuccess(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
             case R.id.upload_head:
                 txt_confirm.setClickable(true);
@@ -321,7 +321,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     }
 
     @Override
-    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
         completeLoading();
         ToastUtil.showShortToast(this,"上传失败",1);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();

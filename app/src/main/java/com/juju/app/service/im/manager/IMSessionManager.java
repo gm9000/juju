@@ -1,5 +1,6 @@
 package com.juju.app.service.im.manager;
 
+import android.content.SharedPreferences;
 import android.text.TextUtils;
 
 import com.juju.app.bean.UserInfoBean;
@@ -26,6 +27,7 @@ import com.juju.app.utils.Logger;
 import com.juju.app.utils.SpfUtil;
 
 import org.apache.commons.lang.StringUtils;
+import org.greenrobot.eventbus.EventBus;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,6 +37,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -205,7 +208,7 @@ public class IMSessionManager extends IMManager {
         Map<String, User> userMap = IMContactManager.instance().getUserMap();
         Map<String, UnreadEntity> unreadMsgMap = IMUnreadMsgManager.instance().getUnreadMsgMap();
         Map<String, GroupEntity> groupEntityMap = IMGroupManager.instance().getGroupMap();
-//        HashSet<String> topList = ConfigurationSp.instance(ctx,loginId).getSessionTopList();
+        HashSet<String> topList = getSessionTopList();
 
         //是否考虑每次都遍历群组
         for(GroupEntity groupEntity : groupList) {
@@ -213,6 +216,9 @@ public class IMSessionManager extends IMManager {
             UnreadEntity unreadEntity = unreadMsgMap.get(sessionKey);
             SessionEntity recentSession = sessionMap.get(sessionKey);
             RecentInfo recentInfo = new RecentInfo(recentSession, groupEntity, unreadEntity);
+            if(topList !=null && topList.contains(sessionKey)){
+                recentInfo.setTop(true);
+            }
             recentSessionList.add(recentInfo);
         }
 
@@ -386,6 +392,9 @@ public class IMSessionManager extends IMManager {
                 Long a = o1.getUpdateTime();
                 Long b = o2.getUpdateTime();
 
+                String aName = o1.getName();
+                String bName = o2.getName();
+
                 boolean isTopA = o1.isTop();
                 boolean isTopB = o2.isTop();
 
@@ -393,7 +402,11 @@ public class IMSessionManager extends IMManager {
                     // 升序
                     //return a.compareTo(b);
                     // 降序
-                    return b.compareTo(a);
+                    if(a.compareTo(b) == 0) {
+                        return aName.compareTo(bName);
+                    } else {
+                        return b.compareTo(a);
+                    }
                 } else {
                     if (isTopA) {
                         return -1;
@@ -422,5 +435,61 @@ public class IMSessionManager extends IMManager {
 
     public boolean isSessionListReady() {
         return sessionListReady;
+    }
+
+
+    public void setSessionTop(String sessionKey, boolean isTop) {
+        if (TextUtils.isEmpty(sessionKey)) {
+            return;
+        }
+        Set<String> topList = SpfUtil.getStringSet(ctx,
+                CfgDimension.SESSIONTOP.name(), null);
+        Set<String> newList = new HashSet<>();
+        if (topList != null && topList.size() > 0) {
+            newList.addAll(topList);
+        }
+        if (isTop) {
+            newList.add(sessionKey);
+        } else {
+            if (newList.contains(sessionKey)) {
+                newList.remove(sessionKey);
+            }
+        }
+        SpfUtil.putStringSet(ctx, CfgDimension.SESSIONTOP.name(), newList);
+        EventBus.getDefault().post(SessionEvent.SET_SESSION_TOP);
+    }
+
+    // 获取全部置顶的session
+    public HashSet<String> getSessionTopList() {
+        Set<String> topList = SpfUtil.getStringSet(ctx,
+                CfgDimension.SESSIONTOP.name(), null);
+        if (null == topList) {
+            return null;
+        }
+        return (HashSet<String>) topList;
+    }
+
+
+    public boolean isTopSession(String sessionKey) {
+        HashSet<String> list =  getSessionTopList();
+        if (list != null && list.size() > 0 && list.contains(sessionKey)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 1. 勿扰
+     * 2. 声音
+     * 3. 自动
+     * 4. 通知的方式 one session/ one message
+     */
+    public enum CfgDimension {
+        NOTIFICATION,
+        SOUND,
+        VIBRATION,
+
+        //置顶session 设定
+        SESSIONTOP,
     }
 }

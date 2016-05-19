@@ -420,7 +420,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
 //    }
 
     @Override
-    public void onSuccess(Object obj, int accessId) {
+    public void onSuccess(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
             case R.id.logoutBtn:
                 if(obj != null) {
@@ -499,7 +499,7 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     }
 
     @Override
-    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
         System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
         Log.e(TAG, "onFailure", ex);
     }

@@ -5,18 +5,20 @@ import android.text.TextUtils;
 
 
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.pinyin.PinYinUtil;
 
 import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
 
-@Table(name = "user_group", onCreated = "CREATE UNIQUE INDEX index_group_peer_id on user_group(peer_id);")
+@Table(name = "user_group", onCreated = "CREATE UNIQUE INDEX index_group_peer_id on user_group(peer_id)")
 public class GroupEntity extends PeerEntity {
 
 
@@ -56,24 +58,24 @@ public class GroupEntity extends PeerEntity {
         this.localId = localId;
     }
 
-    public GroupEntity(Long localId, String id, String peerId, int groupType, String mainName,
-                       String avatar, String creatorId, int userCnt, String userList,
-                       int version, int status, int created, int updated, String desc) {
-        this.localId = localId;
-        this.id = id;
-        this.peerId = peerId;
-        this.groupType = groupType;
-        this.mainName = mainName;
-        this.avatar = avatar;
-        this.creatorId = creatorId;
-        this.userCnt = userCnt;
-        this.userList = userList;
-        this.version = version;
-        this.status = status;
-        this.created = created;
-        this.updated = updated;
-        this.desc = desc;
-    }
+//    public GroupEntity(Long localId, String id, String peerId, int groupType, String mainName,
+//                       String avatar, String creatorId, int userCnt, String userList,
+//                       int version, int status, int created, int updated, String desc) {
+//        this.localId = localId;
+//        this.id = id;
+//        this.peerId = peerId;
+//        this.groupType = groupType;
+//        this.mainName = mainName;
+//        this.avatar = avatar;
+//        this.creatorId = creatorId;
+//        this.userCnt = userCnt;
+//        this.userList = userList;
+//        this.version = version;
+//        this.status = status;
+//        this.created = created;
+//        this.updated = updated;
+//        this.desc = desc;
+//    }
 
 
 
@@ -149,19 +151,19 @@ public class GroupEntity extends PeerEntity {
         this.status = status;
     }
 
-    public int getCreated() {
+    public long getCreated() {
         return created;
     }
 
-    public void setCreated(int created) {
+    public void setCreated(long created) {
         this.created = created;
     }
 
-    public int getUpdated() {
+    public long getUpdated() {
         return updated;
     }
 
-    public void setUpdated(int updated) {
+    public void setUpdated(long updated) {
         this.updated = updated;
     }
 
@@ -216,5 +218,91 @@ public class GroupEntity extends PeerEntity {
 
     public void setDesc(String desc) {
         this.desc = desc;
+    }
+
+
+
+//    GroupEntity groupEntity = new GroupEntity(0l, id,
+//            peerId, 0, name, avatarSbf.toString(), creatorId,
+//            jsonArray.length(), userNoSbf.toString(),
+//            0, DBConstant.GROUP_STATUS_ONLINE, 0, 0, desc);
+
+    /**
+     * 获取群组信息
+     * @param id
+     * @param peerId
+     * @param groupType
+     * @param name
+     * @param userNos
+     * @param creatorId
+     * @param desc
+     * @return
+     */
+    public static GroupEntity buildForReceive(String id, String peerId, int groupType, String name,
+                                              String userNos, String creatorId, String desc,
+                                              Date created, Date updated) {
+        if(StringUtils.isBlank(userNos)
+                || StringUtils.isBlank(id)
+                || StringUtils.isBlank(peerId))
+            throw new IllegalArgumentException("groupEntity#buildForReceive is error");
+
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setId(id);
+        groupEntity.setPeerId(peerId);
+        groupEntity.setGroupType(groupType);
+        groupEntity.setMainName(name);
+        String[] userNoArr = userNos.split(",");
+        groupEntity.setUserCnt(userNoArr.length);
+
+        StringBuilder userNoSbf = new StringBuilder();
+        for (int i = 0; i <userNoArr.length ; i++) {
+            String userNo = userNoArr[i];
+            userNoSbf.append(userNo);
+            if(i < userNoArr.length - 1) {
+                userNoSbf.append(",");
+            }
+        }
+        groupEntity.setUserList(userNoSbf.toString());
+        groupEntity.setCreatorId(creatorId);
+        groupEntity.setDesc(desc);
+        if(created != null) {
+            groupEntity.setCreated(created.getTime());
+        }
+        if(updated != null) {
+            groupEntity.setUpdated(updated.getTime());
+        }
+        return groupEntity;
+    }
+
+    /**
+     * 创建群聊
+     * @param id
+     * @param peerId
+     * @param groupType
+     * @param name
+     * @param creatorId
+     * @param desc
+     * @param time
+     * @return
+     */
+    public static GroupEntity buildForCreate(String id, String peerId, int groupType,
+                                             String name, String creatorId, String desc, Date time) {
+        if(StringUtils.isBlank(id)
+                || StringUtils.isBlank(peerId))
+            throw new IllegalArgumentException("groupEntity#buildForCreate is error");
+
+        GroupEntity groupEntity = new GroupEntity();
+        groupEntity.setId(id);
+        groupEntity.setPeerId(peerId);
+        groupEntity.setGroupType(groupType);
+        groupEntity.setMainName(name);
+        groupEntity.setUserCnt(1);
+        groupEntity.setUserList(creatorId);
+        groupEntity.setCreatorId(creatorId);
+        groupEntity.setDesc(desc);
+        if(time != null) {
+            groupEntity.setCreated(time.getTime());
+        }
+        return groupEntity;
     }
 }

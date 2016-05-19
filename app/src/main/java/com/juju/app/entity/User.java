@@ -2,10 +2,14 @@ package com.juju.app.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.base.BaseEntity;
+import com.juju.app.entity.chat.SearchElement;
 import com.juju.app.utils.JacksonUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
+import com.juju.app.utils.pinyin.PinYinUtil;
 
 import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
@@ -27,7 +31,7 @@ public class User extends BaseEntity {
     public User() {
     }
 
-    public User(String userNo, String userPhone, String email, int gender, String nickName,
+    private User(String userNo, String userPhone, String email, int gender, String nickName,
                 Date createTime, Date birthday, String avatar) {
         this.userNo = userNo;
         this.userPhone = userPhone;
@@ -83,6 +87,9 @@ public class User extends BaseEntity {
      */
     @Column(name = "avatar")
     private String avatar;
+
+    private PinYinUtil.PinYinElement pinyinElement = new PinYinUtil.PinYinElement();
+    private SearchElement searchElement = new SearchElement();
 
     @JsonSerialize(using=JsonDateSerializer.class)
     public Date getCreateTime() {
@@ -170,6 +177,14 @@ public class User extends BaseEntity {
         this.avatar = avatar;
     }
 
+    public SearchElement getSearchElement() {
+        return searchElement;
+    }
+
+    public PinYinUtil.PinYinElement getPinyinElement() {
+        return pinyinElement;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -218,5 +233,18 @@ public class User extends BaseEntity {
                 ", birthday=" + birthday +
                 ", createTime=" + createTime +
                 '}';
+    }
+
+
+
+    public static User buildForReceive(String userNo, String userPhone,  String email, int gender,
+                                       String nickName, Date createTime, Date birthday) {
+        if(StringUtils.isBlank(userNo)
+                || StringUtils.isBlank(nickName))
+            throw new IllegalArgumentException("user#buildForReceive is error");
+        User userEntity = new User(userNo,  userPhone,  email,
+            gender,  nickName,  createTime,  birthday,
+            HttpConstants.getPortraitUrl()+userNo);
+        return userEntity;
     }
 }

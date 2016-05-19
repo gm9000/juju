@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 项目名称：juju
@@ -57,6 +58,16 @@ public class SpfUtil {
         SharedPreferencesCompat.apply(editor);
     }
 
+
+    public static void putStringSet(Context context, String key, Set<String> object) {
+        SharedPreferences sp = context.getSharedPreferences(FILE_NAME,
+                Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putStringSet(key, object);
+        SharedPreferencesCompat.apply(editor);
+    }
+
+
     /**
      * 得到保存数据的方法，我们根据默认值得到保存的数据的具体类型，然后调用相对于的方法获取值
      *
@@ -88,6 +99,20 @@ public class SpfUtil {
         }else{
              return sp.getString(key, (String) defaultObject);
         }
+    }
+
+    /**
+     * 获取Set集合
+     * @param context
+     * @param key
+     * @param defaultObject
+     * @return
+     */
+    public static Set<String> getStringSet(Context context, String key, Set<String>  defaultObject) {
+        SharedPreferences sp = context.getSharedPreferences(FILE_NAME,
+                Context.MODE_PRIVATE);
+        Set<String> set = sp.getStringSet(key, defaultObject);
+        return set;
     }
 
     /**

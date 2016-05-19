@@ -389,7 +389,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 //    }
 
     @Override
-    public void onSuccess(Object obj, int accessId) {
+    public void onSuccess(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
             case R.id.txt_party:
                 if(obj != null) {
@@ -408,7 +408,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
     }
 
     @Override
-    public void onFailure(Throwable ex, boolean isOnCallback, int accessId) {
+    public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
         System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
         Log.e(TAG, "onFailure", ex);
     }
