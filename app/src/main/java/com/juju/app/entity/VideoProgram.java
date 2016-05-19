@@ -2,16 +2,28 @@ package com.juju.app.entity;
 
 import com.juju.app.entity.base.BaseEntity;
 
+import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
 
 @Table(name = "video_program")
 public class VideoProgram extends BaseEntity {
 
+    @Column(name="start_time")
     private String startTime;
+
+    @Column(name="creator_name")
     private String creatorName;
+
+    @Column(name="status")
     private int status;
+
+    @Column(name="end_time")
     private String endTime;
+
+    @Column(name="capture_url")
     private String captureUrl;
+
+    @Column(name="video_url")
     private String videoUrl;
 
     public String getVideoUrl() {

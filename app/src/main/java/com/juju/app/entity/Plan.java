@@ -6,7 +6,6 @@ import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
 
-
 import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
 
@@ -25,19 +24,19 @@ public class Plan extends BaseEntity {
     @Column(name="longitude")
     private double longitude;
 
-    @Column(name="startTime")
+    @Column(name="start_time")
     private Date startTime;
 
     @Column(name="desc")
     private String desc;
 
-    @Column(name="partyId")
+    @Column(name="party_id")
     private String partyId;
 
     @Column(name="status")
     private int status;
 
-    @Column(name="attendNum")
+    @Column(name="attend_num")
     private int addtendNum;
 
     @Column(name = "signed")

@@ -2,7 +2,6 @@ package com.juju.app.entity;
 
 import com.juju.app.entity.base.BaseEntity;
 
-
 import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
 
@@ -12,10 +11,10 @@ import java.util.Date;
 @Table(name = "invite")
 public class Invite extends BaseEntity {
 
-    @Column(name = "userNo")
+    @Column(name = "user_no")
     private String userNo;
 
-    @Column(name = "nickName")
+    @Column(name = "nick_name")
     private String nickName;
 
     @Column(name = "time")
@@ -31,10 +30,10 @@ public class Invite extends BaseEntity {
     private int flag;
 
 
-    @Column(name = "groupId")
+    @Column(name = "group_id")
     private String groupId;
 
-    @Column(name = "groupName")
+    @Column(name = "group_name")
     private String groupName;
 
     public String getUserNo() {

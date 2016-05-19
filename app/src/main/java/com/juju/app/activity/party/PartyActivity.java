@@ -72,7 +72,7 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
     private void initParam() {
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
         try {
-            plan = JujuDbUtils.getInstance(this).selector(Plan.class).where("status", "=", 1).and("partyId", "=", partyId).findFirst();
+            plan = JujuDbUtils.getInstance(this).selector(Plan.class).where("status", "=", 1).and("party_id", "=", partyId).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }

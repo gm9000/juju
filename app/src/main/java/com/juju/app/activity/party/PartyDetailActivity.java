@@ -61,7 +61,7 @@ import java.util.Map;
 @ContentView(R.layout.activity_party_detail)
 public class PartyDetailActivity extends BaseActivity implements HttpCallBack, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
-    private static final String TAG = "PartyCreateActivity";
+    private static final String TAG = "PartyDetailActivity";
 
     @ViewInject(R.id.txt_title)
     private TextView txt_title;
@@ -145,7 +145,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         isOwner = creator.getUserNo().equals(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
 
         try {
-            planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("partyId", "=", partyId).findAll();
+            planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("party_id", "=", partyId).findAll();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -245,7 +245,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         super.onResume();
         if(JujuDbUtils.needRefresh(Plan.class)){
             try {
-                planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("partyId", "=", partyId).findAll();
+                planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("party_id", "=", partyId).findAll();
             } catch (DbException e) {
                 e.printStackTrace();
             }

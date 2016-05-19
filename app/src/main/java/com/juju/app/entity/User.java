@@ -52,7 +52,7 @@ public class User extends BaseEntity {
     /**
      * 用户手机号
      */
-    @Column(name = "userPhone")
+    @Column(name = "user_phone")
     private String userPhone;
 
     /**
@@ -65,13 +65,13 @@ public class User extends BaseEntity {
     /**
      * 更新时间
      */
-    @Column(name = "updateTime")
+    @Column(name = "update_time")
     private Date updateTime;
 
     @Column(name = "gender")
     private int gender;
 
-    @Column(name = "nickName")
+    @Column(name = "nick_name")
     private String nickName;
 
     private boolean update;
@@ -79,7 +79,7 @@ public class User extends BaseEntity {
     @Column(name = "birthday")
     private Date birthday;
 
-    @Column(name = "createTime")
+    @Column(name = "create_time")
     private Date createTime;
 
     /**
