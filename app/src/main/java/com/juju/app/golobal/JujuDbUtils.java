@@ -1,8 +1,5 @@
 package com.juju.app.golobal;
 
-import android.content.Context;
-
-import com.juju.app.config.CacheManager;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
 import com.juju.app.ui.base.BaseApplication;
@@ -11,14 +8,12 @@ import org.xutils.DbManager;
 import org.xutils.ex.DbException;
 import org.xutils.x;
 
-import java.io.File;
-
 
 public class JujuDbUtils {
 
     private static DbManager mInstance = null;
 
-    public static DbManager getInstance(final Context context) {
+    public static DbManager getInstance() {
         if (mInstance == null) {
             synchronized (JujuDbUtils.class){
                 if (mInstance == null) {
@@ -31,7 +26,7 @@ public class JujuDbUtils {
 
     public static void delete(Object entity){
         try {
-            mInstance.delete(entity);
+            getInstance().delete(entity);
             GlobalVariable.put(entity.getClass().getSimpleName() + "needRefresh", true);
             if(entity instanceof PlanVote){
                 GlobalVariable.put(Plan.class.getSimpleName()+"needRefresh",true);
@@ -48,7 +43,7 @@ public class JujuDbUtils {
 
     public static void saveOrUpdate(Object entity){
         try {
-            mInstance.saveOrUpdate(entity);
+            getInstance().saveOrUpdate(entity);
             GlobalVariable.put(entity.getClass().getSimpleName()+"needRefresh",true);
             if(entity instanceof PlanVote){
                 GlobalVariable.put(Plan.class.getSimpleName()+"needRefresh",true);
@@ -68,7 +63,7 @@ public class JujuDbUtils {
 
     public static void replace(Object entity){
         try {
-            mInstance.replace(entity);
+            getInstance().replace(entity);
             GlobalVariable.put(entity.getClass().getSimpleName()+"needRefresh",true);
             if(entity instanceof PlanVote){
                 GlobalVariable.put(Plan.class.getSimpleName()+"needRefresh",true);

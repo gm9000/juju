@@ -222,17 +222,7 @@ public class User extends BaseEntity {
 
     @Override
     public String toString() {
-        return "User{" +
-                "userNo='" + userNo + '\'' +
-                ", userPhone='" + userPhone + '\'' +
-                ", email='" + email + '\'' +
-                ", updateTime=" + updateTime +
-                ", gender=" + gender +
-                ", nickName='" + nickName + '\'' +
-                ", update=" + update +
-                ", birthday=" + birthday +
-                ", createTime=" + createTime +
-                '}';
+        return JacksonUtil.turnObj2String(this);
     }
 
 

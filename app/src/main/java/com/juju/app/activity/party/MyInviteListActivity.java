@@ -77,7 +77,7 @@ public class MyInviteListActivity extends BaseActivity implements MyInviteListAd
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         userNo = userInfoBean.getJujuNo();
         try {
-            inviteList = JujuDbUtils.getInstance(getContext()).selector(Invite.class).orderBy("local_id", true).findAll();
+            inviteList = JujuDbUtils.getInstance().selector(Invite.class).orderBy("local_id", true).findAll();
         } catch (DbException e) {
             e.printStackTrace();
         }

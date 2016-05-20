@@ -265,8 +265,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             case 1: //  聚会
                 //TODO 需要修改为从群聊中发起聚会
                 String groupId = "570dbc6fe4b092891a647e32";
-                BasicNameValuePair phoneValue = new BasicNameValuePair(Constants.GROURP_ID,groupId);
-                ActivityUtil.startActivity(this,PartyCreateActivity.class,phoneValue);
+                BasicNameValuePair groupIdValue = new BasicNameValuePair(Constants.GROURP_ID,groupId);
+                ActivityUtil.startActivity(this,PartyCreateActivity.class,groupIdValue);
                 break;
         }
     }

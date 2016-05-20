@@ -112,7 +112,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
         if(JujuDbUtils.needRefresh(Party.class)) {
             try {
                 pageIndex = 0;
-                Selector selector = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("status", ">", -1);
+                Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", ">", -1);
                 switch (filterType){
                     case 0:
                         break;
@@ -135,10 +135,9 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
             }
             if(partyList != null) {
                 try {
-                    for (Party part : partyList) {
-                        User dbUser = JujuDbUtils.getInstance(getContext())
-                                .selector(User.class).where("user_no", "=", part.getUserNo()).findFirst();
-                        part.setCreator(dbUser);
+                    for (Party party : partyList) {
+                        User dbUser = JujuDbUtils.getInstance()
+                                .selector(User.class).where("user_no", "=", party.getUserNo()).findFirst();
                     }
                 } catch (DbException e) {
                     e.printStackTrace();
@@ -212,7 +211,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 
     private void loadPartyData() {
         try {
-            Selector selector = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("status", ">", -1);
+            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", ">", -1);
             totalSize = selector.count();
             selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);
             partyList = selector.findAll();
@@ -257,11 +256,10 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
 
     private void wrapPartyList(List<Party> partyList) {
         if(partyList != null) {
-            for(Party part : partyList) {
+            for(Party party : partyList) {
                 try {
-                    User dbUser = JujuDbUtils.getInstance(getContext())
-                            .selector(User.class).where("user_no", "=", part.getUserNo()).findFirst();
-                    part.setCreator(dbUser);
+                    User dbUser = JujuDbUtils.getInstance()
+                            .selector(User.class).where("user_no", "=", party.getUserNo()).findFirst();
                 } catch (DbException e) {
                     e.printStackTrace();
                 }
@@ -277,7 +275,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
         if (partyTypeGroup.getId() == group.getId()) {
             try {
                 pageIndex = 0;
-                Selector selector = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("status", ">", -1);
+                Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", ">", -1);
 
                 //  处理渲染用户相关的所有聚会
                 if (checkedId == allBtn.getId()) {
@@ -433,7 +431,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
         ListView partyListView = listView.getRefreshableView();
         int preSum = partyList.size();
         try {
-            Selector selector = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("status", ">", -1);
+            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", ">", -1);
             switch (filterType){
                 case 0:
                     break;
