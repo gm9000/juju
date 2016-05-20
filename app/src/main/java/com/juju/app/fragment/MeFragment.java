@@ -95,7 +95,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     private void generateInviteDate() {
 
         try {
-            if(JujuDbUtils.getInstance(getContext()).selector(Invite.class).count()==0){
+            if(JujuDbUtils.getInstance().selector(Invite.class).count()==0){
                 Invite invite1 = new Invite();
                 invite1.setFlag(0);
                 invite1.setStatus(-1);
@@ -142,12 +142,12 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
         Drawable partyDrawable = null;
         Drawable inviteDrawable = null;
         try {
-            if(JujuDbUtils.getInstance(getContext()).selector(Invite.class).where("status", "=", -1).and("flag", "=", 1).count()>0){
+            if(JujuDbUtils.getInstance().selector(Invite.class).where("status", "=", -1).and("flag", "=", 1).count()>0){
                 inviteDrawable = getResources().getDrawable(R.mipmap.invite_new);
             }else{
                 inviteDrawable = getResources().getDrawable(R.mipmap.invite);
             }
-            if(JujuDbUtils.getInstance(getContext()).selector(Party.class).where("status", "=", -1).count()>0){
+            if(JujuDbUtils.getInstance().selector(Party.class).where("status", "=", -1).count()>0){
                 partyDrawable = getResources().getDrawable(R.mipmap.party_new);
             }else{
                 partyDrawable = getResources().getDrawable(R.mipmap.party);
@@ -257,7 +257,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                             userInfo.setUserPhone(userJson.getString("userPhone"));
                             userInfo.setGender(userJson.getInt("gender"));
 
-                            JujuDbUtils.replace(userInfo);
+                            JujuDbUtils.saveOrUpdate(userInfo);
                             SpfUtil.put(getActivity().getApplicationContext(),Constants.USER_INFO,userInfo);
 
                             img_gender.setImageResource(userInfo.getGender() == 0 ? R.mipmap.ic_sex_female : R.mipmap.ic_sex_male);

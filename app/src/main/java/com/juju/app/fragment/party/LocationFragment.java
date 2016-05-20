@@ -1,7 +1,7 @@
 package com.juju.app.fragment.party;
 
 import android.annotation.SuppressLint;
-import android.net.Uri;
+import android.graphics.drawable.Drawable;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -14,7 +14,6 @@ import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
 import com.baidu.mapapi.map.LogoPosition;
-import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
@@ -22,7 +21,6 @@ import com.baidu.mapapi.map.Marker;
 import com.baidu.mapapi.map.MarkerOptions;
 import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.OverlayOptions;
-import com.baidu.mapapi.map.UiSettings;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
 import com.juju.app.R;
@@ -39,13 +37,11 @@ import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.LocationImageView;
 
-
 import org.xutils.common.Callback;
-import org.xutils.db.Selector;
 import org.xutils.ex.DbException;
+import org.xutils.image.ImageOptions;
 import org.xutils.view.annotation.ContentView;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -203,8 +199,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
     public void initOverlay() {
 
         for(UserLocationInfo locationInfo:userLocationInfoList){
-            MarkerOptions mo = new MarkerOptions().position(locationInfo.getLocation()).icon(locationInfo.getBitmapDescriptor());
-            userMarkerMap.put(locationInfo.getUserNo(),(Marker)mBaiduMap.addOverlay(mo));
+            locationInfo.showMapIcon();
             boundsBuilder.include(locationInfo.getLocation());
         }
 
@@ -276,7 +271,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         if(clickUserNo != null){
             User clickUser = null;
             try {
-                clickUser = JujuDbUtils.getInstance(getContext())
+                clickUser = JujuDbUtils.getInstance()
                         .selector(User.class).where("user_no", "=", clickUserNo).findFirst();
             } catch (DbException e) {
                 e.printStackTrace();
@@ -303,9 +298,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
                 isFirstLoc = false;
                 UserLocationInfo myLocationInfo = new UserLocationInfo(userNo,location.getLatitude(),location.getLongitude());
                 userLocationInfoList.add(myLocationInfo);
-                MarkerOptions mo = new MarkerOptions().position(myLocationInfo.getLocation()).icon(myLocationInfo.getBitmapDescriptor());
-                userMarkerMap.put(userNo, (Marker) mBaiduMap.addOverlay(mo));
-
+                myLocationInfo.showMapIcon();
                 boundsBuilder.include(ll);
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLngBounds(boundsBuilder.build()));
             }else{
@@ -336,11 +329,13 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
             return this.userNo;
         }
 
-        public BitmapDescriptor getBitmapDescriptor() {
-            File headFile = (File) BitmapUtilFactory.getInstance(getContext()).loadFile(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo, BitmapUtilFactory.Option.imageOptions(), new Callback.CacheCallback<File>(){
+        public void showMapIcon() {
+            BitmapUtilFactory.getInstance(getContext()).loadDrawable(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo, ImageOptions.DEFAULT, new Callback.CommonCallback<Drawable>() {
                 @Override
-                public void onSuccess(File result) {
-
+                public void onSuccess(Drawable result) {
+                    headImg.setImageDrawable(result);
+                    MarkerOptions mo = new MarkerOptions().position(getLocation()).icon(BitmapDescriptorFactory.fromView(headImg));
+                    userMarkerMap.put(userNo, (Marker) mBaiduMap.addOverlay(mo));
                 }
 
                 @Override
@@ -357,22 +352,8 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
                 public void onFinished() {
 
                 }
-
-                @Override
-                public boolean onCache(File result) {
-                    return false;
-                }
             });
-             headImg.setImageURI(Uri.parse(headFile.getAbsolutePath()));
 
-
-//            Bitmap headBitmap = null;
-//            try {
-//                headBitmap = BitmapFactory.decodeStream(new FileInputStream(headFile));
-//            } catch (FileNotFoundException e) {
-//                e.printStackTrace();
-//            }
-            return BitmapDescriptorFactory.fromView(headImg);
         }
     }
 

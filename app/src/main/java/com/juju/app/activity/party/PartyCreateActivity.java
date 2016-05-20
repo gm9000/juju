@@ -160,11 +160,11 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         groupDao = new GroupDaoImpl(this);
         if(partyId!=null){
             try {
-                party = JujuDbUtils.getInstance(this).selector(Party.class).where("id", "=", partyId).findFirst();
+                party = JujuDbUtils.getInstance().selector(Party.class).where("id", "=", partyId).findFirst();
                 groupId = party.getGroupId();
                 wrapParty(party);
 
-                List<Plan> planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("party_id", "=", partyId).findAll();
+                List<Plan> planList = JujuDbUtils.getInstance().selector(Plan.class).where("party_id", "=", partyId).findAll();
                 if(planList!=null){
                     wrapPlanList(planList);
                 }else{
@@ -329,18 +329,10 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             party.setName(txt_partyTitle.getText().toString());
             party.setDesc(txt_description.getText().toString());
             party.setStatus(-1);
-            User creator = null;
-            try {
-                creator = JujuDbUtils.getInstance(getContext()).selector(User.class)
-                        .where("user_no", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()).findFirst();
-                if(creator != null) {
-                    party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
-                }
-            } catch (DbException e) {
-                e.printStackTrace();
-            }
+            party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+            party.setGroupId(groupId);
 
-            if(StringUtils.isBlank(party.getGroupId())){
+            if(!StringUtils.isEmpty(party.getGroupId())){
                 GroupEntity group = groupDao.findUniByProperty("id", party.getGroupId());
                 // TODO 组信息正常保存后需要删除下面的代码
                 if(group == null) {
@@ -348,7 +340,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                     group.setId(groupId);
                     group.setMainName("聚龙小组");
                     group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
-                    group.setCreatorId(creator.getUserNo());
+                    group.setCreatorId(party.getUserNo());
                     groupDao.save(group);
                 }
                 party.setGroupId(party.getGroupId());
@@ -560,17 +552,13 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                             completeLoading();
                             partyId = jsonRoot.getString("partyId");
 
-
                             if(party == null) {
                                 party = new Party();
                             }
                             party.setName(txt_partyTitle.getText().toString());
                             party.setDesc(txt_description.getText().toString());
                             party.setId(partyId);
-                            User creator = JujuDbUtils.getInstance(getContext())
-                                    .selector(User.class).where("user_no", "=",
-                                            BaseApplication.getInstance().getUserInfoBean().getJujuNo()).findFirst();
-                            party.setUserNo(creator.getUserNo());
+                            party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
 
                             //TODO 是否需要保存组信息？
                             if(StringUtils.isBlank(party.getGroupId())){
@@ -581,7 +569,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                                     group.setId(groupId);
                                     group.setMainName("聚龙小组");
                                     group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
-                                    group.setCreatorId(creator.getUserNo());
+                                    group.setCreatorId(party.getUserNo());
                                     groupDao.save(group);
                                 }
                                 party.setGroupId(groupId);
@@ -608,9 +596,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
                                     PlanVote planVote = new PlanVote();
                                     planVote.setPlanId(plan.getId());
-                                    planVote.setAttenderNo(creator.getUserNo());
-
-                                    planVote.setAttender(creator);
+                                    planVote.setAttenderNo(party.getUserNo());
                                     JujuDbUtils.save(planVote);
 
                                     plan.setAddtendNum(1);
@@ -627,8 +613,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                         }
                     } catch (JSONException e) {
                         Log.e(TAG, "回调解析失败", e);
-                        e.printStackTrace();
-                    } catch(DbException e){
                         e.printStackTrace();
                     }
                 }

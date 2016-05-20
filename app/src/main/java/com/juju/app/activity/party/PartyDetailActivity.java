@@ -119,7 +119,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
         Party party = null;
         try {
-            party = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("id", "=", partyId).findFirst();
+            party = JujuDbUtils.getInstance().selector(Party.class).where("id", "=", partyId).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -128,24 +128,15 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         txt_description.setText("\t\t" + party.getDesc());
 
         String userNo = party.getUserNo();
-//        User creator = party.getCreator();
         User creator = party.getCreator();
-        try {
-            if(creator == null) {
-                creator = JujuDbUtils.getInstance(getContext())
-                        .selector(User.class).where("user_no", "=", userNo).findFirst();
-            }
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
         BitmapUtilFactory.getInstance(this).bind(img_head,
-                HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + creator.getUserNo());
+                HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo);
         txt_nickName.setText(creator.getNickName());
 
         isOwner = creator.getUserNo().equals(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
 
         try {
-            planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("party_id", "=", partyId).findAll();
+            planList = JujuDbUtils.getInstance().selector(Plan.class).where("party_id", "=", partyId).findAll();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -245,7 +236,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         super.onResume();
         if(JujuDbUtils.needRefresh(Plan.class)){
             try {
-                planList = JujuDbUtils.getInstance(this).selector(Plan.class).where("party_id", "=", partyId).findAll();
+                planList = JujuDbUtils.getInstance().selector(Plan.class).where("party_id", "=", partyId).findAll();
             } catch (DbException e) {
                 e.printStackTrace();
             }
@@ -358,7 +349,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
                         if(status == 0) {
                             completeLoading();
                             partyId = jsonRoot.getString("partyId");
-                            Party party = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("id", "=", partyId).findFirst();
+                            Party party = JujuDbUtils.getInstance().selector(Party.class).where("id", "=", partyId).findFirst();
                             party.setStatus(1);
                             party.setFollowFlag(1);
                             party.setAttendFlag(1);

@@ -103,7 +103,7 @@ public class PartyListAdapter extends BaseAdapter{
 
         BitmapUtilFactory.getInstance(inflater.getContext()).bind(imgCreatorHead,
                 HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
-                        + party.getCreator().getUserNo(), BitmapUtilFactory.Option.imageOptions());
+                        + party.getUserNo(), BitmapUtilFactory.Option.imageOptions());
         txtCreatorName.setText(party.getCreator().getNickName());
         txtPartyName.setText(party.getName());
         if(party.getTime()!=null) {

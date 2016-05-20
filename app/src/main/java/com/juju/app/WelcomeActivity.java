@@ -59,9 +59,9 @@ public class WelcomeActivity extends BaseActivity  {
 
     private void clearDatabase() {
         try {
-            JujuDbUtils.getInstance(getContext()).dropTable(Party.class);
-            JujuDbUtils.getInstance(getContext()).dropTable(Plan.class);
-            JujuDbUtils.getInstance(getContext()).dropTable(User.class);
+            JujuDbUtils.getInstance().dropTable(Party.class);
+            JujuDbUtils.getInstance().dropTable(Plan.class);
+            JujuDbUtils.getInstance().dropTable(User.class);
         } catch (DbException e) {
             e.printStackTrace();
         }

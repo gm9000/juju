@@ -95,7 +95,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
 
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         try {
-            Selector selector = JujuDbUtils.getInstance(this).selector(Party.class).where("user_no", "=", userInfoBean.getJujuNo());
+            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("user_no", "=", userInfoBean.getJujuNo());
             totalSize = selector.count();
             selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);;
             partyList = selector.findAll();
@@ -191,7 +191,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
 
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         try {
-            Selector selector = JujuDbUtils.getInstance(getContext()).selector(Party.class).where("user_no", "=", userInfoBean.getJujuNo());
+            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("user_no", "=", userInfoBean.getJujuNo());
             totalSize = selector.count();
             selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
             List<Party> pagePartyList = selector.findAll();
@@ -216,8 +216,8 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
         try {
             Party party = partyList.get(position);
             String delSql = "delete from plan_vote where plan_id in (select id from plan where party_id=\""+party.getId()+"\")";
-            JujuDbUtils.getInstance(this).execNonQuery(delSql);
-            JujuDbUtils.getInstance(this).delete(Plan.class, WhereBuilder.b("party_id", "=", party.getId()));
+            JujuDbUtils.getInstance().execNonQuery(delSql);
+            JujuDbUtils.getInstance().delete(Plan.class, WhereBuilder.b("party_id", "=", party.getId()));
             JujuDbUtils.delete(party);
         } catch (DbException e) {
             e.printStackTrace();

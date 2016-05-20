@@ -1,13 +1,19 @@
 package com.juju.app.entity;
 
+import android.content.Context;
+
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
 
+import org.xutils.db.Selector;
 import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
+import org.xutils.db.sqlite.SqlInfo;
+import org.xutils.ex.DbException;
 
 import java.util.Date;
 
@@ -54,10 +60,7 @@ public class Party extends BaseEntity {
     @Column(name = "group_id")
     private String groupId;
 
-
-    //临时属性(创建者)
     private User creator;
-
 
 
     public String getName() {
@@ -142,10 +145,14 @@ public class Party extends BaseEntity {
     }
 
     public User getCreator() {
+        if(creator == null) {
+            try {
+                creator = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userNo).findFirst();
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+        }
         return creator;
     }
 
-    public void setCreator(User creator) {
-        this.creator = creator;
-    }
 }

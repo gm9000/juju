@@ -312,7 +312,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
         User loginUser = null;
         try {
-            loginUser = JujuDbUtils.getInstance(this).selector(User.class).where("user_no","=",jujuNo).findFirst();
+            loginUser = JujuDbUtils.getInstance().selector(User.class).where("user_no","=",jujuNo).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
