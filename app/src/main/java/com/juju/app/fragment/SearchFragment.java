@@ -41,10 +41,16 @@ public class SearchFragment extends TitleBaseFragment implements CreateUIHelper 
 
     @ViewInject(R.id.layout_no_search_result)
     private View noSearchResultView;
+
 	private SearchAdapter adapter;
 	IMService imService;
 
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        imServiceConnector.connect(this.getActivity());
+    }
 
     private IMServiceConnector imServiceConnector = new IMServiceConnector(){
         @Override
@@ -62,7 +68,6 @@ public class SearchFragment extends TitleBaseFragment implements CreateUIHelper 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		imServiceConnector.connect(this.getActivity());
         initTopBar();
         return super.onCreateView(inflater, container, savedInstanceState);
 	}

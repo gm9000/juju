@@ -136,7 +136,7 @@ public class BaseApplication extends Application {
                     }
                 }).build());
 
-        Stetho.initializeWithDefaults(this);
+//        Stetho.initializeWithDefaults(this);
 
         //监测内存泄漏
 //        LeakCanary.install(this);

@@ -97,7 +97,7 @@ import java.util.Set;
  * 版本：V1.0.0
  */
 @ContentView(R.layout.activity_chat)
-@CreateUI
+@CreateUI(showTopView = true)
 public class ChatActivity extends BaseActivity implements CreateUIHelper,
         PullToRefreshBase.OnRefreshListener2<ListView>,
         TextWatcher,
@@ -116,14 +116,14 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
 
     //title组件
-    @ViewInject(R.id.img_back)
-    private ImageView img_back;
-    @ViewInject(R.id.txt_left)
-    private TextView txt_left;
-    @ViewInject(R.id.txt_title)
-    private TextView txt_title;
-    @ViewInject(R.id.img_right)
-    private ImageView img_right;
+//    @ViewInject(R.id.img_back)
+//    private ImageView img_back;
+//    @ViewInject(R.id.txt_left)
+//    private TextView txt_left;
+//    @ViewInject(R.id.txt_title)
+//    private TextView txt_title;
+//    @ViewInject(R.id.img_right)
+//    private ImageView img_right;
 
 
 
@@ -242,7 +242,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     @Override
     public void initView() {
-
         initTitleView();
         initSoftInputMethod();
         initEmo();
@@ -259,17 +258,17 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         messageEdt.addTextChangedListener(this);
     }
 
-    //结束群聊
-    @Event(R.id.img_back)
-    private void goBack(ImageView view) {
-        ActivityUtil.finish(ChatActivity.this);
-    }
-
-    //结束群聊
-    @Event(R.id.txt_left)
-    private void goBack1(TextView view) {
-        ActivityUtil.finish(ChatActivity.this);
-    }
+//    //结束群聊
+//    @Event(R.id.img_back)
+//    private void goBack(ImageView view) {
+//        ActivityUtil.finish(ChatActivity.this);
+//    }
+//
+//    //结束群聊
+//    @Event(R.id.txt_left)
+//    private void goBack1(TextView view) {
+//        ActivityUtil.finish(ChatActivity.this);
+//    }
 
     //"十字"按键
     @Event(R.id.show_add_photo_btn)
@@ -503,16 +502,21 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
      */
     private void initTitleView() {
         //显示返回菜单
-        img_back.setVisibility(View.VISIBLE);
-        txt_left.setText(R.string.group_chat);
-        txt_left.setVisibility(View.VISIBLE);
+//        img_back.setVisibility(View.VISIBLE);
+//        txt_left.setText(R.string.group_chat);
+//        txt_left.setVisibility(View.VISIBLE);
+
+        showTopLeftAll(R.string.group_chat, 0);
 
         String[] sessionKeyArr = currentSessionKey.split("_");
         if(sessionKeyArr.length > 1) {
             GroupEntity groupEntity = IMGroupManager.instance().getGroupMap().get(sessionKeyArr[1]);
-            txt_title.setText(groupEntity.getMainName());
+//            txt_title.setText(groupEntity.getMainName());
+            setTopTitle(groupEntity.getMainName());
         }
-        img_right.setImageResource(R.mipmap.icon_groupinfo);
+//        img_right.setImageResource(R.mipmap.icon_groupinfo);
+        setTopRightButton(R.mipmap.icon_groupinfo);
+
     }
 
 

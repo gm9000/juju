@@ -1,8 +1,11 @@
 package com.juju.app.fragment;
 
 import android.graphics.drawable.Drawable;
+import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -68,6 +71,10 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     private TextView txt_setting;
 
 
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        return super.onCreateView(inflater, container, savedInstanceState);
+    }
 
     @Override
     protected void findViews() {

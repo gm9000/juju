@@ -62,7 +62,8 @@ public abstract class TitleBaseFragment extends BaseFragment {
         super.onCreate(savedInstanceState);
         topContentView = (ViewGroup) LayoutInflater
                 .from(getActivity()).inflate(R.layout.tt_fragment_base, null);
-        topBar = (ViewGroup) topContentView.findViewById(R.id.topbar);
+
+        topBar = (ViewGroup) topContentView.findViewById(R.id.layout_bar);
 
         //左边区域
         topLetTitleTxt = (TextView) topContentView.findViewById(R.id.txt_left);
@@ -85,11 +86,6 @@ public abstract class TitleBaseFragment extends BaseFragment {
     }
 
 
-    //重写父类方法
-    @Override
-    public void onViewCreated(View view, Bundle savedInstanceState) {
-
-    }
 
     //重写父类方法
     @Override
