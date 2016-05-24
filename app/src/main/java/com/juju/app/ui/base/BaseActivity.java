@@ -10,8 +10,13 @@ import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.text.TextPaint;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.FrameLayout;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -23,11 +28,13 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.TipsToastUtil;
 import com.juju.app.view.CustomDialog;
+import com.juju.app.view.SearchEditText;
 import com.kaopiz.kprogresshud.KProgressHUD;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
+import org.xutils.view.annotation.ContentView;
 import org.xutils.x;
 
 /**
@@ -47,15 +54,50 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     private TextView txt_status_message;
 
+    protected ViewGroup topContentView;
+
+    protected ImageView topLeftBtn;
+
+    protected ImageView topRightBtn;
+
+    protected TextView topTitleTxt;
+
+    protected TextView topLetTitleTxt;
+
+    protected TextView topRightTitleTxt;
+
+    protected ViewGroup topBar;
+
+    protected SearchEditText topSearchEdt;
+
+    protected FrameLayout searchFrameLayout;
+
+    protected float x1, y1, x2, y2 = 0;
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        x.view().inject(this);
+        context = this;
+        final CreateUI createUI = this.getClass().getAnnotation(CreateUI.class);
+        if(createUI != null && createUI.showTopView()) {
+            //初始化Top
+            initTopView();
+        }
+        if(topContentView != null) {
+            final ContentView contentView = this.getClass().getAnnotation(ContentView.class);
+            LayoutInflater.from(this).inflate(contentView.value(), topContentView, true);
+            x.view().inject(this, topContentView);
+            setContentView(topContentView);
+        } else {
+            x.view().inject(this);
+        }
         setSystemColor();
         //初始化数据
         if(this instanceof CreateUIHelper) {
             CreateUIHelper uiHelper = (CreateUIHelper) this;
-            final CreateUI createUI = this.getClass().getAnnotation(CreateUI.class);
             if(createUI != null) {
                 if(createUI.isLoadData()) {
                     uiHelper.loadData();
@@ -68,7 +110,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         setOnListener();
         initPublicViews();
         BaseApplication.getInstance().addActivity(this);
-        context = this;
     }
 
     @Override
@@ -374,4 +415,211 @@ public abstract class BaseActivity extends AppCompatActivity {
     {
         EventBus.getDefault().post(paramObject);
     }
+
+
+    //加粗显示标题
+    protected void setTopTitleBold(String title) {
+        if (title == null) {
+            return;
+        }
+        if (title.length() > 12) {
+            title = title.substring(0, 11) + "...";
+        }
+        // 设置字体为加粗
+        TextPaint paint =  topTitleTxt.getPaint();
+        paint.setFakeBoldText(true);
+
+        topTitleTxt.setText(title);
+        topTitleTxt.setVisibility(View.VISIBLE);
+
+    }
+
+    //显示标题
+    protected void setTopTitle(Object resId) {
+        String title = null;
+        if(resId instanceof Integer) {
+            title = getContext().getResources().getText((Integer) resId).toString();
+        } else if (resId instanceof String) {
+            title = (String)resId;
+        }
+        if (title == null) {
+            return;
+        }
+        if (title.length() > 12) {
+            title = title.substring(0, 11) + "...";
+        }
+        topTitleTxt.setText(title);
+        topTitleTxt.setVisibility(View.VISIBLE);
+    }
+
+    //隐藏标题
+    protected void hideTopTitle() {
+        topTitleTxt.setVisibility(View.GONE);
+    }
+
+
+    //显示左边按钮
+    protected void setTopLeftButton(int resID) {
+        if (resID < 0) {
+            return;
+        } else if (resID == 0) {
+            resID = R.mipmap.icon_back;
+        }
+        topLeftBtn.setImageResource(resID);
+        topLeftBtn.setVisibility(View.VISIBLE);
+    }
+
+    //设置左边按钮padding
+    protected void setTopLeftButtonPadding(int l,int t,int r,int b) {
+        topLeftBtn.setPadding(l, t, r, b);
+    }
+
+    //隐藏左边按钮
+    protected void hideTopLeftButton() {
+        topLeftBtn.setVisibility(View.GONE);
+    }
+
+    //显示左边文字
+    protected void setTopLeftText(int resId) {
+        if (resId < 0) {
+            return;
+        } else if (resId == 0) {
+            resId = R.string.top_left_back;
+        }
+        topLetTitleTxt.setText(resId);
+        topLetTitleTxt.setVisibility(View.VISIBLE);
+    }
+
+    //显示右边文字
+    protected void setTopRightText(int resId) {
+        if (resId < 0) {
+            return;
+        } else if (resId == 0) {
+            resId = R.string.save;
+        }
+        topRightTitleTxt.setText(resId);
+        topRightTitleTxt.setVisibility(View.VISIBLE);
+    }
+
+    //显示右边按钮
+    protected void setTopRightButton(int resID) {
+        if (resID < 0) {
+            return;
+        } else if (resID == 0) {
+            resID = R.mipmap.icon_add;
+        }
+        topRightBtn.setImageResource(resID);
+        topRightBtn.setVisibility(View.VISIBLE);
+    }
+
+    //隐藏右边按钮
+    protected void hideTopRightButton() {
+        topRightBtn.setVisibility(View.GONE);
+    }
+
+    //设置背景色
+    @Deprecated
+    protected void setTopBar(int resID) {
+        if (resID <= 0) {
+            return;
+        }
+        topBar.setBackgroundResource(resID);
+    }
+
+
+    //显示搜索框
+    protected void showTopSearchBar() {
+        topSearchEdt.setVisibility(View.VISIBLE);
+    }
+
+    //隐藏搜索框
+    protected void hideTopSearchBar() {
+        topSearchEdt.setVisibility(View.GONE);
+    }
+
+
+    /**
+     * 显示左边区域
+     * @param textId
+     * @param btnId
+     */
+    protected void showTopLeftAll(int textId, int btnId) {
+        setTopLeftText(textId);
+        setTopLeftButton(btnId);
+    }
+
+    /**
+     * 隐藏左边区域
+     *
+     */
+    protected void hideTopLeftAll() {
+        hideTopLeftButton();
+        topLetTitleTxt.setVisibility(View.GONE);
+    }
+
+    /**
+     * 显示右边区域
+     * @param textId
+     * @param btnId
+     */
+    protected void showTopRightAll(int textId, int btnId) {
+        setTopRightText(textId);
+        setTopRightButton(btnId);
+    }
+
+    /**
+     * 隐藏右边区域
+     *
+     */
+    protected void hideTopRightAll() {
+        hideTopRightButton();
+        topRightTitleTxt.setVisibility(View.GONE);
+    }
+
+
+    private void initTopView() {
+        topContentView = (ViewGroup) LayoutInflater
+                .from(this).inflate(R.layout.tt_fragment_base, null);
+        topBar = (ViewGroup) topContentView.findViewById(R.id.layout_bar);
+
+        //左边区域
+        topLetTitleTxt = (TextView) topContentView.findViewById(R.id.txt_left);
+        topLeftBtn = (ImageView) topContentView.findViewById(R.id.img_back);
+
+        topLetTitleTxt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtil.finish(BaseActivity.this);
+            }
+        });
+
+        topLeftBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ActivityUtil.finish(BaseActivity.this);
+            }
+        });
+
+        //右边区域
+        topRightTitleTxt = (TextView) topContentView.findViewById(R.id.txt_right);
+        topRightBtn = (ImageView) topContentView.findViewById(R.id.img_right);
+
+        //标题
+        topTitleTxt = (TextView) topContentView.findViewById(R.id.txt_title);
+
+        //搜索框
+        topSearchEdt = (SearchEditText) topContentView.findViewById(R.id.chat_title_search);
+
+        //搜索FrameLayout
+        searchFrameLayout = (FrameLayout)topContentView.findViewById(R.id.searchbar);
+
+        topLeftBtn.setVisibility(View.GONE);
+        topLetTitleTxt.setVisibility(View.GONE);
+        topRightBtn.setVisibility(View.GONE);
+        topRightTitleTxt.setVisibility(View.GONE);
+        topTitleTxt.setVisibility(View.GONE);
+        topSearchEdt.setVisibility(View.GONE);
+    }
+
+
 }

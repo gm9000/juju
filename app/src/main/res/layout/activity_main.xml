@@ -3,11 +3,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:orientation="vertical"
-    android:fitsSystemWindows="true">
+    android:orientation="vertical">
 
-    <!--标题 -->
-    <include  android:id="@+id/layout_bar" layout="@layout/layout_title"/>
+    <!--&lt;!&ndash;标题 &ndash;&gt;-->
+    <!--<include  android:id="@+id/layout_bar" layout="@layout/layout_title"/>-->
 
     <!--内容 -->
     <FrameLayout

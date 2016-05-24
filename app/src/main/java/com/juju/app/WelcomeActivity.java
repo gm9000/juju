@@ -9,6 +9,7 @@ import android.view.animation.Animation;
 import android.widget.LinearLayout;
 
 import com.juju.app.activity.LoginActivity;
+import com.juju.app.annotation.CreateUI;
 import com.juju.app.annotation.SystemColor;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;

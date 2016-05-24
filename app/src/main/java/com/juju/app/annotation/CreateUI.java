@@ -19,4 +19,6 @@ import java.lang.annotation.Target;
         boolean isLoadData() default true;
 
         boolean isInitView() default true;
+
+        boolean showTopView() default false;
 }

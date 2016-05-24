@@ -6,12 +6,9 @@
     android:fitsSystemWindows="true">
 
 
-
-
-
     <fragment
         android:id="@+id/contactFragment"
-        android:name="com.juju.app.fragment.SearchFragment"
+        class="com.juju.app.fragment.SearchFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 

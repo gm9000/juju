@@ -6,9 +6,9 @@
 	android:orientation="vertical"
 	android:fitsSystemWindows="true">
 
-	<include
-		android:id="@+id/top_bar"
-		layout="@layout/layout_title" />
+	<!--<include-->
+		<!--android:id="@+id/top_bar"-->
+		<!--layout="@layout/layout_title" />-->
 
 	<FrameLayout
 		android:layout_width="match_parent"

@@ -71,7 +71,7 @@ import java.util.List;
 import java.util.Map;
 
 @ContentView(R.layout.activity_main)
-@CreateUI
+@CreateUI(showTopView = true)
 public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
 
     private final String TAG = getClass().getSimpleName();
@@ -80,16 +80,15 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     private final int DELETE_GROUP = 0x02;
 
-
     private Logger logger = Logger.getLogger(MainActivity.class);
 
 
-    @ViewInject(R.id.img_right)
-    private ImageView img_right;
-
-    @ViewInject(R.id.txt_title)
-    private TextView txt_title;
-
+//    @ViewInject(R.id.img_right)
+//    private ImageView img_right;
+//
+//    @ViewInject(R.id.txt_title)
+//    private TextView txt_title;
+//
     @ViewInject(R.id.layout_bar)
     private RelativeLayout layout_bar;
 
@@ -141,6 +140,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     @Override
     public void initView() {
         long begin = System.currentTimeMillis();
+        initTopTile();
         initTabView();
         initPopWindow();
         long end = System.currentTimeMillis();
@@ -169,6 +169,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         textviews[0].setTextColor(getResources().getColor(R.color.blue));
 
         // 添加显示第一个fragment
+
+//        getFragmentManager().beginTransaction().
+
         getSupportFragmentManager().beginTransaction()
                 .add(R.id.fragment_container, groupChatFragment)
                 .add(R.id.fragment_container, groupPartyFragment)
@@ -177,26 +180,33 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     }
 
     public void onTabClicked(View view) {
-        img_right.setVisibility(View.GONE);
+        //隐藏TOP右边信息
+        hideTopRightAll();
         switch (view.getId()) {
             case R.id.re_group_chat:
-                img_right.setVisibility(View.VISIBLE);
+//                img_right.setVisibility(View.VISIBLE);
+                setTopRightButton(0);
                 index = 0;
                 if (groupChatFragment != null) {
                     groupChatFragment.refresh();
                 }
-                txt_title.setText(R.string.group_chat);
-                img_right.setImageResource(R.mipmap.icon_add);
+//                txt_title.setText(R.string.group_chat);
+//                img_right.setImageResource(R.mipmap.icon_add);
+                setTopTitle(R.string.group_chat);
+                setTopRightButton(R.mipmap.icon_add);
                 break;
             case R.id.re_group_party:
                 index = 1;
-                txt_title.setText(R.string.group_party);
-                img_right.setVisibility(View.VISIBLE);
-                img_right.setImageResource(R.mipmap.icon_add);
+//                txt_title.setText(R.string.group_party);
+//                img_right.setVisibility(View.VISIBLE);
+//                img_right.setImageResource(R.mipmap.icon_add);
+                setTopTitle(R.string.group_party);
+                setTopRightButton(R.mipmap.icon_add);
                 break;
             case R.id.re_profile:
                 index = 2;
-                txt_title.setText(R.string.me);
+//                txt_title.setText(R.string.me);
+                setTopTitle(R.string.me);
                 break;
         }
         if (currentTabIndex != index) {
@@ -527,5 +537,10 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
             }
         };
+
+    private void initTopTile() {
+        setTopRightButton(0);
+        setTopTitle(R.string.group_chat);
+    }
 
 }
