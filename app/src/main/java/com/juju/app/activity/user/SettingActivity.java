@@ -1,22 +1,18 @@
 package com.juju.app.activity.user;
 
-import android.app.Activity;
 import android.content.DialogInterface;
-import android.content.DialogInterface.OnClickListener;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
-import com.juju.app.WelcomeActivity;
 import com.juju.app.activity.LoginActivity;
-import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
@@ -24,13 +20,12 @@ import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
-import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
-import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.dialog.WarnTipDialog;
 
@@ -42,14 +37,13 @@ import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
-import org.xutils.x;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
 @ContentView(R.layout.activity_setting)
-public class SettingActivity extends AppCompatActivity implements HttpCallBack {
+public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     private static final String TAG = "SettingActivity";
 
@@ -66,12 +60,19 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     @ViewInject(R.id.head)
     private RoundImageView headImg;
 
+
+    @ViewInject(R.id.layout_phone)
+    private LinearLayout layoutPhone;
     @ViewInject(R.id.txt_phoneNo)
     private TextView txt_phoneNo;
+    @ViewInject(R.id.layout_nick_name)
+    private LinearLayout layoutNickName;
     @ViewInject(R.id.txt_nick_name)
     private TextView txt_nickName;
     @ViewInject(R.id.txt_jujuNo)
     private TextView txt_jujuNo;
+    @ViewInject(R.id.layout_gender)
+    private LinearLayout layoutGender;
     @ViewInject(R.id.txt_gender)
     private TextView txt_gender;
 
@@ -90,7 +91,6 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        x.view().inject(this);
         initParam();
         initView();
         loadUserInfo();
@@ -216,11 +216,11 @@ public class SettingActivity extends AppCompatActivity implements HttpCallBack {
             layout_setting.setVisibility(View.GONE);
             logoutBtn.setVisibility(View.GONE);
 
-            txt_gender.setClickable(false);
+            layoutGender.setClickable(false);
             txt_gender.setCompoundDrawables(null, null, null, null);
-            txt_phoneNo.setClickable(false);
+            layoutPhone.setClickable(false);
             txt_phoneNo.setCompoundDrawables(null, null, null, null);
-            txt_nickName.setClickable(false);
+            layoutNickName.setClickable(false);
             txt_nickName.setCompoundDrawables(null,null,null,null);
 
         }

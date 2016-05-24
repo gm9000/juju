@@ -51,6 +51,8 @@ public class Constants {
     public static final int pageSize = 21;
     public static final int yayaPageSize = 8;
     public static final String SESSION_ID_KEY = "session_id";
+    public static final int FRAME_RATE = 20;
+    public static final int KEY_FRAME_INTERVAL = 1;
 
 
     /**

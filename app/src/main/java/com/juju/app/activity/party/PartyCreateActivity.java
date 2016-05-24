@@ -210,6 +210,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         txt_left.setLayoutParams(layoutParams);
         txt_right.setText(R.string.save);
         txt_right.setTextColor(getResources().getColor(R.color.orange));
+        txt_right.setVisibility(View.VISIBLE);
         img_right.setVisibility(View.GONE);
 
     }

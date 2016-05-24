@@ -103,7 +103,7 @@
         android:layout_marginRight="10dp"
         android:layout_width="32dp"
         android:layout_height="32dp"
-        android:src="@mipmap/close"/>
+        android:src="@mipmap/power"/>
     <ImageView
         android:id="@+id/img_upload"
         android:layout_width="wrap_content"

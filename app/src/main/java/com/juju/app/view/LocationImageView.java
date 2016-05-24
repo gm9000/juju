@@ -16,6 +16,9 @@ import android.graphics.drawable.NinePatchDrawable;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
+import com.juju.app.R;
+import com.juju.app.utils.ScreenUtil;
+
 import org.xutils.image.AsyncDrawable;
 
 
@@ -28,26 +31,35 @@ public class LocationImageView extends ImageView {
 
     private int mCircleThickness = 2;
     private int mArrowHeight = 4;
-    private Context mContext;
     private int mColor = 0xFF00a4e8;
     // 控件默认长、宽
-    private int defaultWidth = 80;
-    private int defaultHeight = 80;
+    private int defaultWidth = 50;
+    private int defaultHeight = 50;
 
     public LocationImageView(Context context) {
         super(context);
-        mContext = context;
+        init(context);
+    }
+    public LocationImageView(Context context,boolean self) {
+        super(context);
+        init(context);
+        if(self) {
+            mColor = 0xFFFF0000;
+            mCircleThickness = 3;
+        }
+    }
+
+    private void init(Context context){
+        defaultWidth = ScreenUtil.dip2px(context,defaultWidth);
+        defaultHeight = ScreenUtil.dip2px(context,defaultHeight);
+        defaultWidth = defaultWidth>120?120:defaultWidth;
+        defaultHeight = defaultHeight>120?120:defaultHeight;
         setLayoutParams(new ViewGroup.LayoutParams(defaultWidth, defaultHeight));
+        setImageAlpha(0);
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
-//        if(defaultWidth > getWidth()){
-//            defaultWidth = getWidth();
-//        }
-//        if(defaultHeight > getHeight()){
-//            defaultHeight = getHeight();
-//        }
         Drawable drawable = getDrawable();
         if (drawable == null) {
             return;
@@ -154,6 +166,22 @@ public class LocationImageView extends ImageView {
     }
 
 
+
+    /**
+     * 背景色
+     */
+
+    private void drawBackgroundColor(Canvas canvas,int color) {
+
+        Paint paint = new Paint();
+        paint.setAntiAlias(true);
+        paint.setFilterBitmap(true);
+        paint.setDither(true);
+        paint.setColor(color);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawRect(0,0,defaultWidth,defaultHeight,paint);
+    }
+
     /**
      * 边缘画圆
      */
@@ -193,5 +221,7 @@ public class LocationImageView extends ImageView {
         canvas.drawPath(arrawPath,paint);
 
     }
+
+
 
 }

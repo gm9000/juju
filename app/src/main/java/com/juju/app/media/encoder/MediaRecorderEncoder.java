@@ -79,16 +79,16 @@ public class MediaRecorderEncoder extends MediaEncoder {
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setCamera(mCamera);
 
-//        mediaRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
-        mediaRecorder.setInputSurface(mSurfaceHolder.getSurface());
-        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);
+        mediaRecorder.setPreviewDisplay(mSurfaceHolder.getSurface());
+//        mediaRecorder.setInputSurface(mSurfaceHolder.getSurface());
+        mediaRecorder.setVideoSource(MediaRecorder.VideoSource.CAMERA);
 //        mediaRecorder.setOrientationHint(90);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
-        mediaRecorder.setVideoSize(m_height, m_width);
+//        mediaRecorder.setVideoSize(m_height, m_width);
 //        CamcorderProfile cProfile = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
 //        mediaRecorder.setProfile(cProfile);
-        mediaRecorder.setVideoFrameRate(m_framerate);
+//        mediaRecorder.setVideoFrameRate(m_framerate);
         mediaRecorder.setVideoEncodingBitRate(m_width * m_height * 5);
         mediaRecorder.setMaxDuration(0);
         mediaRecorder.setMaxFileSize(0);

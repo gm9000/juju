@@ -19,7 +19,6 @@ import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -29,10 +28,11 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.json.LiveAddressResBean;
 import com.juju.app.bean.json.LoginResBean;
 import com.juju.app.config.HttpConstants;
-import com.juju.app.https.HttpCallBack;
+import com.juju.app.golobal.Constants;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.media.encoder.MediaEnCoderFactory;
@@ -51,7 +51,6 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
-import org.xutils.common.Callback;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -59,7 +58,6 @@ import org.xutils.view.annotation.ViewInject;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -68,8 +66,9 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 
 @ContentView(R.layout.activity_play_video)
+@SystemColor(isApply=false)
 public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.Callback,
-        Camera.PreviewCallback, HttpCallBack, View.OnClickListener {
+        Camera.PreviewCallback, HttpCallBack4OK, View.OnClickListener {
 
     @ViewInject(R.id.layout_main)
     private RelativeLayout layoutMain;
@@ -117,8 +116,8 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
     private static int queueSize = 64;
     private ArrayBlockingQueue<byte[]> YUVQueue = new ArrayBlockingQueue<byte[]>(queueSize);
-    private int width = 720;
-    private int height = 1280;
+    private int width = 360;
+    private int height = 640;
 
     private static int audioQueueSize = 256;
     private ArrayBlockingQueue<byte[]> AACQueue = new ArrayBlockingQueue<byte[]>(audioQueueSize);
@@ -134,10 +133,10 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     private float previewRate;
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // 防止锁屏
         initParam();
         initView();
@@ -264,7 +263,7 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     private void uploadVideo(View view){
         JlmHttpClient client = new JlmHttpClient(12, HttpConstants.getLiveServerUrl() + "/apply_for_upload", this, null, LiveAddressResBean.class);
         try {
-            client.sendGetNoCache();
+            client.sendGetNoCache4OK();
         } catch (JSONException e) {
             e.printStackTrace();
         } catch (UnsupportedEncodingException e) {
@@ -332,19 +331,20 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
                 setCameraDisplayOrientation(curCameraId,camera);
 
-                parameters.setPreviewFormat(ImageFormat.NV21);
+                parameters.setPreviewFormat(ImageFormat.YV12);
+//              parameters.setPictureFormat(ImageFormat.JPEG);				//设置照片储存格式
 
                 //设置PictureSize
-                Camera.Size pictureSize = getPropPictureSize(parameters.getSupportedPictureSizes(), previewRate, 840);
+                Camera.Size pictureSize = getPropPictureSize(parameters.getSupportedPictureSizes(), previewRate, 480);
                 parameters.setPictureSize(pictureSize.width, pictureSize.height);
 
                 //设置PreviewSize
-                Camera.Size previewSize = getPropPreviewSize(parameters.getSupportedPreviewSizes(), previewRate, 840);
+                Camera.Size previewSize = getPropPreviewSize(parameters.getSupportedPreviewSizes(), previewRate, 480);
                 parameters.setPreviewSize(previewSize.width, previewSize.height);
                 width = previewSize.width;
                 height = previewSize.height;
 
-                parameters.setPreviewFrameRate(25);
+                parameters.setPreviewFrameRate(Constants.FRAME_RATE);
 //                parameters.setAutoWhiteBalanceLock(true);
                 parameters.setFocusMode(Camera.Parameters.FOCUS_MODE_AUTO);
 
@@ -392,39 +392,41 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
     public Camera.Size getPropPreviewSize(List<Camera.Size> list, float th, int minWidth) {
         Collections.sort(list, sizeComparator);
         int i = 0;
+        boolean match = false;
         for (Camera.Size s : list) {
             if ((s.width >= minWidth) && equalRate(s, th)) {
+                match = true;
                 break;
             }
             i++;
         }
-        if (i == list.size()) {
-            if(list.size()>1){
-                i = list.size()-2;
+        if(!match){
+            if(list.size()>1) {
+                i = 1;
             }else{
-                i--;
+                i = 0;
             }
         }
-
         return list.get(i);
     }
 
     public Camera.Size getPropPictureSize(List<Camera.Size> list, float th, int minWidth) {
         Collections.sort(list, sizeComparator);
         int i = 0;
+        boolean match = false;
         for (Camera.Size s : list) {
             if ((s.width >= minWidth) && equalRate(s, th)) {
+                match = true;
                 break;
             }
             i++;
         }
-        if (i == list.size()) {
-            if(list.size()>1){
-                i = list.size()-2;
+        if(!match){
+            if(list.size()>1) {
+                i = 1;
             }else{
-                i--;
+                i = 0;
             }
-           //如果没找到，就选次大的size
         }
         return list.get(i);
     }
@@ -437,65 +439,6 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
             return false;
         }
     }
-
-    @Override
-    public void onSuccess(Object obj, int accessId, Object inputParameter) {
-        switch (accessId) {
-            case 12:
-                if(obj != null) {
-                    LiveAddressResBean liveAddressBean = (LiveAddressResBean)obj;
-                    mediaProcessService.setUpdateUrl(liveAddressBean.getUploadUrl());
-
-                    Map<String, Object> valueMap = new HashMap<String, Object>();
-                    valueMap.put("videoUrl", liveAddressBean.getDownloadUrl());
-                    JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(22,
-                            HttpConstants.getUserUrl() + "/publishVideo", this, valueMap, LoginResBean.class);
-
-                    //增加注释
-                    try {
-                        client.sendPost();
-                    } catch (UnsupportedEncodingException e) {
-                        e.printStackTrace();
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-                    mediaProcessService.startEncoding();
-                    imgUpload.setVisibility(View.GONE);
-                    layoutSliding.setVisibility(View.VISIBLE);
-                }
-                break;
-            case 22:
-                if(obj != null) {
-                }
-                break;
-        }
-    }
-
-    @Override
-    public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
-        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
-        Log.e("UploadVideoActivity", "onFailure", ex);
-        switch (accessId) {
-            case 12:
-                statusText.setText("连接失败!");
-                break;
-            case 22:
-                statusText.setText("视频地址发布失败!");
-                break;
-        }
-    }
-
-    @Override
-    public void onCancelled(Callback.CancelledException cex) {
-
-    }
-
-    @Override
-    public void onFinished() {
-
-    }
-
-
 
     @Override
     public void onClick(View v) {
@@ -522,6 +465,86 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
         }
     }
 
+    @Override
+    public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+        switch (accessId) {
+            case 12:
+                if(obj != null) {
+
+                    LiveAddressResBean liveAddressBean = (LiveAddressResBean) obj;
+                    if(liveAddressBean.getStatus() == 0) {
+
+                        mediaProcessService.setUpdateUrl(liveAddressBean.getUploadUrl());
+
+                        Map<String, Object> valueMap = new HashMap<String, Object>();
+                        valueMap.put("videoUrl", liveAddressBean.getDownloadUrl());
+                        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(22,
+                                HttpConstants.getUserUrl() + "/publishVideo", this, valueMap, LoginResBean.class);
+
+                        //增加注释
+                        try {
+                            client.sendPost4OK();
+                        } catch (UnsupportedEncodingException e) {
+                            e.printStackTrace();
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                        mediaProcessService.startEncoding();
+
+
+                        UploadVideoActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                imgUpload.setVisibility(View.GONE);
+                                layoutSliding.setVisibility(View.VISIBLE);
+                            }
+                        });
+
+
+                    }else{
+                        UploadVideoActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                statusText.setText("视频上传地址获取失败!");
+                            }
+                        });
+                    }
+
+                }
+                break;
+            case 22:
+                if(obj != null) {
+                }
+                break;
+        }
+    }
+
+    @Override
+    public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+        Log.e("UploadVideoActivity", "onFailure", e);
+        switch (accessId) {
+            case 12:
+                UploadVideoActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        statusText.setText("连接失败!");
+                    }
+                });
+
+                break;
+            case 22:
+                UploadVideoActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        statusText.setText("视频地址发布失败!");
+                    }
+                });
+                break;
+        }
+
+    }
+
     public class CameraSizeComparator implements Comparator<Camera.Size> {
         //按升序排列
         public int compare(Camera.Size lhs, Camera.Size rhs) {
@@ -542,9 +565,9 @@ public class UploadVideoActivity extends BaseActivity implements SurfaceHolder.C
 
         //  YUV数据旋转
         if (curCameraId==0) {
-            data = YuvProcess.rotate90YUV240SP(data, width, height);
+            data = YuvProcess.rotate90YUV420ToI420(data, width, height);
         }else{
-            data = YuvProcess.rotate270YUV240SP(data, width, height);
+            data = YuvProcess.rotate270YUV420ToI420(data, width, height);
         }
 //            //  横屏裁剪
 //            int cutVideoWidth = height;

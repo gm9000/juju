@@ -1,9 +1,7 @@
 package com.juju.app.fragment;
 
-import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Rect;
-import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
@@ -17,7 +15,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -35,12 +32,10 @@ import com.juju.app.adapters.PartyListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.User;
-import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.http.GetPartysRes;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
-import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
@@ -117,10 +112,10 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
                     case 0:
                         break;
                     case 1:
-                        selector.where("attendFlag","=",1);
+                        selector.where("attend_flag","=",1);
                         break;
                     case 2:
-                        selector.where("followFlag","=",1);
+                        selector.where("follow_flag","=",1);
                         break;
                 }
                 totalSize = selector.count();
@@ -284,12 +279,12 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
                 //  处理渲染用户参加的所有聚会
                 if (checkedId == attendBtn.getId()) {
                     filterType = 1;
-                    selector.where("attendFlag", "=", 1);
+                    selector.where("attend_flag", "=", 1);
                 }
                 //  处理渲染用户关注的所有聚会
                 if (checkedId == followBtn.getId()) {
                     filterType = 2;
-                    selector.where("followFlag","=",1);
+                    selector.where("follow_flag","=",1);
                 }
                 totalSize = selector.count();
                 selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);
@@ -436,10 +431,10 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
                 case 0:
                     break;
                 case 1:
-                    selector.where("attendFlag", "=", 1);
+                    selector.where("attend_flag", "=", 1);
                     break;
                 case 2:
-                    selector.where("followFlag","=",1);
+                    selector.where("follow_flag","=",1);
                     break;
             }
 

@@ -16,6 +16,7 @@ import com.juju.app.fragment.party.LocationFragment;
 import com.juju.app.fragment.party.PictureFragment;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
@@ -29,7 +30,7 @@ import org.xutils.x;
 
 
 @ContentView(R.layout.activity_party)
-public class PartyActivity extends AppCompatActivity implements View.OnClickListener {
+public class PartyActivity extends BaseActivity implements View.OnClickListener {
 
     @ViewInject(R.id.img_right)
     private ImageView img_right;
@@ -61,7 +62,6 @@ public class PartyActivity extends AppCompatActivity implements View.OnClickList
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        x.view().inject(this);
         initParam();
         initTabView();
         initPopWindow();

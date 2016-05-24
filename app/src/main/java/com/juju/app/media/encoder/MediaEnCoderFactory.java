@@ -25,16 +25,6 @@ public class MediaEnCoderFactory {
             sSuggestedMode = MODE_MEDIARECORDER_API;
             Log.i(TAG,"Phone does not support the MediaCodec API");
         }
-        if(sSuggestedMode == MODE_MEDIACODEC_API){
-
-//            MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", 320,240);
-//            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
-//            mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, 320 * 240 * 5);
-//            mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, 25);
-//            mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
-////            MediaCodecList.find
-//            MediaCodecInfo.CodecCapabilities
-        }
     }
 
     public static MediaEncoder generateMediaEncoder(int width, int height, int framerate, ArrayBlockingQueue<byte[]> inputQueue, ArrayBlockingQueue<Object[]> outputQueue, int queueSize){

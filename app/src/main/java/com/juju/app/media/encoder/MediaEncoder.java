@@ -1,6 +1,5 @@
 package com.juju.app.media.encoder;
 
-import android.app.Activity;
 import android.content.Context;
 import android.hardware.Camera;
 import android.view.SurfaceHolder;
@@ -50,10 +49,10 @@ public abstract class MediaEncoder {
             nv12[i] = nv21[i];
         }
         for (j = 0; j < framesize / 2; j += 2) {
-            nv12[framesize + j - 1] = nv21[j + framesize];
+            nv12[framesize + j ] = nv21[j + framesize + 1];
         }
         for (j = 0; j < framesize / 2; j += 2) {
-            nv12[framesize + j] = nv21[j + framesize - 1];
+            nv12[framesize + j +1] = nv21[j + framesize];
         }
     }
 
@@ -76,5 +75,4 @@ public abstract class MediaEncoder {
     public int getHeight() {
         return m_height;
     }
-
 }

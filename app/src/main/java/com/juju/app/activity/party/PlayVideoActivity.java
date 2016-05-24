@@ -6,6 +6,7 @@ import android.support.v4.widget.SlidingPaneLayout;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 import android.widget.VideoView;
 
 import com.juju.app.R;
+import com.juju.app.annotation.SystemColor;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.CustomDialog;
@@ -30,6 +32,7 @@ import org.xutils.view.annotation.ViewInject;
 import java.lang.reflect.Field;
 
 @ContentView(R.layout.activity_play_video)
+@SystemColor(isApply=false)
 public class PlayVideoActivity extends BaseActivity implements View.OnClickListener {
 
     @ViewInject(R.id.video_play_win)
@@ -69,6 +72,7 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,WindowManager.LayoutParams.FLAG_FULLSCREEN);
         initParam();
         initView();
         initListener();

@@ -10,8 +10,10 @@ import android.os.AsyncTask;
 import android.os.Binder;
 import android.os.Environment;
 import android.os.IBinder;
+import android.os.Looper;
 import android.view.SurfaceHolder;
 
+import com.juju.app.golobal.Constants;
 import com.juju.app.media.consumer.HttpMediaConsumer;
 import com.juju.app.media.consumer.MediaConsumer;
 import com.juju.app.media.consumer.OutputStreamMediaConsumer;
@@ -42,7 +44,7 @@ public class MediaProcessService extends Service {
     private ArrayBlockingQueue<Object[]> H264Queue = new ArrayBlockingQueue<Object[]>(queueSize);
     private int width = 720;
     private int height = 1280;
-    int framerate = 25;
+    int framerate = Constants.FRAME_RATE;
 
     private ArrayBlockingQueue<Object[]> AACQueue = new ArrayBlockingQueue<Object[]>(audioQueueSize);
     //    final int kSampleRates[] = { 8000, 11025, 22050, 44100, 48000 };
@@ -182,6 +184,7 @@ public class MediaProcessService extends Service {
         mediaConsumer.setFrameRate(framerate);
 
 
+        Looper.prepare();
         new AsyncTask<String, Void, Object>() {
 
             //在doInBackground 执行完成后，onPostExecute 方法将被UI 线程调用，
@@ -200,9 +203,11 @@ public class MediaProcessService extends Service {
                     mediaEncoder.startStreamEncode();
                     //  启动音频编码
                     AACQueue.clear();
-                    audioEncoder = MediaEnCoderFactory.generateAudioEncoder(sampleRate, bitRate, channelCount, AACQueue, audioQueueSize, maxAudioFrameSize);
-                    audioEncoder.setAudioRecord(mAudioRecord);
-                    audioEncoder.StartEncoderThread();
+                    if(MediaEnCoderFactory.sSuggestedMode == MediaEnCoderFactory.MODE_MEDIACODEC_API) {
+                        audioEncoder = MediaEnCoderFactory.generateAudioEncoder(sampleRate, bitRate, channelCount, AACQueue, audioQueueSize, maxAudioFrameSize);
+                        audioEncoder.setAudioRecord(mAudioRecord);
+                        audioEncoder.StartEncoderThread();
+                    }
                     EventBus.getDefault().post(new ConnectStatus(0));
                 }else{
                     EventBus.getDefault().post(new ConnectStatus(1));

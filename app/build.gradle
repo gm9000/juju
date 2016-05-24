@@ -11,7 +11,7 @@ android {
 
     defaultConfig {
         applicationId "com.juju.app"
-        minSdkVersion 14
+        minSdkVersion 15
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
@@ -75,6 +75,7 @@ dependencies {
     compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
     compile 'org.xutils:xutils:3.3.34'
     compile files('libs/locSDK_6.13.jar')
+    compile 'com.skyfishjy.ripplebackground:library:1.0.1'
 //    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
 //    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
 }
