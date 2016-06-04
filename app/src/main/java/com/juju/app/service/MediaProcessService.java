@@ -142,13 +142,6 @@ public class MediaProcessService extends Service {
 
     public void startEncoding(){
         isProcess = true;
-        YUVQueue.clear();
-        H264Queue.clear();
-//        int cutVideoWidth = height;
-//        int cutVideoHeight = cutVideoWidth * height/width;
-//        while(cutVideoHeight%16 != 0){
-//            cutVideoHeight++;
-//        }
 
 //        mediaEncoder = new MediaRecorderEncoder(width, height, framerate, biterate, YUVQueue, H264Queue, queueSize);
         mediaEncoder = MediaEnCoderFactory.generateMediaEncoder(width, height,framerate, YUVQueue, H264Queue, queueSize);
@@ -184,7 +177,6 @@ public class MediaProcessService extends Service {
         mediaConsumer.setFrameRate(framerate);
 
 
-        Looper.prepare();
         new AsyncTask<String, Void, Object>() {
 
             //在doInBackground 执行完成后，onPostExecute 方法将被UI 线程调用，
@@ -198,9 +190,13 @@ public class MediaProcessService extends Service {
                 if(mediaConsumer.init()==0){
                     //  启动音视频网络传输
                     mediaConsumer.StartMediaConsumeThread();
+
                     //  启动视频编码
+                    YUVQueue.clear();
+                    H264Queue.clear();
                     mediaEncoder.prepare();
                     mediaEncoder.startStreamEncode();
+                    
                     //  启动音频编码
                     AACQueue.clear();
                     if(MediaEnCoderFactory.sSuggestedMode == MediaEnCoderFactory.MODE_MEDIACODEC_API) {

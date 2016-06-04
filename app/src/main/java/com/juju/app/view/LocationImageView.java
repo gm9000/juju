@@ -1,5 +1,6 @@
 package com.juju.app.view;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
@@ -13,6 +14,7 @@ import android.graphics.Rect;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.NinePatchDrawable;
+import android.test.suitebuilder.annotation.Suppress;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
@@ -49,13 +51,14 @@ public class LocationImageView extends ImageView {
         }
     }
 
+    @SuppressLint("NewApi")
     private void init(Context context){
         defaultWidth = ScreenUtil.dip2px(context,defaultWidth);
         defaultHeight = ScreenUtil.dip2px(context,defaultHeight);
         defaultWidth = defaultWidth>120?120:defaultWidth;
         defaultHeight = defaultHeight>120?120:defaultHeight;
         setLayoutParams(new ViewGroup.LayoutParams(defaultWidth, defaultHeight));
-        setImageAlpha(0);
+        setAlpha(0);
     }
 
     @Override

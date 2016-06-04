@@ -47,8 +47,7 @@
             android:paddingBottom="1dp"
             android:layout_marginTop="1dp"
             android:layout_width="match_parent"
-            android:layout_height="80dp"
-            android:background="@drawable/setting_item_selector">
+            android:layout_height="80dp">
             <RelativeLayout
                 android:id="@+id/right_layout"
                 android:layout_alignParentRight="true"

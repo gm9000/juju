@@ -12,8 +12,8 @@ public final class GlobalVariable {
     public static int cycle;
     public static final String serverIp = "219.143.237.229";
     public static final int serverPort = 8080;
-    public static final String liveServerIp = "219.143.237.229";
-    public static final int liveServerPort = 8888 ;
+    public static final String liveServerIp = "219.143.237.232";
+    public static final int liveServerPort = 1935 ;
     public static String videoUrl = "http://devimages.apple.com/iphone/samples/bipbop/gear1/prog_index.m3u8";
 
     private static HashMap dataMap = new HashMap<String,Object>();

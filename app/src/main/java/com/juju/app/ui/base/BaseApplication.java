@@ -2,7 +2,9 @@ package com.juju.app.ui.base;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
+import android.support.multidex.MultiDex;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.facebook.stetho.InspectorModulesProvider;
@@ -16,7 +18,6 @@ import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.rey.material.app.ThemeManager;
-
 
 import org.xutils.DbManager;
 import org.xutils.db.table.TableEntity;
@@ -200,6 +201,12 @@ public class BaseApplication extends Application {
         Intent intent = new Intent();
         intent.setClass(this, IMService.class);
         stopService(intent);
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this) ;
     }
 
 }

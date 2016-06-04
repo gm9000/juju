@@ -471,6 +471,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper, 
                 return;
             }
             SpfUtil.put(getContext().getApplicationContext(), Constants.LOCATION, location.getLatitude()+","+location.getLongitude());
+            mLocClient.unRegisterLocationListener(myListener);
             mLocClient.stop();
             mLocClient = null;
         }

@@ -4,18 +4,43 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/black"
     android:fitsSystemWindows="true">
 
-    <VideoView
-        android:id="@+id/video_play_win"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true" />
     <SurfaceView
-        android:id="@+id/video_play_view"
+        android:id="@+id/videoSurfaceView"
+        android:layout_centerInParent="true"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+    </SurfaceView>
+
+    <!--<tv.danmaku.ijk.media.example.widget.media.IjkVideoView-->
+        <!--android:id="@+id/video_view"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:layout_gravity="center">-->
+    <!--</tv.danmaku.ijk.media.example.widget.media.IjkVideoView>-->
+
+    <LinearLayout
+        android:id="@+id/LoadingView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        />
+        android:layout_centerInParent="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="5dp"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="5dp"
+            android:text="@string/loading"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"/>
+    </LinearLayout>
+
     <android.support.v4.widget.SlidingPaneLayout
         android:id="@+id/layout_sliding"
         android:layout_width="match_parent"
@@ -75,27 +100,6 @@
     </android.support.v4.widget.SlidingPaneLayout>
 
     <ImageView
-        android:id="@+id/img_change"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:src="@mipmap/camera_change"/>
-    <TextView
-        android:id="@+id/statusText"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:layout_alignParentTop="true"
-        android:layout_marginRight="40dp"
-        android:layout_alignParentRight="true"
-        android:textColor="@color/white"
-        android:padding="5dp"
-        />
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-    <ImageView
         android:id="@+id/img_close"
         android:layout_alignParentTop="true"
         android:layout_marginTop="10dp"
@@ -104,10 +108,4 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:src="@mipmap/power"/>
-    <ImageView
-        android:id="@+id/img_upload"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:src="@mipmap/upload"/>
 </RelativeLayout>

@@ -1,12 +1,9 @@
 package com.juju.app.ui.base;
 
 import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -20,11 +17,9 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.baidu.mapapi.SDKInitializer;
 import com.juju.app.R;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.annotation.SystemColor;
-import com.juju.app.golobal.Constants;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.TipsToastUtil;
 import com.juju.app.view.CustomDialog;
@@ -620,6 +615,5 @@ public abstract class BaseActivity extends AppCompatActivity {
         topTitleTxt.setVisibility(View.GONE);
         topSearchEdt.setVisibility(View.GONE);
     }
-
 
 }

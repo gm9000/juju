@@ -1,7 +1,9 @@
 package com.juju.app.ui.base;
 
 import android.app.Activity;
+import android.content.Context;
 import android.os.Bundle;
+import android.support.multidex.MultiDex;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.ViewUtils;
 import android.view.LayoutInflater;
@@ -102,4 +104,5 @@ public abstract class BaseFragment extends Fragment {
             return null;
         return rootView.findViewById(viewId);
     }
+
 }

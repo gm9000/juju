@@ -82,8 +82,6 @@ public class MediaCodecEncoder extends MediaEncoder {
 //                        byte[] yuv420sp = new byte[m_width * m_height * 3 / 2];
 //                        NV21ToNV12(input, yuv420sp, m_width, m_height);
 //                        input = yuv420sp;
-                    }
-                    if (input != null) {
                         try {
                             ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
                             int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
@@ -131,12 +129,6 @@ public class MediaCodecEncoder extends MediaEncoder {
 
                         } catch (Throwable t) {
                             t.printStackTrace();
-                        }
-                    } else {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
                         }
                     }
                 }

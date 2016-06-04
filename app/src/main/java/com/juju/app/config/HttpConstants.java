@@ -32,7 +32,7 @@ public class HttpConstants {
     public static void initURL() {
         USER_URL = "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort
                 + "/juju/bServer/user";
-        LIVE_SERVER_URL = "http://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/stream";
+        LIVE_SERVER_URL = "rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/";
 
         initURL_A();
         initPortraitURL();

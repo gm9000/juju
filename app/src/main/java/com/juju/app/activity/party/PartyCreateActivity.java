@@ -109,8 +109,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
     @ViewInject(R.id.layout_plan_list)
     private LinearLayout layout_planList;
-    @ViewInject(R.id.txt_no_plan)
-    private TextView txt_noPlan;
+//    @ViewInject(R.id.txt_no_plan)
+//    private TextView txt_noPlan;
 
     @ViewInject(R.id.img_add_plan)
     private ImageView img_addPlan;
@@ -188,9 +188,9 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         listview_plan.setAdapter(planListAdapter);
         listview_plan.setCacheColorHint(0);
 
-        if(planList.size()>0) {
-            txt_noPlan.setVisibility(View.GONE);
-        }
+//        if(planList.size()>0) {
+//            txt_noPlan.setVisibility(View.GONE);
+//        }
         if(planListAdapter.getCount()>=3){
             layout_plan.setVisibility(View.GONE);
         }
@@ -392,7 +392,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
         planListAdapter.notifyDataSetChanged();
 
-        txt_noPlan.setVisibility(View.GONE);
+//        txt_noPlan.setVisibility(View.GONE);
         if(planListAdapter.getCount()>=3){
             layout_plan.setVisibility(View.GONE);
         }
@@ -535,9 +535,9 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         }
         planList.remove(deleteIndex);
         planListAdapter.notifyDataSetChanged();
-        if(planListAdapter.getCount()==0) {
-            txt_noPlan.setVisibility(View.VISIBLE);
-        }
+//        if(planListAdapter.getCount()==0) {
+//            txt_noPlan.setVisibility(View.VISIBLE);
+//        }
         layout_plan.setVisibility(View.VISIBLE);
     }
 
