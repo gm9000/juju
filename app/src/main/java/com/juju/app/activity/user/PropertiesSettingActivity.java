@@ -136,6 +136,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
         switch(propertyType){
             case R.id.txt_nick_name:
                 txt_title.setText(R.string.nickName);
+                txt_right.setVisibility(View.VISIBLE);
                 txt_property.setText(propertyValue);
                 txt_property.setDrawableRightListener(this);
                 break;

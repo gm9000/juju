@@ -15,12 +15,41 @@
         android:id="@+id/btn_update_location"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="5dp"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="5dp"
         android:layout_centerHorizontal="true"
         android:padding="10dp"
         android:background="@color/blue"
         android:textColor="@color/white"
         android:textSize="18sp"
         android:text="位置更新"/>
+    <com.skyfishjy.library.RippleBackground
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="160dp"
+        android:layout_height="160dp"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentBottom="true"
+        android:id="@+id/mic_ripple"
+        app:rb_color="@color/blue"
+        app:rb_radius="40dp"
+        app:rb_rippleAmount="3"
+        app:rb_duration="1000"
+        app:rb_scale="2">
+    <ImageView
+        android:id="@+id/img_mic"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_centerInParent="true"
+        android:src="@mipmap/mic"/>
+    </com.skyfishjy.library.RippleBackground>
+    <ImageView
+        android:id="@+id/img_locate"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="10dp"
+        android:layout_marginBottom="5dp"
+        android:src="@mipmap/locate"
+        android:background="@color/transparent2"/>
 </RelativeLayout>

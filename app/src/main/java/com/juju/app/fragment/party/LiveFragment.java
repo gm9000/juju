@@ -1,6 +1,5 @@
 package com.juju.app.fragment.party;
 
-import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -12,17 +11,13 @@ import com.juju.app.activity.party.PlayVideoActivity;
 import com.juju.app.adapters.VideoProgramListAdpter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.json.GetVideoUrlsResBean;
-import com.juju.app.bean.json.LoginResBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.VideoProgram;
-import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.https.HttpCallBack;
-import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.NetWorkUtil;
 import com.juju.app.utils.ToastUtil;
 
 
@@ -68,7 +63,7 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
             VideoProgram videoProgram = videoProgramList.get(position);
-            ToastUtil.showShortToast(getActivity(), videoProgram.getCreatorName() + "的直播节目", 1);
+//            ToastUtil.showShortToast(getActivity(), videoProgram.getCreatorName() + "的直播节目", 1);
 
         //  TODO 获取视频请求的URL参数，传入播放界面
         BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
@@ -145,7 +140,7 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
                     v1.setStatus(0);
                     v1.setStartTime("2015-12-12 09:00:00");
                     v1.setEndTime("2015-12-12 12:00:00");
-                    v1.setVideoUrl(videoUrlsResBeann.getVideoUrl1());
+                    v1.setVideoUrl("rtmp://219.143.237.232:1935/juju/12345");
 
                     VideoProgram v2 = new VideoProgram();
                     v2.setCreatorName("金牛之女");
@@ -153,7 +148,7 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
                     v2.setStartTime("2015-12-12 09:20:00");
                     v2.setEndTime("2015-12-12 10:00:00");
                     if(videoUrlsResBeann.getVideoUrl2()!=null && !videoUrlsResBeann.getVideoUrl2().equals("null")){
-                        v2.setVideoUrl(videoUrlsResBeann.getVideoUrl2());
+                        v2.setVideoUrl("http://219.143.237.232:8080/hls/12345.m3u8");
                     }else{
                         v2.setVideoUrl("http://devimages.apple.com/iphone/samples/bipbop/gear1/prog_index.m3u8");
                     }
@@ -164,11 +159,7 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
                     v3.setStatus(1);
                     v3.setStartTime("2015-12-12 15:00:00");
                     v3.setEndTime("2015-12-12 15:10:00");
-                    if(videoUrlsResBeann.getVideoUrl3()!=null && !videoUrlsResBeann.getVideoUrl3().equals("null")){
-                        v3.setVideoUrl(videoUrlsResBeann.getVideoUrl3());
-                    }else{
-                        v3.setVideoUrl("http://devimages.apple.com/iphone/samples/bipbop/gear1/prog_index.m3u8");
-                    }
+                    v3.setVideoUrl("rtmp://219.143.237.232:1935/juju/123456");
                     videoProgramList.add(v1);
                     videoProgramList.add(v2);
                     videoProgramList.add(v3);

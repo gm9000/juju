@@ -130,14 +130,6 @@ public class HttpMediaConsumer extends MediaConsumer {
                 try {
                     socketOutputStream = socket.getOutputStream();
 
-//                    File localFile = new File(localFileUrl);
-//                    if(localFile.exists()){
-//                        localFile.delete();
-//                    }
-//                    localFile.createNewFile();
-//                    fileOutputStream = new FileOutputStream(localFile);
-
-
                     byte[] videoHeaderData = null;
                     byte[] audioHeaderData = null;
                     //  构造并发送HTTP头
@@ -156,8 +148,6 @@ public class HttpMediaConsumer extends MediaConsumer {
                     Object[] mediaDataArray = null;
                     int sendSize = 0;
                     int sendFrameNum = 0;
-                    videoQueue.clear();
-                    audioQueue.clear();
                     while (isConsuming) {
                         if (videoQueue.size() > 0) {
                             mediaDataArray = videoQueue.poll();
@@ -169,8 +159,8 @@ public class HttpMediaConsumer extends MediaConsumer {
                             // 构造视频元数据
                             videoHeaderData = generateVideoHeader(pts);
                             sendSize += videoHeaderData.length + mediaData.length + 6;
-                            if(++sendFrameNum == getFrameRate()*2){
-                                EventBus.getDefault().post(new BitRateInfo(sendSize/2048));
+                            if(++sendFrameNum == getFrameRate()*3){
+                                EventBus.getDefault().post(new BitRateInfo(sendSize/3072));
                                 sendFrameNum = 0;
                                 sendSize = 0;
                                 retryNum = 0;
@@ -182,8 +172,6 @@ public class HttpMediaConsumer extends MediaConsumer {
                             socketOutputStream.write(mediaData);
                             socketOutputStream.flush();
 
-//                            fileOutputStream.write(mediaData);
-//                            fileOutputStream.flush();
                         }
                         if (audioQueue.size() > 0) {
                             mediaDataArray = audioQueue.poll();
@@ -191,7 +179,7 @@ public class HttpMediaConsumer extends MediaConsumer {
                             mediaData = (byte[])mediaDataArray[1];
                             //TODO 增加发送HTTP头域信息及元数据信息
 
-                            // 构造视频元数据
+                            // 构造音频元数据
                             audioHeaderData = generateAudioHeader(pts);
                             sendSize += audioHeaderData.length + mediaData.length;
                             socketOutputStream.write(Integer.toHexString(audioHeaderData.length + mediaData.length).getBytes());

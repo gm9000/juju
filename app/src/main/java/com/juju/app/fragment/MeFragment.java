@@ -30,7 +30,9 @@ import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.ImageUtils;
 import com.juju.app.utils.JacksonUtil;
+import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
@@ -143,7 +145,8 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     public void initView() {
         Drawable rightDrawable = getResources().getDrawable(R.mipmap.right);
         Drawable settingDrawable = getResources().getDrawable(R.mipmap.setting);
-        settingDrawable.setBounds(0, 0, 35, 35);
+        int drawableEdge = ScreenUtil.dip2px(getContext(),20);
+        settingDrawable.setBounds(0, 0, drawableEdge, drawableEdge);
         txt_setting.setCompoundDrawables(settingDrawable, null, rightDrawable, null);
 
         Drawable partyDrawable = null;
@@ -164,10 +167,10 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
             e.printStackTrace();
         }
 
-        partyDrawable.setBounds(0, 0, 35, 35);
+        partyDrawable.setBounds(0, 0, drawableEdge, drawableEdge);
         txt_party.setCompoundDrawables(partyDrawable, null, rightDrawable, null);
 
-        inviteDrawable.setBounds(0, 0, 35, 35);
+        inviteDrawable.setBounds(0, 0, drawableEdge, drawableEdge);
         txt_invite.setCompoundDrawables(inviteDrawable, null, rightDrawable, null);
 
     }

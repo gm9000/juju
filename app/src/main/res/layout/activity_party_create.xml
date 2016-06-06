@@ -33,8 +33,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="30dp"
-                    android:layout_marginRight="30dp"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="20dp"
                     android:layout_marginTop="10dp"
                     android:background="@drawable/text_input_border"
                     android:orientation="horizontal">
@@ -43,7 +43,7 @@
                         android:layout_width="20dp"
                         android:layout_height="wrap_content"
                         android:layout_gravity="center"
-                        android:layout_marginLeft="15dp"
+                        android:layout_marginLeft="5dp"
                         android:src="@mipmap/star" />
 
                     <EditText
@@ -63,8 +63,8 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="30dp"
-                    android:layout_marginRight="30dp"
+                    android:layout_marginLeft="15dp"
+                    android:layout_marginRight="20dp"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="10dp"
                     android:background="@drawable/text_input_border"
@@ -75,7 +75,7 @@
                         android:layout_height="20dp"
                         android:layout_gravity="top"
                         android:layout_marginTop="2dp"
-                        android:layout_marginLeft="15dp"
+                        android:layout_marginLeft="5dp"
                         android:src="@mipmap/description" />
 
                     <EditText
@@ -108,23 +108,9 @@
                 <com.juju.app.view.scroll.NoScrollListView
                     android:id="@+id/listview_plan"
                     android:scrollbars="none"
-                    android:layout_marginTop="6dp"
-                    android:layout_marginBottom="6dp"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
                 </com.juju.app.view.scroll.NoScrollListView>
-                <TextView
-                    android:id="@+id/txt_no_plan"
-                    android:layout_marginTop="10dp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:gravity="center"
-                    android:layout_marginBottom="5dp"
-                    android:drawableStart="@mipmap/causion"
-                    android:textColor="@color/gray"
-                    android:textStyle="italic"
-                    android:text="最多可添加三个聚会方案"/>
             </LinearLayout>
             <RelativeLayout
                 android:id="@+id/layout_plan"
@@ -145,8 +131,8 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="30dp"
-                        android:layout_marginRight="50dp"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginRight="60dp"
                         android:layout_marginTop="10dp"
                         android:background="@drawable/text_input_border"
                         android:orientation="horizontal">
@@ -155,7 +141,7 @@
                             android:layout_width="20dp"
                             android:layout_height="wrap_content"
                             android:layout_gravity="top"
-                            android:layout_marginLeft="15dp"
+                            android:layout_marginLeft="5dp"
                             android:src="@mipmap/clock" />
 
                         <TextView
@@ -174,8 +160,8 @@
                     <RelativeLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="30dp"
-                        android:layout_marginRight="30dp"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginRight="60dp"
                         android:layout_marginTop="5dp"
                         android:layout_marginBottom="10dp"
                         android:background="@drawable/text_input_border">
@@ -185,7 +171,7 @@
                             android:layout_width="20dp"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="6dp"
-                            android:layout_marginLeft="15dp"
+                            android:layout_marginLeft="5dp"
                             android:layout_alignParentLeft="true"
                             android:src="@mipmap/location" />
 
@@ -206,16 +192,17 @@
                         <ImageView
                             android:id="@+id/img_select_location"
                             android:layout_alignParentRight="true"
-                            android:layout_marginRight="5dp"
-                            android:layout_width="30dp"
-                            android:layout_height="wrap_content"
-                            android:src="@mipmap/group_party" />
+                            android:layout_marginRight="3dp"
+                            android:layout_width="35dp"
+                            android:layout_height="35dp"
+                            android:layout_marginTop="1dp"
+                            android:src="@mipmap/location_picker" />
                     </RelativeLayout>
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginLeft="30dp"
-                        android:layout_marginRight="30dp"
+                        android:layout_marginLeft="15dp"
+                        android:layout_marginRight="20dp"
                         android:layout_marginTop="5dp"
                         android:layout_marginBottom="10dp"
                         android:background="@drawable/text_input_border"
@@ -226,7 +213,7 @@
                             android:layout_height="20dp"
                             android:layout_gravity="top"
                             android:layout_marginTop="2dp"
-                            android:layout_marginLeft="15dp"
+                            android:layout_marginLeft="5dp"
                             android:src="@mipmap/description" />
 
                         <EditText
@@ -248,14 +235,12 @@
                 </LinearLayout>
                 <ImageView
                     android:id="@+id/img_add_plan"
-                    android:background="@color/lightGray"
                     android:layout_alignParentRight="true"
                     android:layout_marginRight="10dp"
-                    android:layout_width="35dp"
-                    android:layout_height="35dp"
-                    android:layout_weight="1"
-                    android:layout_marginTop="10dp"
-                    android:src="@mipmap/icon_add"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="30dp"
+                    android:src="@mipmap/add"
                     android:layout_gravity="top"/>
             </RelativeLayout>
         </LinearLayout>

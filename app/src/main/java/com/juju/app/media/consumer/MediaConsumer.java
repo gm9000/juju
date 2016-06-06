@@ -1,13 +1,14 @@
 package com.juju.app.media.consumer;
 
 
+import com.juju.app.golobal.Constants;
 import com.juju.app.service.MediaProcessCallback;
 
 public abstract class MediaConsumer {
 
     protected int width = 1280;
     protected int height = 720;
-    private int frameRate = 25;
+    private int frameRate = Constants.FRAME_RATE;
     private int videBitRate = 8500 * 1000;
 
     private int sampleRate;

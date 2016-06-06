@@ -19,7 +19,6 @@ import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.rey.material.app.ThemeManager;
 
-
 import org.xutils.DbManager;
 import org.xutils.db.table.TableEntity;
 import org.xutils.ex.DbException;
@@ -204,6 +203,12 @@ public class BaseApplication extends Application {
         Intent intent = new Intent();
         intent.setClass(this, IMService.class);
         stopService(intent);
+    }
+
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this) ;
     }
 
 }

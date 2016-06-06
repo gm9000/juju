@@ -4,12 +4,11 @@ import android.annotation.SuppressLint;
 import android.media.MediaCodec;
 import android.media.MediaCodecInfo;
 import android.media.MediaFormat;
-import android.os.Environment;
 
-import java.io.File;
+import com.juju.app.golobal.Constants;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 
@@ -30,19 +29,27 @@ public class MediaCodecEncoder extends MediaEncoder {
     @SuppressLint("NewApi")
     public void prepare() {
         MediaFormat mediaFormat = MediaFormat.createVideoFormat("video/avc", m_width,m_height);
-        mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
         mediaFormat.setInteger(MediaFormat.KEY_BIT_RATE, m_width * m_height * 10);
         mediaFormat.setInteger(MediaFormat.KEY_PROFILE, MediaCodecInfo.CodecProfileLevel.AVCProfileHigh);
         mediaFormat.setInteger(MediaFormat.KEY_LEVEL, MediaCodecInfo.CodecProfileLevel.AVCLevel2);
         mediaFormat.setInteger(MediaFormat.KEY_FRAME_RATE, m_framerate);
-        mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1);
+        mediaFormat.setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, Constants.KEY_FRAME_INTERVAL);
+
 
         try {
             mediaCodec = MediaCodec.createEncoderByType("video/avc");
         } catch (IOException e) {
             e.printStackTrace();
         }
-        mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+
+        try {
+            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420SemiPlanar);
+            mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        }catch(Exception e){
+            e.printStackTrace();
+            mediaFormat.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatYUV420Flexible);
+            mediaCodec.configure(mediaFormat, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
+        }
         mediaCodec.start();
 //        File h264File = new File(Environment.getExternalStorageDirectory()+"/juju_h264.h264");
 //        if(h264File.exists()){
@@ -65,17 +72,16 @@ public class MediaCodecEncoder extends MediaEncoder {
             @Override
             public void run() {
                 isEncoding = true;
+                m_inputQueue.clear();
                 byte[] input = null;
                 long pts = 0;
                 long startNanoTime = System.nanoTime();
                 while (isEncoding) {
                     if (m_inputQueue.size() > 0) {
                         input = m_inputQueue.poll();
-                        byte[] yuv420sp = new byte[m_width * m_height * 3 / 2];
-                        NV21ToNV12(input, yuv420sp, m_width, m_height);
-                        input = yuv420sp;
-                    }
-                    if (input != null) {
+//                        byte[] yuv420sp = new byte[m_width * m_height * 3 / 2];
+//                        NV21ToNV12(input, yuv420sp, m_width, m_height);
+//                        input = yuv420sp;
                         try {
                             ByteBuffer[] inputBuffers = mediaCodec.getInputBuffers();
                             int inputBufferIndex = mediaCodec.dequeueInputBuffer(-1);
@@ -123,12 +129,6 @@ public class MediaCodecEncoder extends MediaEncoder {
 
                         } catch (Throwable t) {
                             t.printStackTrace();
-                        }
-                    } else {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
                         }
                     }
                 }

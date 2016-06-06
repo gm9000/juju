@@ -1,10 +1,17 @@
 package com.juju.app.fragment.party;
 
 import android.annotation.SuppressLint;
+import android.content.Intent;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.support.v7.graphics.drawable.DrawableUtils;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -34,8 +41,13 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.ImageUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.LocationImageView;
+import com.juju.app.view.RoundImageView;
+import com.juju.app.view.imagezoom.utils.BitmapUtils;
+import com.rey.material.app.BottomSheetDialog;
+import com.skyfishjy.library.RippleBackground;
 
 import org.xutils.common.Callback;
 import org.xutils.ex.DbException;
@@ -50,7 +62,7 @@ import java.util.Random;
 @SuppressLint("ValidFragment")
 @ContentView(R.layout.fragment_location)
 @CreateFragmentUI(viewId = R.layout.fragment_location)
-public class LocationFragment extends BaseFragment implements CreateUIHelper, BaiduMap.OnMarkerClickListener {
+public class LocationFragment extends BaseFragment implements CreateUIHelper, BaiduMap.OnMarkerClickListener, View.OnTouchListener, View.OnClickListener {
 
     private static final String TAG = "LocationFragment";
 
@@ -60,6 +72,9 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
 
     private MapView mapView;
     private Button btnUpdateLocation;
+    private RippleBackground micRipple;
+    private ImageView imgMic;
+    private ImageView imgLocate;
 
     private BaiduMap mBaiduMap;
 
@@ -75,6 +90,8 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
 
     private LatLngBounds.Builder boundsBuilder;
 
+    private  LatLng myLatLng;
+
 
     // 定位相关
     LocationClient mLocClient;
@@ -84,6 +101,13 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
     private MyLocationConfiguration.LocationMode mCurrentMode = MyLocationConfiguration.LocationMode.FOLLOWING;
     private static final int accuracyCircleFillColor = 0xAAFFFF88;
     private static final int accuracyCircleStrokeColor = 0xAA00FF00;
+
+
+    private BottomSheetDialog msgDialog;
+    private TextView txtCall;
+    private TextView txtSms;
+    private TextView txtCancel;
+    private String targetPhone;
 
     public LocationFragment(Plan plan){
         super();
@@ -101,6 +125,11 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
 
         btnUpdateLocation = (Button)findViewById(R.id.btn_update_location);
+
+        micRipple = (RippleBackground)findViewById(R.id.mic_ripple);
+        imgMic = (ImageView)findViewById(R.id.img_mic);
+        imgLocate = (ImageView)findViewById(R.id.img_locate);
+
 
         parentActivity = (PartyActivity) getActivity();
 
@@ -183,6 +212,8 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         });
 
         mBaiduMap.setOnMarkerClickListener(this);
+        imgMic.setOnTouchListener(this);
+        imgLocate.setOnClickListener(this);
     }
 
     private void updateLocation() {
@@ -268,6 +299,9 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
                 break;
             }
         }
+        if(clickUserNo==null || clickUserNo.equals(userNo)){
+            return true;
+        }
         if(clickUserNo != null){
             User clickUser = null;
             try {
@@ -276,9 +310,75 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
             } catch (DbException e) {
                 e.printStackTrace();
             }
-            ToastUtil.showShortToast(getContext(),clickUser.getNickName(),1);
+
+
+            msgDialog = new BottomSheetDialog(getActivity());
+            msgDialog.contentView(R.layout.layout_friend_contact)
+                    .inDuration(300);
+            RoundImageView headImg = (RoundImageView)msgDialog.findViewById(R.id.img_head);
+            txtCall = (TextView)msgDialog.findViewById(R.id.txt_call);
+            txtSms = (TextView)msgDialog.findViewById(R.id.txt_sms);
+            txtCancel = (TextView)msgDialog.findViewById(R.id.txt_cancel);
+            BitmapUtilFactory.getInstance(getContext()).bind(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + clickUserNo);
+            txtCall.setOnClickListener(LocationFragment.this);
+            txtSms.setOnClickListener(LocationFragment.this);
+            txtCancel.setOnClickListener(LocationFragment.this);
+
+            targetPhone = clickUser.getUserPhone();
+            msgDialog.show();
         }
         return true;
+    }
+
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        //按下操作
+        if(event.getAction()==MotionEvent.ACTION_DOWN){
+            micRipple.startRippleAnimation();
+            return true;
+        }
+        //抬起操作
+        if(event.getAction()==MotionEvent.ACTION_UP){
+            micRipple.stopRippleAnimation();
+            return true;
+        }
+        //移动操作
+        if(event.getAction()==MotionEvent.ACTION_MOVE){
+
+        }
+        return true;
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()){
+            case R.id.txt_call:
+                Uri telUri = Uri.parse("tel:" + targetPhone);
+                Intent callIntent = new Intent(Intent. ACTION_DIAL , telUri);
+                startActivity(callIntent);
+                targetPhone = null;
+                msgDialog.dismiss();
+                break;
+            case R.id.txt_sms:
+                Uri uri = Uri.parse("smsto:" + targetPhone);
+                Intent smsIntent = new Intent(Intent.ACTION_SENDTO, uri);
+                startActivity(smsIntent);
+                targetPhone = null;
+                msgDialog.dismiss();
+                break;
+            case R.id.txt_cancel:
+                targetPhone = null;
+                msgDialog.dismiss();
+                break;
+            case R.id.img_locate:
+                LatLng toLatLng = myLatLng;
+                if(latitude!=0){
+                    toLatLng = new LatLng(latitude,longitude);
+                }
+                MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(toLatLng);
+                mBaiduMap.animateMapStatus(u);
+                break;
+        }
     }
 
     /**
@@ -293,16 +393,17 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
                 return;
             }
 
-            LatLng ll = new LatLng(location.getLatitude(), location.getLongitude());
+            myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+
             if (isFirstLoc) {
                 isFirstLoc = false;
-                UserLocationInfo myLocationInfo = new UserLocationInfo(userNo,location.getLatitude(),location.getLongitude());
+                UserLocationInfo myLocationInfo = new UserLocationInfo(userNo,location.getLatitude(),location.getLongitude(),true);
                 userLocationInfoList.add(myLocationInfo);
                 myLocationInfo.showMapIcon();
-                boundsBuilder.include(ll);
+                boundsBuilder.include(myLatLng);
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLngBounds(boundsBuilder.build()));
             }else{
-                userMarkerMap.get(userNo).setPosition(ll);
+                userMarkerMap.get(userNo).setPosition(myLatLng);
                 mBaiduMap.hideInfoWindow();
             }
         }
@@ -319,6 +420,12 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
             this.latitude = latitude;
             this.longitude = longitude;
             headImg = new LocationImageView(getContext());
+        }
+        public UserLocationInfo(String userNo,double latitude,double longitude,boolean self){
+            this.userNo = userNo;
+            this.latitude = latitude;
+            this.longitude = longitude;
+            headImg = new LocationImageView(getContext(),self);
         }
 
         public LatLng getLocation() {
@@ -356,6 +463,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
 
         }
     }
+
 
 
 }

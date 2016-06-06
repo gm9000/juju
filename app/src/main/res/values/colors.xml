@@ -97,6 +97,7 @@
     <color name="black2">#ffeeeeee</color>
     <color name="orange">#FF9500</color>
     <color name="green">#27AE60</color>
+    <color name="lightGreen">#CAECE0</color>
     <color name="gray">#8E8E93</color>
     <color name="lightGray">#D3D7CF</color>
     <color name="brown">#795548</color>

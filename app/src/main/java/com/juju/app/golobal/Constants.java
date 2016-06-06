@@ -59,6 +59,8 @@ public class Constants {
      *1. 配置的全局key
      * */
     public static final String SETTING_GLOBAL = "Global";
+    public static final int FRAME_RATE = 20;
+    public static final int KEY_FRAME_INTERVAL = 1;
 
 
     /**
