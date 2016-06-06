@@ -26,7 +26,7 @@ import org.xutils.view.annotation.ViewInject;
 
 @ContentView(R.layout.activity_welcome)
 @SystemColor(isApply = false)
-public class WelcomeActivity extends BaseActivity  {
+public class WelcomeActivity extends BaseActivity implements Runnable  {
 
     private final String tag = getClass().getName();
 
@@ -36,7 +36,6 @@ public class WelcomeActivity extends BaseActivity  {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 //        if(SpfUtil.get(getApplicationContext(), Constants.USER_INFO,null) == null){
 //            clearDatabase();
 //        }
@@ -47,15 +46,10 @@ public class WelcomeActivity extends BaseActivity  {
 //        } catch (InterruptedException e) {
 //            e.printStackTrace();
 //        }
-//        startAnimation();
-        //初始化配置URL
-        //透明状态栏
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-        //透明导航栏
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+        startAnimation();
         HttpConstants.initURL();
         startAnimation();
-//        new Thread(this).start();
+        new Thread(this).start();
     }
 
     private void clearDatabase() {
@@ -68,16 +62,16 @@ public class WelcomeActivity extends BaseActivity  {
         }
     }
 
-//    @Override
-//    public void run() {
-//
-////            Log.i(tag, "等待1秒切换到登陆界面。。。");
-////            Thread.sleep(1000);
-////            startActivity(new Intent(WelcomeActivity.this, LoginActivity.class));
-//
-//            startAnimation();
-//
-//    }
+    @Override
+    public void run() {
+
+//            Log.i(tag, "等待1秒切换到登陆界面。。。");
+//            Thread.sleep(1000);
+//            startActivity(new Intent(WelcomeActivity.this, LoginActivity.class));
+
+            startAnimation();
+
+    }
 
     /**
      * 渐变展示启动屏

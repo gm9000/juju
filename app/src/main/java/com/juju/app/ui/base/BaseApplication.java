@@ -2,7 +2,9 @@ package com.juju.app.ui.base;
 
 import android.app.Activity;
 import android.app.Application;
+import android.content.Context;
 import android.content.Intent;
+import android.support.multidex.MultiDex;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.facebook.stetho.InspectorModulesProvider;
@@ -50,9 +52,6 @@ public class BaseApplication extends Application {
         this.daoConfig = daoConfig;
     }
 
-    //    private String mAccount = "admin@219.143.237.230";
-//
-//    private String
 
     private List<Activity> mActivities = new ArrayList<>();
 
@@ -77,6 +76,11 @@ public class BaseApplication extends Application {
         initService();
     }
 
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this) ;
+    }
 
     //初始化系统框架
     private void initFramework() {

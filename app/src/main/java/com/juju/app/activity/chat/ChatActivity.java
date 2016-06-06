@@ -52,6 +52,7 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.MessageEvent;
@@ -79,6 +80,7 @@ import com.juju.app.view.groupchat.YayaEmoGridView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
+import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -86,6 +88,7 @@ import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -507,6 +510,17 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 //        txt_left.setVisibility(View.VISIBLE);
 
         showTopLeftAll(R.string.group_chat, 0);
+        topRightBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
+                BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
+                        currentSessionKey);
+                valuePairs.add(markerIdValue);
+                ActivityUtil.startActivity(ChatActivity.this, GroupManagerActivity.class,
+                        valuePairs.toArray(new BasicNameValuePair[]{}));
+            }
+        });
 
         String[] sessionKeyArr = currentSessionKey.split("_");
         if(sessionKeyArr.length > 1) {
@@ -1044,7 +1058,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         adapter.setImService(imService, loginUser);
         //清除未读消息
         imService.getUnReadMsgManager().readUnreadSession(currentSessionKey);
-//        imService.getNotificationManager().cancelSessionNotifications(currentSessionKey);
+        imService.getNotificationManager().cancelSessionNotifications(currentSessionKey);
     }
 
     /**

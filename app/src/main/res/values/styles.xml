@@ -327,5 +327,12 @@
         <item name="di_outAnimation">@anim/anim_scale_out</item>
     </style>
 
+    <style name="phoneNumDialog" parent="android:Theme.Dialog">
+        <item name="android:windowBackground">@android:color/white</item>
+        <item name="android:windowFrame">@null</item> <!-- 无边框 -->
+        <item name="android:windowNoTitle">true</item> <!-- 没有标题 -->
+        <item name="android:windowIsFloating">true</item> <!-- 是否浮在activity之上 -->
+    </style>
+
 
 </resources>

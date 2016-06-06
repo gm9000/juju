@@ -10,6 +10,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.golobal.Constants;
@@ -28,7 +29,7 @@ import java.util.List;
  * 日期：2016/2/21 17:09
  * 版本：V1.0.0
  */
-public class GroupChatListAdapter extends BaseAdapter {
+public class GroupChatListAdapter extends BaseSwipeAdapter {
 
     private Logger logger = Logger.getLogger(GroupChatListAdapter.class);
 
@@ -47,6 +48,32 @@ public class GroupChatListAdapter extends BaseAdapter {
 
 
     @Override
+    public int getSwipeLayoutResourceId(int position) {
+        return R.id.swipe;
+    }
+
+    @Override
+    public View generateView(int position, ViewGroup parent) {
+        View convertView = renderGroup(position, null, parent);
+        return convertView;
+    }
+
+
+
+    @Override
+    public void fillValues(int position, View convertView) {
+        renderGroup(position, convertView, null);
+    }
+
+
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+
+    @Override
     public int getCount() {
         return recentSessionList.size();
     }
@@ -58,17 +85,17 @@ public class GroupChatListAdapter extends BaseAdapter {
         }
         return recentSessionList.get(position);
     }
-
-    @Override
-    public long getItemId(int position) {
-        return 0;
-    }
-
-    @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
-        convertView = renderGroup(position, convertView, parent);
-        return convertView;
-    }
+//
+//    @Override
+//    public long getItemId(int position) {
+//        return 0;
+//    }
+//
+//    @Override
+//    public View getView(int position, View convertView, ViewGroup parent) {
+//        convertView = renderGroup(position, convertView, parent);
+//        return convertView;
+//    }
 
 
 //    private View createConvertView(int size, ViewGroup parent) {
@@ -108,7 +135,7 @@ public class GroupChatListAdapter extends BaseAdapter {
         RecentInfo recentInfo = recentSessionList.get(position);
         GroupViewHolder holder;
         if (null == convertView) {
-            convertView = mInflater.inflate(R.layout.adapter_item_chat_group, parent,false);
+            convertView = mInflater.inflate(R.layout.adapter_item_chat_group, parent, false);
             holder = new GroupViewHolder();
             holder.avatarLayout = (IMGroupAvatar) convertView.findViewById(R.id.contact_portrait);
             holder.uname = (TextView) convertView.findViewById(R.id.shop_name);
@@ -140,6 +167,8 @@ public class GroupChatListAdapter extends BaseAdapter {
         handleGroupContact(holder, recentInfo);
         return convertView;
     }
+
+
 
     public final class GroupChatViewHolder {
 //        public

@@ -17,10 +17,13 @@ import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.ConnectionState;
+import com.juju.app.event.LoginEvent;
 import com.juju.app.event.PriorityEvent;
+import com.juju.app.event.SmackSocketEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.callback.FixListenerQueue;
 import com.juju.app.service.im.callback.ListenerQueue;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
@@ -32,6 +35,7 @@ import com.juju.app.service.im.manager.IMUnreadMsgManager;
 import com.juju.app.service.im.provider.RedisPacketExtensionProvider;
 import com.juju.app.service.im.tls.TLSMode;
 import com.juju.app.ui.base.BaseApplication;
+import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
 
 import org.greenrobot.eventbus.EventBus;
@@ -39,6 +43,7 @@ import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
 import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.ReconnectionManager;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.StanzaListener;
@@ -49,6 +54,8 @@ import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Stanza;
+import org.jivesoftware.smack.packet.StreamError;
+import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smack.parsing.ExceptionLoggingCallback;
 import org.jivesoftware.smack.provider.ExtensionElementProvider;
 import org.jivesoftware.smack.provider.ProviderManager;
@@ -86,52 +93,52 @@ import java.util.concurrent.ConcurrentHashMap;
 public class XMPPServiceImpl implements
         SocketService, StanzaListener, ConnectionListener, PingFailedListener {
 
-    private final String TAG = getClass().getName();
-
-
 //    private XMPPServiceCallback mServiceCallBack;
+
+    private Logger logger = Logger.getLogger(XMPPServiceImpl.class);
+
 
     private MultiUserChat multiUserChat;
 
     static {
-        registerSmackProviders();
+//        registerSmackProviders();
     }
 
     //基础信息配置
-    static void registerSmackProviders() {
+//    static void registerSmackProviders() {
+//
+//    }
 
-    }
+//    static File capsCacheDir = null;
 
-    static File capsCacheDir = null; ///< this is used to cache if we already initialized EntityCapsCache
-
-    private ConnectionState mRequestedState = ConnectionState.OFFLINE;
-    private ConnectionState mState = ConnectionState.OFFLINE;
-    private String mLastError;
+//    private ConnectionState mRequestedState = ConnectionState.OFFLINE;
+//    private ConnectionState mState = ConnectionState.OFFLINE;
+//    private String mLastError;
 
 
-    private AlarmManager mAlarmManager;
-    private String mPingID;
-    private long mPingTimestamp;
+//    private AlarmManager mAlarmManager;
+//    private String mPingID;
+//    private long mPingTimestamp;
 
-    private static final String PING_ALARM = "com.juju.app.PING_ALARM";
-    private static final String PONG_TIMEOUT_ALARM = "com.juju.app.PONG_TIMEOUT_ALARM";
-    private Intent mPingAlarmIntent = new Intent(PING_ALARM);
-    private Intent mPongTimeoutAlarmIntent = new Intent(PONG_TIMEOUT_ALARM);
+//    private static final String PING_ALARM = "com.juju.app.PING_ALARM";
+//    private static final String PONG_TIMEOUT_ALARM = "com.juju.app.PONG_TIMEOUT_ALARM";
+//    private Intent mPingAlarmIntent = new Intent(PING_ALARM);
+//    private Intent mPongTimeoutAlarmIntent = new Intent(PONG_TIMEOUT_ALARM);
 
-    private PendingIntent mPingAlarmPendIntent;
-    private PendingIntent mPongTimeoutAlarmPendIntent;
+//    private PendingIntent mPingAlarmPendIntent;
+//    private PendingIntent mPongTimeoutAlarmPendIntent;
 
-    private final ContentResolver mContentResolver;
+//    private final ContentResolver mContentResolver;
     private Service mService;
 
 
 
     private final String serverName;
-    private final String token;
-    private final String resource;
-    private final boolean saslEnabled;
-    private final TLSMode tlsMode;
-    private boolean started;
+//    private final String token;
+//    private final String resource;
+//    private final boolean saslEnabled;
+//    private final TLSMode tlsMode;
+//    private boolean started;
     XMPPTCPConnectionConfiguration.Builder builder = XMPPTCPConnectionConfiguration.builder();
 
     private AbstractXMPPConnection xmppConnection;
@@ -151,17 +158,15 @@ public class XMPPServiceImpl implements
 
 
 
-    public XMPPServiceImpl(ContentResolver contentResolver, Service service, DaoSupport messageDao) {
-        this.mContentResolver = contentResolver;
+    public XMPPServiceImpl(ContentResolver contentResolver, Service service,DaoSupport messageDao) {
+//        this.mContentResolver = contentResolver;
         this.mService = service;
-
         //初始化配置信息
+        //        token = "";
+//        resource = "XMPP";
+//        saslEnabled = false;
+//        tlsMode = TLSMode.legacy;
         serverName = BaseApplication.getInstance().getUserInfoBean().getmServiceName();
-        token = "";
-        resource = "XMPP";
-        saslEnabled = false;
-        tlsMode = TLSMode.legacy;
-
         userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         this.messageDao = messageDao;
     }
@@ -190,6 +195,7 @@ public class XMPPServiceImpl implements
         }
         builder.setCompressionEnabled(false);
         builder.setSendPresence(true);
+
 //        builder.setUsernameAndPassword(userInfoBean.getmAccount(), userInfoBean.getmPassword());
         try {
             TLSUtils.acceptAllCertificates(builder);
@@ -198,12 +204,13 @@ public class XMPPServiceImpl implements
             e.printStackTrace();
         }
 
+
         xmppConnection = new XMPPTCPConnection(builder.build());
         xmppConnection.addAsyncStanzaListener(this, ACCEPT_ALL);
         xmppConnection.addConnectionListener(this);
-
         // by default Smack disconnects in case of parsing errors
         xmppConnection.setParsingExceptionCallback(new ExceptionLoggingCallback());
+
 
         final Roster roster = Roster.getInstanceFor(xmppConnection);
 //        roster.addRosterListener(rosterListener);
@@ -220,6 +227,8 @@ public class XMPPServiceImpl implements
         ProviderManager.addIQProvider(RedisPacketExtensionProvider.NAME,
                 RedisPacketExtensionProvider.NAMESPACE,
                 new RedisPacketExtensionProvider());
+
+        doReconnection();
     }
 
 
@@ -231,16 +240,18 @@ public class XMPPServiceImpl implements
      */
     @Override
     public boolean login() throws IOException, XMPPException, SmackException {
+        //TODO 与消息服务连接是否可以提到登陆之前 ？
         createConnection(false);
+        xmppConnection.connect();
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         String userName = userInfoBean.getmAccount();
         String password = userInfoBean.getmPassword();
         String serviceName = userInfoBean.getmServiceName();
-        xmppConnection.connect();
+
         xmppConnection.login(userName, password, serviceName);
         boolean isOk = xmppConnection.isAuthenticated();
-        Log.d(TAG, "login#isOk============:"+isOk);
-        Log.d(TAG, "login#this============="+this.toString());
+        logger.d("login -> isOk:%b", isOk);
+        logger.d("login -> XMPPServiceImpl:%s", this.toString());
         return isOk;
     }
 
@@ -269,6 +280,7 @@ public class XMPPServiceImpl implements
             return (xmppConnection.isConnected() && xmppConnection
                     .isAuthenticated());
         }
+
         return false;
     }
 
@@ -421,13 +433,12 @@ public class XMPPServiceImpl implements
     @Override
     public void joinChatRoom(String chatRoom, long lastUpdateTime) throws JUJUXMPPException, XMPPException,
             SmackException.NotConnectedException, SmackException.NoResponseException {
-        Log.d(TAG, "joinChatRoom#xmppConnection:"+xmppConnection);
-        Log.d(TAG, "joinChatRoom#this============="+this.toString());
+        logger.d("joinChatRoom -> xmppConnection:%s", xmppConnection.toString());
+        logger.d("login -> XMPPServiceImpl:%s", this.toString());
         MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(xmppConnection);
-//        String jid = BaseApplication.getInstance().getUserInfoBean().getmRoomName()+
-//                "@"+BaseApplication.getInstance().getUserInfoBean().getmMucServiceName()+".juju";
-        Log.d(TAG, "joinChatRoom#chatRoom:"+chatRoom);
+        logger.d("joinChatRoom -> chatRoom:%s", chatRoom);
         multiUserChat = multiUserChatManager.getMultiUserChat(chatRoom);
+        //1：群组存在 2：还没有加入
         if(multiUserChat != null) {
             DiscussionHistory history = new DiscussionHistory();
             history.setSince(new Date(lastUpdateTime));
@@ -436,6 +447,9 @@ public class XMPPServiceImpl implements
             String password = userInfoBean.getmPassword();
             multiUserChat.join(nickName, password, history,
                     SmackConfiguration.getDefaultPacketReplyTimeout());
+        } else {
+            logger.d("joinChatRoom#chatRoom is joined or chatRoom " +
+                    "is not exist -> chatRoom:%s", chatRoom);
         }
     }
 
@@ -473,13 +487,13 @@ public class XMPPServiceImpl implements
                 muc.sendConfigurationForm(submitForm);
                 bool = muc.isJoined();
             }  catch (SmackException.NoResponseException e) {
-                Log.e(TAG, "createChatRoom method throws NoResponseException...", e);
+                logger.error(e);
             } catch (XMPPException.XMPPErrorException e) {
-                Log.e(TAG, "createChatRoom method throws XMPPErrorException...", e);
+                logger.error(e);
             } catch (SmackException.NotConnectedException e) {
-                Log.e(TAG, "createChatRoom method throws NotConnectedException...", e);
+                logger.error(e);
             } catch (SmackException e) {
-                Log.e(TAG, "createChatRoom method throws SmackException...", e);
+                logger.error(e);
             }
         }
         return bool;
@@ -501,34 +515,64 @@ public class XMPPServiceImpl implements
 
     @Override
     public void connected(XMPPConnection connection) {
-        Log.d(TAG, "connected()：连接成功");
+        logger.d("connected()：连接成功");
     }
 
 
     @Override
     public void authenticated(XMPPConnection connection, boolean resumed) {
-        Log.d(TAG, "authenticated()：校验成功");
+        logger.d("authenticated()：校验成功");
     }
 
 
     @Override
     public void connectionClosed() {
-        Log.d(TAG, "connectionClosed()：连接断开");
+        logger.d("connectionClosed()：关闭连接");
     }
 
 
     @Override
     public void connectionClosedOnError(Exception e) {
-        Log.e(TAG, "connectionClosedOnError()：连接断开异常", e);
-
-        Log.d(TAG, "connectionClosedOnError()：连接断开异常");
-
+        logger.d("connectionClosedOnError()：连接断开");
+//        if(xmppConnection != null) {
+//            xmppConnection.disconnect();
+//        }
+        if (e instanceof XMPPException) {
+            XMPPException.StreamErrorException xe = (XMPPException.StreamErrorException) e;
+            final StreamError streamError = xe.getStreamError();
+            switch (streamError.getCondition()) {
+                //登陆冲突
+                case conflict:
+                    ((IMService)mService).getLoginManager().setKickout(true);
+                    break;
+            }
+        }
+        if(mService != null && mService instanceof IMService) {
+            ((IMService)mService).getLoginManager()
+                    .handlerSocketEvent(SmackSocketEvent.MSG_SERVER_DISCONNECTED);
+        }
     }
 
 
     @Override
     public void reconnectionSuccessful() {
-        Log.d(TAG, "reconnectionSuccessful()：重连成功");
+        logger.d("reconnectionSuccessful()：重连成功");
+        if(!xmppConnection.isConnected()) {
+            try {
+                xmppConnection.connect();
+            } catch (SmackException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (XMPPException e) {
+                e.printStackTrace();
+            }
+        }
+        if(mService != null && mService instanceof IMService) {
+            //重连后需要处理加入聊天室
+            ((IMService)mService).getLoginManager().handlerLoginEvent(LoginEvent
+                    .LOCAL_LOGIN_MSG_SERVICE);
+        }
     }
 
 
@@ -539,7 +583,7 @@ public class XMPPServiceImpl implements
 
     @Override
     public void reconnectionFailed(Exception e) {
-        Log.d(TAG, "reconnectionFailed()：重连失败");
+        logger.d("reconnectionFailed()：重连失败");
     }
 
     /**
@@ -547,7 +591,7 @@ public class XMPPServiceImpl implements
      */
     @Override
     public void pingFailed() {
-        Log.d(TAG, "pingFailed()：ping失败");
+        logger.d("pingFailed()：ping失败");
 
     }
 
@@ -695,7 +739,7 @@ public class XMPPServiceImpl implements
                 listener.onFailed();
             }
             listenerQueue.pop(uuid);
-            Log.e(TAG, "数据包发送异常", e);
+            logger.error(e);
         }
     }
 
@@ -718,15 +762,17 @@ public class XMPPServiceImpl implements
                 listener.onFailed();
             }
             fixListenerQueue.remove(uuid);
-            Log.e(TAG, "数据包发送异常", e);
+//            Log.e(TAG, "数据包发送异常", e);
+            logger.error(e);
         }
     }
 
 
 
+    //TODO 是否考虑放在子线程
     private void handlerMessage(Stanza stanza) {
         Message message = (Message) stanza;
-        Log.d(TAG, message.toString());
+        logger.d("handlerMessage -> message:%s", message.toString());
         //接收群聊消息
         if(message.getExtension(ReplayMessageTime.NAME, ReplayMessageTime.NAME_SPACE) == null) {
             String[] fromArr = message.getFrom().split("/");
@@ -751,9 +797,14 @@ public class XMPPServiceImpl implements
 
                 SessionEntity cacheSessionEntity = sessionManager.getSessionMap()
                         .get(textMessage.getSessionKey());
+
+                /**
+                 * 1:最新接收的消息时间不能小于缓存消息的创建时间
+                 * 2:时间由服务器生成
+                 */
                 if(cacheSessionEntity == null
                         || cacheSessionEntity.getCreated() < textMessage.getCreated()) {
-                    //保存最新消息
+                    //更新缓存，触发通知
                     sessionManager.updateSession(dbMessage);
                 }
 
@@ -777,7 +828,7 @@ public class XMPPServiceImpl implements
                 listener.onSuccess(messageTime);
             }
         }
-        Log.d(TAG, "接收MESSAGE:"+message.getBody());
+//        Log.d(TAG, "接收MESSAGE:"+message.getBody());
     }
 
     private void handlerRedisResIQ(Stanza stanza) {
@@ -792,6 +843,19 @@ public class XMPPServiceImpl implements
                 fixListener.onSuccess(redisResIQ);
             }
         }
-        Log.d(TAG, redisResIQ.getStanzaId()+"接收IQ消息:"+redisResIQ.getContent());
+//        Log.d(TAG, redisResIQ.getStanzaId()+"接收IQ消息:"+redisResIQ.getContent());
+        logger.d("handlerRedisResIQ -> message:%s接收IQ消息%s",
+                redisResIQ.getStanzaId(), redisResIQ.getContent());
+    }
+
+    /**
+     * 处理断线重连
+     */
+    private void doReconnection() {
+        ReconnectionManager reconnectionManager = ReconnectionManager.getInstanceFor(xmppConnection);
+        reconnectionManager.setReconnectionPolicy(ReconnectionManager.ReconnectionPolicy.FIXED_DELAY);
+        //重连时间10秒
+        reconnectionManager.setFixedDelay(10);
+        reconnectionManager.enableAutomaticReconnection();
     }
 }

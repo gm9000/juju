@@ -46,6 +46,14 @@ public class GroupEntity extends PeerEntity {
     @Column(name = "desc")
     private String desc;
 
+    //二维码
+    @Column(name = "qr_code")
+    private String qrCode;
+
+    //邀请码
+    @Column(name = "invite_code")
+    private String inviteCode;
+
 
     private PinYinUtil.PinYinElement pinyinElement = new PinYinUtil.PinYinElement();
     private SearchElement searchElement = new SearchElement();
@@ -167,11 +175,26 @@ public class GroupEntity extends PeerEntity {
         this.updated = updated;
     }
 
+    public String getQrCode() {
+        return qrCode;
+    }
+
+    public void setQrCode(String qrCode) {
+        this.qrCode = qrCode;
+    }
+
+    public String getInviteCode() {
+        return inviteCode;
+    }
+
+    public void setInviteCode(String inviteCode) {
+        this.inviteCode = inviteCode;
+    }
+
     @Override
     public int getType() {
         return DBConstant.SESSION_TYPE_GROUP;
     }
-
 
 
 

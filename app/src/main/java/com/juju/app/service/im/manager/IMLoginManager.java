@@ -6,12 +6,17 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.MessageDao;
 import com.juju.app.biz.impl.MessageDaoImpl;
+import com.juju.app.biz.impl.UserDaoImpl;
+import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
+import com.juju.app.event.SmackSocketEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
+import com.juju.app.utils.Logger;
 import com.juju.app.utils.ThreadPoolUtil;
 
+import org.greenrobot.eventbus.EventBus;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
 
@@ -26,7 +31,7 @@ import java.io.IOException;
  */
 public class IMLoginManager extends IMManager {
 
-    private final String TAG = getClass().getName();
+    private Logger logger = Logger.getLogger(IMLoginManager.class);
 
     private volatile static IMLoginManager inst;
 
@@ -34,22 +39,37 @@ public class IMLoginManager extends IMManager {
 
     private DaoSupport messageDao;
 
+    private DaoSupport userDao;
+
+    private boolean isKickout = false;
+
+    //自身状态是否有改变（譬如用户名、密码）
+    private boolean  identityChanged = false;
+
+
     public IMLoginManager() {
         super();
     }
 
-    private UserInfoBean userInfoBean;
+
+    //以前是否登陆过，用户重新登陆的判断
+    private boolean everLogined = false;
 
     //本地包含登陆信息了[可以理解为支持离线登陆了]
     private boolean isLocalLogin = false;
+
+    //是否自动登陆
+    private boolean autoLogin = true;
+
 
 
 
     @Override
     public void doOnStart() {
         messageDao = new MessageDaoImpl(ctx);
+        userDao = new UserDaoImpl(ctx);
         socketService = new XMPPServiceImpl(ctx.getContentResolver(), service, messageDao);
-        Log.d(TAG, "IMLoginManager#doOnStart#this============="+socketService.toString());
+        logger.d("IMLoginManager#doOnStart#this -> this:%s", socketService.toString());
         //登录成功后，为MessageManager设置XMPP服务， 暂时这样处理
         IMMessageManager.instance().setSocketService(socketService);
         IMUnreadMsgManager.instance().setSocketService(socketService);
@@ -85,80 +105,129 @@ public class IMLoginManager extends IMManager {
             @Override
             public void run() {
                 try {
-                    Log.d(TAG, "socketService" + socketService.toString());
-                    socketService.login();
-                    isLocalLogin = true;
-                    triggerEvent(LoginEvent.LOGIN_OK);
+//                    handlerLoginEvent(LoginEvent.LOGINING);
+                    logger.d("IMLoginManager#login -> socketService:%s",
+                            socketService.toString());
+                    boolean bool = socketService.login();
+                    if(!bool) {
+                        handlerLoginEvent(LoginEvent.LOGIN_MSG_FAILED);
+                    }  else {
+                        onLoginOk();
+                    }
                 } catch (JUJUXMPPException e) {
-                    Log.e(TAG, "login>>消息服务登录异常");
+                    logger.error(e);
+                    handlerSocketEvent(SmackSocketEvent.CONNECT_MSG_SERVER_FAILED);
                 } catch (XMPPException e) {
-                    Log.e(TAG, "login>>消息服务登录异常");
+                    logger.error(e);
+                    handlerSocketEvent(SmackSocketEvent.CONNECT_MSG_SERVER_FAILED);
                 } catch (SmackException e) {
-                    Log.e(TAG, "login>>消息服务登录异常");
+                    logger.error(e);
+                    handlerSocketEvent(SmackSocketEvent.CONNECT_MSG_SERVER_FAILED);
                 } catch (IOException e) {
-                    Log.e(TAG, "login>>消息服务登录异常");
+                    logger.error(e);
+                    handlerSocketEvent(SmackSocketEvent.CONNECT_MSG_SERVER_FAILED);
                 }
             }
         });
     }
 
+    // 自动登陆流程
+    public void autoLogin(String userNo, String pwd){
+        // 初始化数据库
+//        DBInterface.instance().initDbHelp(ctx, mLoginId);
+        //用户需要添加密码、token，目前只验证聚聚号
+        User loginEntity = (User) userDao.findUniByProperty("user_no", userNo);
+        do{
+            if(loginEntity == null){
+                break;
+            }
+//            loginInfo = loginEntity;
+//            loginId = loginEntity.getPeerId();
+            // 这两个状态不要忘记掉
+            isLocalLogin = true;
+            everLogined = true;
+            //TODO 本地登陆成功
+            triggerEvent(LoginEvent.LOCAL_LOGIN_SUCCESS);
+        } while(false);
+        // 开始请求网络
+
+    }
+
+    //处理用户登陆事件
+    public void handlerLoginEvent(LoginEvent event) {
+        switch (event) {
+            case LOGIN_OK:
+                isKickout = false;
+                isLocalLogin = true;
+                break;
+            case LOGIN_AUTH_FAILED:
+            case LOGIN_INNER_FAILED:
+                isLocalLogin = false;
+                break;
+            case LOGIN_MSG_FAILED:
+                isKickout = true;
+                break;
+        }
+        EventBus.getDefault().postSticky(event);
+    }
+
+    //处理Smack socket事件
+    public void handlerSocketEvent(SmackSocketEvent event) {
+        EventBus.getDefault().postSticky(event);
+    }
+
+
+
     public void logout() {
         ThreadPoolUtil.instance().executeImTask(new Runnable() {
             @Override
             public void run() {
-                Log.d(TAG, "app logout");
+                logger.d("IMLoginManager#logout");
                 socketService.logout();
             }
         });
     }
 
 
-//    public void sendMessage(final String user, final String message) {
-//        final UserInfoBean userBean = BaseApplication.getInstance().getUserInfoBean();
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.d(TAG, "socketService"+socketService.toString());
-//                try {
-//                    socketService.sendMessage(user, message);
-//                } catch (SmackException.NotConnectedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
-//    }
-
-//    public void joinChatRoom(final String chatRoom, final long lastUpdateTime) {
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                Log.d(TAG, "socketService"+socketService.toString());
-//                try {
-//                    //加入聊天室
-//                    socketService.joinChatRoom(chatRoom, lastUpdateTime);
-//                    //为用户信息赋值
-//                    userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-//                } catch (JUJUXMPPException e) {
-//                    e.printStackTrace();
-//                } catch (XMPPException e) {
-//                    e.printStackTrace();
-//                } catch (SmackException.NoResponseException e) {
-//                    e.printStackTrace();
-//                } catch (SmackException.NotConnectedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//        }).start();
-//    }
-
-
-
-
-    public UserInfoBean getUserInfoBean() {
-        return userInfoBean;
-    }
-
     public boolean isLocalLogin() {
         return isLocalLogin;
+    }
+
+    public boolean isKickout() {
+        return isKickout;
+    }
+
+    public void setKickout(boolean kickout) {
+        isKickout = kickout;
+    }
+
+
+    public boolean isAutoLogin() {
+        return autoLogin;
+    }
+
+    public void setAutoLogin(boolean autoLogin) {
+        this.autoLogin = autoLogin;
+    }
+
+
+    public void onLoginOk() {
+        logger.i("login#onLoginOk");
+        everLogined = true;
+        isKickout = false;
+
+        // 判断登陆的类型
+        if(isLocalLogin){
+            triggerEvent(LoginEvent.LOCAL_LOGIN_MSG_SERVICE);
+        }else{
+            isLocalLogin = true;
+            triggerEvent(LoginEvent.LOGIN_OK);
+        }
+
+    }
+
+
+    public boolean isAuthenticated() {
+        return socketService.isAuthenticated();
     }
 }

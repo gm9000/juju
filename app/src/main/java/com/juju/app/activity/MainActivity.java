@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.annotation.CreateUI;
+import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
@@ -27,10 +29,13 @@ import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
+import com.juju.app.event.JoinChatRoomEvent;
+import com.juju.app.event.UnreadEvent;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
@@ -57,6 +62,9 @@ import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
 import com.rey.material.app.Dialog;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.ex.DbException;
@@ -76,9 +84,18 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     private final String TAG = getClass().getSimpleName();
 
+
     private final int CREATE_GROUP = 0x01;
 
     private final int DELETE_GROUP = 0x02;
+
+//    private final int GET_GROUP_INVITE_CODE = 0x03;
+
+    private final int JOIN_IN_GROUP = 0x03;
+
+    private Handler uiHandler = new Handler();
+
+
 
     private Logger logger = Logger.getLogger(MainActivity.class);
 
@@ -117,6 +134,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EventBus.getDefault().register(this);
         super.onCreate(savedInstanceState);
 
     }
@@ -124,6 +142,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     @Override
     protected void onDestroy() {
         imServiceConnector.disconnect(MainActivity.this);
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 
@@ -177,6 +196,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 .add(R.id.fragment_container, groupPartyFragment)
                 .add(R.id.fragment_container, meFragment)
                 .hide(groupPartyFragment).hide(meFragment).show(groupChatFragment).commit();
+
+//        loadingCommon(R.string.add_party);
     }
 
     public void onTabClicked(View view) {
@@ -192,7 +213,11 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 }
 //                txt_title.setText(R.string.group_chat);
 //                img_right.setImageResource(R.mipmap.icon_add);
-                setTopTitle(R.string.group_chat);
+                if(imService.getUnReadMsgManager().isUnreadListReady()) {
+                    setTopTitle(R.string.group_chat);
+                } else {
+                    setTopTitle(R.string.message_receive_loading);
+                }
                 setTopRightButton(R.mipmap.icon_add);
                 break;
             case R.id.re_group_party:
@@ -237,12 +262,13 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         public void onItemClick(ActionItem item, int position) {
             switch (position) {
                 case 0:// 创建群
-                    showCreateGroupChatDialog();
+                    showCreateGroupChatDialog(SelectType.ADD_GROUP);
 //                    startActivity(MainActivity.this, AddGroupChatActivity.class);
                     break;
                 case 1:// 扫一扫加群
                     break;
                 case 2:// 邀请码加群
+                    showCreateGroupChatDialog(SelectType.INVITE_GROUP);
                     break;
                 default:
                     break;
@@ -339,14 +365,44 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     }
 
     Dialog mDialog;
-    private void showCreateGroupChatDialog() {
-        final View view = MainActivity.this.getLayoutInflater().inflate(R.layout.activity_add_group_chat, null);
+    View view = null;
+    SelectType selectType;
+    private void showCreateGroupChatDialog(final SelectType _selectType) {
+        this.selectType = _selectType;
+        if(view == null) {
+            view = MainActivity.this.getLayoutInflater()
+                    .inflate(R.layout.activity_add_group_chat, null);
+        }
+        final com.rey.material.widget.EditText et_name = (com.rey.material.widget.EditText) view
+                .findViewById(R.id.et_name);
+        final com.rey.material.widget.EditText et_description = (com.rey.material.widget.EditText) view
+                .findViewById(R.id.et_description);
+        com.rey.material.widget.EditText et_invite_code = (com.rey.material.widget.EditText) view
+                .findViewById(R.id.et_invite_code);
+        int title = 0;
+        int width = (ScreenUtil.getScreenWidth(MainActivity.this) / 3) * 2;
+        int height = ScreenUtil.getScreenHeight(MainActivity.this) / 2;
+        switch (selectType) {
+            case ADD_GROUP:
+                title = R.string.menu_group;
+                et_name.setVisibility(View.VISIBLE);
+                et_description.setVisibility(View.VISIBLE);
+                et_invite_code.setVisibility(View.GONE);
+                break;
+            case INVITE_GROUP:
+                title = R.string.menu_invitecode;
+                et_name.setVisibility(View.GONE);
+                et_description.setVisibility(View.GONE);
+                et_invite_code.setVisibility(View.VISIBLE);
+                height = (height/3) * 2;
+                break;
+        }
+
+
         if(mDialog == null) {
             mDialog = new Dialog(context, R.style.SimpleDialog);
-            int width = (ScreenUtil.getScreenWidth(MainActivity.this) / 3) * 2;
-            int height = ScreenUtil.getScreenHeight(MainActivity.this) / 2;
-            mDialog.layoutParams(width, height);
-            mDialog.title(R.string.chat_create)
+            mDialog.setCanceledOnTouchOutside(false);
+            mDialog
                     .positiveAction(R.string.confirm)
                     .negativeAction(R.string.negative)
                     .contentView(view)
@@ -363,41 +419,19 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 @Override
                 public void onClick(View v) {
                     if (mDialog != null) {
-                        com.rey.material.widget.EditText et_name =
-                                (com.rey.material.widget.EditText) view.findViewById(R.id.et_name);
-                        com.rey.material.widget.EditText et_description =
-                                (com.rey.material.widget.EditText) view.findViewById(R.id.et_description);
-                        String name = et_name.getText().toString();
-                        String description = et_description.getText().toString();
-                        if (StringUtils.isBlank(name)) {
-                            ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_name_null, 0);
-                            return;
+                        switch (selectType) {
+                            case ADD_GROUP:
+                                loadingCommon(R.string.chat_create_loading);
+                                String name = et_name.getText().toString();
+                                String description = et_description.getText().toString();
+                                createGroup(name, description);
+                                break;
+                            case INVITE_GROUP:
+                                //TODO
+                                loadingCommon(R.string.invite_code_loading);
+                                break;
                         }
-                        if (name.length() > 20) {
-                            ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_name_over_length, 0);
-                            return;
-                        }
-                        Map<String, Object> valueMap = new HashMap<>();
-                        Map<String, Object> groupMap = new HashMap<>();
 
-                        valueMap.put("userNo", userInfoBean.getJujuNo());
-                        valueMap.put("token", userInfoBean.getToken());
-                        groupMap.put("name", name);
-                        if (StringUtils.isNotBlank(description)) {
-                            groupMap.put("desc", description);
-                        }
-                        valueMap.put("group", groupMap);
-                        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
-                                CREATE_GROUP, HttpConstants.getUserUrl() + "/addGroup",
-                                MainActivity.this, valueMap, JSONObject.class);
-                        try {
-                            client.sendPost4OK();
-                        } catch (UnsupportedEncodingException e) {
-                            e.printStackTrace();
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        loadingCommon(R.string.chat_create_loading);
                     }
                 }
             });
@@ -414,7 +448,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 }
             });
         }
-            mDialog.show();
+        mDialog.layoutParams(width, height);
+        mDialog.setTitle(title);
+        mDialog.show();
 
     }
 
@@ -424,93 +460,39 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             completeLoadingCommon();
             if(obj instanceof  JSONObject) {
                 JSONObject result = (JSONObject)obj;
-                int status = JSONUtils.getInt(result, "status");
-                if(status == 0) {
-                    String groupId = JSONUtils.getString(result,"groupId");
-                    //消息服务器创建群组
-                    boolean bool = imService.getGroupManager().createChatRoom(groupId,
-                            userInfoBean.getmMucServiceName(), userInfoBean.getmServiceName());
-                    //创建成功
-                    if(bool) {
-                        //刷新群组，待实现
-                        Log.d(TAG, "创建群聊成功，groupId："+groupId);
-                        //刷新群组列表
-                        imService.getGroupManager();
-                        String peerId = groupId+"@"+userInfoBean.getmMucServiceName()
-                                +"."+userInfoBean.getmServiceName();
-
-                        String name = "";
-                        String desc = "";
-                        if(inputParameter instanceof Map) {
-                            Map<String, Object> parameter = (Map<String, Object>) inputParameter;
-                            Map<String, Object> group = (Map<String, Object>)parameter.get("group");
-                            name = (String)group.get("name");
-                            desc = (String)group.get("desc");
-                        }
-
-                        GroupEntity groupEntity = GroupEntity.buildForCreate(groupId, peerId, 0,
-                                name,  userInfoBean.getJujuNo(),  desc,  null);
-
-                        //更新数据
-                        groupDao.replaceInto(groupEntity);
-
-
-                        //设置置顶
-                        //暂时用APP时间
-                        Date created = new Date();
-                        groupEntity.setCreated(created.getTime());
-
-
-                        //发送群组更新通知
-                        imService.getGroupManager().getGroupMap().put(peerId, groupEntity);
-                        triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
-                    }
-                    //创建失败
-                    else {
-                        //删除业务服务器群组消息
-                        Map<String, Object> valueMap = new HashMap<String, Object>();
-                        valueMap.put("userNo", userInfoBean.getJujuNo());
-                        valueMap.put("token", userInfoBean.getToken());
-                        valueMap.put("groupId", groupId);
-                        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
-                                DELETE_GROUP, HttpConstants.getUserUrl() + "/deleteGroup",
-                                MainActivity.this, valueMap, JSONObject.class);
-                        try {
-                            //不需要回复
-                            client.sendPost4OK();
-                        } catch (UnsupportedEncodingException e) {
-                            logger.error(e);
-                        } catch (JSONException e) {
-                            logger.error(e);
-                        }
-                        MainActivity.this.runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                showMsgDialog(R.string.chat_create_error);
-                            }
-                        });
-                    }
-                } else {
-                    MainActivity.this.runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            showMsgDialog(R.string.chat_create_error);
-                        }
-                    });
-                }
-
-                MainActivity.this.runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        //退出创建提示框
-                        if (mDialog != null && mDialog.isShowing()) {
-                            mDialog.hide();
-                        }
-                    }
-                });
-
+                handlerHttpRsp4CreateGroup(result, inputParameter);
+            }
+        } else if (accessId == JOIN_IN_GROUP) {
+            completeLoadingCommon();
+            if(obj instanceof  JSONObject) {
+                JSONObject result = (JSONObject)obj;
+                handlerHttpRsp4JoinInGroup(result, inputParameter);
             }
         }
+//        //获取群组邀请码
+//        else if (accessId == GET_GROUP_INVITE_CODE) {
+//            if(obj instanceof  JSONObject) {
+//                JSONObject result = (JSONObject)obj;
+//                int status = JSONUtils.getInt(result, "status");
+//                if(status == 0) {
+//                    Map<String, Object> parameter = (Map<String, Object>)inputParameter;
+//                    String groupId = (String)parameter.get("groupId");
+//                    String inviteCode = JSONUtils.getString(result, "inviteCode");
+//                    String peerId = groupId+"@"+userInfoBean.getmMucServiceName()
+//                            +"."+userInfoBean.getmServiceName();
+//                    GroupEntity groupEntity = imService.getGroupManager().findGroup(peerId);
+//                    if(groupEntity != null) {
+//                        //保存二维码
+//                        String qrCode =
+//                                HttpConstants.getUserUrl() + "/joinInGroup?inviteCode="+inviteCode;
+//                        groupEntity.setQrCode(qrCode);
+//                        //保存邀请码
+//                        groupEntity.setInviteCode(inviteCode);
+//                        groupDao.replaceInto(groupEntity);
+//                    }
+//                }
+//            }
+//        }
     }
 
     @Override
@@ -518,6 +500,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         if(accessId == CREATE_GROUP) {
             completeLoadingCommon();
             showMsgDialog(R.string.chat_create_error);
+        } else if (accessId == JOIN_IN_GROUP) {
+            completeLoadingCommon();
+            showMsgDialog(R.string.invite_group_no_pass);
         }
     }
 
@@ -540,7 +525,204 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     private void initTopTile() {
         setTopRightButton(0);
-        setTopTitle(R.string.group_chat);
+        setTopTitle(R.string.message_receive_loading);
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onEvent4Unread(UnreadEvent event) {
+        switch (event.event){
+            case UNREAD_MSG_LIST_OK:
+                uiHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        setUnreadMessageCnt(imService.getUnReadMsgManager().getTotalUnreadCount());
+                        if(index == 0) {
+                            setTopTitle(R.string.group_chat);
+                        }
+                    }
+                }, 1000);
+                break;
+        }
+    }
+
+
+    //创建群聊 （考虑放在IMGroupManager）
+    private void createGroup(String name, String description) {
+        if (StringUtils.isBlank(name)) {
+            ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_name_null, 0);
+            return;
+        }
+        if (name.length() > 20) {
+            ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_name_over_length, 0);
+            return;
+        }
+        Map<String, Object> valueMap = new HashMap<>();
+        Map<String, Object> groupMap = new HashMap<>();
+
+        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("token", userInfoBean.getToken());
+        groupMap.put("name", name);
+        if (StringUtils.isNotBlank(description)) {
+            groupMap.put("desc", description);
+        }
+        valueMap.put("group", groupMap);
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
+                CREATE_GROUP, HttpConstants.getUserUrl() + "/addGroup",
+                MainActivity.this, valueMap, JSONObject.class);
+        try {
+            client.sendPost4OK();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //邀请码加群（考虑放在IMGroupManager）
+    private void inviteGroup(String inViteCode) {
+        if (StringUtils.isBlank(inViteCode)) {
+            ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_name_null, 0);
+            return;
+        }
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("token", userInfoBean.getToken());
+        valueMap.put("inviteCode", inViteCode);
+
+
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
+                JOIN_IN_GROUP, HttpConstants.getUserUrl() + "/joinInGroup",
+                MainActivity.this, valueMap, JSONObject.class);
+        try {
+            client.sendPost4OK();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //处理创建群聊消息回复
+    private void handlerHttpRsp4CreateGroup(JSONObject result, Object inputParameter) {
+        int status = JSONUtils.getInt(result, "status");
+        if(status == 0) {
+            String groupId = JSONUtils.getString(result,"groupId");
+            //消息服务器创建群组
+            boolean bool = imService.getGroupManager().createChatRoom(groupId,
+                    userInfoBean.getmMucServiceName(), userInfoBean.getmServiceName());
+            //创建成功
+            if(bool) {
+                //刷新群组，待实现
+                Log.d(TAG, "创建群聊成功，groupId："+groupId);
+                //刷新群组列表
+                imService.getGroupManager();
+                String peerId = groupId+"@"+userInfoBean.getmMucServiceName()
+                        +"."+userInfoBean.getmServiceName();
+
+                String name = "";
+                String desc = "";
+                if(inputParameter instanceof Map) {
+                    Map<String, Object> parameter = (Map<String, Object>) inputParameter;
+                    Map<String, Object> group = (Map<String, Object>)parameter.get("group");
+                    name = (String)group.get("name");
+                    desc = (String)group.get("desc");
+                }
+
+                GroupEntity groupEntity = GroupEntity.buildForCreate(groupId, peerId,
+                        DBConstant.GROUP_TYPE_NORMAL, name,  userInfoBean.getJujuNo(),  desc,  null);
+
+                //更新数据
+                groupDao.replaceInto(groupEntity);
+
+
+                //设置置顶
+                //暂时用APP时间
+                Date created = new Date();
+                groupEntity.setCreated(created.getTime());
+
+
+                //发送群组更新通知
+                imService.getGroupManager().getGroupMap().put(peerId, groupEntity);
+                triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
+
+                //获取群组请码
+                imService.getGroupManager().getGroupInviteCode(groupId);
+
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        com.rey.material.widget.EditText et_name = (com.rey.material.widget.EditText) view
+                                .findViewById(R.id.et_name);
+                        com.rey.material.widget.EditText et_description = (com.rey.material.widget.EditText) view
+                                .findViewById(R.id.et_description);
+
+                        et_name.setText("");
+                        et_description.setText("");
+                    }
+                });
+            }
+            //创建失败
+            else {
+                //删除业务服务器群组消息
+                Map<String, Object> valueMap = new HashMap<String, Object>();
+                valueMap.put("userNo", userInfoBean.getJujuNo());
+                valueMap.put("token", userInfoBean.getToken());
+                valueMap.put("groupId", groupId);
+                JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
+                        DELETE_GROUP, HttpConstants.getUserUrl() + "/deleteGroup",
+                        MainActivity.this, valueMap, JSONObject.class);
+                try {
+                    //不需要回复
+                    client.sendPost4OK();
+                } catch (UnsupportedEncodingException e) {
+                    logger.error(e);
+                } catch (JSONException e) {
+                    logger.error(e);
+                }
+                MainActivity.this.runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        showMsgDialog(R.string.chat_create_error);
+                    }
+                });
+            }
+        } else {
+            MainActivity.this.runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    showMsgDialog(R.string.chat_create_error);
+                }
+            });
+        }
+        MainActivity.this.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                //退出创建提示框
+                if (mDialog != null && mDialog.isShowing()) {
+                    mDialog.hide();
+                }
+            }
+        });
+    }
+
+    //处理创建群聊消息回复
+    private void handlerHttpRsp4JoinInGroup(JSONObject result, Object inputParameter) {
+        int status = JSONUtils.getInt(result, "status");
+        if(status == 0) {
+            int passFlag = JSONUtils.getInt(result, "passFlag");
+            if(passFlag == 0) {
+                showMsgDialog4Main(R.string.invite_group_no_pass);
+            }
+        } else {
+            showMsgDialog4Main(R.string.invite_group_no_pass);
+        }
+    }
+
+    public enum SelectType {
+        ADD_GROUP, INVITE_GROUP
+    }
+
+
+
 
 }

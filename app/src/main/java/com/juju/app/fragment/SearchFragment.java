@@ -93,10 +93,18 @@ public class SearchFragment extends TitleBaseFragment implements CreateUIHelper 
 		topLeftBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View arg0) {
-                ActivityUtil.finish(getActivity());
+                ActivityUtil.finish4UP(getActivity());
             }
         });
 
+        topLetTitleTxt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                ActivityUtil.finish4UP(getActivity());
+            }
+        });
+
+        //搜索监听事件
 		topSearchEdt.addTextChangedListener(new TextWatcher() {
 			@Override
 			public void onTextChanged(CharSequence s, int start, int before,
@@ -130,19 +138,17 @@ public class SearchFragment extends TitleBaseFragment implements CreateUIHelper 
 
     // 文字高亮search 模块
 	private void searchEntityLists(String key) {
-        List<User> contactList = imService.getContactManager().getSearchContactList(key);
-        int contactSize = contactList.size();
-        adapter.putUserList(contactList);
+        //用户暂时不需要搜索
+//        List<User> contactList = imService.getContactManager().getSearchContactList(key);
+//        int contactSize = contactList.size();
+//        adapter.putUserList(contactList);
 
         List<GroupEntity> groupList = imService.getGroupManager().getSearchAllGroupList(key);
         int groupSize = groupList.size();
         adapter.putGroupList(groupList);
 
-//        List<DepartmentEntity> departmentList = imService.getContactManager().getSearchDepartList(key);
-//        int deptSize = departmentList.size();
-//        adapter.putDeptList(departmentList);
 
-        int sum = contactSize + groupSize;
+        int sum = groupSize;
         adapter.notifyDataSetChanged();
         if(sum <= 0){
             noSearchResultView.setVisibility(View.VISIBLE);

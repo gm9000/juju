@@ -24,6 +24,9 @@ import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SearchElement;
 import com.juju.app.event.LoginEvent;
+import com.juju.app.event.SmackSocketEvent;
+import com.juju.app.golobal.DBConstant;
+import com.juju.app.utils.Logger;
 import com.juju.app.utils.pinyin.PinYinUtil;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -69,7 +72,7 @@ public class IMUIHelper {
         return handleTokenFirstCharsSearch(key, contact.getPinyinElement(), contact.getSearchElement())
                 || handleTokenPinyinFullSearch(key, contact.getPinyinElement(), contact.getSearchElement())
                 || handleNameSearch(contact.getNickName(), key, contact.getSearchElement());
-        // 原先是 contact.name 代表花名的意思嘛??
+
     }
 
     public static boolean handleTokenFirstCharsSearch(String key, PinYinUtil.PinYinElement pinYinElement, SearchElement searchElement) {
@@ -156,4 +159,181 @@ public class IMUIHelper {
                 || handleNameSearch(group.getMainName(), key, group.getSearchElement());
     }
 
+    public static void setViewTouchHightlighted(final View view) {
+        if (view == null) {
+            return;
+        }
+
+        view.setOnTouchListener(new View.OnTouchListener() {
+
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                    view.setBackgroundColor(Color.rgb(1, 175, 244));
+                } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                    view.setBackgroundColor(Color.rgb(255, 255, 255));
+                }
+                return false;
+            }
+        });
+    }
+
+    public static void setEntityImageViewAvatarNoDefaultPortrait(ImageView imageView,
+                                                                 String avatarUrl, int sessionType, int roundPixel) {
+        setEntityImageViewAvatarImpl(imageView, avatarUrl, sessionType, false, roundPixel);
+    }
+
+
+    public static void setEntityImageViewAvatarImpl(ImageView imageView,
+                                                    String avatarUrl, int sessionType, boolean showDefaultPortrait, int roundPixel) {
+        if (avatarUrl == null) {
+            avatarUrl = "";
+        }
+
+        String fullAvatar = getRealAvatarUrl(avatarUrl);
+        int defaultResId = -1;
+
+        if (showDefaultPortrait) {
+            defaultResId = getDefaultAvatarResId(sessionType);
+        }
+
+        displayImage(imageView, fullAvatar, defaultResId, roundPixel);
+    }
+
+    /**
+     * 如果图片路径是以  http开头,直接返回
+     * 如果不是， 需要集合自己的图像路径生成规律
+     * @param avatarUrl
+     * @return
+     */
+    public static String getRealAvatarUrl(String avatarUrl) {
+        if (avatarUrl.toLowerCase().contains("http")) {
+            return avatarUrl;
+        } else if (avatarUrl.trim().isEmpty()) {
+            return "";
+        } else {
+            return avatarUrl;
+        }
+    }
+
+    // 这个还是蛮有用的,方便以后的替换
+    public static int getDefaultAvatarResId(int sessionType) {
+        if (sessionType == DBConstant.SESSION_TYPE_SINGLE) {
+            return R.mipmap.tt_default_user_portrait_corner;
+        } else if (sessionType == DBConstant.SESSION_TYPE_GROUP) {
+            return R.mipmap.group_default;
+        } else if (sessionType == DBConstant.SESSION_TYPE_GROUP) {
+            return R.mipmap.group_default;
+        }
+
+        return R.mipmap.tt_default_user_portrait_corner;
+    }
+
+    public static void displayImage(ImageView imageView,
+                                    String resourceUri, int defaultResId, int roundPixel) {
+
+        Logger logger = Logger.getLogger(IMUIHelper.class);
+
+        logger.d("displayimage#displayImage resourceUri:%s, defeaultResourceId:%d", resourceUri, defaultResId);
+
+        if (resourceUri == null) {
+            resourceUri = "";
+        }
+
+        boolean showDefaultImage = !(defaultResId <= 0);
+
+        if (TextUtils.isEmpty(resourceUri) && !showDefaultImage) {
+            logger.e("displayimage#, unable to display image");
+            return;
+        }
+
+
+        DisplayImageOptions options;
+        if (showDefaultImage) {
+            options = new DisplayImageOptions.Builder().
+                    showImageOnLoading(defaultResId).
+                    showImageForEmptyUri(defaultResId).
+                    showImageOnFail(defaultResId).
+                    cacheInMemory(true).
+                    cacheOnDisk(true).
+                    considerExifParams(true).
+                    displayer(new RoundedBitmapDisplayer(roundPixel)).
+                    imageScaleType(ImageScaleType.EXACTLY).// 改善OOM
+                    bitmapConfig(Bitmap.Config.RGB_565).// 改善OOM
+                    build();
+        } else {
+            options = new DisplayImageOptions.Builder().
+                    cacheInMemory(true).
+                    cacheOnDisk(true).
+//			considerExifParams(true).
+//			displayer(new RoundedBitmapDisplayer(roundPixel)).
+//			imageScaleType(ImageScaleType.EXACTLY).// 改善OOM
+//			bitmapConfig(Bitmap.Config.RGB_565).// 改善OOM
+        build();
+        }
+
+        ImageLoader.getInstance().displayImage(resourceUri, imageView, options, null);
+    }
+
+    public static void displayImageNoOptions(ImageView imageView,
+                                             String resourceUri, int defaultResId, int roundPixel) {
+
+        Logger logger = Logger.getLogger(IMUIHelper.class);
+
+        logger.d("displayimage#displayImage resourceUri:%s, defeaultResourceId:%d", resourceUri, defaultResId);
+
+        if (resourceUri == null) {
+            resourceUri = "";
+        }
+
+        boolean showDefaultImage = !(defaultResId <= 0);
+
+        if (TextUtils.isEmpty(resourceUri) && !showDefaultImage) {
+            logger.e("displayimage#, unable to display image");
+            return;
+        }
+
+        DisplayImageOptions options;
+        if (showDefaultImage) {
+            options = new DisplayImageOptions.Builder().
+                    showImageOnLoading(defaultResId).
+                    showImageForEmptyUri(defaultResId).
+                    showImageOnFail(defaultResId).
+                    cacheInMemory(true).
+                    cacheOnDisk(true).
+                    considerExifParams(true).
+                    displayer(new RoundedBitmapDisplayer(roundPixel)).
+                    imageScaleType(ImageScaleType.EXACTLY).// 改善OOM
+                    bitmapConfig(Bitmap.Config.RGB_565).// 改善OOM
+                    build();
+        } else {
+            options = new DisplayImageOptions.Builder().
+//                    cacheInMemory(true).
+//                    cacheOnDisk(true).
+        imageScaleType(ImageScaleType.EXACTLY).// 改善OOM
+                    bitmapConfig(Bitmap.Config.RGB_565).// 改善OOM
+                    build();
+        }
+        ImageLoader.getInstance().displayImage(resourceUri, imageView, options, null);
+    }
+
+    // 根据event 展示提醒文案
+    public static int getLoginErrorTip(LoginEvent event) {
+        switch (event) {
+            case LOGIN_AUTH_FAILED:
+                return R.string.login_error_general_failed;
+            case LOGIN_INNER_FAILED:
+                return R.string.login_error_unexpected;
+            default :
+                return  R.string.login_error_unexpected;
+        }
+    }
+    public static int getSocketErrorTip(SmackSocketEvent event) {
+        switch (event) {
+            case CONNECT_MSG_SERVER_FAILED :
+                return R.string.connect_msg_server_failed;
+            default :
+                return  R.string.login_error_unexpected;
+        }
+    }
 }

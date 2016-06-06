@@ -30,6 +30,7 @@ public class UnreadEntity {
     @Column(name = "un_read_cnt")
     private int unReadCnt;
 
+    //TODO 是否需要此字段（若是通过时间查询）
     @Column(name = "latest_msg_id")
     private int laststMsgId;
 
@@ -38,6 +39,10 @@ public class UnreadEntity {
 
     @Column(name = "created")
     private long created;
+
+    //更新时间
+    @Column(name = "updated")
+    protected long updated;
 
     private boolean isForbidden = false;
 
@@ -108,6 +113,14 @@ public class UnreadEntity {
         this.created = created;
     }
 
+    public long getUpdated() {
+        return updated;
+    }
+
+    public void setUpdated(long updated) {
+        this.updated = updated;
+    }
+
     @Override
     public String toString() {
         return "UnreadEntity{" +
@@ -116,6 +129,7 @@ public class UnreadEntity {
                 ", sessionType=" + sessionType +
                 ", unReadCnt=" + unReadCnt +
                 ", created=" + created +
+                ", updated=" + updated +
                 ", laststMsgId=" + laststMsgId +
                 ", latestMsgData='" + latestMsgData + '\'' +
                 ", isForbidden=" + isForbidden +

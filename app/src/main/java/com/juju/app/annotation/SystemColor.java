@@ -21,4 +21,6 @@ public @interface SystemColor {
     boolean isApply() default true;
 
     int colorValue() default R.color.blue;
+
+    int titleColorValue() default R.color.blue;
 }

@@ -16,7 +16,7 @@ public interface DBConstant {
      * 1. 男性 2.女性
      * */
     public final int SEX_MAILE = 1;
-    public final int SEX_FEMALE = 2;
+    public final int SEX_FEMALE = 0;
 
     /**msgType*/
     public final int  MSG_TYPE_SINGLE_TEXT = 0x01;

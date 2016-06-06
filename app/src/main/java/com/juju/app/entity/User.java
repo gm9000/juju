@@ -1,5 +1,9 @@
 package com.juju.app.entity;
 
+import android.text.TextUtils;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.config.HttpConstants;
@@ -25,7 +29,8 @@ import java.util.Date;
  */
 @Table(name = "user",
         onCreated = "CREATE UNIQUE INDEX index_user_user_no_key ON user(user_no)")
-public class User extends BaseEntity {
+@JsonIgnoreProperties(value = {"pinyinElement", "searchElement", "sectionName"})
+public class  User extends BaseEntity {
 
 
     public User() {
@@ -185,6 +190,8 @@ public class User extends BaseEntity {
         return pinyinElement;
     }
 
+    private String sectionName;
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -237,4 +244,21 @@ public class User extends BaseEntity {
             HttpConstants.getPortraitUrl()+userNo);
         return userEntity;
     }
+
+
+
+
+    public String getSectionName() {
+        sectionName = "";
+        if (TextUtils.isEmpty(pinyinElement.pinyin)) {
+            return sectionName;
+        }
+        sectionName = pinyinElement.pinyin.substring(0, 1);
+        return sectionName;
+    }
+
+    public void setSectionName(String sectionName) {
+        this.sectionName = sectionName;
+    }
+
 }

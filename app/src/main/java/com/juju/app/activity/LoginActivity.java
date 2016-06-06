@@ -1,13 +1,20 @@
 package com.juju.app.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.juju.app.R;
 import com.juju.app.activity.user.RegistActivity;
@@ -16,10 +23,14 @@ import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
+import com.juju.app.event.JoinChatRoomEvent;
+import com.juju.app.event.LoginEvent;
+import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.helper.IMUIHelper;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
@@ -28,14 +39,19 @@ import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.Logger;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.ClearEditText;
 import com.juju.app.view.RoundImageView;
 
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.ex.DbException;
@@ -53,7 +69,12 @@ import java.util.Map;
 @SystemColor(isApply = false)
 public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
 
+    private Logger logger = Logger.getLogger(LoginActivity.class);
+
     private final String TAG = getClass().getName();
+
+    private Handler uiHandler = new Handler();
+
 
     /**
     *******************************************Activity组件***************************************
@@ -71,13 +92,19 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     private RoundImageView portrait;
 
     @ViewInject(R.id.nickName)
-    private TextView nickName;
+    private TextView tv_nickName;
 
     @ViewInject(R.id.login_main)
     private RelativeLayout layout_login_main;
 
     @ViewInject(R.id.loginBtn)
     private Button btn_login;
+
+   @ViewInject(R.id.splash_main)
+    private View splash_main;
+
+    @ViewInject(R.id.login_main)
+    private View login_main;
 
     private IMService imService;
 
@@ -89,6 +116,9 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      */
     private String userNo;
     private String pwd;
+    private String nickName;
+    private boolean autoLogin = true;
+    private boolean loginSuccess = false;
 
 
 
@@ -98,21 +128,24 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        EventBus.getDefault().register(this);
         super.onCreate(savedInstanceState);
         setListeners();
     }
 
     @Override
     public void loadData() {
+        HttpConstants.initURL();
         imServiceConnector.connect(LoginActivity.this);
         userNo = (String)SpfUtil.get(LoginActivity.this, "userNo", "");
         pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
+        nickName = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
     }
 
     @Override
     public void initView() {
         txt_userNo.setText(userNo);
-        boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD,true);
+        boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD, true);
         if(rememberPwd) {
             txt_password.setText(pwd);
         }
@@ -126,8 +159,13 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         }
 
         if(BaseApplication.getInstance().getUserInfoBean().getUserName() != null){
-            nickName.setText(BaseApplication.getInstance().getUserInfoBean().getUserName());
+            tv_nickName.setText(nickName);
         }
+
+        //初始化自动登陆信息
+        initAutoLogin();
+
+
     }
 
     @Override
@@ -140,13 +178,14 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     protected void onPause() {
         super.onPause();
         Log.d(TAG, "onPause");
-        completeLoadingCommon();
+        completeLoading();
     }
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        EventBus.getDefault().unregister(this);
         imServiceConnector.disconnect(LoginActivity.this);
+        super.onDestroy();
         Log.d(TAG, "onDestroy");
 
     }
@@ -170,8 +209,10 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         }
         initGlobalVariable();
         boolean vsBool = validateLogin();
+
         if(vsBool) {
-            loadingCommon(R.string.login_progress_signing_in);
+//            loadingCommon(R.string.login_progress_signing_in);
+            loading(R.string.login_progress_signing_in);
             String password = MD5Util.MD5(pwd);
             Map<String, Object> valueMap = new HashMap<String, Object>();
             valueMap.put("userNo", userNo);
@@ -209,7 +250,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     LoginActivity.this.runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            completeLoadingCommon();
+                            completeLoading();
                         }
                     });
                     JSONObject jsonRoot = (JSONObject)obj;
@@ -217,13 +258,11 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     final String description = JSONUtils.getString(jsonRoot, "description", "");
                     jujuNo = JSONUtils.getString(jsonRoot, "userNo", "");
                     token = JSONUtils.getString(jsonRoot, "token", "");
+                    //TODO 登陆协议需返回用户昵称、域名、房间名称、MUC服务名称
+                    nickName = "聚龙小子";
                     if(status == 0) {
-                        saveUserInfo();
-                        startActivity(LoginActivity.this, MainActivity.class);
-                        //登陆聊天服务
-                        if(imService != null) {
-                            imService.getLoginManager().login();
-                        }
+                        //TODO 是否需要消息服务器登陆成功后再确认？目前以业务服务登陆为准
+                        triggerEvent(LoginEvent.LOGIN_BSERVER_OK);
                     } else {
                         LoginActivity.this.runOnUiThread(new Runnable() {
                             @Override
@@ -249,12 +288,45 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         LoginActivity.this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                completeLoadingCommon();
+                showLoginPage();
+                completeLoading();
                 showMsgDialog(R.string.error_login_psw);
             }
         });
     }
 
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4Login(LoginEvent event) {
+        switch (event) {
+            case LOCAL_LOGIN_SUCCESS:
+                loginSuccess = true;
+                saveUserInfo();
+                startActivity(LoginActivity.this, MainActivity.class);
+                if(!imService.getLoginManager().isAuthenticated()) {
+                    imService.getLoginManager().login();
+                }
+                //TODO 本地登陆成功，有可能没有加入群组
+                else {
+                    triggerEvent4Sticky(new UnreadEvent(UnreadEvent.Event.UNREAD_MSG_LIST_OK));
+                }
+                break;
+            case LOGIN_BSERVER_OK:
+                loginSuccess = true;
+                saveUserInfo();
+                startActivity(LoginActivity.this, MainActivity.class);
+                //登陆聊天服务
+                if(imService != null) {
+                    imService.getLoginManager().login();
+                }
+                break;
+            case LOGIN_AUTH_FAILED:
+            case LOGIN_INNER_FAILED:
+                if (!loginSuccess)
+                    onLoginFailure(event);
+                break;
+        }
+    }
 
 
 
@@ -309,16 +381,18 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         //将登录信息保存到SharedPreferences
         SpfUtil.put(this, "userNo", userNo);
         SpfUtil.put(this, "pwd", pwd);
+        SpfUtil.put(this, "nickName", nickName);
 
+
+        //TODO 登陆成功是否需要将用户插入本地数据库
         User loginUser = null;
         try {
-            loginUser = JujuDbUtils.getInstance().selector(User.class).where("user_no","=",jujuNo).findFirst();
+            loginUser = JujuDbUtils.getInstance().selector(User.class).where("user_no","=",userNo).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
-
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        userInfoBean.setJujuNo(jujuNo);
+        userInfoBean.setJujuNo(userNo);
         userInfoBean.setToken(token);
         userInfoBean.setmAccount(userNo);
         userInfoBean.setmPassword(pwd);
@@ -327,11 +401,9 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
             SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
         }else{
             SpfUtil.put(getApplicationContext(), Constants.USER_INFO, loginUser);
+            //需要调整
+            SpfUtil.put(this, "nickName", loginUser.getNickName());
         }
-
-
-
-
 
 //        SpfUtil.put(this, "pwdChecked", pwdChecked);
 //        SpfUtil.put(this, "autoLoginChecked", autoLoginChecked);
@@ -380,6 +452,19 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         }
     }
 
+    private void showLoginPage() {
+        splash_main.setVisibility(View.GONE);
+        login_main.setVisibility(View.VISIBLE);
+    }
+
+    private void onLoginFailure(LoginEvent event) {
+        logger.e("login#onLoginError -> errorCode:%s", event.name());
+        showLoginPage();
+        String errorTip = getString(IMUIHelper.getLoginErrorTip(event));
+        logger.d("login#errorTip:%s", errorTip);
+        completeLoading();
+        Toast.makeText(this, errorTip, Toast.LENGTH_SHORT).show();
+    }
 
 
 
@@ -413,19 +498,111 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
             public void onIMServiceConnected() {
                 logger.d("login_activity#onIMServiceConnected");
                 imService = imServiceConnector.getIMService();
-                boolean autoLogin = getIntent().getBooleanExtra(Constants.AUTO_LOGIN, true);
-                if(autoLogin) {
-                    autoLogin = (boolean) SpfUtil.get(getApplicationContext(), Constants.AUTO_LOGIN, true);
-                    if (autoLogin && !pwd.equals("")) {
-                        onClickBtnLogin(btn_login);
-                    }
+                try {
+                    do {
+                        if (imService == null) {
+                            //后台服务启动链接失败
+                            break;
+                        }
+                        IMLoginManager loginManager = imService.getLoginManager();
+                        if (loginManager == null) {
+                            // 无法获取登陆控制器
+                            break;
+                        }
+
+                        if(StringUtils.isBlank(userNo)
+                                || StringUtils.isBlank(pwd)) {
+                            // 之前没有保存任何登陆相关的，跳转到登陆页面
+                            break;
+                        }
+
+                        if (!autoLogin) {
+                            break;
+                        }
+//                        loadingCommon(R.string.login_progress_signing_in);
+                        imService.getLoginManager().setAutoLogin(autoLogin);
+                        loading(R.string.login_progress_signing_in);
+                        handleGotLoginIdentity(userNo, pwd);
+                        return;
+                    } while (false);
+                    // 异常分支都会执行这个
+                    imService.getLoginManager().setAutoLogin(false);
+                    handleNoLoginIdentity();
+                } catch (Exception e) {
+                    logger.error(e);
+                    imService.getLoginManager().setAutoLogin(false);
+                    handleNoLoginIdentity();
                 }
+
             }
 
             @Override
             public void onServiceDisconnected() {
-                showMsgDialog(R.string.system_service_error);
+//                showMsgDialog(R.string.system_service_error);
+                ToastUtil.TextIntToast(getApplicationContext(), R.string.system_service_error, 0);
             }
         };
 
+
+    /**
+     * 自动登陆
+     */
+    private void handleGotLoginIdentity(final String userNo, final String pwd) {
+        logger.i("login#handleGotLoginIdentity");
+
+        uiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                logger.d("login#start auto login");
+                if (imService == null || imService.getLoginManager() == null) {
+                    Toast.makeText(LoginActivity.this, getString(R.string.login_failed),
+                            Toast.LENGTH_SHORT).show();
+
+                    showLoginPage();
+                }
+                imService.getLoginManager().autoLogin(userNo, pwd);
+            }
+        }, 500);
+    }
+
+    /**
+     * 跳转到登陆的页面
+     */
+    private void handleNoLoginIdentity() {
+        logger.i("login#handleNoLoginIdentity");
+        uiHandler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                showLoginPage();
+            }
+        }, 1000);
+    }
+
+    private void initAutoLogin() {
+        logger.i("login#initAutoLogin");
+        autoLogin = shouldAutoLogin();
+        splash_main.setVisibility(autoLogin ? View.VISIBLE : View.GONE);
+        login_main.setVisibility(autoLogin ? View.GONE : View.VISIBLE);
+
+//        if (autoLogin) {
+//            Animation splashAnimation = AnimationUtils.loadAnimation(this, R.anim.login_splash);
+//            if (splashAnimation == null) {
+//                logger.e("login#loadAnimation login_splash failed");
+//                return;
+//            }
+//
+//            splashPage.startAnimation(splashAnimation);
+//        }
+    }
+
+    // 主动退出的时候， 这个地方会有值,更具pwd来判断
+    private boolean shouldAutoLogin() {
+        Intent intent = getIntent();
+        if (intent != null) {
+            boolean autoLogin = (boolean) SpfUtil.get(getApplicationContext(), Constants.AUTO_LOGIN, true);
+            logger.d("login#notAutoLogin:%s", autoLogin);
+            return autoLogin;
+        }
+        return true;
+    }
 }

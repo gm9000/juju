@@ -9,7 +9,6 @@
 
     <!--<include  android:id="@+id/layout_bar" layout="@layout/layout_title"/>-->
 
-
     <com.rey.material.widget.EditText
         android:id="@+id/et_name"
         android:layout_marginLeft="5dp"
@@ -40,21 +39,19 @@
         app:v_styleId="@array/edittext"/>
 
 
-
-    <!--<Button-->
-        <!--android:id="@+id/btn_save"-->
-        <!--android:layout_marginLeft="5dp"-->
-        <!--android:layout_marginRight="5dp"-->
-        <!--android:layout_width="match_parent"-->
-        <!--android:layout_height="wrap_content"-->
-        <!--android:layout_marginTop="24dp"-->
-        <!--android:background="@drawable/btn_register_bg"-->
-        <!--android:enabled="true"-->
-        <!--android:paddingBottom="7dp"-->
-        <!--android:paddingTop="7dp"-->
-        <!--android:text="@string/chat_create"-->
-        <!--android:textColor="@android:color/white"-->
-        <!--android:textSize="18sp" />-->
+    <com.rey.material.widget.EditText
+        android:id="@+id/et_invite_code"
+        android:layout_marginLeft="5dp"
+        android:layout_marginRight="5dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:visibility="gone"
+        android:hint="@string/invite_code"
+        app:et_inputId="@+id/et_invite_code_input"
+        app:et_supportMode="charCounter"
+        app:et_supportMaxChars="0"
+        app:v_styleId="@array/edittext"/>
 
 
 

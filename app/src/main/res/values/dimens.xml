@@ -19,7 +19,6 @@
     <dimen name="guideline_thickness">1px</dimen>
 
 
-
     <dimen name="message_item_popup_width_double_short">140dp</dimen>
     <dimen name="message_item_popup_width_double_long">150dp</dimen>
     <dimen name="message_item_popup_width_single_short">60dp</dimen>
@@ -28,5 +27,12 @@
 
     <dimen name="login_round_margin_top">30dp</dimen>
     <dimen name="login_round_image_size">100dp</dimen>
+
+    <dimen name="normal_item_height">50.0dip</dimen>
+    <dimen name="user_detail_margin_content">80.0dip</dimen>
+    <dimen name="user_detail_margin_left">12.0dip</dimen>
+    <dimen name="user_detail_margin_right_content">40.0dip</dimen>
+    <dimen name="user_detail_title">14.0sp</dimen>
+
 
 </resources>

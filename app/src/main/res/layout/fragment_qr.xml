@@ -1,0 +1,108 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.juju.app.fragment.QrFragment">
+
+    <!--android:background="@drawable/btn_bg_gray"-->
+
+
+    <LinearLayout
+        android:id="@+id/lin_all"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_centerInParent="true"
+        android:layout_margin="30dp"
+        android:background="@drawable/btn_bg_gray"
+        android:orientation="vertical"
+        android:paddingBottom="20dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingTop="10dp" >
+
+        <RelativeLayout
+            android:id="@+id/view_user"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp" >
+
+            <!--<ImageView-->
+                <!--android:id="@+id/head"-->
+                <!--android:layout_width="60.0dip"-->
+                <!--android:layout_height="60.0dip"-->
+                <!--android:layout_margin="10dp"-->
+                <!--android:src="@mipmap/head" />-->
+
+            <!--<com.juju.app.view.groupchat.IMBaseImageView-->
+                <!--android:id="@+id/iv_head"-->
+                <!--android:layout_width="58dp"-->
+                <!--android:layout_height="58dp"-->
+                <!--android:adjustViewBounds="false"-->
+                <!--android:scaleType="centerCrop"-->
+                <!--android:layout_marginTop="9dp"-->
+                <!--android:layout_marginLeft="9dp" />-->
+
+            <com.juju.app.view.groupchat.IMGroupAvatar
+                android:id="@+id/iv_head"
+                android:layout_width="58dp"
+                android:layout_height="58dp"
+                android:layout_marginTop="9dp"
+                android:layout_marginBottom="9dp"
+                android:layout_marginLeft="8.5dp"
+                android:scaleType="centerCrop"
+                android:background="@mipmap/group_avatar_bk" />
+
+            <TextView
+                android:id="@+id/tvname"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="29dp"
+                android:layout_toRightOf="@+id/iv_head"
+                android:text="JLM"
+                android:textSize="18.0dip" />
+
+            <TextView
+                android:id="@+id/tvmsg"
+                style="@style/txt_ContextStyle1"
+                android:layout_below="@+id/tvname"
+                android:layout_marginTop="5dp"
+                android:layout_toRightOf="@+id/head"
+                android:text="群组名称：JLM"
+                android:visibility="gone"
+                android:textSize="14.0dip" />
+
+            <ImageView
+                android:id="@+id/iv_sex"
+                android:layout_toRightOf="@+id/tvname"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="22dp"
+                android:layout_marginLeft="5dp"
+                android:visibility="gone"
+                android:background="@color/wheel_bg"
+                android:src="@mipmap/ic_sex_female" />
+        </RelativeLayout>
+
+        <ImageView
+            android:id="@+id/img_code"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:contentDescription="@string/app_name"
+            android:scaleType="centerCrop"
+            android:src="@mipmap/erweima" />
+
+
+        <TextView
+            android:id="@+id/desc_info"
+            style="@style/txt_ContextStyle1"
+            android:layout_gravity="center"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="20dp"
+            android:gravity="bottom"
+            android:text="@string/qr_desc_info"
+            android:textSize="14.0dip" />
+    </LinearLayout>
+
+</FrameLayout>

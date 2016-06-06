@@ -11,6 +11,7 @@ import com.juju.app.biz.impl.SessionDaoIml;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.UnreadEntity;
@@ -52,8 +53,6 @@ public class IMSessionManager extends IMManager {
 
     private Logger logger = Logger.getLogger(IMSessionManager.class);
 
-    private final String TAG = getClass().getSimpleName();
-
     private volatile static IMSessionManager inst;
 
     // key = sessionKey -->  sessionType_peerId
@@ -64,9 +63,6 @@ public class IMSessionManager extends IMManager {
 
     private DaoSupport sessionDao;
 
-    private MessageDao messageDao;
-
-    private UserInfoBean userInfoBean;
 
     //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMSessionManager instance() {
@@ -82,9 +78,7 @@ public class IMSessionManager extends IMManager {
 
     @Override
     public void doOnStart() {
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         sessionDao = new SessionDaoIml(ctx);
-        messageDao = new MessageDaoImpl(ctx);
     }
 
     public void onNormalLoginOk() {
@@ -98,24 +92,15 @@ public class IMSessionManager extends IMManager {
         for(SessionEntity sessionInfo:sessionInfoList){
             sessionMap.put(sessionInfo.getSessionKey(), sessionInfo);
         }
-        sessionListReady = true;
         triggerEvent(SessionEvent.RECENT_SESSION_LIST_SUCCESS);
     }
 
+    /**
+     * 从消息服务请求最近会话 （采用未读消息处理）
+     *
+     */
     public void onLocalNetOk(){
-        long latestUpdateTime = messageDao.getSessionLastTime();
-        logger.d("session#更新时间:%d", latestUpdateTime);
 
-        //群组需要另外启服务
-        List<String> chatRoomIds = new ArrayList<String>();
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        chatRoomIds.add(userInfoBean.getmRoomName() +
-                "@" + userInfoBean.getmMucServiceName() + "." + userInfoBean.getmServiceName());
-
-        //latestUpdateTime>1 本地数据库存储了session数据
-        if(latestUpdateTime > 1) {
-//            reqGetRecentContacts(latestUpdateTime, chatRoomIds);
-        }
     }
 
 
@@ -145,7 +130,6 @@ public class IMSessionManager extends IMManager {
         }
         String loginId = BaseApplication.getInstance().getUserInfoBean().getmAccount();
         boolean isSend = msg.isSend(loginId);
-        // 因为多端同步的问题
         String peerId = msg.getPeerId(isSend);
 
         SessionEntity sessionEntity = sessionMap.get(msg.getSessionKey());
@@ -177,8 +161,9 @@ public class IMSessionManager extends IMManager {
         needDb.add(sessionEntity);
         sessionDao.batchReplaceInto(needDb);
         sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
-        SpfUtil.put(ctx, sessionEntity.getSessionKey(),
-                sessionEntity.getUpdated());
+//        SpfUtil.put(ctx, sessionEntity.getSessionKey(),
+//                sessionEntity.getUpdated());
+        //群组列表接收最新消息
         triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
     }
 
@@ -189,6 +174,28 @@ public class IMSessionManager extends IMManager {
         }
         return null;
     }
+
+    public PeerEntity findPeerEntity(String sessionKey){
+        if(TextUtils.isEmpty(sessionKey)){
+            return null;
+        }
+        // 拆分
+        PeerEntity peerEntity;
+        String[] sessionInfo = EntityChangeEngine.spiltSessionKey(sessionKey);
+        int peerType = Integer.parseInt(sessionInfo[0]);
+        String peerId = sessionInfo[1];
+        switch (peerType){
+            case DBConstant.SESSION_TYPE_GROUP:{
+                peerEntity = IMGroupManager.instance().findGroup(peerId);
+            }
+            break;
+            default:
+                throw new IllegalArgumentException("findPeerEntity#peerType is illegal,cause by " +peerType);
+        }
+        return peerEntity;
+    }
+
+
 
     public DaoSupport getSessionDao() {
         return sessionDao;
@@ -266,57 +273,57 @@ public class IMSessionManager extends IMManager {
     /**
      * 请求最近回话
      */
-    private void reqGetRecentContacts(long latestUpdateTime,  List<String> chatRoomIds) {
-        logger.i("session#reqGetRecentContacts");
-
-        for(String chatRoom : chatRoomIds) {
-            String uuid = UUID.randomUUID().toString();
-
-            socketService.findHisMessages("zrevrangebyscore", chatRoom, String.valueOf(latestUpdateTime+1), "",
-                    uuid, 0, Constants.MSG_CNT_PER_PAGE, new XMPPServiceCallbackImpl(0) {
-
-                /**
-                 * 新消息
-                 *
-                 * @param t
-                 */
-                @Override
-                public void onSuccess(Object t) {
-                    if(t instanceof RedisResIQ) {
-                        //需要放在循环体外(消息merge)
-                        ArrayList<SessionEntity> needDb = new ArrayList<>();
-                        RedisResIQ redisResIQ = (RedisResIQ)t;
-                        SessionEntity sessionEntity = getSessionEntity(redisResIQ);
-                        if(sessionEntity != null) {
-                            sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
-                            needDb.add(sessionEntity);
-                            //将最新的session信息保存在DB中
-                            sessionDao.batchReplaceInto(needDb);
-                            triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
-                        }
-                    }
-                }
-
-
-                /**
-                 * 消息异常
-                 */
-                @Override
-                public void onFailed() {
-
-                }
-
-                /**
-                 * 消息超时
-                 */
-                @Override
-                public void onTimeout() {
-
-                }
-            });
-        }
-
-    }
+//    private void reqGetRecentContacts(long latestUpdateTime,  List<String> chatRoomIds) {
+//        logger.i("session#reqGetRecentContacts");
+//
+//        for(String chatRoom : chatRoomIds) {
+//            String uuid = UUID.randomUUID().toString();
+//
+//            socketService.findHisMessages("zrevrangebyscore", chatRoom, String.valueOf(latestUpdateTime+1), "",
+//                    uuid, 0, Constants.MSG_CNT_PER_PAGE, new XMPPServiceCallbackImpl(0) {
+//
+//                /**
+//                 * 新消息
+//                 *
+//                 * @param t
+//                 */
+//                @Override
+//                public void onSuccess(Object t) {
+//                    if(t instanceof RedisResIQ) {
+//                        //需要放在循环体外(消息merge)
+//                        ArrayList<SessionEntity> needDb = new ArrayList<>();
+//                        RedisResIQ redisResIQ = (RedisResIQ)t;
+//                        SessionEntity sessionEntity = getSessionEntity(redisResIQ);
+//                        if(sessionEntity != null) {
+//                            sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
+//                            needDb.add(sessionEntity);
+//                            //将最新的session信息保存在DB中
+//                            sessionDao.batchReplaceInto(needDb);
+//                            triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
+//                        }
+//                    }
+//                }
+//
+//
+//                /**
+//                 * 消息异常
+//                 */
+//                @Override
+//                public void onFailed() {
+//
+//                }
+//
+//                /**
+//                 * 消息超时
+//                 */
+//                @Override
+//                public void onTimeout() {
+//
+//                }
+//            });
+//        }
+//
+//    }
 
     public SessionEntity getSessionEntity(RedisResIQ redisResIQ){
         SessionEntity sessionEntity = null;
@@ -491,5 +498,18 @@ public class IMSessionManager extends IMManager {
 
         //置顶session 设定
         SESSIONTOP,
+    }
+
+    @Override
+    protected void triggerEvent(Object paramObject) {
+        if(paramObject instanceof SessionEvent) {
+            SessionEvent event = (SessionEvent)paramObject;
+            switch (event){
+                case RECENT_SESSION_LIST_SUCCESS:
+                    sessionListReady = true;
+                    break;
+            }
+            EventBus.getDefault().postSticky(event);
+        }
     }
 }

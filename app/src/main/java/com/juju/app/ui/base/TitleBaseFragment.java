@@ -15,6 +15,7 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.activity.SearchActivity;
 import com.juju.app.annotation.CreateFragmentUI;
+import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.view.SearchEditText;
 import com.juju.libs.tools.ScreenTools;
@@ -335,7 +336,8 @@ public abstract class TitleBaseFragment extends BaseFragment {
     }
 
     public void showSearchView() {
-        startActivity(new Intent(getActivity(), SearchActivity.class));
+//        startActivity(new Intent(getActivity(), SearchActivity.class));
+        ActivityUtil.startActivity4UP(getActivity(), SearchActivity.class);
     }
 
     protected void onSearchDataReady() {

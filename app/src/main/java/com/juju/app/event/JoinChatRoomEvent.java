@@ -2,6 +2,8 @@ package com.juju.app.event;
 
 import com.juju.app.entity.chat.GroupEntity;
 
+import java.util.List;
+
 /**
  * 项目名称：juju
  * 类描述：加入聊天室事件
@@ -11,7 +13,7 @@ import com.juju.app.entity.chat.GroupEntity;
  */
 public class JoinChatRoomEvent {
 
-    public GroupEntity groupEntity;
+    public List<String> joinedGroupPeerIds;
 
     public Event event;
 
@@ -19,7 +21,9 @@ public class JoinChatRoomEvent {
 
         JOIN_REQ,
 
-        JOIN_OK,
+        JOIN_OK_4_UNREAD_MSG_REQ,
+
+        JOIN_OK_4_UNREAD_MSG_SUCCESS,
 
         JOIN_FAILED
 

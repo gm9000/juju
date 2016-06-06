@@ -17,6 +17,7 @@ import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.service.im.manager.IMMessageManager;
+import com.juju.app.service.im.manager.IMNotificationManager;
 import com.juju.app.service.im.manager.IMOtherManager;
 import com.juju.app.service.im.manager.IMRecentSessionManager;
 import com.juju.app.service.im.manager.IMSessionManager;
@@ -41,8 +42,6 @@ import java.util.List;
  */
 public class IMService extends Service {
 
-    private final String TAG = getClass().getSimpleName();
-
     private Logger logger = Logger.getLogger(IMService.class);
 
     private IMServiceBinder binder = new IMServiceBinder();
@@ -64,19 +63,18 @@ public class IMService extends Service {
     //联系人服务管理器
     private IMContactManager contactMgr = IMContactManager.instance();
 
+    //通知管理服务
+    private IMNotificationManager notificationMgr = IMNotificationManager.instance();
+
 
 
     @Override
     public IBinder onBind(Intent intent) {
-        Log.d(TAG, "onBind" + this.toString());
         return binder;
     }
 
-
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate" + this.toString());
-        Log.d(TAG, "threadId" + Thread.currentThread().getId());
         super.onCreate();
         EventBus.getDefault().register(this);
         Context ctx = getApplicationContext();
@@ -86,8 +84,7 @@ public class IMService extends Service {
         unReadMsgMgr.onStartIMManager(ctx, this);
         groupMgr.onStartIMManager(ctx, this);
         contactMgr.onStartIMManager(ctx, this);
-
-
+        notificationMgr.onStartIMManager(ctx, this);
         otherManager.onStartIMManager(ctx, this);
 //        startForeground((int) System.currentTimeMillis(), new Notification());
     }
@@ -114,17 +111,15 @@ public class IMService extends Service {
 
     @Override
     public void onDestroy() {
-        Log.d(TAG, "onDestroy" + this.toString());
         EventBus.getDefault().unregister(this);
-
         //记录最后保存的 sessionKey
-        List<SessionEntity> sessionList = sessionMgr.getRecentSessionList();
-        if(sessionList != null) {
-            for(SessionEntity sessionEntity : sessionList) {
-                SpfUtil.put(getApplicationContext(), sessionEntity.getSessionKey(),
-                        sessionEntity.getUpdated());
-            }
-        }
+//        List<SessionEntity> sessionList = sessionMgr.getRecentSessionList();
+//        if(sessionList != null) {
+//            for(SessionEntity sessionEntity : sessionList) {
+//                SpfUtil.put(getApplicationContext(), sessionEntity.getSessionKey(),
+//                        sessionEntity.getUpdated());
+//            }
+//        }
         handleLogout();
         super.onDestroy();
     }
@@ -132,14 +127,12 @@ public class IMService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Log.d(TAG, "onUnbind" + this.toString());
         return super.onUnbind(intent);
     }
 
 
     @Override
     public void onRebind(Intent intent) {
-        Log.d(TAG, "onRebind" + this.toString());
         super.onRebind(intent);
     }
 
@@ -156,12 +149,17 @@ public class IMService extends Service {
      * loginSuccess
      */
     private void onNormalLoginOk() {
-        logger.d("imservice#onLogin Successful");
+        logger.d("imservice#onNormalLoginOk Successful");
+        //获取群组或联系人构造群聊列表
+
         //先获取群组
         groupMgr.onNormalLoginOk();
-        unReadMsgMgr.onNormalLoginOk();
-        sessionMgr.onNormalLoginOk();
+        //再获取联系人
         contactMgr.onNormalLoginOk();
+        sessionMgr.onNormalLoginOk();
+        unReadMsgMgr.onNormalLoginOk();
+        //消息通知栏状态
+        notificationMgr.onLoginSuccess();
     }
 
     /**
@@ -171,24 +169,24 @@ public class IMService extends Service {
     private void onLocalLoginOk(){
 //        Context ctx = getApplicationContext();
         groupMgr.onLocalLoginOk();
-        sessionMgr.onLocalLoginOk();
         contactMgr.onLocalLoginOk();
-
+        sessionMgr.onLocalLoginOk();
+        unReadMsgMgr.onLocalLoginOk();
         messageMgr.onLoginSuccess();
 
-
+        //消息通知栏状态
+        notificationMgr.onLoginSuccess();
     }
 
     /**
-     * 1.从本机加载成功之后，请求MessageService建立链接成功(loginMessageSuccess)
-     * 2. 重练成功之后
+     * 1.从本机加载成功之后，请求MessageService建立连接成功(loginMessageSuccess)
+     * 2. 重连成功之后
      */
     private void onLocalNetOk(){
+        groupMgr.onLocalNetOk();
+        contactMgr.onLocalNetOk();
         sessionMgr.onLocalNetOk();
         unReadMsgMgr.onLocalNetOk();
-        contactMgr.onLocalNetOk();
-        groupMgr.onLocalNetOk();
-
     }
 
     private void handleLogout() {
@@ -197,6 +195,7 @@ public class IMService extends Service {
         sessionMgr.reset();
         unReadMsgMgr.reset();
         contactMgr.reset();
+        notificationMgr.reset();
     }
 
 
@@ -204,12 +203,12 @@ public class IMService extends Service {
     @Subscribe(threadMode = ThreadMode.POSTING, priority = Constants.SERVICE_EVENTBUS_PRIORITY)
     public void onEvent4PriorityEvent(PriorityEvent event){
         switch (event.event){
-            case MSG_RECEIVED_MESSAGE:{
+            case MSG_RECEIVED_MESSAGE:
                 MessageEntity entity = (MessageEntity) event.object;
                 /**非当前的会话*/
-                logger.d("messageactivity#not this session msg -> id:%s", entity.getFromId());
+                logger.d("chatactivity#not this session msg -> id:%s", entity.getFromId());
                 unReadMsgMgr.add(entity);
-            }break;
+                break;
         }
     }
 
@@ -217,7 +216,8 @@ public class IMService extends Service {
     public void onEvent4Login(LoginEvent event){
         switch (event){
             case LOGIN_OK:
-                onNormalLoginOk();break;
+                onNormalLoginOk();
+                break;
             case LOCAL_LOGIN_SUCCESS:
                 onLocalLoginOk();
                 break;
@@ -225,13 +225,15 @@ public class IMService extends Service {
                 onLocalNetOk();
                 break;
             case LOGIN_OUT:
-                handleLogout();break;
+                handleLogout();
+                break;
         }
     }
 
     public IMLoginManager getLoginManager() {
         return loginMgr;
     }
+
 
     public IMUnreadMsgManager getUnReadMsgManager() {
         return unReadMsgMgr;
@@ -253,4 +255,7 @@ public class IMService extends Service {
         return contactMgr;
     }
 
+    public IMNotificationManager getNotificationManager() {
+        return notificationMgr;
+    }
 }

@@ -15,6 +15,7 @@ import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.json.JSONUtils;
+import com.juju.app.utils.pinyin.PinYinUtil;
 
 import org.apache.commons.lang.time.DateFormatUtils;
 import org.apache.commons.lang.time.DateUtils;
@@ -156,6 +157,9 @@ public class GetGroupUserThread implements Runnable {
                                                     userPhone,  "",  gender, nickName,
                                                     createTimeDate,  birthdayDate);
                                             saveUsers(userEntity);
+                                            //暂时这样处理
+                                            PinYinUtil.getPinYin(userEntity.getNickName(),
+                                                    userEntity.getPinyinElement());
                                             userMap.put(userNo, userEntity);
                                             userNoSbf.append(userNo);
                                             if(i < jsonArray.length() - 1) {
@@ -163,11 +167,18 @@ public class GetGroupUserThread implements Runnable {
                                             }
                                         }
                                         GroupEntity groupEntity = GroupEntity.buildForReceive(id,
-                                                peerId, 0,  name, userNoSbf.toString(), creatorId,
-                                                desc, null, null);
+                                                peerId, DBConstant.GROUP_TYPE_NORMAL,  name,
+                                                userNoSbf.toString(), creatorId, desc, null, null);
+
+                                        //暂时这样处理
+                                        GroupEntity cacheGroup = groupMap.get(groupEntity.getPeerId());
+                                        if(cacheGroup != null) {
+                                            //本地数据
+                                            groupEntity.setInviteCode(cacheGroup.getInviteCode());
+                                            groupEntity.setQrCode(cacheGroup.getQrCode());
+                                        }
                                         groupDao.replaceInto(groupEntity);
                                         groupMap.put(groupEntity.getPeerId(), groupEntity);
-                                        IMGroupManager.instance().joinChatRoom(groupEntity);
                                     }
                                 }
                             } catch (JSONException e) {
@@ -206,6 +217,7 @@ public class GetGroupUserThread implements Runnable {
         }
 
     }
+
 
     private void saveUsers(User user) {
         User dbUser = (User) userDao.findUniByProperty("user_no", user.getUserNo());

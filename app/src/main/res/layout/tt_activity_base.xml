@@ -3,7 +3,6 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
     android:orientation="vertical" >
 
     <FrameLayout
@@ -11,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <include  android:id="@+id/layout_bar" layout="@layout/layout_title"/>
+        <include  android:id="@+id/layout_bar" layout="@layout/layout_title" />
 
         <com.juju.app.view.SearchEditText
             android:visibility="gone"

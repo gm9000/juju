@@ -81,9 +81,9 @@ public class IMMessageManager extends IMManager {
     }
 
     public void onLoginSuccess() {
-        if (!EventBus.getDefault().isRegistered(inst)) {
-            EventBus.getDefault().register(inst);
-        }
+//        if (!EventBus.getDefault().isRegistered(inst)) {
+//            EventBus.getDefault().register(inst);
+//        }
     }
 
     /**

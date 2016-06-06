@@ -4,13 +4,17 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.ProgressBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.juju.app.R;
 import com.juju.app.activity.MainActivity;
@@ -19,20 +23,25 @@ import com.juju.app.adapter.GroupChatListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.event.GroupEvent;
+import com.juju.app.event.LoginEvent;
 import com.juju.app.event.SessionEvent;
+import com.juju.app.event.SmackSocketEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.helper.IMUIHelper;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.im.manager.IMGroupManager;
+import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.manager.IMUnreadMsgManager;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.ui.base.TitleBaseFragment;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.NetWorkUtil;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
@@ -61,6 +70,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
 
     protected static Logger logger = Logger.getLogger(GroupChatFragment.class);
 
+    private Handler uiHandler = new Handler();
 
 //    private MainActivity parentActivity;
 //
@@ -86,9 +96,24 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
     @ViewInject(R.id.progress_bar)
     private ProgressBar progressbar;
 
-//    private List<GroupChatInitBean> groupChats;
+    @ViewInject(R.id.layout_no_network)
+    private View noNetworkView;
+
+    @ViewInject(R.id.progressbar_reconnect)
+    private ProgressBar reconnectingProgressBar;
+
+    @ViewInject(R.id.imageWifi)
+    private ImageView notifyImage;
+
+    @ViewInject(R.id.disconnect_text)
+    private TextView displayView;
+
+    //    private List<GroupChatInitBean> groupChats;
     private GroupChatListAdapter contactAdapter = null;
     private IMService imService;
+
+    //是否是手动点击重练。fasle:不显示各种弹出小气泡. true:显示小气泡直到错误出现
+    private volatile boolean isManualMConnect = false;
 
     //聊天服务连接器
     private IMServiceConnector imServiceConnector = new IMServiceConnector(){
@@ -105,6 +130,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
             }
             // 依赖联系人会话、未读消息、用户的信息三者的状态
             onRecentContactDataReady();
+            checkNetWork();
         }
     };
 
@@ -221,7 +247,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
     }
 
     //会话更新
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEventMainThread(SessionEvent sessionEvent){
         logger.d("groupchat_fragment#SessionEvent# -> %s", sessionEvent);
         switch (sessionEvent){
@@ -233,8 +259,8 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         }
     }
 
-    //群组事件回调
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    //群组事件回调(支持粘性通知，注册可以在通知之后进行)
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEvent4GroupEvent(GroupEvent event){
         logger.d("groupchat_fragment#GroupEvent# -> %s", event);
         switch (event.getEvent()){
@@ -246,7 +272,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
 
             case GROUP_INFO_UPDATED:
                 onRecentContactDataReady();
-                searchDataReady();
+//                searchDataReady();
                 break;
             case SHIELD_GROUP_OK:
                 // 更新最下栏的未读计数、更新session
@@ -259,6 +285,93 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         }
     }
 
+    //登陆状态回调
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onEvent4Login(LoginEvent loginEvent){
+        logger.d("goupchatfragment#LoginEvent# -> %s", loginEvent);
+        switch (loginEvent){
+            case LOCAL_LOGIN_SUCCESS:
+            case LOGINING: {
+                logger.d("goupchatfragment#login#recv handleDoingLogin event");
+                if (reconnectingProgressBar != null) {
+                    reconnectingProgressBar.setVisibility(View.VISIBLE);
+                }
+            }
+            break;
+
+            case LOCAL_LOGIN_MSG_SERVICE:
+            case LOGIN_OK: {
+                isManualMConnect = false;
+                logger.d("goupchatfragment#loginOk");
+                noNetworkView.setVisibility(View.GONE);
+            }
+            break;
+
+            case LOGIN_AUTH_FAILED:
+            case LOGIN_INNER_FAILED:{
+                onLoginFailure(loginEvent);
+            }
+            break;
+            case LOGIN_MSG_FAILED:
+                handleServerDisconnected();
+                break;
+
+            default: reconnectingProgressBar.setVisibility(View.GONE);
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onEventMain4SmackSocket(SmackSocketEvent socketEvent){
+        switch (socketEvent){
+            case MSG_SERVER_DISCONNECTED:
+                handleServerDisconnected();
+                break;
+
+            case CONNECT_MSG_SERVER_FAILED:
+                handleServerDisconnected();
+                onSocketFailure(socketEvent);
+                break;
+        }
+    }
+
+
+    private void handleServerDisconnected() {
+        logger.d("chatfragment#handleServerDisconnected");
+
+        if (reconnectingProgressBar != null) {
+            reconnectingProgressBar.setVisibility(View.GONE);
+        }
+
+        if (noNetworkView != null) {
+            notifyImage.setImageResource(R.mipmap.warning);
+            noNetworkView.setVisibility(View.VISIBLE);
+            if(imService != null){
+                if(imService.getLoginManager().isKickout()){
+                    displayView.setText(R.string.disconnect_kickout);
+                }else{
+                    displayView.setText(R.string.no_network);
+                }
+            }
+            /**重连【断线、被其他移动端挤掉】*/
+            noNetworkView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    logger.d("chatFragment#noNetworkView clicked");
+//                    IMReconnectManager manager = imService.getReconnectManager();
+                    if(NetWorkUtil.isNetworkConnected(getActivity())){
+                        isManualMConnect = true;
+                        IMLoginManager.instance().login();
+                    }else{
+                        Toast.makeText(getActivity(), R.string.no_network_toast,
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    reconnectingProgressBar.setVisibility(View.VISIBLE);
+                }
+            });
+        }
+    }
 
 
 
@@ -266,6 +379,8 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
      * 查找最近消息
      */
     private void onRecentContactDataReady() {
+        if(imService == null)
+            return;
         IMContactManager contactMsgManager = imService.getContactManager();
         IMUnreadMsgManager unreadMsgManager = imService.getUnReadMsgManager();
         IMSessionManager sessionManager = imService.getSessionManager();
@@ -286,8 +401,6 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         //获取最新消息
         List<RecentInfo> recentSessionList = sessionManager.getRecentListInfo();
 
-//        setNoChatView(recentSessionList);
-//        getGroupChats4RecentList(recentSessionList);
         //更新群组列表数据
         contactAdapter.setData(recentSessionList);
         hideProgressBar();
@@ -340,7 +453,6 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
 
     // 现在只有群组存在免打扰的
     private void handleGroupItemLongClick(final Context ctx, final RecentInfo recentInfo) {
-
         AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(ctx, android.R.style.Theme_Holo_Light_Dialog));
         builder.setTitle(recentInfo.getName());
 
@@ -382,4 +494,53 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         progressbar.setVisibility(View.GONE);
     }
 
+    private void  onLoginFailure(LoginEvent event){
+        if(!isManualMConnect){return;}
+        isManualMConnect = false;
+        String errorTip = getString(IMUIHelper.getLoginErrorTip(event));
+        logger.d("login#errorTip:%s", errorTip);
+        reconnectingProgressBar.setVisibility(View.GONE);
+        Toast.makeText(getActivity(), errorTip, Toast.LENGTH_SHORT).show();
+    }
+
+    private void  onSocketFailure(SmackSocketEvent event){
+        if(!isManualMConnect){return;}
+        isManualMConnect = false;
+        String errorTip = getString(IMUIHelper.getSocketErrorTip(event));
+        logger.d("login#errorTip:%s", errorTip);
+        reconnectingProgressBar.setVisibility(View.GONE);
+        Toast.makeText(getActivity(), errorTip, Toast.LENGTH_SHORT).show();
+    }
+
+    //检查网络环境
+    private void checkNetWork() {
+        if(!NetWorkUtil.isNetworkConnected(getActivity())){
+            noNetworkView.setVisibility(View.VISIBLE);
+            /**重连【断线、被其他移动端挤掉】*/
+            noNetworkView.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    logger.d("chatFragment#noNetworkView clicked");
+//                    IMReconnectManager manager = imService.getReconnectManager();
+                    if(NetWorkUtil.isNetworkConnected(getActivity())){
+                        isManualMConnect = true;
+                        IMLoginManager.instance().login();
+                    }else{
+                        Toast.makeText(getActivity(), R.string.no_network_toast,
+                                Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    reconnectingProgressBar.setVisibility(View.VISIBLE);
+                }
+            });
+            displayView.setText(R.string.no_network);
+            reconnectingProgressBar.setVisibility(View.VISIBLE);
+            uiHandler.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    reconnectingProgressBar.setVisibility(View.GONE);
+                }
+            }, 5000);
+        }
+    }
 }

@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@android:color/white"
+    android:background="@color/white"
     android:orientation="vertical"
     android:fitsSystemWindows="true">
 
@@ -33,10 +33,10 @@
     </FrameLayout>
 
 
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="0.5dp"
-        android:background="@mipmap/tt_divide_line" />
+    <!--<View-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="0.5dp"-->
+        <!--android:background="@mipmap/tt_divide_line" />-->
 
     <FrameLayout
         android:id="@+id/searchbar"
@@ -60,11 +60,10 @@
             android:singleLine="true"
             android:textColorHint="#9a9b9c"
             android:textSize="14sp" />
-
     </FrameLayout>
-    <View
-        android:layout_width="fill_parent"
-        android:layout_height="0.5dp"
-        android:paddingBottom="0dp"
-        android:background="@mipmap/tt_divide_line" />
+    <!--<View-->
+        <!--android:layout_width="fill_parent"-->
+        <!--android:layout_height="0.5dp"-->
+        <!--android:paddingBottom="0dp"-->
+        <!--android:background="@mipmap/tt_divide_line" />-->
 </LinearLayout>

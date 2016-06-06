@@ -46,6 +46,7 @@
     <color name="half_transparent_black">#77000000</color>
     <color name="default_title_color">#343434</color>
     <color name="default_key_color">#999999</color>
+    <color name="default_value_color">#333333</color>
 
 
 
@@ -87,8 +88,10 @@
     <!--user detail-->
     <color name="user_detail_base">#ececec</color>
     <color name="pickimage_item_bg">#ffffff</color>
+    <color name="default_light_grey_color">#929292</color>
 
 
+    <!--群聊详情 -->
 
     <!--我 -->
     <color name="black2">#ffeeeeee</color>
@@ -104,6 +107,10 @@
     <color name="wheel_unselect_text">#c2c1c1</color>
     <color name="wheel_bg">#f2f2f2</color>
     <color name="cutting_line">#dfdfdf</color>
+
+    <color name="default_content_color">#ff000000</color>
+    <color name="divide_line">#ffe3e3e3</color>
+
 
 
 </resources>

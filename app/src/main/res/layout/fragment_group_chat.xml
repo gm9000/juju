@@ -10,6 +10,7 @@
         android:orientation="vertical"
         android:visibility="gone" >
 
+
         <!-- todo eric specify the detail height is not a good option -->
 
         <RelativeLayout
@@ -49,8 +50,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="20dp"
                 android:adjustViewBounds="true"
-                android:src = "@mipmap/tt_msg_tip"
-                />
+                android:src = "@mipmap/tt_msg_tip" />
 
         </RelativeLayout>
 

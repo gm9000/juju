@@ -4,10 +4,13 @@ package com.juju.app.event;
 public enum LoginEvent {
     NONE,
     LOGINING,
-    // 网络登陆验证成功
+    // 业务服务器登陆验证成功
+    LOGIN_BSERVER_OK,
+    //业务服务器+消息服务器登陆验证成功
     LOGIN_OK,
     LOGIN_INNER_FAILED,
     LOGIN_AUTH_FAILED,
+    LOGIN_MSG_FAILED,
     LOGIN_OUT,
 
     // 对于离线登陆

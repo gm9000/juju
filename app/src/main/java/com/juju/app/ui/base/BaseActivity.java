@@ -20,7 +20,7 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.baidu.mapapi.SDKInitializer;
+//import com.baidu.mapapi.SDKInitializer;
 import com.juju.app.R;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.annotation.SystemColor;
@@ -91,6 +91,7 @@ public abstract class BaseActivity extends AppCompatActivity {
             LayoutInflater.from(this).inflate(contentView.value(), topContentView, true);
             x.view().inject(this, topContentView);
             setContentView(topContentView);
+
         } else {
             x.view().inject(this);
         }
@@ -183,6 +184,30 @@ public abstract class BaseActivity extends AppCompatActivity {
                     }
                 });
         builder.create().show();
+    }
+
+    /**
+     * 消息弹出框
+     * @param text
+     */
+    protected void showMsgDialog4Main(final int text) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                CustomDialog.Builder builder = new CustomDialog.Builder(
+                        BaseActivity.this);
+                builder.setMessage(text);
+                builder.setNegativeButton("确定",
+                        new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog,
+                                                int paramInt) {
+                                dialog.dismiss();
+                                completeLoading();
+                            }
+                        });
+                builder.create().show();
+            }
+        });
     }
 
     /**
@@ -287,10 +312,53 @@ public abstract class BaseActivity extends AppCompatActivity {
         loadingUI.show();
     }
 
+
+    protected void loadingCommon4Main(final Object... msg) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(loadingUI == null) {
+                    loadingUI =  KProgressHUD.create(BaseActivity.this)
+                            .setStyle(KProgressHUD.Style.SPIN_INDETERMINATE)
+                            .setCancellable(true)
+                            .setAnimationSpeed(1)
+                            .setDimAmount(0.5f);
+                    if(msg == null
+                            || msg.length == 0) {
+                        loadingUI.setLabel(getContext().getResources()
+                                .getText(R.string.common_loading).toString());
+                    } else {
+                        if(msg[0] instanceof Integer) {
+                            loadingUI.setLabel(getContext().getResources()
+                                    .getText((Integer) msg[0]).toString());
+                        } else if (msg[0] instanceof String) {
+                            loadingUI.setLabel((String)msg[0]);
+                        } else {
+                            loadingUI.setLabel(getContext().getResources()
+                                    .getText(R.string.common_loading).toString());
+                        }
+                    }
+                }
+                loadingUI.show();
+            }
+        });
+    }
+
     protected void completeLoadingCommon() {
         if(loadingUI != null) {
             loadingUI.dismiss();
         }
+    }
+
+    protected void completeLoadingCommon4Main() {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if(loadingUI != null) {
+                    loadingUI.dismiss();
+                }
+            }
+        });
     }
 
 //    @Override
@@ -366,10 +434,11 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     @SuppressLint("NewApi")
     private void setSystemColor() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            int color = R.color.blue;
-            final SystemColor createUI = this.getClass().getAnnotation(SystemColor.class);
-            if(createUI != null) {
+        final SystemColor createUI = this.getClass().getAnnotation(SystemColor.class);
+        int color = R.color.blue;
+        if(createUI != null) {
+            //设置状态栏、导航栏
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
                 if(createUI.isApply()) {
                     color = createUI.colorValue();
                     setStatusBarAndNavigationBar(true, true, color);
@@ -377,10 +446,17 @@ public abstract class BaseActivity extends AppCompatActivity {
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
                     getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
                 }
-            } else {
-                setStatusBarAndNavigationBar(true, true, color);
             }
+            //设置标题栏
+            if(topBar != null) {
+                topBar.setBackgroundColor(getResources().getColor(createUI.titleColorValue()));
+            }
+        } else {
+            setStatusBarAndNavigationBar(true, true, color);
         }
+
+
+
     }
 
     @SuppressLint("NewApi")
@@ -414,6 +490,12 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void triggerEvent(Object paramObject)
     {
         EventBus.getDefault().post(paramObject);
+    }
+
+    //发送消息，消息发布者，UI需监听
+    protected void triggerEvent4Sticky(Object paramObject)
+    {
+        EventBus.getDefault().postSticky(paramObject);
     }
 
 
@@ -574,6 +656,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected void hideTopRightAll() {
         hideTopRightButton();
         topRightTitleTxt.setVisibility(View.GONE);
+
     }
 
 
@@ -589,14 +672,15 @@ public abstract class BaseActivity extends AppCompatActivity {
         topLetTitleTxt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ActivityUtil.finish(BaseActivity.this);
+               finish(BaseActivity.this);
             }
         });
+
 
         topLeftBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ActivityUtil.finish(BaseActivity.this);
+                finish(BaseActivity.this);
             }
         });
 

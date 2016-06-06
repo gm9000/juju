@@ -41,10 +41,10 @@ public class IMBaseImageView extends ImageView {
             if (!TextUtils.isEmpty(this.imageUrl)&&this.imageUrl.equals(CommonUtil.matchUrl(this.imageUrl))) {
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(this.imageUrl, this, ImageLoaderUtil.getAvatarOptions(corner, defaultImageRes));
             }else{
-                String defaultUri="mipmap://" + defaultImageRes;
+                String defaultUri="drawable://" + defaultImageRes;
                 if(imageId!=0)
                 {
-                     defaultUri="mipmap://" + imageId;
+                     defaultUri="drawable://" + imageId;
                 }
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(defaultUri, this, ImageLoaderUtil.getAvatarOptions(corner, defaultImageRes));
             }

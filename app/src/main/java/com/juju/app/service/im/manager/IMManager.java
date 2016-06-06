@@ -27,7 +27,7 @@ public abstract class IMManager {
     public IMManager() {
     }
 
-    //启动子服务
+    //启动设置参数
     public void onStartIMManager(Context paramContext, Service service)
     {
         setContext(paramContext);

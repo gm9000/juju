@@ -51,6 +51,14 @@ public class Constants {
     public static final int pageSize = 21;
     public static final int yayaPageSize = 8;
     public static final String SESSION_ID_KEY = "session_id";
+    public static final String GROUP_ID_KEY = "group_id";
+    public static final String KEY_PEERID = "key_peerid";
+    public static final String KEY_AVATAR_URL = "key_avatar_url";
+    public static final String KEY_IS_IMAGE_CONTACT_AVATAR = "is_image_contact_avatar";
+    /**
+     *1. 配置的全局key
+     * */
+    public static final String SETTING_GLOBAL = "Global";
 
 
     /**

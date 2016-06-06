@@ -11,16 +11,20 @@ import android.widget.TextView;
 
 
 import com.juju.app.R;
+import com.juju.app.activity.chat.ChatActivity;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.golobal.Constants;
 import com.juju.app.helper.IMUIHelper;
 import com.juju.app.service.im.IMService;
+import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.ScreenUtil;
 import com.juju.app.view.groupchat.IMBaseImageView;
 import com.juju.app.view.groupchat.IMGroupAvatar;
+
+import org.apache.http.message.BasicNameValuePair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,6 +82,13 @@ public class SearchAdapter extends BaseAdapter implements
 //            IMUIHelper.openChatActivity(ctx, userEntity.getSessionKey());
         }else if(object instanceof GroupEntity){
             GroupEntity groupEntity = (GroupEntity) object;
+            List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
+            BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
+                    groupEntity.getSessionKey());
+            valuePairs.add(markerIdValue);
+            ActivityUtil.startActivity(ctx, ChatActivity.class,
+                    valuePairs.toArray(new BasicNameValuePair[]{}));
+
 //            IMUIHelper.openChatActivity(ctx, groupEntity.getSessionKey());
         }
     }
@@ -171,7 +182,7 @@ public class SearchAdapter extends BaseAdapter implements
 
     public View renderUser(int position, View view, ViewGroup parent){
         UserHolder userHolder = null;
-        UserEntity  userEntity= (UserEntity)getItem(position);
+        User  userEntity= (User)getItem(position);
         if(userEntity == null){
             logger.e("SearchAdapter#renderUser#userEntity is null!position:%d",position);
             return null;
@@ -189,7 +200,7 @@ public class SearchAdapter extends BaseAdapter implements
             userHolder = (UserHolder) view.getTag();
         }
 
-        IMUIHelper.setTextHilighted(userHolder.nameView, userEntity.getMainName(), userEntity.getSearchElement());
+        IMUIHelper.setTextHilighted(userHolder.nameView, userEntity.getNickName(), userEntity.getSearchElement());
         //userHolder.nameView.setText(userEntity.getNickName());
 
         userHolder.avatar.setImageResource(R.mipmap.tt_default_user_portrait_corner);
@@ -211,7 +222,7 @@ public class SearchAdapter extends BaseAdapter implements
         userHolder.avatar.setCorner(0);
         userHolder.avatar.setImageUrl(userEntity.getAvatar());
 
-        userHolder.realNameView.setText(userEntity.getRealName());
+        userHolder.realNameView.setText(userEntity.getNickName());
         userHolder.realNameView.setVisibility(View.GONE);
         return view;
     }

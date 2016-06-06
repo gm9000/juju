@@ -42,38 +42,22 @@ import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 项目名称：juju
  * 类描述：未读消息相关的处理，归属于messageEvent中
  * 可以理解为MessageManager的又一次拆分
  * 为session提供未读支持
- * DB 中不保存
  * 创建人：gm
  * 日期：2016/4/20 19:43
  * 版本：V1.0.0
  */
 public class IMUnreadMsgManager extends IMManager {
 
-    private Logger logger = Logger.getLogger(IMUnreadMsgManager.class);
-
-
-    /**key=> sessionKey*/
-    private ConcurrentHashMap<String, UnreadEntity> unreadMsgMap = new ConcurrentHashMap<>();
-
-    private int totalUnreadCount = 0;
-
-    private boolean unreadListReady = false;
 
     private volatile static IMUnreadMsgManager inst = null;
-
-    private UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-
-    private MessageDao messageDao;
-
-    private DaoSupport unReadDao;
-
-    List<String> chatRoomIds = new ArrayList<String>();
 
     //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMUnreadMsgManager instance() {
@@ -86,6 +70,28 @@ public class IMUnreadMsgManager extends IMManager {
         }
         return inst;
     }
+
+    private Logger logger = Logger.getLogger(IMUnreadMsgManager.class);
+
+    //未读消息查询超时时间
+    private final static int UNREAD_REQ_TIMEOUT = 10;
+
+    /**key=> sessionKey*/
+    private ConcurrentHashMap<String, UnreadEntity> unreadMsgMap = new ConcurrentHashMap<>();
+
+    private int totalUnreadCount = 0;
+
+    private boolean unreadListReady = false;
+
+
+    private UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+
+    private MessageDao messageDao;
+
+    private DaoSupport unReadDao;
+
+    List<String> chatRoomIds = new ArrayList<>();
+
 
     public ConcurrentHashMap<String, UnreadEntity> getUnreadMsgMap() {
         return unreadMsgMap;
@@ -102,23 +108,28 @@ public class IMUnreadMsgManager extends IMManager {
     }
 
     public void onNormalLoginOk(){
-        unreadMsgMap.clear();
+        onLocalLoginOk();
         onLocalNetOk();
-        //登录聊天室
-//        joinChatRooms(chatRoomIds);
-        //获取未读消息
-//        reqUnreadMsgContactList(chatRoomIds);
-
-//        reqMessageList(chatRoomIds);
     }
 
-    public void onLocalNetOk(){
+    public void onLocalLoginOk() {
         if (!EventBus.getDefault().isRegistered(inst)) {
             EventBus.getDefault().register(inst);
         }
         unreadMsgMap.clear();
-//        reqUnreadMsgContactList(chatRoomIds);
-//        reqMessageList(chatRoomIds);
+        //读取本地未读消息
+        List<UnreadEntity> unreadEntityList = unReadDao.findAll();
+        for(UnreadEntity entity : unreadEntityList) {
+            unreadMsgMap.put(entity.getSessionKey(), entity);
+        }
+        unreadListReady = true;
+        triggerEvent(new UnreadEvent(UnreadEvent.Event.UNREAD_MSG_LIST_OK));
+    }
+
+    /**
+     * 未读消息由用户加入群组后 通知接收,初始化需要清理
+     */
+    public void onLocalNetOk(){
 
     }
 
@@ -135,7 +146,10 @@ public class IMUnreadMsgManager extends IMManager {
     }
 
 
-    //IMService调用(群组列表界面显示未读消息)
+    /**
+     * 未读消息添加入口
+     * IMService调用(群组列表界面显示未读消息)
+     */
     public void add(MessageEntity msg) {
         //更新session list中的msg信息
         //更新未读消息计数
@@ -151,7 +165,7 @@ public class IMUnreadMsgManager extends IMManager {
         String sessionKey = msg.getSessionKey();
         boolean isSend = msg.isSend(loginId);
         if(isSend){
-//            IMNotificationManager.instance().cancelSessionNotifications(sessionKey);
+            IMNotificationManager.instance().cancelSessionNotifications(sessionKey);
             return;
         }
 
@@ -172,11 +186,11 @@ public class IMUnreadMsgManager extends IMManager {
             //存放更新时间
             unreadEntity.setCreated(msg.getUpdated());
             //持久化数据
-            unReadDao.saveOrUpdate(unreadEntity);
         }
         unreadEntity.setLatestMsgData(msg.getMessageDisplay());
         unreadEntity.setLaststMsgId(msg.getMsgId());
-
+        unreadEntity.setUpdated(msg.getUpdated());
+        unReadDao.replaceInto(unreadEntity);
         addIsForbidden(unreadEntity);
 
         /**放入manager 状态中*/
@@ -278,145 +292,137 @@ public class IMUnreadMsgManager extends IMManager {
     }
 
 
-
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent4JoinChatRoom(JoinChatRoomEvent joinChatRoomEvent) {
+    /**
+     * IMGroupManager登陆成功后，需要获取未读消息
+     * @param joinChatRoomEvent
+     */
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    public void onEvent4JoinChatRoom(final JoinChatRoomEvent joinChatRoomEvent) {
         switch (joinChatRoomEvent.event){
-            case JOIN_REQ:
-                joinChatRooms(joinChatRoomEvent.groupEntity);
-            case JOIN_OK:
-                reqUnreadMsgContactList(joinChatRoomEvent.groupEntity);
+            case JOIN_OK_4_UNREAD_MSG_REQ:
+                ThreadPoolUtil.instance().executeImTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        reqUnreadMsgContactList(joinChatRoomEvent.joinedGroupPeerIds, UNREAD_REQ_TIMEOUT);
+                    }
+                });
                 break;
         }
     }
 
 
-    private void joinChatRooms(final GroupEntity groupEntity) {
-        final List<String> chatRoomIds = new ArrayList<String>();
-        chatRoomIds.add(groupEntity.getPeerId());
-        ThreadPoolUtil.instance().executeImTask(new Runnable() {
-            @Override
-            public void run() {
-                JoinChatRoomEvent joinChatRoomEvent = new JoinChatRoomEvent();
-                joinChatRoomEvent.groupEntity = groupEntity;
-                joinChatRoomEvent.event = JoinChatRoomEvent.Event.JOIN_FAILED;
-                try {
-                    joinChatRooms(chatRoomIds);
-                    joinChatRoomEvent.event = JoinChatRoomEvent.Event.JOIN_OK;
-                } catch (JUJUXMPPException e) {
-                    logger.error(e);
-                } catch (XMPPException e) {
-                    logger.error(e);
-                } catch (SmackException.NotConnectedException e) {
-                    logger.error(e);
-                } catch (SmackException.NoResponseException e) {
-                    logger.error(e);
-                }
-            }
-        });
-
-    }
 
 
-    /**
-     * 加入聊天室，放在此处欠妥，需要调整
-     * @param chatRoomIds
-     */
-    private void joinChatRooms(List<String> chatRoomIds) throws SmackException.NoResponseException,
-            XMPPException, SmackException.NotConnectedException, JUJUXMPPException {
-        logger.i("unread#joinChatRooms,size:"+chatRoomIds.size());
-            for(String chatRoomId : chatRoomIds) {
-                String chatRoom = DBConstant.SESSION_TYPE_GROUP + "_" + chatRoomId;
-                logger.i("chatRoom:"+chatRoom);
-                long time = (long) SpfUtil.get(ctx, chatRoom, System.currentTimeMillis()-24*60*60*1000l);
-                socketService.joinChatRoom(chatRoomId, time);
-            }
-
-    }
 
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void reqUnreadMsgContactList(GroupEntity groupEntity) {
-        final List<String> chatRoomIds = new ArrayList<String>();
-        chatRoomIds.add(groupEntity.getPeerId());
-        ThreadPoolUtil.instance().executeImTask(new Runnable() {
-            @Override
-            public void run() {
-                reqUnreadMsgContactList(chatRoomIds);
-            }
-        });
 
-    }
+
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void reqUnreadMsgContactList(GroupEntity groupEntity) {
+//        final List<String> chatRoomIds = new ArrayList<String>();
+////        chatRoomIds.add(groupEntity.getPeerId());
+//        reqUnreadMsgContactList(groupEntity.getPeerId());
+//    }
 
 
     /**
      * 初始化IMUnreadMsgManager后,请求未读消息列表
      */
-    private void reqUnreadMsgContactList(List<String> chatRoomIds) {
+    private void reqUnreadMsgContactList(List<String> groupPeerIds, int timeOut) {
         logger.i("unread#reqUnreadMsgContactList");
-        //需要优化 (考虑多线程)
-        for(final String chatRoomId : chatRoomIds) {
-            final String chatRoom = DBConstant.SESSION_TYPE_GROUP + "_" + chatRoomId;
-            final UnreadEntity dbUnreadEntity = (UnreadEntity) unReadDao.findById(chatRoom);
-
-            long time = 1l;
-            //未读消息
-            if(dbUnreadEntity != null && dbUnreadEntity.getCreated() >0) {
-                time = dbUnreadEntity.getCreated();
+        if(groupPeerIds != null && groupPeerIds.size() >0) {
+            final CountDownLatch countDownLatch = new CountDownLatch(groupPeerIds.size());
+            for(final String peerId : groupPeerIds) {
+                ThreadPoolUtil.instance().executeImTask(new Runnable() {
+                    @Override
+                    public void run() {
+                        reqUnreadMsgContact(peerId, countDownLatch);
+                    }
+                });
             }
-            //消息已读，需要找APP退出前最后一条消息的时间
-            else {
-                time = messageDao.getSessionLastTime();
-                time++;
+            try {
+                //消息收取时间不能超过1分钟 (不能在MAIN线程中执行)
+                countDownLatch.await(timeOut, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
-            if(time == 1 || time == 2)
-                return;
-
-            final long created = time;
-            //更新最近会话
-            String uuid = UUID.randomUUID().toString();
-            socketService.countMessage(chatRoomId, String.valueOf(time), "", uuid,
-                    new XMPPServiceCallbackImpl() {
-
-                        @Override
-                        public void onSuccess(Object t) {
-                            RedisResIQ redisResIQ = (RedisResIQ) t;
-                            UnreadEntity unreadEntity;
-                            try {
-                                unreadEntity = getUnreadEntity(redisResIQ);
-                                if (unreadEntity != null) {
-                                    unreadEntity.setCreated(created);
-                                    unreadMsgMap.put(chatRoom, unreadEntity);
-                                    //保存或更新未读消息
-                                    unReadDao.replaceInto(unreadEntity);
-                                    //需进一步优化
-                                    if(unreadEntity.getUnReadCnt() >0) {
-                                        MergeMessageThread mergeMessageThread = new MergeMessageThread
-                                                (chatRoomId, created, unreadEntity.getUnReadCnt(), socketService);
-                                        Thread thread = new Thread(mergeMessageThread,
-                                                MergeMessageThread.class.getSimpleName());
-                                        ThreadPoolUtil.instance().executeImTask(thread);
-                                    }
-                                }
-                            } catch (JSONException e) {
-                                logger.error(e);
-                            }
-                            //通知刷新未读消息
-                            triggerEvent(new UnreadEvent(UnreadEvent.Event.UNREAD_MSG_LIST_OK));
-                        }
-
-                        @Override
-                        public void onFailed() {
-                            logger.i("unread#reqUnreadMsgContactList is failed");
-                        }
-
-                        @Override
-                        public void onTimeout() {
-                            logger.i("unread#reqUnreadMsgContactList is timeout");
-                        }
-                    });
         }
+        //通知刷新未读消息(GroupChatFragment)
+        unreadListReady = true;
+        triggerEvent(new UnreadEvent(UnreadEvent.Event.UNREAD_MSG_LIST_OK));
     }
+
+    //获取群组未读消息
+    private void reqUnreadMsgContact(final String chatRoomId, final CountDownLatch countDownLatch) {
+        final String chatRoom = DBConstant.SESSION_TYPE_GROUP + "_" + chatRoomId;
+        final UnreadEntity dbUnreadEntity = unreadMsgMap.get(chatRoom);
+        if(dbUnreadEntity == null) {
+
+        }
+        long time = 1l;
+
+        //未读消息
+        if(dbUnreadEntity != null
+                && dbUnreadEntity.getUpdated() >0) {
+            time = dbUnreadEntity.getUpdated();
+            time++;
+        }
+        //消息已读，需要找APP退出前最后一条消息的时间
+        else {
+            time = messageDao.getSessionLastTime();
+            time++;
+        }
+        //没有查询条件，返回
+        if(time == 1 || time == 2) {
+            countDownLatch.countDown();
+            return;
+        }
+
+        final long updated = time;
+        //更新最近会话
+        String uuid = UUID.randomUUID().toString();
+        socketService.countMessage(chatRoomId, String.valueOf(time), "", uuid,
+                new XMPPServiceCallbackImpl() {
+
+                    @Override
+                    public void onSuccess(Object t) {
+                        RedisResIQ redisResIQ = (RedisResIQ) t;
+                        UnreadEntity unreadEntity;
+                        try {
+                            unreadEntity = getUnreadEntity(redisResIQ, dbUnreadEntity);
+                            if(unreadEntity != null) {
+                                unreadMsgMap.put(chatRoom, unreadEntity);
+                                //保存或更新未读消息
+                                unReadDao.replaceInto(unreadEntity);
+                                //需进一步优化
+                                if(unreadEntity.getUnReadCnt() >0) {
+                                    MergeMessageThread mergeMessageThread = new MergeMessageThread
+                                            (chatRoomId, updated, unreadEntity.getUnReadCnt(), socketService);
+                                    Thread thread = new Thread(mergeMessageThread,
+                                            MergeMessageThread.class.getSimpleName());
+                                    ThreadPoolUtil.instance().executeImTask(thread);
+                                }
+                            }
+                        } catch (JSONException e) {
+                            logger.error(e);
+                        }
+                        countDownLatch.countDown();
+                    }
+
+                    @Override
+                    public void onFailed() {
+                        logger.i("unread#reqUnreadMsgContactList is failed");
+                        countDownLatch.countDown();
+                    }
+
+                    @Override
+                    public void onTimeout() {
+                        logger.i("unread#reqUnreadMsgContactList is timeout");
+                        countDownLatch.countDown();
+                    }
+                });
+    }
+
 
     /**
      * 初始化IMUnreadMsgManager后，merge本地数据库
@@ -439,9 +445,10 @@ public class IMUnreadMsgManager extends IMManager {
     /**
      * 转换类
      * @param redisResIQ
+     * @param dbUnreadEntity
      * @return
      */
-    private UnreadEntity getUnreadEntity(RedisResIQ redisResIQ) throws JSONException {
+    private UnreadEntity getUnreadEntity(RedisResIQ redisResIQ, UnreadEntity dbUnreadEntity) throws JSONException {
         UnreadEntity unreadEntity = null;
         if(StringUtils.isNotBlank(redisResIQ.getContent())) {
             JSONObject jsonRoot = new JSONObject(redisResIQ.getContent());
@@ -460,13 +467,21 @@ public class IMUnreadMsgManager extends IMManager {
                 unreadEntity.setLatestMsgData(body);
                 unreadEntity.setPeerId(to);
                 unreadEntity.setLaststMsgId(laststMsgId);
-                unreadEntity.setUnReadCnt(Integer.parseInt(count));
+                //消息服务+本地数据库
+                int unReadCnt = Integer.parseInt(count)
+                        + (dbUnreadEntity == null ? 0 : dbUnreadEntity.getUnReadCnt());
+
+                unreadEntity.setUnReadCnt(unReadCnt);
+                unreadEntity.setUpdated(Long.valueOf(thread));
                 unreadEntity.buildSessionKey();
 
                 //更新session (IMMessageManager不需要重复查询)
                 SessionEntity sessionEntity = IMSessionManager.instance().getSessionEntity(bodyStr);
                 IMSessionManager.instance().saveSession(sessionEntity);
             }
+        }
+        if(unreadEntity == null && dbUnreadEntity != null) {
+            unreadEntity = dbUnreadEntity;
         }
         return unreadEntity;
     }
@@ -478,5 +493,7 @@ public class IMUnreadMsgManager extends IMManager {
     }
 
 
-
+    public boolean isUnreadListReady() {
+        return unreadListReady;
+    }
 }
