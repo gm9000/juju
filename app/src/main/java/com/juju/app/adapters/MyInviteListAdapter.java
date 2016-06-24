@@ -4,9 +4,9 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Invite;
@@ -14,13 +14,13 @@ import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.RoundImageView;
-import com.juju.app.view.SwipeLayout;
+import com.juju.app.view.SwipeLayoutView;
 
 import java.util.ArrayList;
 import java.util.List;
 
 
-public class MyInviteListAdapter extends BaseAdapter{
+public class MyInviteListAdapter extends BaseSwipeAdapter{
     private Context context;
 
     private List<Invite> inviteList = new ArrayList<Invite>();
@@ -62,14 +62,29 @@ public class MyInviteListAdapter extends BaseAdapter{
     }
 
     @Override
-    public View getView(final int position, View view, ViewGroup parent) {
+    public int getSwipeLayoutResourceId(int position) {
+        return R.id.swipe;
+    }
+
+    @Override
+    public View generateView(int position, ViewGroup parent) {
+        View convertView = renderInvite(position, null, parent);
+        return convertView;
+    }
+
+    @Override
+    public void fillValues(int position, View convertView) {
+        renderInvite(position, convertView, null);
+    }
+
+    public View renderInvite(final int position, View view, ViewGroup parent) {
 
         Invite invite = inviteList.get(position);
 
         if(view == null) {
             view = LayoutInflater.from(context).inflate(R.layout.my_invite_item, parent, false);
         }
-        SwipeLayout layout_swipe = ViewHolderUtil.get(view, R.id.swipe);
+        SwipeLayoutView layout_swipe = ViewHolderUtil.get(view, R.id.swipe);
 
 
         TextView waitingProcess = (TextView) view.findViewById(R.id.waiting_process);

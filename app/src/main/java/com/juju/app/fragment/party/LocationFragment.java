@@ -2,10 +2,8 @@ package com.juju.app.fragment.party;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.BitmapFactory;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
-import android.support.v7.graphics.drawable.DrawableUtils;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
@@ -41,11 +39,8 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
-import com.juju.app.utils.ImageUtils;
-import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.LocationImageView;
 import com.juju.app.view.RoundImageView;
-import com.juju.app.view.imagezoom.utils.BitmapUtils;
 import com.rey.material.app.BottomSheetDialog;
 import com.skyfishjy.library.RippleBackground;
 
@@ -53,6 +48,7 @@ import org.xutils.common.Callback;
 import org.xutils.ex.DbException;
 import org.xutils.image.ImageOptions;
 import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.ViewInject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -70,10 +66,16 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
 
     private Plan plan;
 
+    @ViewInject(R.id.mapView)
     private MapView mapView;
+
+    @ViewInject(R.id.btn_update_location)
     private Button btnUpdateLocation;
+    @ViewInject(R.id.mic_ripple)
     private RippleBackground micRipple;
+    @ViewInject(R.id.img_mic)
     private ImageView imgMic;
+    @ViewInject(R.id.img_locate)
     private ImageView imgLocate;
 
     private BaiduMap mBaiduMap;
@@ -118,17 +120,17 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
     @Override
     protected void findViews() {
 
-        mapView = (MapView)findViewById(R.id.mapView);
+//        mapView = (MapView)findViewById(R.id.mapView);
         mBaiduMap = mapView.getMap();
         mBaiduMap.getUiSettings().setOverlookingGesturesEnabled(false);
         mBaiduMap.getUiSettings().setRotateGesturesEnabled(false);
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
 
-        btnUpdateLocation = (Button)findViewById(R.id.btn_update_location);
-
-        micRipple = (RippleBackground)findViewById(R.id.mic_ripple);
-        imgMic = (ImageView)findViewById(R.id.img_mic);
-        imgLocate = (ImageView)findViewById(R.id.img_locate);
+//        btnUpdateLocation = (Button)findViewById(R.id.btn_update_location);
+//
+//        micRipple = (RippleBackground)findViewById(R.id.mic_ripple);
+//        imgMic = (ImageView)findViewById(R.id.img_mic);
+//        imgLocate = (ImageView)findViewById(R.id.img_locate);
 
 
         parentActivity = (PartyActivity) getActivity();

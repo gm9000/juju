@@ -1,143 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<com.juju.app.view.SwipeLayoutView
+    xmlns:swipe="com.juju.app.view.SwipeLayoutView"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/swipe"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
-    <com.juju.app.view.SwipeLayout
-        android:id="@+id/swipe"
-        app:drag_edge="right"
+    swipe:leftEdgeSwipeOffset="0dp"
+    swipe:rightEdgeSwipeOffset="0dp">
+
+    <LinearLayout
+        android:id="@+id/layout_back"
+        android:gravity="center"
+        android:layout_width="wrap_content"
+        android:layout_height="80dp">
+        <TextView
+            android:id="@+id/txt_no_pass"
+            style="@style/MMFontTitleInList"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/delete"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:singleLine="true" />
+        <TextView
+            android:id="@+id/txt_pass"
+            style="@style/MMFontTitleInList"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="@string/delete"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:singleLine="true" />
+    </LinearLayout>
+    <RelativeLayout
+        android:paddingTop="1dp"
+        android:paddingBottom="1dp"
+        android:layout_marginTop="1dp"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="80dp">
+        <RelativeLayout
+            android:id="@+id/right_layout"
+            android:layout_alignParentRight="true"
+            android:layout_width="120dp"
+            android:layout_height="match_parent">
+            <TextView
+                android:id="@+id/txt_time"
+                style="@style/GrayTxt12"
+                android:layout_alignParentTop="true"
+                android:layout_margin="10dp"
+                android:layout_alignParentRight="true"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="三天前"/>
+            <TextView
+                android:id="@+id/txt_status"
+                style="@style/GrayTxt12"
+                android:text="@string/uncheck"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:layout_margin="10dp"
+                android:layout_alignParentBottom="true"
+                android:padding="2dp"
+                android:layout_centerVertical="true"/>
+
+        </RelativeLayout>
+        <RelativeLayout
+            android:id="@+id/layout_head"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_centerVertical="true">
+            <com.juju.app.view.RoundImageView
+                android:id="@+id/img_head"
+                android:layout_width="70dp"
+                android:layout_height="70dp"
+                android:layout_centerInParent="true"
+                android:src="@mipmap/head"/>
+            <TextView
+                android:id="@+id/waiting_process"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_alignParentLeft="true"
+                android:background="@color/red"
+                android:rotation="325"
+                android:textSize="10sp"
+                android:layout_marginTop="10dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textColor="@color/white"
+                android:text="@string/unprocess"/>
+        </RelativeLayout>
+
 
         <LinearLayout
-            android:id="@+id/layout_back"
-            android:gravity="center"
+            android:orientation="vertical"
             android:layout_width="wrap_content"
-            android:layout_height="80dp">
+            android:layout_height="80dp"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="60dp"
+            android:layout_toRightOf="@+id/layout_head">
             <TextView
-                android:id="@+id/txt_no_pass"
-                style="@style/MMFontTitleInList"
+                android:id="@+id/txt_nick_name"
+                style="@style/BlackStrongTxt16"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="@string/delete"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:textColor="@color/white"
-                android:textSize="18sp"
-                android:singleLine="true" />
+                android:layout_marginTop="10dp"
+                android:layout_height="wrap_content"
+                android:text="金牛之女"
+                android:singleLine="true"
+                android:gravity="center"
+                />
+
             <TextView
-                android:id="@+id/txt_pass"
-                style="@style/MMFontTitleInList"
+                android:id="@+id/txt_invite_info"
+                style="@style/BlackTxt14"
                 android:layout_width="wrap_content"
-                android:layout_height="match_parent"
-                android:text="@string/delete"
-                android:paddingLeft="20dp"
-                android:paddingRight="20dp"
-                android:paddingTop="10dp"
-                android:paddingBottom="10dp"
-                android:textColor="@color/white"
-                android:textSize="18sp"
-                android:singleLine="true" />
-        </LinearLayout>
-        <RelativeLayout
-            android:paddingTop="1dp"
-            android:paddingBottom="1dp"
-            android:layout_marginTop="1dp"
-            android:layout_width="match_parent"
-            android:layout_height="80dp">
-            <RelativeLayout
-                android:id="@+id/right_layout"
-                android:layout_alignParentRight="true"
-                android:layout_width="120dp"
-                android:layout_height="match_parent">
-                <TextView
-                    android:id="@+id/txt_time"
-                    style="@style/GrayTxt12"
-                    android:layout_alignParentTop="true"
-                    android:layout_margin="10dp"
-                    android:layout_alignParentRight="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="三天前"/>
-                <TextView
-                    android:id="@+id/txt_status"
-                    style="@style/GrayTxt12"
-                    android:text="@string/uncheck"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignParentRight="true"
-                    android:layout_margin="10dp"
-                    android:layout_alignParentBottom="true"
-                    android:padding="2dp"
-                    android:layout_centerVertical="true"/>
-
-            </RelativeLayout>
-            <RelativeLayout
-                android:id="@+id/layout_head"
-                android:layout_width="80dp"
-                android:layout_height="80dp"
-                android:layout_centerVertical="true">
-                <com.juju.app.view.RoundImageView
-                    android:id="@+id/img_head"
-                    android:layout_width="70dp"
-                    android:layout_height="70dp"
-                    android:layout_centerInParent="true"
-                    android:src="@mipmap/head"/>
-                <TextView
-                    android:id="@+id/waiting_process"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:visibility="gone"
-                    android:layout_alignParentLeft="true"
-                    android:background="@color/red"
-                    android:rotation="325"
-                    android:textSize="10sp"
-                    android:layout_marginTop="10dp"
-                    android:paddingLeft="5dp"
-                    android:paddingRight="5dp"
-                    android:textColor="@color/white"
-                    android:text="@string/unprocess"/>
-            </RelativeLayout>
-
-
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="wrap_content"
-                android:layout_height="80dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
                 android:layout_marginLeft="10dp"
-                android:layout_marginRight="60dp"
-                android:layout_toRightOf="@+id/layout_head">
-                <TextView
-                    android:id="@+id/txt_nick_name"
-                    style="@style/BlackStrongTxt16"
-                    android:layout_width="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_height="wrap_content"
-                    android:text="金牛之女"
-                    android:singleLine="true"
-                    android:gravity="center"
-                    />
+                android:text="邀请您加入聚龙小组"
+                android:singleLine="true"
+                android:gravity="center"
+                />
+        </LinearLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_alignParentBottom="true"
+            android:background="@color/black2" />
+    </RelativeLayout>
+</com.juju.app.view.SwipeLayoutView>
 
-                <TextView
-                    android:id="@+id/txt_invite_info"
-                    style="@style/BlackTxt14"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:layout_marginLeft="10dp"
-                    android:text="邀请您加入聚龙小组"
-                    android:singleLine="true"
-                    android:gravity="center"
-                    />
-            </LinearLayout>
-        </RelativeLayout>
-    </com.juju.app.view.SwipeLayout>
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/black2" />
-
-</LinearLayout>

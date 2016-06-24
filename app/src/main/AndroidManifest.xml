@@ -105,6 +105,12 @@
             android:theme="@style/AppTheme.NoActionBar"
             android:windowSoftInputMode="adjustNothing" />
         <activity
+            android:name=".activity.party.PublishLiveActivity"
+            android:label="@string/title_activity_publish_live"
+            android:screenOrientation="portrait"
+            android:theme="@style/AppTheme.NoActionBar"
+            android:windowSoftInputMode="adjustNothing" />
+        <activity
             android:name=".activity.user.SettingActivity"
             android:label="@string/title_activity_setting"
             android:screenOrientation="portrait"

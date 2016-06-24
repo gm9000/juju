@@ -287,6 +287,7 @@
     <string name="title_activity_party">PartyActivity</string>
     <string name="title_activity_play_video">PlayVideoActivity</string>
     <string name="title_activity_upload_video">UploadVideoActivity</string>
+    <string name="title_activity_publish_live">PublishLiveActivity</string>
     <string name="title_activity_setting">SettingActivity</string>
     <string name="title_activity_properties_setting">PropertiesSettingActivity</string>
     <string name="title_activity_upload_photo">UploadPhotoActivity</string>

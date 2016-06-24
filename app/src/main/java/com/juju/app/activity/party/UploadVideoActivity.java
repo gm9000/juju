@@ -154,8 +154,8 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             e.printStackTrace();
         }
 
-        StreamingProfile.AudioProfile aProfile = new StreamingProfile.AudioProfile(44100, 96 * 1024);
-        StreamingProfile.VideoProfile vProfile = new StreamingProfile.VideoProfile(15, 200*1000, 15);
+        StreamingProfile.AudioProfile aProfile = new StreamingProfile.AudioProfile(44100, 48 * 1000);
+        StreamingProfile.VideoProfile vProfile = new StreamingProfile.VideoProfile(15, 200*1000, 30);
         StreamingProfile.AVProfile avProfile = new StreamingProfile.AVProfile(vProfile, aProfile);
 
         StreamingProfile.Stream stream = new StreamingProfile.Stream(mJSONObject);
@@ -165,27 +165,31 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         mProfile.setAudioQuality(StreamingProfile.AUDIO_QUALITY_MEDIUM2)
                 .setPreferredVideoEncodingSize(640, 360)
                 .setVideoQuality(StreamingProfile.VIDEO_QUALITY_LOW3)
-                .setEncoderRCMode(StreamingProfile.EncoderRCModes.QUALITY_PRIORITY)
+                .setEncoderRCMode(StreamingProfile.EncoderRCModes.BITRATE_PRIORITY)
                 .setAVProfile(avProfile)
 //                .setStreamStatusConfig(new StreamingProfile.StreamStatusConfig(3))
                 .setSendingBufferProfile(new StreamingProfile.SendingBufferProfile(0.2f, 0.8f, 3.0f, 20 * 1000));
 
         CameraStreamingSetting mCameraStreamingSetting = new CameraStreamingSetting();
         mCameraStreamingSetting.setCameraId(Camera.CameraInfo.CAMERA_FACING_BACK)
-//                .setContinuousFocusModeEnabled(true)
+                .setContinuousFocusModeEnabled(true)
                 .setRecordingHint(false)
+                .setFrontCameraMirror(false)
                 .setResetTouchFocusDelayInMs(2000)
-//                .setFocusMode(CameraStreamingSetting.FOCUS_MODE_CONTINUOUS_PICTURE)
                 .setCameraPrvSizeLevel(CameraStreamingSetting.PREVIEW_SIZE_LEVEL.MEDIUM)
                 .setCameraPrvSizeRatio(CameraStreamingSetting.PREVIEW_SIZE_RATIO.RATIO_16_9);
 
+        if(isSupportHWEncode()){
+            mCameraStreamingSetting.setFocusMode(CameraStreamingSetting.FOCUS_MODE_CONTINUOUS_VIDEO);
+            mCameraStreamingSetting.setContinuousFocusModeEnabled(true);
+        }
 
         StreamingEnv.init(context);
-        if(isSupportHWEncode()) {
-            mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.HW_VIDEO_WITH_HW_AUDIO_CODEC);
-        }else{
+//        if(isSupportHWEncode()) {
+//            mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.HW_VIDEO_WITH_HW_AUDIO_CODEC);
+//        }else{
             mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.SW_VIDEO_WITH_SW_AUDIO_CODEC);
-        }
+//        }
         mCameraStreamingManager.prepare(mCameraStreamingSetting, mProfile);
         mCameraStreamingManager.setStreamingStateListener(this);
         mCameraStreamingManager.setStreamStatusCallback(this);

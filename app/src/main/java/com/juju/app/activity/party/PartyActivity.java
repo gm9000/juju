@@ -198,6 +198,7 @@ public class PartyActivity extends BaseActivity implements View.OnClickListener 
                 if(currentTabIndex == 1) {
                     //  初始化 发起直播节目的参数
                     ActivityUtil.startActivity(PartyActivity.this,UploadVideoActivity.class);
+//                    ActivityUtil.startActivity(PartyActivity.this,PublishLiveActivity.class);
                 }
                 //  单击“照片菜单”项
                 if(currentTabIndex == 2){

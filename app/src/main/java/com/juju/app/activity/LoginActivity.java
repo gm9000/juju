@@ -21,6 +21,7 @@ import com.juju.app.activity.user.RegistActivity;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.bean.json.PartyReqBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.event.JoinChatRoomEvent;
@@ -261,6 +262,11 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     //TODO 登陆协议需返回用户昵称、域名、房间名称、MUC服务名称
                     nickName = "聚龙小子";
                     if(status == 0) {
+
+                        UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                        userTokenInfoBean.setJujuNo(jujuNo);
+                        userTokenInfoBean.setToken(token);
+
                         //TODO 是否需要消息服务器登陆成功后再确认？目前以业务服务登陆为准
                         triggerEvent(LoginEvent.LOGIN_BSERVER_OK);
                     } else {
