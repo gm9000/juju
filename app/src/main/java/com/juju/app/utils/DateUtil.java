@@ -260,6 +260,10 @@ public class DateUtil {
 
     }
 
+    public static long getCurTimeMillis() {
+        return System.currentTimeMillis();
+    }
+
     public static String getSessionTime(Long mTimeStamp) {
         if (mTimeStamp <= 0) {
             return null;
@@ -403,14 +407,16 @@ public class DateUtil {
 
         if(day > 0) {
             sb.append(day + "天");
+            sb.append("前");
         }else if(hour > 0 ) {
             sb.append(hour + "小时");
+            sb.append("前");
         }else if(min > 0 ) {
             sb.append(min + "分钟");
+            sb.append("前");
         }else {
-            sb.append(s + "秒");
+            sb.append("刚刚");
         }
-        sb.append("前");
         return sb.toString();
     }
 }

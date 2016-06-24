@@ -21,8 +21,10 @@ import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IntentConstant;
+import com.juju.app.helper.CheckboxConfigHelper;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.service.im.sp.ConfigurationSp;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
@@ -82,6 +84,9 @@ public class GroupManagerActivity extends BaseActivity {
 
     private UserInfoBean userInfoBean;
 
+    CheckboxConfigHelper checkBoxConfiger = new CheckboxConfigHelper();
+
+
 
     private IMServiceConnector imServiceConnector = new IMServiceConnector(){
         @Override
@@ -98,7 +103,7 @@ public class GroupManagerActivity extends BaseActivity {
                         Toast.LENGTH_SHORT).show();
                 return;
             }
-//            checkBoxConfiger.init(imService.getConfigSp());
+            checkBoxConfiger.init(imService.getConfigSp());
             userInfoBean = BaseApplication.getInstance().getUserInfoBean();
             initViews();
             initAdapter();
@@ -155,7 +160,7 @@ public class GroupManagerActivity extends BaseActivity {
             quit_group.setVisibility(View.VISIBLE);
         }
         // 初始化配置checkBox
-//        initCheckbox();
+        initCheckbox();
     }
 
     private void initAdapter(){
@@ -179,6 +184,15 @@ public class GroupManagerActivity extends BaseActivity {
                 valuePairs.toArray(new BasicNameValuePair[]{}));
 
     }
+
+    private void initCheckbox() {
+//        checkBoxConfiger.initCheckBox(noDisturbCheckbox, curSessionKey,
+//                ConfigurationSp.CfgDimension.NOTIFICATION);
+        String groupId = curSessionKey.split("_")[1];
+        checkBoxConfiger.initForbiddenCheckBox(noDisturbCheckbox, curSessionKey, groupId);
+        checkBoxConfiger.initTopCheckBox(topSessionCheckBox, curSessionKey);
+    }
+
 
 
 }

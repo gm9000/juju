@@ -61,22 +61,26 @@ public class IMLoginManager extends IMManager {
     //是否自动登陆
     private boolean autoLogin = true;
 
+    private String userNo;
+
 
 
 
     @Override
     public void doOnStart() {
-        messageDao = new MessageDaoImpl(ctx);
-        userDao = new UserDaoImpl(ctx);
-        socketService = new XMPPServiceImpl(ctx.getContentResolver(), service, messageDao);
-        logger.d("IMLoginManager#doOnStart#this -> this:%s", socketService.toString());
-        //登录成功后，为MessageManager设置XMPP服务， 暂时这样处理
-        IMMessageManager.instance().setSocketService(socketService);
-        IMUnreadMsgManager.instance().setSocketService(socketService);
-        IMSessionManager.instance().setSocketService(socketService);
-        IMOtherManager.instance().setSocketService(socketService);
-        IMGroupManager.instance().setSocketService(socketService);
+//        messageDao = new MessageDaoImpl(ctx);
+//        userDao = new UserDaoImpl(ctx);
+//        socketService = new XMPPServiceImpl(ctx.getContentResolver(), service, messageDao);
+//        logger.d("IMLoginManager#doOnStart#this -> this:%s", socketService.toString());
+//        //登录成功后，为MessageManager设置XMPP服务， 暂时这样处理
+//        IMMessageManager.instance().setSocketService(socketService);
+//        IMUnreadMsgManager.instance().setSocketService(socketService);
+//        IMSessionManager.instance().setSocketService(socketService);
+//        IMOtherManager.instance().setSocketService(socketService);
+//        IMGroupManager.instance().setSocketService(socketService);
     }
+
+
 
     /**
      * 上下文环境的更新
@@ -85,7 +89,15 @@ public class IMLoginManager extends IMManager {
      */
     @Override
     public void reset() {
-
+        identityChanged = false;
+        isKickout=false;
+        everLogined = false;
+        isLocalLogin = false;
+        //关闭消息服务连接
+        socketService.logout();
+        socketService = null;
+        messageDao = null;
+        userDao = null;
     }
 
     //双重判断+volatile（禁止JMM重排序）保证线程安全
@@ -141,6 +153,7 @@ public class IMLoginManager extends IMManager {
             if(loginEntity == null){
                 break;
             }
+            this.userNo = userNo;
 //            loginInfo = loginEntity;
 //            loginId = loginEntity.getPeerId();
             // 这两个状态不要忘记掉
@@ -218,6 +231,7 @@ public class IMLoginManager extends IMManager {
 
         // 判断登陆的类型
         if(isLocalLogin){
+            //触发ImService onLocalNetOk方法
             triggerEvent(LoginEvent.LOCAL_LOGIN_MSG_SERVICE);
         }else{
             isLocalLogin = true;
@@ -229,5 +243,42 @@ public class IMLoginManager extends IMManager {
 
     public boolean isAuthenticated() {
         return socketService.isAuthenticated();
+    }
+
+    //重连
+    public void reConnect() {
+        socketService.reConnect();
+    }
+
+    public String getUserNo() {
+        return userNo;
+    }
+
+    public void setUserNo(String userNo) {
+        this.userNo = userNo;
+    }
+
+
+    /**
+     * 初始化DAO和服务(退出登录后或者第一次加载需要初始化)
+     */
+    public void initDaoAndService() {
+        if(messageDao == null) {
+            messageDao = new MessageDaoImpl(ctx);
+        }
+        if(userDao == null) {
+            userDao = new UserDaoImpl(ctx);
+        }
+        if(socketService == null) {
+            socketService = new XMPPServiceImpl(ctx.getContentResolver(), service, messageDao);
+        }
+        logger.d("IMLoginManager#initDaoAndService#this -> this:%s", socketService.toString());
+        //登录成功后，为MessageManager设置XMPP服务， 暂时这样处理
+        IMMessageManager.instance().setSocketService(socketService);
+        IMUnreadMsgManager.instance().setSocketService(socketService);
+        IMSessionManager.instance().setSocketService(socketService);
+        IMOtherManager.instance().setSocketService(socketService);
+        IMGroupManager.instance().setSocketService(socketService);
+        IMOtherManager.instance().setSocketService(socketService);
     }
 }

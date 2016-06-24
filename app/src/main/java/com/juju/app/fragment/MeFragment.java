@@ -20,6 +20,8 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Invite;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.User;
+import com.juju.app.event.NotificationMessageEvent;
+import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
@@ -38,11 +40,15 @@ import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -72,6 +78,28 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     private TextView txt_invite;
     private TextView txt_setting;
 
+    @ViewInject(R.id.tab_invite_notify)
+    private View tab_invite_notify;
+
+    @ViewInject(R.id.lin_invite)
+    private ViewGroup lin_invite;
+
+
+    @ViewInject(R.id.lin_party)
+    private ViewGroup lin_party;
+
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        EventBus.getDefault().register(MeFragment.this);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onDestroy() {
+        EventBus.getDefault().unregister(MeFragment.this);
+        super.onDestroy();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -98,48 +126,10 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     public void loadData() {
         loadUserInfo();
         // TODO 通过消息驱动生成相关的邀请信息，并删除模拟数据生成的相关代码
-        generateInviteDate();
+//        generateInviteDate();
     }
 
-    private void generateInviteDate() {
 
-        try {
-            if(JujuDbUtils.getInstance().selector(Invite.class).count()==0){
-                Invite invite1 = new Invite();
-                invite1.setFlag(0);
-                invite1.setStatus(-1);
-                invite1.setUserNo("100000001");
-                invite1.setNickName("金牛之女");
-                invite1.setGroupId("0000000000000001");
-                invite1.setGroupName("聚龙小组1");
-                invite1.setTime(new Date(System.currentTimeMillis() - 3 * 60 * 1000));
-                JujuDbUtils.saveOrUpdate(invite1);
-
-                Invite invite2 = new Invite();
-                invite2.setFlag(1);
-                invite2.setStatus(-1);
-                invite2.setUserNo("100000002");
-                invite2.setNickName("爱拼才会赢");
-                invite2.setGroupId("0000000000000002");
-                invite2.setGroupName("聚龙小组2");
-                invite2.setTime(new Date(System.currentTimeMillis() - 128 * 60 * 1000));
-                JujuDbUtils.saveOrUpdate(invite2);
-
-                Invite invite3 = new Invite();
-                invite3.setFlag(1);
-                invite3.setStatus(-1);
-                invite3.setUserNo("100000003");
-                invite3.setNickName("成功属于坚持的人");
-                invite3.setGroupId("0000000000000003");
-                invite3.setGroupName("聚龙小组3");
-                invite3.setTime(new Date(System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000));
-                JujuDbUtils.saveOrUpdate(invite3);
-            }
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
-
-    }
 
     @Override
     public void initView() {
@@ -225,19 +215,22 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     @Override
     protected void setOnListener() {
         super.setOnListener();
-        txt_party.setOnClickListener(this);
-        txt_invite.setOnClickListener(this);
+//        txt_party.setOnClickListener(this);
+//        txt_invite.setOnClickListener(this);
         txt_setting.setOnClickListener(this);
         view_user.setOnClickListener(this);
+        lin_invite.setOnClickListener(this);
+        lin_party.setOnClickListener(this);
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
-            case R.id.txt_party:
+            case R.id.lin_party:
                 ActivityUtil.startActivity(getActivity(), MyPartyListlActivity.class);
                 break;
-            case R.id.txt_invite:
+            case R.id.lin_invite:
+                tab_invite_notify.setVisibility(View.GONE);
                 ActivityUtil.startActivity(getActivity(), MyInviteListActivity.class);
                 break;
             case R.id.txt_setting:
@@ -245,7 +238,8 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                 break;
             case R.id.view_user:
                 UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,userInfoBean.getJujuNo()));
+                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class,
+                        new BasicNameValuePair(Constants.USER_NO,userInfoBean.getJujuNo()));
                 break;
         }
     }
@@ -344,7 +338,20 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
 //                error.getExceptionCode());
 //    }
 
-
-
-
+    /**
+     * 接收通知信息
+     * @param event
+     */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4OtherMessage(NotificationMessageEvent event) {
+        switch (event.event) {
+            case INVITE_GROUP_NOTIFY_REQ_RECEIVED:
+            case INVITE_GROUP_NOTIFY_RES_RECEIVED:
+                tab_invite_notify.setVisibility(View.VISIBLE);
+                break;
+            case INVITE_GROUP_NOTIFY_OPEN_ACTIVITY:
+                tab_invite_notify.setVisibility(View.GONE);
+                break;
+        }
+    }
 }

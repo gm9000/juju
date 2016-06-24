@@ -959,7 +959,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                 MessageEntity entity = (MessageEntity) event.object;
                 /**正式当前的会话*/
                 if (currentSessionKey.equals(entity.getSessionKey())) {
-
                     Message message = Message.obtain();
                     message.what = HandlerConstant.MSG_RECEIVED_MESSAGE;
                     message.obj = entity;

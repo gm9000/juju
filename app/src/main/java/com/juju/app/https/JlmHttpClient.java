@@ -17,6 +17,7 @@ import com.squareup.okhttp.Request;
 import com.squareup.okhttp.RequestBody;
 import com.squareup.okhttp.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.HttpManager;
@@ -27,6 +28,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
 
@@ -278,6 +280,9 @@ public class JlmHttpClient<Req> {
             valueMap = (Map<String, Object>) req;
         } else if (req instanceof BaseReqBean) {
             body = JacksonUtil.turnObj2String(req);
+        } else if (req instanceof JSONObject) {
+            JSONObject paramJson = (JSONObject)req;
+            body = paramJson.toString();
         }
         if(valueMap != null && valueMap.size() > 0) {
             JSONObject paramJson = getJSONObject(valueMap);
@@ -346,6 +351,10 @@ public class JlmHttpClient<Req> {
                 Map map = (Map)obj;
                 JSONObject childJsonObj = new JSONObject(map);
                 paramJson.put(key, childJsonObj);
+            } else if (obj instanceof Collection) {
+                Collection col = (Collection)obj;
+                JSONArray jsonArray = new JSONArray(col);
+                paramJson.put(key, jsonArray);
             }
         }
         return paramJson;

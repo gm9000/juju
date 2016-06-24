@@ -76,8 +76,8 @@ public class IMMessageManager extends IMManager {
 
     @Override
     public void doOnStart() {
-        messageDao = new MessageDaoImpl(ctx);
-        publicMessageDao = (MessageDaoImpl) messageDao;
+//        messageDao = new MessageDaoImpl(ctx);
+//        publicMessageDao = (MessageDaoImpl) messageDao;
     }
 
     public void onLoginSuccess() {
@@ -94,6 +94,9 @@ public class IMMessageManager extends IMManager {
     @Override
     public void reset() {
         EventBus.getDefault().unregister(inst);
+        socketService = null;
+        messageDao = null;
+        publicMessageDao = null;
     }
 
 
@@ -129,7 +132,7 @@ public class IMMessageManager extends IMManager {
                                             dbMessage.setUpdated(Long.parseLong(time));
                                         }
                                         //更新会话
-                                        sessionManager.updateSession(dbMessage);
+                                        sessionManager.updateSession(dbMessage, true);
                                         triggerEvent(new MessageEvent(MessageEvent.Event
                                                 .ACK_SEND_MESSAGE_OK, msgEntity));
                                         messageDao.saveOrUpdate(dbMessage);
@@ -428,6 +431,18 @@ public class IMMessageManager extends IMManager {
     public void saveMessage(MessageEntity  messageEntity) {
         if(messageEntity != null) {
             messageDao.replaceInto(messageEntity);
+        }
+    }
+
+    /**
+     * 初始化DAO和服务(退出登录后或者第一次加载需要初始化)
+     */
+    public void initDaoAndService() {
+        if(messageDao == null) {
+            messageDao = new MessageDaoImpl(ctx);
+        }
+        if(publicMessageDao == null) {
+            publicMessageDao = (MessageDaoImpl) messageDao;
         }
     }
 

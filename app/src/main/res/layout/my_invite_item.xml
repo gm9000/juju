@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical">
-    <com.juju.app.view.SwipeLayout
+    <com.juju.app.view.SwipeLayoutView
         android:id="@+id/swipe"
         app:drag_edge="right"
         android:layout_width="match_parent"
@@ -99,7 +99,7 @@
                     android:paddingLeft="5dp"
                     android:paddingRight="5dp"
                     android:textColor="@color/white"
-                    android:text="@string/unprocess"/>
+                    android:text="@string/waiting_you"/>
             </RelativeLayout>
 
 
@@ -134,7 +134,7 @@
                     />
             </LinearLayout>
         </RelativeLayout>
-    </com.juju.app.view.SwipeLayout>
+    </com.juju.app.view.SwipeLayoutView>
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"

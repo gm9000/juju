@@ -89,7 +89,7 @@ public class JacksonUtil {
 	 * 返回类型： T 
 	 *
 	 */
-	public static <T> T tunString2Obj(String jsonStr, TypeReference<T> valueTypeRef) {
+	public static <T> T turnString2Obj(String jsonStr, TypeReference<T> valueTypeRef) {
 		if (objectMapper == null) {
 			objectMapper = new ObjectMapper();
 		}

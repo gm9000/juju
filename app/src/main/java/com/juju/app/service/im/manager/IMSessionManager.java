@@ -1,6 +1,7 @@
 package com.juju.app.service.im.manager;
 
 import android.content.SharedPreferences;
+import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.juju.app.bean.UserInfoBean;
@@ -23,6 +24,7 @@ import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.helper.chat.SequenceNumberMaker;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.iq.RedisResIQ;
+import com.juju.app.service.im.sp.ConfigurationSp;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.SpfUtil;
@@ -63,6 +65,8 @@ public class IMSessionManager extends IMManager {
 
     private DaoSupport sessionDao;
 
+    private DaoSupport messageDao;
+
 
     //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMSessionManager instance() {
@@ -78,7 +82,7 @@ public class IMSessionManager extends IMManager {
 
     @Override
     public void doOnStart() {
-        sessionDao = new SessionDaoIml(ctx);
+//        sessionDao = new SessionDaoIml(ctx);
     }
 
     public void onNormalLoginOk() {
@@ -92,6 +96,8 @@ public class IMSessionManager extends IMManager {
         for(SessionEntity sessionInfo:sessionInfoList){
             sessionMap.put(sessionInfo.getSessionKey(), sessionInfo);
         }
+
+        //TODO 处理session和message表不同步问题(需要从MergeMessageThread处理)
         triggerEvent(SessionEvent.RECENT_SESSION_LIST_SUCCESS);
     }
 
@@ -112,8 +118,11 @@ public class IMSessionManager extends IMManager {
      */
     @Override
     public void reset() {
+        socketService = null;
         sessionListReady = false;
         sessionMap.clear();
+        sessionDao = null;
+        messageDao = null;
     }
 
     /**
@@ -121,7 +130,7 @@ public class IMSessionManager extends IMManager {
      * 2.收到消息
      * @param msg
      */
-    public void updateSession(MessageEntity msg) {
+    public void updateSession(MessageEntity msg, @Nullable Boolean isTriggerEvent) {
         logger.d("recent#updateSession msg:%s", msg);
         if (msg == null) {
             logger.d("recent#updateSession is end,cause by msg is null")
@@ -163,8 +172,12 @@ public class IMSessionManager extends IMManager {
         sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
 //        SpfUtil.put(ctx, sessionEntity.getSessionKey(),
 //                sessionEntity.getUpdated());
-        //群组列表接收最新消息
-        triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
+
+        if(isTriggerEvent == null
+                || isTriggerEvent == true) {
+            //群组列表接收最新消息
+            triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
+        }
     }
 
     public SessionEntity findSession(String sessionKey){
@@ -215,17 +228,21 @@ public class IMSessionManager extends IMManager {
         Map<String, User> userMap = IMContactManager.instance().getUserMap();
         Map<String, UnreadEntity> unreadMsgMap = IMUnreadMsgManager.instance().getUnreadMsgMap();
         Map<String, GroupEntity> groupEntityMap = IMGroupManager.instance().getGroupMap();
-        HashSet<String> topList = getSessionTopList();
+        HashSet<String> topList = ConfigurationSp.instance(ctx,
+                IMLoginManager.instance().getUserNo()).getSessionTopList();
 
         //是否考虑每次都遍历群组
         for(GroupEntity groupEntity : groupList) {
             String sessionKey = groupEntity.getSessionKey();
+            boolean isForbidden = groupEntity.getStatus()
+                    == DBConstant.GROUP_STATUS_SHIELD ? true : false;
             UnreadEntity unreadEntity = unreadMsgMap.get(sessionKey);
             SessionEntity recentSession = sessionMap.get(sessionKey);
             RecentInfo recentInfo = new RecentInfo(recentSession, groupEntity, unreadEntity);
             if(topList !=null && topList.contains(sessionKey)){
                 recentInfo.setTop(true);
             }
+            recentInfo.setForbidden(isForbidden);
             recentSessionList.add(recentInfo);
         }
 
@@ -467,23 +484,23 @@ public class IMSessionManager extends IMManager {
     }
 
     // 获取全部置顶的session
-    public HashSet<String> getSessionTopList() {
-        Set<String> topList = SpfUtil.getStringSet(ctx,
-                CfgDimension.SESSIONTOP.name(), null);
-        if (null == topList) {
-            return null;
-        }
-        return (HashSet<String>) topList;
-    }
-
-
-    public boolean isTopSession(String sessionKey) {
-        HashSet<String> list =  getSessionTopList();
-        if (list != null && list.size() > 0 && list.contains(sessionKey)) {
-            return true;
-        }
-        return false;
-    }
+//    public HashSet<String> getSessionTopList() {
+//        Set<String> topList = SpfUtil.getStringSet(ctx,
+//                CfgDimension.SESSIONTOP.name(), null);
+//        if (null == topList) {
+//            return null;
+//        }
+//        return (HashSet<String>) topList;
+//    }
+//
+//
+//    public boolean isTopSession(String sessionKey) {
+//        HashSet<String> list =  getSessionTopList();
+//        if (list != null && list.size() > 0 && list.contains(sessionKey)) {
+//            return true;
+//        }
+//        return false;
+//    }
 
     /**
      * 1. 勿扰
@@ -510,6 +527,18 @@ public class IMSessionManager extends IMManager {
                     break;
             }
             EventBus.getDefault().postSticky(event);
+        }
+    }
+
+    /**
+     * 初始化DAO和服务(退出登录后或者第一次加载需要初始化)
+     */
+    public void initDaoAndService() {
+        if(sessionDao == null) {
+            sessionDao = new SessionDaoIml(ctx);
+        }
+        if(messageDao == null) {
+            messageDao = new MessageDaoImpl(ctx);
         }
     }
 }

@@ -1,6 +1,7 @@
 package com.juju.app.service.im.service;
 
 import com.juju.app.exceptions.JUJUXMPPException;
+import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 
 import org.jivesoftware.smack.SmackException;
@@ -111,6 +112,26 @@ public interface SocketService {
             SmackException.NotConnectedException, SmackException.NoResponseException;
 
 
-    public boolean createChatRoom(String groupId, String mucServiceName, String serviceName);
+    /**
+     * 创建聊天室
+     * @param groupId
+     * @param groupName
+     * @param mucServiceName
+     * @param serviceName
+     * @return
+     */
+    public boolean createChatRoom(String groupId, String groupName, String groupDesc,
+                                  String mucServiceName, String serviceName);
 
+
+    /**
+     * 重连
+     * @return
+     */
+    public void reConnect();
+
+    //通知消息
+    public void notifyMessage(String peerId, String message, IMBaseDefine.NotifyType notifyType,
+                              String uuid, boolean isSaveMsg, XMPPServiceCallbackImpl listener,
+                              Object... reqEntity);
 }

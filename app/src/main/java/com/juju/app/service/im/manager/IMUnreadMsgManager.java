@@ -8,6 +8,7 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.MessageDao;
 import com.juju.app.biz.impl.MessageDaoImpl;
+import com.juju.app.biz.impl.SessionDaoIml;
 import com.juju.app.biz.impl.UnreadDaoImpl;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.GroupEntity;
@@ -100,8 +101,8 @@ public class IMUnreadMsgManager extends IMManager {
 
     @Override
     public void doOnStart() {
-        messageDao = new MessageDaoImpl(ctx);
-        unReadDao = new UnreadDaoImpl(ctx);
+//        messageDao = new MessageDaoImpl(ctx);
+//        unReadDao = new UnreadDaoImpl(ctx);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         chatRoomIds.add(userInfoBean.getmRoomName() +
                 "@" + userInfoBean.getmMucServiceName() + "." + userInfoBean.getmServiceName());
@@ -143,6 +144,8 @@ public class IMUnreadMsgManager extends IMManager {
         EventBus.getDefault().unregister(inst);
         unreadListReady = false;
         unreadMsgMap.clear();
+        messageDao = null;
+        unReadDao = null;
     }
 
 
@@ -187,11 +190,12 @@ public class IMUnreadMsgManager extends IMManager {
             unreadEntity.setCreated(msg.getUpdated());
             //持久化数据
         }
+        unreadEntity.setFromId(msg.getFromId());
         unreadEntity.setLatestMsgData(msg.getMessageDisplay());
         unreadEntity.setLaststMsgId(msg.getMsgId());
         unreadEntity.setUpdated(msg.getUpdated());
         unReadDao.replaceInto(unreadEntity);
-        addIsForbidden(unreadEntity);
+//        addIsForbidden(unreadEntity);
 
         /**放入manager 状态中*/
         unreadMsgMap.put(unreadEntity.getSessionKey(), unreadEntity);
@@ -210,16 +214,16 @@ public class IMUnreadMsgManager extends IMManager {
 
 
     /**
-     * 会话是否已经被设定为屏蔽,暂时不需要
+     * 会话是否已经被设定为屏蔽
      * @param unreadEntity
      */
     private void addIsForbidden(UnreadEntity unreadEntity){
-//        if(unreadEntity.getSessionType() == DBConstant.SESSION_TYPE_GROUP){
-//            GroupEntity groupEntity= IMGroupManager.instance().findGroup(unreadEntity.getPeerId());
-//            if(groupEntity !=null && groupEntity.getStatus() == DBConstant.GROUP_STATUS_SHIELD){
-//                unreadEntity.setForbidden(true);
-//            }
-//        }
+        if(unreadEntity.getSessionType() == DBConstant.SESSION_TYPE_GROUP){
+            GroupEntity groupEntity= IMGroupManager.instance().findGroup(unreadEntity.getPeerId());
+            if(groupEntity !=null && groupEntity.getStatus() == DBConstant.GROUP_STATUS_SHIELD){
+                unreadEntity.setForbidden(true);
+            }
+        }
     }
 
     /**
@@ -330,9 +334,11 @@ public class IMUnreadMsgManager extends IMManager {
      */
     private void reqUnreadMsgContactList(List<String> groupPeerIds, int timeOut) {
         logger.i("unread#reqUnreadMsgContactList");
+
         if(groupPeerIds != null && groupPeerIds.size() >0) {
+            final List<String> newGroupPeerIds = new ArrayList<>(groupPeerIds);
             final CountDownLatch countDownLatch = new CountDownLatch(groupPeerIds.size());
-            for(final String peerId : groupPeerIds) {
+            for(final String peerId : newGroupPeerIds) {
                 ThreadPoolUtil.instance().executeImTask(new Runnable() {
                     @Override
                     public void run() {
@@ -340,6 +346,14 @@ public class IMUnreadMsgManager extends IMManager {
                     }
                 });
             }
+//            ThreadPoolUtil.instance().executeImTask(new Runnable() {
+//                @Override
+//                public void run() {
+//                    for(final String peerId : newGroupPeerIds) {
+//                        reqUnreadMsgContact(peerId, countDownLatch);
+//                    }
+//                }
+//            });
             try {
                 //消息收取时间不能超过1分钟 (不能在MAIN线程中执行)
                 countDownLatch.await(timeOut, TimeUnit.SECONDS);
@@ -495,5 +509,27 @@ public class IMUnreadMsgManager extends IMManager {
 
     public boolean isUnreadListReady() {
         return unreadListReady;
+    }
+
+
+
+    /**设定未读会话为屏蔽会话 仅限于群组 todo*/
+    public void setForbidden(String sessionKey,boolean isFor){
+        UnreadEntity unreadEntity =  unreadMsgMap.get(sessionKey);
+        if(unreadEntity !=null){
+            unreadEntity.setForbidden(isFor);
+        }
+    }
+
+    /**
+     * 初始化DAO和服务(退出登录后或者第一次加载需要初始化)
+     */
+    public void initDaoAndService() {
+        if(messageDao == null) {
+            messageDao = new MessageDaoImpl(ctx);
+        }
+        if(unReadDao == null) {
+            unReadDao = new UnreadDaoImpl(ctx);
+        }
     }
 }

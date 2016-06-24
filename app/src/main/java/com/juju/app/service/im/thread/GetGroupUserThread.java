@@ -72,6 +72,7 @@ public class GetGroupUserThread implements Runnable {
     private String name;
     private String desc;
     private String creatorId;
+    private Date createTime;
 
     private UserInfoBean userInfoBean;
     private DaoSupport groupDao;
@@ -79,7 +80,7 @@ public class GetGroupUserThread implements Runnable {
 
 
     public GetGroupUserThread(CountDownLatch countDownLatch, String id, String name,
-                              String desc, String creatorId, UserInfoBean userInfoBean,
+                              String desc, String creatorId, Date createTime, UserInfoBean userInfoBean,
                               DaoSupport groupDao, DaoSupport userDao,
                               Map<String, GroupEntity> groupMap, Map<String, User> userMap) {
         this.countDownLatch = countDownLatch;
@@ -87,6 +88,7 @@ public class GetGroupUserThread implements Runnable {
         this.name = name;
         this.desc = desc;
         this.creatorId = creatorId;
+        this.createTime = createTime;
         this.userInfoBean = userInfoBean;
         this.groupDao = groupDao;
         this.userDao = userDao;
@@ -98,18 +100,21 @@ public class GetGroupUserThread implements Runnable {
     @Override
     public void run() {
 //        condition = lock.newCondition();
+        logger.d("Begin GetGroupUserThread -> groupId:%s", id);
         execute();
         //计数器-1
-        System.out.println("执行id====================" + id);
+//        System.out.println("执行id====================" + id);
+
         countDownLatch.countDown();
     }
+
 
     private void execute() {
         Map<String, Object> valueMap = new HashMap<String, Object>();
         valueMap.put("userNo", userInfoBean.getJujuNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("groupId", id);
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
                 0, HttpConstants.getUserUrl() + "/getGroupUsers",
                 new HttpCallBack() {
                     @Override
@@ -154,7 +159,7 @@ public class GetGroupUserThread implements Runnable {
                                                 }
                                             }
                                             User userEntity = User.buildForReceive(userNo,
-                                                    userPhone,  "",  gender, nickName,
+                                                    userPhone,  null,  gender, nickName,
                                                     createTimeDate,  birthdayDate);
                                             saveUsers(userEntity);
                                             //暂时这样处理
@@ -168,7 +173,7 @@ public class GetGroupUserThread implements Runnable {
                                         }
                                         GroupEntity groupEntity = GroupEntity.buildForReceive(id,
                                                 peerId, DBConstant.GROUP_TYPE_NORMAL,  name,
-                                                userNoSbf.toString(), creatorId, desc, null, null);
+                                                userNoSbf.toString(), creatorId, desc, createTime, null);
 
                                         //暂时这样处理
                                         GroupEntity cacheGroup = groupMap.get(groupEntity.getPeerId());
@@ -184,14 +189,17 @@ public class GetGroupUserThread implements Runnable {
                             } catch (JSONException e) {
                                 logger.error(e);
                             }
+
                         }
-                        System.out.println("返回结果id:" + Thread.currentThread().getName());
+//                        System.out.println("返回结果id:" + Thread.currentThread().getName());
                         myCountDownLatch.countDown();
+                        logger.d("End GetGroupUserThread -> groupId:%s", id);
                     }
 
                     @Override
                     public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
                         myCountDownLatch.countDown();
+                        logger.d("end GetGroupUserThread -> groupId:%s", id);
                     }
 
                     @Override
@@ -215,7 +223,6 @@ public class GetGroupUserThread implements Runnable {
         } catch (InterruptedException e) {
             logger.error(e);
         }
-
     }
 
 

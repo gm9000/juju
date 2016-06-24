@@ -16,6 +16,7 @@ import com.juju.app.activity.LoginActivity;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
+import com.juju.app.event.LoginEvent;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
@@ -26,6 +27,7 @@ import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.dialog.WarnTipDialog;
 
@@ -148,7 +150,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
         BitmapUtilFactory.getInstance(this).bind(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
         User userInfo = null;
-        if(userNo == null) {
+        if(StringUtils.isBlank(userNo)) {
             String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
             if (userInfoStr != null) {
                 userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
@@ -334,90 +336,6 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
     /**
      *******************************************回调函数******************************************
      */
-//    @Override
-//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-//        switch (accessId) {
-//            case R.id.logoutBtn:
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
-//                            Intent intent = new Intent(this, LoginActivity.class);
-//                            intent.putExtra(Constants.AUTO_LOGIN,false);
-//                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-//                            this.startActivity(intent);
-//                        } else {
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//            case R.id.txt_jujuNo:
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            JSONObject userJson = jsonRoot.getJSONObject("user");
-//                            //   "userNo":"100000001","nickName":"别名-1","userPhone":"13800000001","birthday":1451889752445,"gender":1,"createTime":1451889752445}
-//                            User userInfo = new User();
-//                            userInfo.setUserNo(userJson.getString("userNo"));
-//                            userInfo.setNickName(userJson.getString("nickName"));
-//                            userInfo.setUserPhone(userJson.getString("userPhone"));
-//                            userInfo.setGender(userJson.getInt("gender"));
-//
-//                            txt_gender.setText(userInfo.getGender() == 0 ? "女" : "男");
-//                            txt_jujuNo.setText(userInfo.getUserNo());
-//                            txt_phoneNo.setText(userInfo.getUserPhone());
-//                            txt_nickName.setText(userInfo.getNickName());
-//                            JujuDbUtils.saveOrUpdate(userInfo);
-//                            if(userNo == null) {
-//                                SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
-//                            }else{
-//                                txt_title.setText(userInfo.getNickName());
-//                            }
-//
-//                        } else {
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//            case R.id.txt_property:
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
-//                            User userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
-//                            userInfo.setUpdate(false);
-//                            JujuDbUtils.saveOrUpdate(userInfo);
-//                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
-//                        } else {
-//                            Log.e(TAG,"return status code:"+status);
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//
-//        }
-//    }
-//
-//    @Override
-//    public void onFailure(HttpException error, String msg, int accessId) {
-//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-//                error.getExceptionCode());
-//    }
 
     @Override
     public void onSuccess(Object obj, int accessId, Object inputParameter) {
@@ -430,10 +348,22 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
                         if(status == 0) {
                             SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
                             Intent intent = new Intent(this, LoginActivity.class);
-                            intent.putExtra(Constants.AUTO_LOGIN,false);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+//                            intent.putExtra(Constants.AUTO_LOGIN, false);
+                            SpfUtil.put(getApplicationContext(), Constants.AUTO_LOGIN, false);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    | Intent.FLAG_ACTIVITY_NEW_TASK);
                             this.startActivity(intent);
+                            triggerEvent(LoginEvent.LOGIN_OUT);
                         } else {
+                            //TODO 先这样处理
+                            SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
+                            Intent intent = new Intent(this, LoginActivity.class);
+//                            intent.putExtra(Constants.AUTO_LOGIN, false);
+                            SpfUtil.put(getApplicationContext(), Constants.AUTO_LOGIN, false);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                    | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            this.startActivity(intent);
+                            triggerEvent(LoginEvent.LOGIN_OUT);
                         }
                     } catch (JSONException e) {
                         Log.e(TAG, "回调解析失败", e);

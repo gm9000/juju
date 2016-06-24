@@ -12,41 +12,82 @@
 
     <LinearLayout
         android:id="@+id/layout_back"
-        android:background="@color/red"
         android:orientation="horizontal"
         android:gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="65.0dip">
-        <TextView
-            android:id="@+id/txt_forbid"
-            style="@style/MMFontTitleInList"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/forbid_group_message"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:singleLine="true" />
+        android:layout_width="100dp"
+        android:layout_height="match_parent">
 
 
-    </LinearLayout>
+        <com.juju.app.view.SwipeLinearLayout
+            android:id="@+id/lin_forbid"
+            android:clickable="true"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@drawable/btn_bg_red">
+            <TextView
+                android:id="@+id/txt_forbid"
+                style="@style/MMFontTitleInList"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="@string/forbid_group_message"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:singleLine="true" />
 
-    <LinearLayout
-        android:id="@+id/layout_back2"
-        android:background="@color/red"
-        android:orientation="horizontal"
-        android:gravity="center"
-        android:layout_width="wrap_content"
-        android:layout_height="65.0dip">
+            <TextView
+                android:id="@+id/txt_cancel_forbid"
+                style="@style/MMFontTitleInList"
+                android:layout_height="wrap_content"
+                android:layout_width="match_parent"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:text="@string/cancel_forbid_group_message"
+                android:textColor="@color/white"
+                android:textSize="18sp"
+                android:visibility="gone"
+                android:singleLine="true" />
 
-        <TextView
-            android:id="@+id/txt_top_message"
-            style="@style/MMFontTitleInList"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/top_message"
-            android:textColor="@color/white"
-            android:textSize="18sp"
-            android:singleLine="true" />
+        </com.juju.app.view.SwipeLinearLayout>
+
+
+        <!--<com.juju.app.view.SwipeLinearLayout-->
+            <!--android:id="@+id/lin_top_message"-->
+            <!--android:layout_weight="1"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:background="@drawable/btn_bg_high_gray">-->
+
+            <!--<TextView-->
+                <!--android:id="@+id/txt_top_message"-->
+                <!--style="@style/MMFontTitleInList"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_gravity="center"-->
+                <!--android:gravity="center"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="@string/top_message"-->
+                <!--android:textColor="@color/white"-->
+                <!--android:textSize="18sp"-->
+                <!--android:singleLine="true" />-->
+
+            <!--<TextView-->
+                <!--android:id="@+id/txt_cancel_top_message"-->
+                <!--style="@style/MMFontTitleInList"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_gravity="center"-->
+                <!--android:gravity="center"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:text="@string/cancel_short_top_message"-->
+                <!--android:textColor="@color/white"-->
+                <!--android:textSize="18sp"-->
+                <!--android:visibility="gone"-->
+                <!--android:singleLine="true" />-->
+
+        <!--</com.juju.app.view.SwipeLinearLayout>-->
+
+
     </LinearLayout>
 
 

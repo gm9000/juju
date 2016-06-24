@@ -9,6 +9,7 @@ import com.juju.app.config.CacheManager;
 import com.juju.app.exceptions.JUJUSQLException;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.ui.base.BaseApplication;
+import com.juju.app.utils.DBUtil;
 import com.juju.app.utils.StringUtils;
 
 
@@ -150,7 +151,7 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
     }
 
     private void init() {
-        this.db = x.getDb(BaseApplication.getInstance().getDaoConfig());
+        this.db = x.getDb(DBUtil.instance().getDaoConfig());
     }
 
 //    private void createTabled() {
@@ -292,17 +293,19 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
                 }
                 for (int i = 0; i <propertysArr.length; i++) {
                     if(i == 0) {
-                        selector.where(propertysArr[i], "=", values[i]);
+                        selector.where(propertysArr[i].trim(), "=", values[i]);
                     } else {
-                        selector.and(propertysArr[i], "=", values[i]);
+                        selector.and(propertysArr[i].trim(), "=", values[i]);
                     }
                 }
             }
             list = selector.findAll();
         } catch (DbException e) {
+            e.printStackTrace();
             Log.e(TAG, "execute findByProperty error:"+clazz.getSimpleName(), e);
         }
         return list;
+
     }
 
     public T findUniByProperty(String propertys, Object... values) {

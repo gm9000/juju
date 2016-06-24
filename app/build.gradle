@@ -15,7 +15,7 @@ android {
         targetSdkVersion 23
         versionCode 1
         versionName "1.0"
-        multiDexEnabled true
+//        multiDexEnabled true
 
     }
     buildTypes {
@@ -92,7 +92,7 @@ dependencies {
 
     compile files('libs/locSDK_6.13.jar')
     compile 'com.skyfishjy.ripplebackground:library:1.0.1'
-    compile 'com.android.support:multidex:1.0.0'
+//    compile 'com.android.support:multidex:1.0.0'
     //    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
 
     //    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'

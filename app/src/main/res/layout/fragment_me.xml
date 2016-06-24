@@ -77,39 +77,92 @@
             </RelativeLayout>
 
 
-            <TextView
-                android:id="@+id/txt_party"
-                style="@style/TxtTitle"
-                android:textSize="16sp"
-                android:gravity="center_vertical"
-                android:background="@drawable/setting_item_selector"
-                android:layout_width="fill_parent"
+            <LinearLayout
+                android:id="@+id/lin_party"
+                android:layout_width="match_parent"
                 android:layout_height="50dp"
-                android:paddingLeft="16dp"
-                android:paddingRight="16dp"
                 android:layout_marginTop="25dp"
-                android:drawablePadding="10dp"
-                android:drawableLeft="@mipmap/party"
-                android:drawableRight="@mipmap/right"
-                android:text="@string/group_party" />
+                android:orientation="horizontal"
+                android:background="@drawable/setting_item_selector">
+
+                <TextView
+                    android:id="@+id/txt_party"
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:paddingLeft="16dp"
+                    android:drawablePadding="10dp"
+                    android:drawableLeft="@mipmap/party"
+                    android:text="@string/group_party" />
+
+                <TextView
+                    android:id="@+id/tab_party_notify"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:layout_marginLeft="0dp"
+                    android:background="@drawable/tt_message_notify"
+                    android:gravity="center"
+                    android:visibility="gone"
+                    android:textColor="@android:color/white"
+                    android:textSize="10sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:drawableRight="@mipmap/right"
+                    android:paddingRight="16dp"/>
+
+            </LinearLayout>
+
             <View
                 android:background="@color/black2"
                 android:layout_width="fill_parent"
                 android:layout_height="1.0dip" />
+
+        <LinearLayout
+            android:id="@+id/lin_invite"
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:orientation="horizontal"
+            android:background="@drawable/setting_item_selector">
+
             <TextView
                 android:id="@+id/txt_invite"
                 style="@style/TxtTitle"
                 android:textSize="16sp"
                 android:gravity="center_vertical"
-                android:background="@drawable/setting_item_selector"
-                android:layout_width="fill_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="50dp"
                 android:paddingLeft="16dp"
-                android:paddingRight="16dp"
                 android:drawablePadding="10dp"
                 android:drawableLeft="@mipmap/invite"
-                android:drawableRight="@mipmap/right"
                 android:text="@string/group_invite" />
+
+            <TextView
+                android:id="@+id/tab_invite_notify"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="0dp"
+                android:layout_gravity="center"
+                android:background="@drawable/tt_message_notify"
+                android:gravity="center"
+                android:text="新"
+                android:visibility="gone"
+                android:textColor="@android:color/white"
+                android:textSize="10sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:drawableRight="@mipmap/right"
+                android:paddingRight="16dp"/>
+
+        </LinearLayout>
+
+
 
             <TextView
                 android:id="@+id/txt_setting"

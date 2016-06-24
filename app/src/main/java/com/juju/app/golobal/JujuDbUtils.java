@@ -3,6 +3,7 @@ package com.juju.app.golobal;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
 import com.juju.app.ui.base.BaseApplication;
+import com.juju.app.utils.DBUtil;
 
 import org.xutils.DbManager;
 import org.xutils.ex.DbException;
@@ -17,7 +18,7 @@ public class JujuDbUtils {
         if (mInstance == null) {
             synchronized (JujuDbUtils.class){
                 if (mInstance == null) {
-                    mInstance = x.getDb(BaseApplication.getInstance().getDaoConfig());
+                    mInstance = x.getDb(DBUtil.instance().getDaoConfig());
                 }
             }
         }

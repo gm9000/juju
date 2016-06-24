@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.entity.chat.SearchElement;
@@ -66,7 +67,6 @@ public class  User extends BaseEntity {
     @Column(name = "email")
     private String email;
 
-
     /**
      * 更新时间
      */
@@ -92,6 +92,8 @@ public class  User extends BaseEntity {
      */
     @Column(name = "avatar")
     private String avatar;
+
+    private String peerId;
 
     private PinYinUtil.PinYinElement pinyinElement = new PinYinUtil.PinYinElement();
     private SearchElement searchElement = new SearchElement();
@@ -200,52 +202,46 @@ public class  User extends BaseEntity {
         User user = (User) o;
 
         if (gender != user.gender) return false;
-        if (!userNo.equals(user.userNo)) return false;
+        if (userNo != null ? !userNo.equals(user.userNo) : user.userNo != null) return false;
         if (userPhone != null ? !userPhone.equals(user.userPhone) : user.userPhone != null)
             return false;
         if (email != null ? !email.equals(user.email) : user.email != null) return false;
-        if (updateTime != null ? !updateTime.equals(user.updateTime) : user.updateTime != null)
-            return false;
         if (nickName != null ? !nickName.equals(user.nickName) : user.nickName != null)
             return false;
         if (birthday != null ? !birthday.equals(user.birthday) : user.birthday != null)
             return false;
-        return !(createTime != null ? !createTime.equals(user.createTime) : user.createTime != null);
+        return avatar != null ? avatar.equals(user.avatar) : user.avatar == null;
 
     }
 
     @Override
     public int hashCode() {
-        int result = userNo.hashCode();
+        int result = userNo != null ? userNo.hashCode() : 0;
         result = 31 * result + (userPhone != null ? userPhone.hashCode() : 0);
         result = 31 * result + (email != null ? email.hashCode() : 0);
-        result = 31 * result + (updateTime != null ? updateTime.hashCode() : 0);
         result = 31 * result + gender;
         result = 31 * result + (nickName != null ? nickName.hashCode() : 0);
         result = 31 * result + (birthday != null ? birthday.hashCode() : 0);
-        result = 31 * result + (createTime != null ? createTime.hashCode() : 0);
+        result = 31 * result + (avatar != null ? avatar.hashCode() : 0);
         return result;
     }
 
     @Override
     public String toString() {
-        return JacksonUtil.turnObj2String(this);
+        return "User{" +
+                "userNo='" + userNo + '\'' +
+                ", userPhone='" + userPhone + '\'' +
+                ", email='" + email + '\'' +
+                ", updateTime=" + updateTime +
+                ", gender=" + gender +
+                ", nickName='" + nickName + '\'' +
+                ", update=" + update +
+                ", birthday=" + birthday +
+                ", createTime=" + createTime +
+                ", avatar='" + avatar + '\'' +
+                ", peerId='" + peerId + '\'' +
+                '}';
     }
-
-
-
-    public static User buildForReceive(String userNo, String userPhone,  String email, int gender,
-                                       String nickName, Date createTime, Date birthday) {
-        if(StringUtils.isBlank(userNo)
-                || StringUtils.isBlank(nickName))
-            throw new IllegalArgumentException("user#buildForReceive is error");
-        User userEntity = new User(userNo,  userPhone,  email,
-            gender,  nickName,  createTime,  birthday,
-            HttpConstants.getPortraitUrl()+userNo);
-        return userEntity;
-    }
-
-
 
 
     public String getSectionName() {
@@ -261,4 +257,48 @@ public class  User extends BaseEntity {
         this.sectionName = sectionName;
     }
 
+    public String getPeerId() {
+        //暂时这样处理，需要结合注册用户
+        peerId = userNo+"@juju";
+        return peerId;
+    }
+
+
+    public static User buildForCreate(String userNo, String userPhone, String email, int gender,
+                                      String nickName, Date birthday, Date createTime, String avatar) {
+        User user = new User();
+        user.setUserNo(userNo);
+        user.setUserPhone(userPhone);
+        user.setEmail(email);
+        user.setGender(gender);
+        user.setNickName(nickName);
+        user.setBirthday(birthday);
+        user.setCreateTime(createTime);
+        user.setAvatar(avatar);
+        return user;
+    }
+
+
+    public static User buildForReceive(String userNo, String userPhone,  String email, int gender,
+                                       String nickName, Date createTime, Date birthday) {
+        if(StringUtils.isBlank(userNo)
+                || StringUtils.isBlank(nickName))
+            throw new IllegalArgumentException("user#buildForReceive is error");
+        User userEntity = new User(userNo,  userPhone,  email,
+                gender,  nickName,  createTime,  birthday,
+                HttpConstants.getPortraitUrl()+userNo);
+        return userEntity;
+    }
+
+    public static User build4UserInfoBean(UserInfoBean userInfoBean) {
+        User user = new User();
+        user.setGender(userInfoBean.getGender());
+        user.setAvatar(HttpConstants.getPortraitUrl()+userInfoBean.getJujuNo());
+        user.setUserPhone(userInfoBean.getPhone());
+        user.setNickName(userInfoBean.getUserName());
+        user.setBirthday(new Date(userInfoBean.getBirthday()));
+        user.setUpdate(true);
+        user.setUserNo(userInfoBean.getJujuNo());
+        return user;
+    }
 }

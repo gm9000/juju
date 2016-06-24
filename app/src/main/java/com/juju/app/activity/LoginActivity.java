@@ -4,13 +4,9 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.text.Editable;
-import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -23,12 +19,10 @@ import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
-import com.juju.app.event.JoinChatRoomEvent;
 import com.juju.app.event.LoginEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
-import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.helper.IMUIHelper;
 import com.juju.app.https.HttpCallBack4OK;
@@ -39,6 +33,9 @@ import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.DBUtil;
+import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
@@ -139,7 +136,8 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         imServiceConnector.connect(LoginActivity.this);
         userNo = (String)SpfUtil.get(LoginActivity.this, "userNo", "");
         pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
-        nickName = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
+        nickName = (String)SpfUtil.get(LoginActivity.this, "nickName", "");
+        token  = (String)SpfUtil.get(LoginActivity.this, "token", "");
     }
 
     @Override
@@ -203,10 +201,10 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     @Event(value = R.id.loginBtn, type = View.OnClickListener.class)
     private void onClickBtnLogin(Button btn) {
         Log.d(TAG, "threadId" + Thread.currentThread().getId());
-        if(GlobalVariable.isSkipLogin()){
-            startActivity(LoginActivity.this, MainActivity.class);
-            return;
-        }
+//        if(GlobalVariable.isSkipLogin()){
+//            startActivity(LoginActivity.this, MainActivity.class);
+//            return;
+//        }
         initGlobalVariable();
         boolean vsBool = validateLogin();
 
@@ -214,19 +212,18 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 //            loadingCommon(R.string.login_progress_signing_in);
             loading(R.string.login_progress_signing_in);
             String password = MD5Util.MD5(pwd);
-            Map<String, Object> valueMap = new HashMap<String, Object>();
+            Map<String, Object> valueMap = new HashMap<>();
             valueMap.put("userNo", userNo);
             valueMap.put("password", password);
-            JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
+            JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
                     R.id.loginBtn, HttpConstants.getUserUrl() + "/login", this, valueMap,
                     JSONObject.class);
             try {
-                Log.d(TAG, "主线程:"+Thread.currentThread().getName());
                 client.sendPost4OK();
             } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
+                logger.error(e);
             } catch (JSONException e) {
-                e.printStackTrace();
+                logger.error(e);
             }
         }
     }
@@ -261,8 +258,16 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     //TODO 登陆协议需返回用户昵称、域名、房间名称、MUC服务名称
                     nickName = "聚龙小子";
                     if(status == 0) {
-                        //TODO 是否需要消息服务器登陆成功后再确认？目前以业务服务登陆为准
-                        triggerEvent(LoginEvent.LOGIN_BSERVER_OK);
+                        //初始化DB（针对http服务登陆）
+                        DBUtil.instance().initDBHelp(getApplicationContext(), userNo);
+                        LoginActivity.this.runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                imService.getLoginManager().initDaoAndService();
+                                //TODO 是否需要消息服务器登陆成功后再确认？目前以业务服务登陆为准
+                                triggerEvent(LoginEvent.LOGIN_BSERVER_OK);
+                            }
+                        });
                     } else {
                         LoginActivity.this.runOnUiThread(new Runnable() {
                             @Override
@@ -302,7 +307,8 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
             case LOCAL_LOGIN_SUCCESS:
                 loginSuccess = true;
                 saveUserInfo();
-                startActivity(LoginActivity.this, MainActivity.class);
+//                startActivity(LoginActivity.this, MainActivity.class);
+                ActivityUtil.startActivityNew(LoginActivity.this, MainActivity.class);
                 if(!imService.getLoginManager().isAuthenticated()) {
                     imService.getLoginManager().login();
                 }
@@ -310,15 +316,25 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                 else {
                     triggerEvent4Sticky(new UnreadEvent(UnreadEvent.Event.UNREAD_MSG_LIST_OK));
                 }
+                finish(LoginActivity.this);
+//                uiHandler.postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        finish(LoginActivity.this);
+//                    }
+//                }, 5000);
                 break;
             case LOGIN_BSERVER_OK:
                 loginSuccess = true;
                 saveUserInfo();
-                startActivity(LoginActivity.this, MainActivity.class);
+                imService.getLoginManager().setUserNo(userNo);
+//                startActivity(LoginActivity.this, MainActivity.class);
+                ActivityUtil.startActivityNew(LoginActivity.this, MainActivity.class);
                 //登陆聊天服务
                 if(imService != null) {
                     imService.getLoginManager().login();
                 }
+                finish(LoginActivity.this);
                 break;
             case LOGIN_AUTH_FAILED:
             case LOGIN_INNER_FAILED:
@@ -353,12 +369,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      * @return
      */
     private boolean validateLogin() {
-
-        int a = Integer.MAX_VALUE >> 2;
-        int height = View.MeasureSpec.makeMeasureSpec(
-                Integer.MAX_VALUE >> 2, View.MeasureSpec.AT_MOST);
-
-
         if(userNo.trim().equals("")){
             txt_userNo.setShakeAnimation();
             ToastUtil.TextIntToast(getApplicationContext(), R.string.user_no_null, 0);
@@ -382,12 +392,15 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         SpfUtil.put(this, "userNo", userNo);
         SpfUtil.put(this, "pwd", pwd);
         SpfUtil.put(this, "nickName", nickName);
+        SpfUtil.put(this, "token", token);
 
+//        DBUtil.instance().initDBHelp(getApplicationContext(), userNo);
 
         //TODO 登陆成功是否需要将用户插入本地数据库
         User loginUser = null;
         try {
-            loginUser = JujuDbUtils.getInstance().selector(User.class).where("user_no","=",userNo).findFirst();
+            loginUser = JujuDbUtils.getInstance()
+                    .selector(User.class).where("user_no","=",userNo).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -397,6 +410,8 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         userInfoBean.setmAccount(userNo);
         userInfoBean.setmPassword(pwd);
 
+        HttpReqParamUtil.instance().setUserInfoBean(userInfoBean);
+
         if( loginUser == null){
             SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
         }else{
@@ -404,14 +419,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
             //需要调整
             SpfUtil.put(this, "nickName", loginUser.getNickName());
         }
-
-//        SpfUtil.put(this, "pwdChecked", pwdChecked);
-//        SpfUtil.put(this, "autoLoginChecked", autoLoginChecked);
-//        if(pwdChecked) {
-//            SpfUtil.put(this, "pwd", pwd);
-//        } else {
-//            SpfUtil.put(this, "pwd", "");
-//        }
     }
 
     /**
@@ -539,7 +546,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
             @Override
             public void onServiceDisconnected() {
 //                showMsgDialog(R.string.system_service_error);
-                ToastUtil.TextIntToast(getApplicationContext(), R.string.system_service_error, 0);
+//                ToastUtil.TextIntToast(getApplicationContext(), R.string.system_service_error, 0);
             }
         };
 
@@ -549,7 +556,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      */
     private void handleGotLoginIdentity(final String userNo, final String pwd) {
         logger.i("login#handleGotLoginIdentity");
-
         uiHandler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -557,10 +563,13 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                 if (imService == null || imService.getLoginManager() == null) {
                     Toast.makeText(LoginActivity.this, getString(R.string.login_failed),
                             Toast.LENGTH_SHORT).show();
-
                     showLoginPage();
+                } else {
+                    //初始化DB（针对本地登陆）
+                    DBUtil.instance().initDBHelp(getApplicationContext(), userNo);
+                    imService.getLoginManager().initDaoAndService();
+                    imService.getLoginManager().autoLogin(userNo, pwd);
                 }
-                imService.getLoginManager().autoLogin(userNo, pwd);
             }
         }, 500);
     }

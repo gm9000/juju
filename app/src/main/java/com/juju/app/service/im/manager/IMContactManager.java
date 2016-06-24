@@ -1,25 +1,41 @@
 package com.juju.app.service.im.manager;
 
+import com.juju.app.R;
+import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
-import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.biz.impl.UserDaoImpl;
+import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
-import com.juju.app.entity.chat.GroupEntity;
-import com.juju.app.entity.chat.SessionEntity;
-import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.UserInfoEvent;
-import com.juju.app.helper.IMUIHelper;
+import com.juju.app.golobal.CommandActionConstant;
+import com.juju.app.https.HttpCallBack4OK;
+import com.juju.app.https.JlmHttpClient;
+import com.juju.app.ui.base.BaseApplication;
+import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ToastUtil;
+import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.utils.pinyin.PinYinUtil;
 
+import org.apache.commons.lang.math.NumberUtils;
+import org.apache.commons.lang.time.DateUtils;
 import org.greenrobot.eventbus.EventBus;
+import org.jivesoftware.smack.util.NumberUtil;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 
 /**
  * 项目名称：juju
@@ -28,18 +44,19 @@ import java.util.concurrent.ConcurrentHashMap;
  * 日期：2016/5/10 10:34
  * 版本：V1.0.0
  */
-public class IMContactManager extends IMManager {
+public class IMContactManager extends IMManager implements HttpCallBack4OK {
 
     private Logger logger = Logger.getLogger(IMContactManager.class);
-
 
     private volatile static IMContactManager inst;
 
     // 自身状态字段
     private boolean  userDataReady = false;
-    private Map<String, User> userMap = new ConcurrentHashMap<String, User>();
+    private Map<String, User> userMap = new ConcurrentHashMap<>();
 
     private DaoSupport userDao;
+
+    private UserInfoBean userInfoBean;
 
 //    private DaoSupport groupDao;
 
@@ -58,7 +75,8 @@ public class IMContactManager extends IMManager {
 
     @Override
     public void doOnStart() {
-        userDao = new UserDaoImpl(ctx);
+        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+//        userDao = new UserDaoImpl(ctx);
 //        groupDao = new GroupDaoImpl(ctx);
     }
 
@@ -69,6 +87,7 @@ public class IMContactManager extends IMManager {
      */
     @Override
     public void reset() {
+        userDao = null;
         userDataReady = false;
         userMap.clear();
     }
@@ -96,9 +115,9 @@ public class IMContactManager extends IMManager {
             PinYinUtil.getPinYin(userInfo.getNickName(), userInfo.getPinyinElement());
             userMap.put(userInfo.getUserNo(), userInfo);
         }
-        userDataReady = true;
+//        userDataReady = true;
         //不需要更新用户列表 暂时不需要通知
-//        triggerEvent(UserInfoEvent.USER_INFO_OK);
+        triggerEvent(UserInfoEvent.USER_INFO_OK);
     }
 
     /**
@@ -111,6 +130,7 @@ public class IMContactManager extends IMManager {
 //        int updateTime = dbInterface.getUserInfoLastTime();
 //        logger.d("contact#loadAllUserInfo req-updateTime:%d", updateTime);
 //        reqGetAllUsers(updateTime);
+        sendGetUserInfo2BServer(userInfoBean.getJujuNo());
     }
 
     public User findContact(String userNo){
@@ -181,4 +201,123 @@ public class IMContactManager extends IMManager {
             EventBus.getDefault().postSticky(event);
         }
     }
+
+    /**
+     * 初始化DAO和服务(退出登录后或者第一次加载需要初始化)
+     */
+    public void initDaoAndService() {
+        if(userDao == null) {
+            userDao = new UserDaoImpl(ctx);
+        }
+    }
+
+    //查询用户信息
+    public void sendGetUserInfo2BServer(String targetNo) {
+        Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("targetNo", targetNo);
+        CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GETUSERINFO;
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
+                httpReqParam.url(), this, valueMap, JSONObject.class);
+        try {
+            client.sendGet4OK();
+        } catch (UnsupportedEncodingException e) {
+            logger.error(e);
+        } catch (JSONException e) {
+            logger.error(e);
+        }
+    }
+
+    @Override
+    public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+        CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.getInstance(accessId);
+        switch (httpReqParam) {
+            case GETUSERINFO :
+                JSONObject jsonObject = (JSONObject)obj;
+                handlerGetUserInfo4BServer(jsonObject);
+                break;
+        }
+    }
+
+    @Override
+    public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+        CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.getInstance(accessId);
+        switch (httpReqParam) {
+            case GETUSERINFO :
+                logger.error(e);
+                logger.e("GETUSERINFO is faild");
+                break;
+        }
+    }
+
+    //处理获取用户详情响应
+    private void handlerGetUserInfo4BServer(JSONObject jsonObject) {
+        int status = JSONUtils.getInt(jsonObject, "status", -1);
+        if(status == 0) {
+            //是否触发事件
+            boolean needEvent = false;
+            JSONObject jsonUser = null;
+            try {
+                jsonUser = jsonObject.getJSONObject("user");
+                if(jsonUser != null) {
+//                  String userNo = JSONUtils.getString(jsonUser, "userNo");
+                    String nickName = JSONUtils.getString(jsonUser, "nickName");
+                    String userPhone = JSONUtils.getString(jsonUser, "userPhone");
+                    String birthday = JSONUtils.getString(jsonUser, "birthday");
+                    int gender = JSONUtils.getInt(jsonUser, "gender", 1);
+                    String createTime = JSONUtils.getString(jsonUser, "createTime");
+                    userInfoBean.setPhone(userPhone);
+                    userInfoBean.setUserName(nickName);
+                    userInfoBean.setGender(gender);
+//                    if(NumberUtils.isNumber(birthday)) {
+//                        userInfoBean.setBirthday(Long.parseLong(birthday));
+//                    }
+                    Date birthdayDate = null;
+                    if(StringUtils.isNotBlank(birthday)) {
+                        try {
+                            birthdayDate = DateUtils.parseDate(birthday,
+                                    new String[] {"yyyy-MM-dd HH:mm:ss"});
+                            userInfoBean.setBirthday(birthdayDate.getTime());
+                        } catch (ParseException e) {
+
+                        }
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+//            String phone = JSONUtils.getString(jsonObject, "userPhone");
+//            String nickName = JSONUtils.getString(jsonObject, "nickName");
+//            int gender = JSONUtils.getInt(jsonObject, "status", 1);
+//            String birthday = JSONUtils.getString(jsonObject, "birthday");
+            //持久化数据库
+            User user = User.build4UserInfoBean(userInfoBean);
+            User dbUser = (User) userDao.findUniByProperty("user_no", user.getUserNo());
+            if(dbUser == null) {
+                user.setCreateTime(new Date());
+            } else {
+                user.setUpdateTime(new Date());
+            }
+            userDao.replaceInto(user);
+
+            if(!userMap.containsKey(user.getUserNo())) {
+                needEvent = true;
+                userMap.put(user.getUserNo(), user);
+                PinYinUtil.getPinYin(user.getNickName(), user.getPinyinElement());
+            } else {
+                User cacheUser = userMap.get(user.getUserNo());
+                if(!user.equals(cacheUser)) {
+                    needEvent = true;
+                    userMap.put(user.getUserNo(), user);
+                    PinYinUtil.getPinYin(user.getNickName(), user.getPinyinElement());
+                }
+            }
+            // 判断有没有必要进行推送
+            if(needEvent){
+                EventBus.getDefault().postSticky(UserInfoEvent.USER_INFO_UPDATE);
+            }
+        } else {
+            logger.e("GETUSERINFO is faild");
+        }
+    }
+
+
 }

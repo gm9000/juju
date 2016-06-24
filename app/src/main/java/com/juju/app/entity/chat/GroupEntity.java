@@ -326,6 +326,10 @@ public class GroupEntity extends PeerEntity {
         if(time != null) {
             groupEntity.setCreated(time.getTime());
         }
+        //正常状态（非屏蔽）
+        groupEntity.setStatus(DBConstant.GROUP_STATUS_ONLINE);
         return groupEntity;
     }
+
+
 }

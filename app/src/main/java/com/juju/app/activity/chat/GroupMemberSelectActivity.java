@@ -4,6 +4,8 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.database.Cursor;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
@@ -23,28 +25,56 @@ import com.juju.app.R;
 import com.juju.app.adapter.GroupSelectAdapter;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.biz.DaoSupport;
+import com.juju.app.biz.impl.UserDaoImpl;
+import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.event.JoinGroupEvent;
+import com.juju.app.event.UserInfoEvent;
+import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.https.HttpCallBack4OK;
+import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ThreadPoolUtil;
+import com.juju.app.utils.ToastUtil;
+import com.juju.app.utils.json.JSONUtils;
+import com.juju.app.utils.pinyin.PinYinUtil;
 import com.juju.app.view.SearchEditText;
 import com.juju.app.view.SortSideBar;
 
+import org.apache.commons.lang.time.DateUtils;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xutils.view.annotation.ContentView;
 
+import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 
 @ContentView(R.layout.activity_group_member_select)
@@ -70,19 +100,23 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
 
     private UserInfoBean userInfoBean;
 
+    private DaoSupport userDao;
+
 
     IMServiceConnector imServiceConnector = new IMServiceConnector(){
         @Override
         public void onIMServiceConnected() {
+            loading();
             logger.d("groupselmgr#onIMServiceConnected");
-
             imService = imServiceConnector.getIMService();
             Intent intent = getIntent();
             curSessionKey = intent.getStringExtra(Constants.SESSION_ID_KEY);
             peerEntity = imService.getSessionManager().findPeerEntity(curSessionKey);
+            initUser4Phones();
             /**已经处于选中状态的list*/
             Set<String> alreadyList = getAlreadyCheckList();
             initContactList(alreadyList);
+            completeLoading(0);
         }
 
         @Override
@@ -93,14 +127,16 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
 
     @Override
     public void loadData() {
+        userDao = new UserDaoImpl(getApplicationContext());
         userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+//        logger.d("phones -> %s", phones);
     }
 
     @Override
     public void initView() {
-        initRes();
-
+        EventBus.getDefault().register(this);
         imServiceConnector.connect(GroupMemberSelectActivity.this);
+        initRes();
     }
 
     @Override
@@ -110,9 +146,11 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
 
     @Override
     protected void onDestroy() {
+        EventBus.getDefault().unregister(this);
         imServiceConnector.disconnect(GroupMemberSelectActivity.this);
         super.onDestroy();
     }
+
 
     /**
      * 获取列表中 默认选中成员列表
@@ -148,7 +186,10 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
 
         contactListView.setOnItemClickListener(adapter);
         contactListView.setOnItemLongClickListener(adapter);
+        notifyAdapter(alreadyList);
+    }
 
+    private void notifyAdapter(Set<String> alreadyList) {
         List<User> contactList = imService.getContactManager().getContactSortedList();
         adapter.setAllUserList(contactList);
         adapter.setAlreadyListSet(alreadyList);
@@ -197,9 +238,9 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
                     logger.d("tempgroup#memberList size:%d", checkListSet.size());
                     ShowDialogForTempGroupname(groupMgr, checkListSet);
                 } else if (sessionType == DBConstant.SESSION_TYPE_GROUP) {
-//                    showProgressBar();
                     loading();
-                    imService.getGroupManager().reqAddGroupMember(peerEntity.getPeerId(),checkListSet);
+                    imService.getGroupManager().reqAddGroupMember(peerEntity.getPeerId(),
+                            peerEntity.getId(),  checkListSet);
                 }
             }
 
@@ -317,5 +358,220 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
             public void afterTextChanged(Editable s) {
             }
         });
+    }
+
+    private void initUser4Phones() {
+        List<String> phoneSet = getContactPhoneSet();
+        List<String> oldPhoneSet = new ArrayList<>();
+        int length = 100;
+
+        if(phoneSet.size() >0) {
+            Map<String, User> userMap = imService.getContactManager().getUserMap();
+            Set<Map.Entry<String, User>> entrySet = userMap.entrySet();
+            for(Map.Entry<String, User> entry : entrySet) {
+                User user = entry.getValue();
+//                if(StringUtils.isMobileNO(user.getUserPhone())) {
+//                    oldPhoneSet.add(user.getUserPhone());
+//                }
+                oldPhoneSet.add(user.getUserPhone());
+            }
+            phoneSet.removeAll(oldPhoneSet);
+            if(phoneSet.size() >0) {
+                int total = phoneSet.size();
+                int pageNum = phoneSet.size() / length;
+                int mod = phoneSet.size() % length;
+                if(mod != 0) {
+                    pageNum = pageNum + 1;
+                }
+                CountDownLatch countDownLatch = new CountDownLatch(pageNum);
+                for (int i = 1; i <= pageNum; i++) {
+                    List<String> newPhoneSet = new ArrayList<>();
+                    int beginIndex = (pageNum - 1) * length;
+                    int endIndex = 0;
+                    if(total < pageNum * length) {
+                        endIndex = total -1;
+                    } else {
+                        endIndex = (pageNum * length) -1;
+                    }
+                    newPhoneSet = phoneSet.subList(beginIndex, endIndex);
+                    if(newPhoneSet.size() >0) {
+                        GetExistUsersTask existUsersTask = new GetExistUsersTask(countDownLatch, newPhoneSet);
+                        ThreadPoolUtil.instance().executeImTask(existUsersTask);
+                    } else {
+                        countDownLatch.countDown();
+                    }
+                }
+
+                try {
+                    countDownLatch.await(10, TimeUnit.SECONDS);
+                    //更新列表
+//                    Set<String> alreadyList = getAlreadyCheckList();
+//                    notifyAdapter(alreadyList);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4JoinGroup(JoinGroupEvent event) {
+        switch (event) {
+            case INVITE_USER_OK:
+                completeLoading(0);
+                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_code_send_success, 3);
+                finish(GroupMemberSelectActivity.this);
+                break;
+            case INVITE_USER_FAILED:
+                completeLoading(0);
+                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_code_send_failed, 3);
+                break;
+        }
+    }
+
+//    public void onEventMainThread(UserInfoEvent event) {
+//        switch (event) {
+//            case USER_INFO_UPDATE:
+//            case USER_INFO_OK:
+//
+//                break;
+//        }
+//    }
+
+    /**
+     * 获取联系人手机号
+     * @return
+     */
+    private List<String> getContactPhoneSet() {
+        List<String> phoneList = new ArrayList<>();
+        // 获得所有的联系人
+        Cursor cur = getContentResolver().query(
+                ContactsContract.Contacts.CONTENT_URI, null, null, null, null);
+        // 循环遍历
+        if (cur.moveToFirst()) {
+            int idColumn = cur.getColumnIndex(ContactsContract.Contacts._ID);
+            int displayNameColumn = cur
+                    .getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME);
+            do {
+                // 获得联系人的ID号
+                String contactId = cur.getString(idColumn);
+                // 获得联系人姓名
+                String disPlayName = cur.getString(displayNameColumn);
+                // 查看该联系人有多少个电话号码。如果没有这返回值为0
+                int phoneCount = cur
+                        .getInt(cur
+                                .getColumnIndex(ContactsContract.Contacts.HAS_PHONE_NUMBER));
+                if (phoneCount > 0) {
+                    // 获得联系人的电话号码
+                    Cursor phones = getContentResolver().query(
+                            ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                            null,
+                            ContactsContract.CommonDataKinds.Phone.CONTACT_ID
+                                    + " = " + contactId, null, null);
+                    if (phones.moveToFirst()) {
+                        do { // 遍历所有的电话号码
+                            String phoneNumber = phones
+                                    .getString(phones
+                                            .getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)).trim();
+                            if (phoneNumber.startsWith("+186")) {
+                                phoneNumber = phoneNumber.substring(4);
+                            }
+//                            if (StringUtils.isMobileNO(phoneNumber)) {
+//                                phoneSet.add(phoneNumber);
+//                            }
+                            phoneList.add(phoneNumber);
+                        } while (phones.moveToNext());
+                    }
+                }
+            } while (cur.moveToNext());
+        }
+        return phoneList;
+    }
+
+    /**
+     * 批量获取JLM用户列表
+     */
+    class GetExistUsersTask implements Runnable {
+
+        private CountDownLatch countDownLatch;
+        private List<String> phoneSet;
+
+        public GetExistUsersTask(CountDownLatch countDownLatch, List<String>  phoneSet) {
+            this.countDownLatch = countDownLatch;
+            this.phoneSet = phoneSet;
+        }
+
+        @Override
+        public void run() {
+            Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("phones", phoneSet);
+            CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GETEXISTUSERS;
+            JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
+                    httpReqParam.url(), new HttpCallBack4OK() {
+                @Override
+                public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+                    if(obj instanceof JSONObject) {
+                        handlerGetExistUsers4BServer((JSONObject)obj);
+                    }
+                    countDownLatch.countDown();
+                }
+
+                @Override
+                public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                    countDownLatch.countDown();
+                }
+            }, valueMap, JSONObject.class);
+            try {
+                client.sendPost4OK();
+            } catch (UnsupportedEncodingException e) {
+                logger.error(e);
+                countDownLatch.countDown();
+            } catch (JSONException e) {
+                logger.error(e);
+                countDownLatch.countDown();
+            }
+        }
+    }
+
+    //处理获取用户详情响应
+    private void handlerGetExistUsers4BServer(JSONObject jsonObject) {
+        int status = JSONUtils.getInt(jsonObject, "status", -1);
+        if(status == 0) {
+            JSONArray jsonUsers;
+            try {
+                jsonUsers = jsonObject.getJSONArray("users");
+                if(jsonUsers != null && jsonUsers.length() >0) {
+                    for (int i = 0; i < jsonUsers.length(); i++) {
+                        JSONObject jsonUser = jsonUsers.getJSONObject(i);
+                        String nickName = JSONUtils.getString(jsonUser, "nickName");
+                        String userPhone = JSONUtils.getString(jsonUser, "userPhone");
+                        String birthday = JSONUtils.getString(jsonUser, "birthday");
+                        int gender = JSONUtils.getInt(jsonUser, "gender", 1);
+                        String createTime = JSONUtils.getString(jsonUser, "createTime");
+                        String userNo = JSONUtils.getString(jsonUser, "userNo");
+                        Date birthdayDate = null;
+                        Date createTimeDate = null;
+                        if(StringUtils.isNotBlank(birthday)) {
+                            birthdayDate = DateUtils.parseDate(birthday,
+                                    new String[] {"yyyy-MM-dd HH:mm:ss"});
+                        }
+                        if(StringUtils.isNotBlank(createTime)) {
+                            createTimeDate = DateUtils.parseDate(createTime,
+                                    new String[] {"yyyy-MM-dd HH:mm:ss"});
+                        }
+                        User user = User.buildForCreate(userNo, userPhone, null, gender, nickName,
+                                birthdayDate, createTimeDate, HttpConstants.getPortraitUrl()+userNo);
+                        userDao.replaceInto(user);
+                        imService.getContactManager().getUserMap().put(userNo, user);
+                        PinYinUtil.getPinYin(user.getNickName(), user.getPinyinElement());
+                    }
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+        } else {
+            logger.e("GETEXISTUSERS is faild");
+        }
     }
 }

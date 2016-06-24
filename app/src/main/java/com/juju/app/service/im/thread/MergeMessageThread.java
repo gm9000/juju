@@ -1,11 +1,13 @@
 package com.juju.app.service.im.thread;
 
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.iq.RedisResIQ;
 import com.juju.app.service.im.manager.IMMessageManager;
+import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.utils.Logger;
 
@@ -80,12 +82,9 @@ public class MergeMessageThread implements Runnable{
                         @Override
                         public void onSuccess(Object t) {
                             RedisResIQ redisResIQ = (RedisResIQ) t;
-                            MessageEntity messageEntity = null;
-                            try {
-                                messageEntity = IMMessageManager.instance().getMessageEntity(redisResIQ);
-                                IMMessageManager.instance().saveMessage(messageEntity);
-                            } catch (JSONException e) {
-                                e.printStackTrace();
+                            MessageEntity messageEntity = saveMessage(redisResIQ);
+                            if(messageEntity != null) {
+                                updateSession(messageEntity);
                             }
                             synchronized (obj) {
                                 obj.notify();
@@ -137,4 +136,28 @@ public class MergeMessageThread implements Runnable{
 //    {
 //        EventBus.getDefault().post(paramObject);
 //    }
+
+    private MessageEntity saveMessage(RedisResIQ redisResIQ) {
+        MessageEntity messageEntity = null;
+        try {
+            messageEntity = IMMessageManager.instance().getMessageEntity(redisResIQ);
+            IMMessageManager.instance().saveMessage(messageEntity);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return messageEntity;
+    }
+
+    private void updateSession(MessageEntity messageEntity) {
+        long updated = messageEntity.getUpdated();
+        String sessionKey = messageEntity.getSessionKey();
+        SessionEntity cacheSessionEntity = IMSessionManager.instance()
+                .getSessionMap().get(sessionKey);
+        //从服务器查询消息比本地session要新时，需要更新session
+        if(cacheSessionEntity != null
+                && cacheSessionEntity.getUpdated() < updated) {
+            //更新session(是否调用此函数，函数包含刷新通知)
+            IMSessionManager.instance().updateSession(messageEntity, true);
+        }
+    }
 }

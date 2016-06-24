@@ -12,16 +12,24 @@ import android.view.View;
 
 import com.juju.app.R;
 import com.juju.app.activity.chat.ChatActivity;
+import com.juju.app.activity.party.MyInviteListActivity;
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.config.HttpConstants;
+import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.entity.chat.OtherMessageEntity;
 import com.juju.app.entity.chat.UnreadEntity;
 import com.juju.app.event.GroupEvent;
+import com.juju.app.event.NotificationMessageEvent;
+import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.helper.IMUIHelper;
 import com.juju.app.service.im.sp.ConfigurationSp;
 import com.juju.app.ui.base.BaseApplication;
+import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.assist.FailReason;
@@ -31,6 +39,7 @@ import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListene
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.jivesoftware.smack.packet.Message;
 
 /**
  * 项目名称：juju
@@ -81,7 +90,116 @@ public class IMNotificationManager extends IMManager {
         }
     }
 
+    /**
+     * 接收通知信息
+     * @param event
+     */
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4OtherMessage(NotificationMessageEvent event) {
+        handleOtherMessageRecv(event);
+    }
 
+    private void handleOtherMessageRecv(NotificationMessageEvent event) {
+        OtherMessageEntity entity = event.entity;
+        logger.d("notification#recv other message");
+        String fromId = entity.getPeerId(false);
+        logger.d("notification#msg no one handled, fromId:%s", fromId);
+
+        // 全局开关
+        boolean  globallyOnOff = configurationSp.getCfg(Constants.SETTING_GLOBAL,
+                ConfigurationSp.CfgDimension.NOTIFICATION);
+        if (globallyOnOff) {
+            logger.d("notification#shouldGloballyShowNotification is false, return");
+            return;
+        }
+        // 判断是否是自己的消息
+        if(fromId.indexOf(userInfoBean.getJujuNo()) < 0){
+            showOtherMessageNotification(event);
+        }
+    }
+
+    private void showOtherMessageNotification(final NotificationMessageEvent event) {
+        OtherMessageEntity entity = event.entity;
+        // 服务端有些特定的支持 尺寸是不是要调整一下 todo 100*100  下面的就可以不要了
+        ImageSize targetSize = new ImageSize(80, 80);
+        String avatarUrl = "";
+        String title = "";
+        String detailTitle = "";
+        String userNo = "";
+        String userName = "";
+        String groupName = "";
+        String actionName = "";
+        String actionName1 = "";
+        String targetNickName = "";
+
+        switch (event.event) {
+            case INVITE_GROUP_NOTIFY_REQ_RECEIVED:
+                IMBaseDefine.InviteGroupNotifyReqBean inviteGroupNotifyBean =
+                        (IMBaseDefine.InviteGroupNotifyReqBean) JacksonUtil
+                                .turnString2Obj(entity.getContent(),
+                                        IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_REQ.getCls());
+                userNo = inviteGroupNotifyBean.userNo;
+                userName = inviteGroupNotifyBean.userName;
+                groupName = inviteGroupNotifyBean.groupName;
+                title = IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_REQ.desc();
+                detailTitle = title;
+                avatarUrl = HttpConstants.getPortraitUrl()+userNo;
+                actionName = "邀请";
+                actionName1 = "加入";
+                targetNickName = "您";
+                break;
+            case INVITE_GROUP_NOTIFY_RES_RECEIVED:
+                IMBaseDefine.InviteGroupNotifyResBean inviteGroupNotifyResBean =
+                        (IMBaseDefine.InviteGroupNotifyResBean) JacksonUtil
+                                .turnString2Obj(entity.getContent(),
+                                        IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.getCls());
+                userNo = inviteGroupNotifyResBean.userNo;
+                userName = inviteGroupNotifyResBean.userName;
+                groupName = inviteGroupNotifyResBean.groupName;
+                title = IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.desc();
+                detailTitle = title;
+                avatarUrl = HttpConstants.getPortraitUrl()+userNo;
+                actionName = "同意";
+                actionName1 = "加入";
+                break;
+        }
+
+        //获取头像
+        avatarUrl = IMUIHelper.getRealAvatarUrl(avatarUrl);
+        final String ticker = String.format("[%s]%s: %s%s%s%s",detailTitle, userName, actionName,
+                targetNickName, actionName1, groupName);
+        final int notificationId = getSessionNotificationId(userNo);
+        final Intent intent = new Intent(ctx, MyInviteListActivity.class);
+//        intent.putExtra(Constants.SESSION_ID_KEY, unreadEntity.getSessionKey());
+        logger.d("notification#notification avatarUrl:%s", avatarUrl);
+        final String finalTitle = title;
+        ImageLoader.getInstance().loadImage(avatarUrl, targetSize, null, new SimpleImageLoadingListener() {
+            @Override
+            public void onLoadingComplete(String imageUri, View view,
+                                          Bitmap loadedImage) {
+                logger.d("notification#icon onLoadComplete");
+                // holder.image.setImageBitmap(loadedImage);
+                showInNotificationBar(finalTitle,ticker,loadedImage,notificationId,intent);
+            }
+
+            @Override
+            public void onLoadingFailed(String imageUri, View view,
+                                        FailReason failReason) {
+                logger.d("notification#icon onLoadFailed");
+                // 服务器支持的格式有哪些
+                // todo eric default avatar is too small, need big size(128 * 128)
+                Bitmap defaultBitmap = BitmapFactory.decodeResource(ctx.getResources(),
+                        IMUIHelper.getDefaultAvatarResId(R.mipmap.tt_default_user_portrait_corner));
+                showInNotificationBar(finalTitle,ticker,defaultBitmap,notificationId,intent);
+            }
+        });
+    }
+
+
+    /**
+     * 接收未读消息通知
+     * @param event
+     */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4Unread(UnreadEvent event){
         switch (event.event){
@@ -92,7 +210,11 @@ public class IMNotificationManager extends IMManager {
         }
     }
 
-    // 屏蔽群，相关的通知全部删除
+
+    /**
+     * 接收屏蔽群通知
+     * @param event
+     */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4Group(GroupEvent event){
         GroupEntity gEntity = event.getGroupEntity();
@@ -140,7 +262,8 @@ public class IMNotificationManager extends IMManager {
         }
 
         // 单独的设置
-        boolean singleOnOff = configurationSp.getCfg(entity.getSessionKey(),ConfigurationSp.CfgDimension.NOTIFICATION);
+        boolean singleOnOff = configurationSp.getCfg(entity.getSessionKey(),
+                ConfigurationSp.CfgDimension.NOTIFICATION);
         if (singleOnOff) {
             logger.d("notification#shouldShowNotificationBySession is false, return");
             return;
@@ -157,9 +280,11 @@ public class IMNotificationManager extends IMManager {
         // 服务端有些特定的支持 尺寸是不是要调整一下 todo 100*100  下面的就可以不要了
         ImageSize targetSize = new ImageSize(80, 80);
         String peerId = unreadEntity.getPeerId();
-        int sessionType = unreadEntity.getSessionType();
+        String fromId = unreadEntity.getFromId();
+//        int sessionType = unreadEntity.getSessionType();
         String avatarUrl = "";
         String title = "";
+        String detailTitle = "";
         String content = unreadEntity.getLatestMsgData();
         String unit = ctx.getString(R.string.msg_cnt_unit);
         int totalUnread = unreadEntity.getUnReadCnt();
@@ -194,9 +319,13 @@ public class IMNotificationManager extends IMManager {
             avatarUrl = "";
         }
 
+        User userEntity = IMContactManager.instance().findContact(fromId);
+        if(userEntity != null) {
+            detailTitle = userEntity.getNickName();
+        }
         //获取头像
         avatarUrl = IMUIHelper.getRealAvatarUrl(avatarUrl);
-        final String ticker = String.format("[%d%s]%s: %s", totalUnread, unit, title, content);
+        final String ticker = String.format("[%d%s]%s: %s", totalUnread, unit, detailTitle, content);
         final int notificationId = getSessionNotificationId(unreadEntity.getSessionKey());
         final Intent intent = new Intent(ctx, ChatActivity.class);
         intent.putExtra(Constants.SESSION_ID_KEY, unreadEntity.getSessionKey());

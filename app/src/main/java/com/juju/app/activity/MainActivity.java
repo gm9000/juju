@@ -7,6 +7,7 @@ import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
@@ -131,6 +132,23 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     private DaoSupport groupDao;
 
+    /**
+     * IMServiceConnector
+     */
+    private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("main_activity#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+            imService.getLoginManager().reConnect();
+        }
+
+        @Override
+        public void onServiceDisconnected() {
+
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -144,6 +162,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         imServiceConnector.disconnect(MainActivity.this);
         EventBus.getDefault().unregister(this);
         super.onDestroy();
+    }
+
+    //重连
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -507,21 +531,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     }
 
 
-    /**
-         * IMServiceConnector
-         */
-        private IMServiceConnector imServiceConnector = new IMServiceConnector() {
-            @Override
-            public void onIMServiceConnected() {
-                logger.d("main_activity#onIMServiceConnected");
-                imService = imServiceConnector.getIMService();
-            }
 
-            @Override
-            public void onServiceDisconnected() {
-
-            }
-        };
 
     private void initTopTile() {
         setTopRightButton(0);
@@ -588,8 +598,6 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         valueMap.put("userNo", userInfoBean.getJujuNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("inviteCode", inViteCode);
-
-
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
                 JOIN_IN_GROUP, HttpConstants.getUserUrl() + "/joinInGroup",
                 MainActivity.this, valueMap, JSONObject.class);
@@ -607,8 +615,22 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         int status = JSONUtils.getInt(result, "status");
         if(status == 0) {
             String groupId = JSONUtils.getString(result,"groupId");
+            String groupName = groupId;
+            String groupDesc = groupId;
+            if(inputParameter instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>)inputParameter;
+                Map<String, Object> groupMap = (Map<String, Object>)map.get("group");
+                groupName = (String)groupMap.get("name");
+                groupDesc = (String)groupMap.get("desc");
+                if(StringUtils.isBlank(groupName)) {
+                    groupName = "";
+                }
+                if(StringUtils.isBlank(groupDesc)) {
+                    groupDesc = "";
+                }
+            }
             //消息服务器创建群组
-            boolean bool = imService.getGroupManager().createChatRoom(groupId,
+            boolean bool = imService.getGroupManager().createChatRoom(groupId, groupName, groupDesc,
                     userInfoBean.getmMucServiceName(), userInfoBean.getmServiceName());
             //创建成功
             if(bool) {
@@ -722,7 +744,20 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         ADD_GROUP, INVITE_GROUP
     }
 
+    public IMService getImService() {
+        return imService;
+    }
 
-
-
+//    /**
+//     * 接收通知信息
+//     * @param event
+//     */
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onEvent4OtherMessage(OtherMessageEvent event) {
+//        switch (event.event) {
+//            case INVITE_GROUP_NOTIFY_REQ_RECEIVED:
+//                tab_invite_notify.setVisibility(View.VISIBLE);
+//                break;
+//        }
+//    }
 }

@@ -40,6 +40,7 @@
     <color name="blue1">#ff00a4e8</color>
     <color name="disenble_blue">#CFDBE0</color>
     <color name="red">#FF0000</color>
+    <color name="red_press">#990000</color>
     <color name="background">#ECF0F1</color>
     <color name="bar_color">#232325</color>
     <color name="half_transparent_light">#AA000000</color>
@@ -47,6 +48,10 @@
     <color name="default_title_color">#343434</color>
     <color name="default_key_color">#999999</color>
     <color name="default_value_color">#333333</color>
+
+    <color name="high_gray_color">#BDBEC2</color>
+    <color name="high_gray_color_press">#999999</color>
+
 
 
 

@@ -4,7 +4,9 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
 import android.support.multidex.MultiDex;
+import android.util.Log;
 
 import com.baidu.mapapi.SDKInitializer;
 import com.facebook.stetho.InspectorModulesProvider;
@@ -17,6 +19,7 @@ import com.juju.app.config.CacheManager;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
+import com.juju.app.utils.SpfUtil;
 import com.rey.material.app.ThemeManager;
 
 import org.xutils.DbManager;
@@ -41,20 +44,7 @@ public class BaseApplication extends Application {
 
     private UserInfoBean userInfoBean = new UserInfoBean();
 
-    private DbManager.DaoConfig daoConfig;
-
-    public DbManager.DaoConfig getDaoConfig() {
-        return daoConfig;
-    }
-
-    public void setDaoConfig(DbManager.DaoConfig daoConfig) {
-        this.daoConfig = daoConfig;
-    }
-
-
     private List<Activity> mActivities = new ArrayList<>();
-
-
 
 
     // 单例模式中获取唯一的ExitApplication 实例
@@ -69,17 +59,28 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        long begin = System.currentTimeMillis();
         initFramework();
         initConfig();
         initDebug();
         initService();
+        long end = System.currentTimeMillis();
+        Log.d("BaseApplication","onCreate#costTime:"+(end-begin)+"ms");
     }
 
-    @Override
-    protected void attachBaseContext(Context base) {
-        super.attachBaseContext(base);
-        MultiDex.install(this) ;
-    }
+//    @Override
+//    protected void attachBaseContext(Context base) {
+//        super.attachBaseContext(base);
+//        long begin = System.currentTimeMillis();
+//        MultiDex.install(BaseApplication.this);
+//        long end = System.currentTimeMillis();
+//        Log.d("BaseApplication","attachBaseContext#costTime:"+(end-begin)+"ms");
+//
+//    }
+
+//    private void afterMultiDexInstall() {
+//
+//    }
 
     //初始化系统框架
     private void initFramework() {
@@ -93,30 +94,30 @@ public class BaseApplication extends Application {
 
     //初始化系统配置
     private void initConfig() {
-        File file = null;
-        String dbDir =  CacheManager.getAppDatabasePath(getApplicationContext());
-        file = new File(dbDir);
-        if(!file.isDirectory()) {
-            file.mkdirs();
-        }
-        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
-                .setDbDir(file)
-                .setDbName(DBConstant.DB_NAME)
-                .setTableCreateListener(new DbManager.TableCreateListener() {
-                    @Override
-                    public void onTableCreated(DbManager db, TableEntity<?> table) {
-                        if("message".equalsIgnoreCase(table.getName())) {
-                            try {
-                                db.execNonQuery("CREATE INDEX index_message_created ON message(created)");
-                                db.execNonQuery("CREATE UNIQUE INDEX index_message_session_key_msg_id " +
-                                        "on message(session_key, msg_id)");
-                            } catch (DbException e) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                });
-        BaseApplication.getInstance().setDaoConfig(daoConfig);
+//        File file = null;
+//        String dbDir =  CacheManager.getAppDatabasePath(getApplicationContext());
+//        file = new File(dbDir);
+//        if(!file.isDirectory()) {
+//            file.mkdirs();
+//        }
+//        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
+//                .setDbDir(file)
+//                .setDbName(DBConstant.DB_NAME)
+//                .setTableCreateListener(new DbManager.TableCreateListener() {
+//                    @Override
+//                    public void onTableCreated(DbManager db, TableEntity<?> table) {
+//                        if("message".equalsIgnoreCase(table.getName())) {
+//                            try {
+//                                db.execNonQuery("CREATE INDEX index_message_created ON message(created)");
+//                                db.execNonQuery("CREATE UNIQUE INDEX index_message_session_key_msg_id " +
+//                                        "on message(session_key, msg_id)");
+//                            } catch (DbException e) {
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                    }
+//                });
+//        BaseApplication.getInstance().setDaoConfig(daoConfig);
     }
 
     //初始化DEBUG模式
@@ -130,8 +131,12 @@ public class BaseApplication extends Application {
 
                                     @Override
                                     public List<File> getDatabaseFiles() {
-                                        List<File> files = new ArrayList<File>();
-                                        files.add(getDatabasePath(DBConstant.DB_NAME));
+                                        List<File> files = new ArrayList<>();
+                                        files.add(getDatabasePath("jlm_19400000001"));
+                                        files.add(getDatabasePath("jlm_19400000002"));
+                                        files.add(getDatabasePath("jlm_19400000003"));
+                                        files.add(getDatabasePath("jlm_19400000004"));
+                                        files.add(getDatabasePath("jlm_19400000005"));
                                         return files;
                                     }
                                 })
@@ -205,5 +210,10 @@ public class BaseApplication extends Application {
         stopService(intent);
     }
 
+    boolean isFirst = true;
+
+    private boolean isFirstLaunch() {
+        return isFirst;
+    }
 
 }

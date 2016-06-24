@@ -170,7 +170,8 @@
                         android:layout_alignParentRight="true"
                         android:layout_centerVertical="true"
                         android:button="@drawable/toggle_checkbox_background"
-                        android:visibility="visible" />
+                        android:visibility="visible"
+                        android:checked="false" />
                 </RelativeLayout>
 
                 <View

@@ -2,6 +2,7 @@ package com.juju.app.adapter;
 
 import android.content.Context;
 import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,10 +13,15 @@ import android.widget.TextView;
 
 import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
+import com.juju.app.activity.MainActivity;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.DBConstant;
+import com.juju.app.service.im.sp.ConfigurationSp;
 import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.groupchat.IMGroupAvatar;
 import com.juju.libs.tools.ScreenTools;
 
@@ -45,6 +51,8 @@ public class GroupChatListAdapter extends BaseSwipeAdapter {
         this.context = context;
         this.mInflater = LayoutInflater.from(context);
     }
+
+
 
 
     @Override
@@ -132,8 +140,12 @@ public class GroupChatListAdapter extends BaseSwipeAdapter {
 //    }
 
     private View renderGroup(int position,View convertView, ViewGroup parent){
-        RecentInfo recentInfo = recentSessionList.get(position);
-        GroupViewHolder holder;
+        final RecentInfo recentInfo = recentSessionList.get(position);
+        final GroupViewHolder holder;
+        final boolean isTop = ((MainActivity)context).getImService()
+                .getConfigSp().isTopSession(recentInfo.getSessionKey());
+        final boolean isForbidden = recentInfo.isForbidden();
+
         if (null == convertView) {
             convertView = mInflater.inflate(R.layout.adapter_item_chat_group, parent, false);
             holder = new GroupViewHolder();
@@ -143,9 +155,55 @@ public class GroupChatListAdapter extends BaseSwipeAdapter {
             holder.lastTime = (TextView) convertView.findViewById(R.id.message_time);
             holder.msgCount = (TextView) convertView.findViewById(R.id.message_count_notify);
             holder.noDisturb = (ImageView)convertView.findViewById(R.id.message_time_no_disturb_view);
+            holder.lin_forbid = (View)convertView.findViewById(R.id.lin_forbid);
+//            holder.lin_top_message = (View)convertView.findViewById(R.id.lin_top_message);
+            holder.txt_forbid = (TextView) convertView.findViewById(R.id.txt_forbid);
+//            holder.txt_top_message = (TextView) convertView.findViewById(R.id.txt_top_message);
+            holder.txt_cancel_forbid = (TextView) convertView.findViewById(R.id.txt_cancel_forbid);
+//            holder.txt_cancel_top_message = (TextView) convertView.findViewById(R.id.txt_cancel_top_message);
+
+//            holder.peerId = recentInfo.getPeerId();
+//            holder.sessionKey = recentInfo.getSessionKey();
+
+
             convertView.setTag(holder);
         }else{
             holder = (GroupViewHolder)convertView.getTag();
+        }
+
+
+
+        holder.lin_forbid.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(holder.txt_forbid.getVisibility() == View.VISIBLE) {
+                    holder.txt_forbid.setVisibility(View.GONE);
+                    holder.txt_cancel_forbid.setVisibility(View.VISIBLE);
+                    ((MainActivity)context).getImService()
+                            .getConfigSp().setCfg(recentInfo.getSessionKey(),
+                            ConfigurationSp.CfgDimension.NOTIFICATION, true);
+                    holder.noDisturb.setVisibility(View.VISIBLE);
+                    ((MainActivity)context).getImService().getGroupManager()
+                            .updateGroup4Forbidden(recentInfo.getPeerId(), true);
+                } else {
+                    holder.txt_forbid.setVisibility(View.VISIBLE);
+                    holder.txt_cancel_forbid.setVisibility(View.GONE);
+                    ((MainActivity)context).getImService()
+                            .getConfigSp().setCfg(recentInfo.getSessionKey(),
+                            ConfigurationSp.CfgDimension.NOTIFICATION, false);
+                    holder.noDisturb.setVisibility(View.GONE);
+                    ((MainActivity)context).getImService().getGroupManager()
+                            .updateGroup4Forbidden(recentInfo.getPeerId(), false);
+                }
+            }
+        });
+
+//        if(holder.peerId.equals("570dbc6fe4b092891a647e32@conference.juju")) {
+//            Log.d("peerId1", recentInfo.getPeerId());
+//        }
+
+        if(recentInfo.getPeerId().equals("570dbc6fe4b092891a647e32@conference.juju")) {
+            Log.d("peerId2", recentInfo.getPeerId());
         }
 
         if(recentInfo.isTop()){
@@ -154,16 +212,20 @@ public class GroupChatListAdapter extends BaseSwipeAdapter {
             convertView.setBackgroundColor(Color.WHITE);
         }
 
-//        /**群屏蔽的设定*/
-//        if(recentInfo.isForbidden())
-//        {
-//            holder.noDisturb.setVisibility(View.VISIBLE);
-//        }
-//        else
-//        {
-//            holder.noDisturb.setVisibility(View.GONE);
-//        }
 
+        /**群屏蔽的设定*/
+        if(recentInfo.isForbidden())
+        {
+            holder.txt_forbid.setVisibility(View.GONE);
+            holder.txt_cancel_forbid.setVisibility(View.VISIBLE);
+            holder.noDisturb.setVisibility(View.VISIBLE);
+        }
+        else
+        {
+            holder.txt_forbid.setVisibility(View.VISIBLE);
+            holder.txt_cancel_forbid.setVisibility(View.GONE);
+            holder.noDisturb.setVisibility(View.GONE);
+        }
         handleGroupContact(holder, recentInfo);
         return convertView;
     }
@@ -206,7 +268,7 @@ public class GroupChatListAdapter extends BaseSwipeAdapter {
             groupViewHolder.msgCount.getLayoutParams().height = RelativeLayout.LayoutParams.WRAP_CONTENT;
             groupViewHolder.msgCount.setPadding(ScreenTools.instance(this.mInflater.getContext()).dip2px(3),0,ScreenTools.instance(this.mInflater.getContext()).dip2px(3),0);
 
-            String strCountString=String.valueOf(unReadCount);
+            String strCountString = String.valueOf(unReadCount);
             if (unReadCount>99) {
                 strCountString = "99+";
             }
@@ -246,12 +308,28 @@ public class GroupChatListAdapter extends BaseSwipeAdapter {
         public TextView lastTime;
         public TextView msgCount;
         public ImageView noDisturb;
+
+        public View lin_forbid;
+//        public View lin_top_message;
+//
+        //免打扰
+        public TextView txt_forbid;
+        //取消免打扰
+        public TextView txt_cancel_forbid;
+//        //置顶
+//        public TextView txt_top_message;
+//        //取消置顶
+//        public TextView txt_cancel_top_message;
+
+//        public  String sessionKey;
+//
+//        public String peerId;
     }
 
     /**
      * 群组HOLDER
      */
-    private final static class GroupViewHolder extends ContactHolderBase{
+    private final static class GroupViewHolder extends ContactHolderBase {
         public IMGroupAvatar avatarLayout;
     }
 
@@ -275,6 +353,21 @@ public class GroupChatListAdapter extends BaseSwipeAdapter {
         }
 
     }
+
+    /**更新单个RecentInfo 屏蔽群组信息*/
+    public void updateRecentInfoByShield(GroupEntity entity){
+        String sessionKey = entity.getSessionKey();
+        for(RecentInfo recentInfo:recentSessionList){
+            if(recentInfo.getSessionKey().equals(sessionKey)){
+                int status = entity.getStatus();
+                boolean isFor = status == DBConstant.GROUP_STATUS_SHIELD;
+                recentInfo.setForbidden(isFor);
+                notifyDataSetChanged();
+                break;
+            }
+        }
+    }
+
 
 
 }

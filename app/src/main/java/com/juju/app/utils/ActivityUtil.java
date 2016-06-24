@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.Parcelable;
 
 import com.juju.app.R;
+import com.juju.app.activity.LoginActivity;
 import com.juju.app.activity.chat.ChatActivity;
 
 import org.apache.http.message.BasicNameValuePair;
@@ -90,6 +91,10 @@ public class ActivityUtil {
 
         Intent intent = new Intent();
         intent.setClass(context, cls);
+//        if(context instanceof LoginActivity) {
+//            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+//        }
+
         if(parameter != null) {
             if(parameter.length == 1
                     && parameter[0] instanceof Map) {

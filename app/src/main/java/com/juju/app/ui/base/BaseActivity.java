@@ -213,10 +213,24 @@ public abstract class BaseActivity extends AppCompatActivity {
      * @param cls
      * @param name
      */
+    @Deprecated
     protected void startActivity(Activity activity, Class<?> cls,
                                  BasicNameValuePair... name) {
         ActivityUtil.startActivity(activity, cls, name);
     }
+
+    /**
+     * parameter参数长度不能大于2，支持两种格式
+     * 例子：1: key,value 2: Map (参数个数超过两个使用map)
+     * @param context
+     * @param cls
+     * @param parameter
+     */
+    protected void startActivityNew(Context context, Class<?> cls,
+                                 Object... parameter) {
+        ActivityUtil.startActivityNew(context, cls, parameter);
+    }
+
 
     /**
      * 打开Activity，带返回值
@@ -265,9 +279,14 @@ public abstract class BaseActivity extends AppCompatActivity {
     /**
      * 完成加载
      */
-    protected void completeLoading(){
-
-        txt_status_message.setText(R.string.completed);
+    protected void completeLoading(Integer... objs){
+        if(objs != null && objs.length >0) {
+            if(objs[0] > 0) {
+                txt_status_message.setText(objs[0]);
+            }
+        } else {
+            txt_status_message.setText(R.string.completed);
+        }
         try {
             Thread.sleep(100);
         } catch (InterruptedException e) {

@@ -45,6 +45,9 @@ public class UserInfoBean {
     //聚聚号
     private String jujuNo;
 
+    //生日
+    private long birthday;
+
     public String getToken() {
         return token;
     }
@@ -141,6 +144,14 @@ public class UserInfoBean {
 
     public void setmServiceName(String mServiceName) {
         this.mServiceName = mServiceName;
+    }
+
+    public long getBirthday() {
+        return birthday;
+    }
+
+    public void setBirthday(long birthday) {
+        this.birthday = birthday;
     }
 
     private void initTest() {

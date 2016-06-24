@@ -104,6 +104,7 @@
     <string name="top_message">置顶聊天</string>
     <string name="cancel_forbid_group_message">取消免打扰</string>
     <string name="forbid_group_message">免打扰</string>
+    <string name="cancel_short_top_message">取消置顶</string>
     <string name="check_profile">查看资料</string>
     <string name="start_session">开始聊天</string>
     <string name="fixed_group_or_temp_group">群或讨论组</string>
@@ -173,13 +174,14 @@
     <string name="save_image">保存图片到手机</string>
     <string name="search_original_image">查看图片</string>
 
-
-
     <!-- 用户列表-->
     <string name="choose_contact">选择联系人</string>
     <string name="select_group_member_empty">请先选择群组成员</string>
     <string name="create_temp_group_dialog_title">讨论组名字</string>
 
+    <!--邀请加入群组 -->
+    <string name="invite_code_send_success">邀请码已发出</string>
+    <string name="invite_code_send_failed">邀请码发送失败</string>
 
 
     <!--聚会-->
@@ -260,7 +262,8 @@
     <string name="logout">退出登录</string>
     <string name="uploading">正在上传&#8230;</string>
     <string name="uncheck">等待验证</string>
-    <string name="unprocess">等你加入</string>
+    <string name="waiting_you">等你加入</string>
+    <string name="waiting_ta">等他加入</string>
     <string name="pass">已经加入</string>
     <string name="unpass">已经拒绝</string>
     <string name="check_pass">我要加入</string>
@@ -270,6 +273,7 @@
     <string name="input_phone">请输入手机号</string>
     <string name="get_yzm">获取验证码</string>
     <string name="phone_same">您输入的手机号与当前的手机号相同</string>
+    <string name="join_group_failed">加入群组失败</string>
 
 
     <!-- TODO: Remove or change this placeholder text -->
@@ -296,5 +300,7 @@
     <string name="title_activity_my_party_list">MyPartyListActivity</string>
     <string name="title_activity_plan_location">PlanLocationActivity</string>
     <string name="title_activity_my_invite">MyInviteListActivity</string>
+
+    <string name="action_failed">操作异常,请检查网络或重新登录</string>
 
 </resources>

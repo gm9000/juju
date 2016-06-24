@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 
+import com.juju.app.event.GroupEvent;
+import com.juju.app.event.GroupForbiddenEvent;
 import com.juju.app.event.SessionEvent;
 
 import org.greenrobot.eventbus.EventBus;
@@ -128,6 +130,18 @@ public class ConfigurationSp {
         editor.putInt(timeLine.name(), newTimePoint);
         //提交当前数据
         editor.commit();
+    }
+
+    public void setSession4Forbidden(String sessionKey, String groupId, boolean isForbidden) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(CfgDimension.NOTIFICATION + sessionKey, isForbidden);
+        //提交当前数据
+        editor.commit();
+
+        GroupForbiddenEvent event = new GroupForbiddenEvent();
+        event.groupId = groupId;
+        event.isForbidden = isForbidden;
+        EventBus.getDefault().post(event);
     }
 
     /**

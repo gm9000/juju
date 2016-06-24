@@ -44,6 +44,12 @@ public class UnreadEntity {
     @Column(name = "updated")
     protected long updated;
 
+    /**
+     * 消息发送人ID
+     */
+    @Column(name = "from_id")
+    private String fromId;
+
     private boolean isForbidden = false;
 
 //    @Transient
@@ -121,11 +127,20 @@ public class UnreadEntity {
         this.updated = updated;
     }
 
+    public String getFromId() {
+        return fromId;
+    }
+
+    public void setFromId(String fromId) {
+        this.fromId = fromId;
+    }
+
     @Override
     public String toString() {
         return "UnreadEntity{" +
                 "sessionKey='" + sessionKey + '\'' +
                 ", peerId=" + peerId +
+                ", fromId=" + fromId +
                 ", sessionType=" + sessionType +
                 ", unReadCnt=" + unReadCnt +
                 ", created=" + created +

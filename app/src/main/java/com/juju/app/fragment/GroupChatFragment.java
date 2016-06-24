@@ -21,6 +21,7 @@ import com.juju.app.activity.MainActivity;
 import com.juju.app.activity.chat.ChatActivity;
 import com.juju.app.adapter.GroupChatListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
+import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.LoginEvent;
@@ -151,6 +152,13 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         return super.onCreateView(inflater, container, savedInstanceState);
     }
 
+    //重连
+    @Override
+    public void onResume() {
+        super.onResume();
+//        imService.getLoginManager().reConnect();
+    }
+
     @Override
     protected void initHandler() {
 
@@ -177,7 +185,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         //点击群聊列表，跳转到群聊面板
         if(contactAdapter.getGroupChats().size() > 0) {
             RecentInfo bean = contactAdapter.getGroupChats().get(position);
-            List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
+            List<BasicNameValuePair> valuePairs = new ArrayList<>();
             BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
                     bean.getSessionKey());
 
@@ -189,22 +197,22 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
     }
 
 
-    @Event(value = R.id.contactListView, type = AdapterView.OnItemLongClickListener.class)
-    private boolean onItemLongClick(AdapterView<?> parent, View view,
-                                   int position, long id) {
-
-        RecentInfo recentInfo = contactAdapter.getItem(position);
-        if (recentInfo == null) {
-            logger.e("recent#onItemLongClick null recentInfo -> position:%d", position);
-            return false;
-        }
-        if (recentInfo.getSessionType() == DBConstant.SESSION_TYPE_SINGLE) {
-//            handleContactItemLongClick(getActivity(),recentInfo);
-        } else {
-            handleGroupItemLongClick(getActivity(), recentInfo);
-        }
-        return true;
-    }
+//    @Event(value = R.id.contactListView, type = AdapterView.OnItemLongClickListener.class)
+//    private boolean onItemLongClick(AdapterView<?> parent, View view,
+//                                   int position, long id) {
+//
+//        RecentInfo recentInfo = contactAdapter.getItem(position);
+//        if (recentInfo == null) {
+//            logger.e("recent#onItemLongClick null recentInfo -> position:%d", position);
+//            return false;
+//        }
+//        if (recentInfo.getSessionType() == DBConstant.SESSION_TYPE_SINGLE) {
+////            handleContactItemLongClick(getActivity(),recentInfo);
+//        } else {
+//            handleGroupItemLongClick(getActivity(), recentInfo);
+//        }
+//        return true;
+//    }
 
 
 
@@ -276,7 +284,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
                 break;
             case SHIELD_GROUP_OK:
                 // 更新最下栏的未读计数、更新session
-//                onShieldSuccess(event.getGroupEntity());
+                onShieldSuccess(event.getGroupEntity());
                 break;
             case SHIELD_GROUP_FAIL:
             case SHIELD_GROUP_TIMEOUT:
@@ -303,7 +311,9 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
             case LOGIN_OK: {
                 isManualMConnect = false;
                 logger.d("goupchatfragment#loginOk");
-                noNetworkView.setVisibility(View.GONE);
+                if(noNetworkView != null) {
+                    noNetworkView.setVisibility(View.GONE);
+                }
             }
             break;
 
@@ -361,7 +371,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
 //                    IMReconnectManager manager = imService.getReconnectManager();
                     if(NetWorkUtil.isNetworkConnected(getActivity())){
                         isManualMConnect = true;
-                        IMLoginManager.instance().login();
+                        imService.getLoginManager().reConnect();
                     }else{
                         Toast.makeText(getActivity(), R.string.no_network_toast,
                                 Toast.LENGTH_SHORT).show();
@@ -542,5 +552,19 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
                 }
             }, 5000);
         }
+    }
+
+    // 更新页面以及 下面的未读总计数
+    private void onShieldSuccess(GroupEntity entity){
+        if(entity == null){
+            return;
+        }
+        // 更新某个sessionId
+        contactAdapter.updateRecentInfoByShield(entity);
+        IMUnreadMsgManager unreadMsgManager =imService.getUnReadMsgManager();
+
+        int totalUnreadMsgCnt = unreadMsgManager.getTotalUnreadCount();
+        logger.d("unread#total cnt %d", totalUnreadMsgCnt);
+        ((MainActivity) getActivity()).setUnreadMessageCnt(totalUnreadMsgCnt);
     }
 }
