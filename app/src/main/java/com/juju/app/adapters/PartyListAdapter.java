@@ -3,18 +3,16 @@ package com.juju.app.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
-import com.juju.app.entity.User;
 import com.juju.app.golobal.BitmapUtilFactory;
-import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.view.RoundImageView;
 
 import java.text.SimpleDateFormat;
@@ -22,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class PartyListAdapter extends BaseAdapter{
+public class PartyListAdapter extends BaseSwipeAdapter {
     private DataFilter dataFilter;
     private LayoutInflater inflater;
 
@@ -74,7 +72,22 @@ public class PartyListAdapter extends BaseAdapter{
     }
 
     @Override
-    public View getView(int position, View view, ViewGroup parent) {
+    public int getSwipeLayoutResourceId(int position) {
+        return R.id.swipe;
+    }
+
+    @Override
+    public View generateView(int position, ViewGroup parent) {
+        View convertView = renderParty(position, null, parent);
+        return convertView;
+    }
+
+    @Override
+    public void fillValues(int position, View convertView) {
+        renderParty(position, convertView, null);
+    }
+
+    public View renderParty(int position, View view, ViewGroup parent) {
         final Party party = partyList.get(position);
         if (view == null) {
             view = inflater.inflate(R.layout.party_item, parent, false);

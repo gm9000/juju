@@ -1,81 +1,74 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<com.juju.app.view.SwipeLayoutView
+    xmlns:swipe="com.juju.app.view.SwipeLayoutView"
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="fill_parent"
+    android:id="@+id/swipe"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    swipe:leftEdgeSwipeOffset="0dp"
+    swipe:rightEdgeSwipeOffset="0dp">
 
-
-    <com.juju.app.view.SwipeLayout
-        android:id="@+id/swipe"
-        app:drag_edge="right"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
-            android:id="@+id/layout_back"
-            android:background="@color/red"
-            android:gravity="center"
-            android:layout_width="100dp"
-            android:layout_height="80dip">
+    <LinearLayout
+        android:id="@+id/layout_back"
+        android:background="@color/red"
+        android:gravity="center"
+        android:layout_width="100dp"
+        android:layout_height="80dip">
+        <TextView
+            android:id="@+id/txt_del"
+            style="@style/MMFontTitleInList"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="删除"
+            android:textColor="@color/white"
+            android:textSize="18sp"
+            android:singleLine="true" />
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/content_layout"
+        style="@style/MMListItem"
+        android:orientation="vertical"
+        android:layout_height="wrap_content"
+        android:background="@drawable/setting_item_selector">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
             <TextView
-                android:id="@+id/txt_del"
-                style="@style/MMFontTitleInList"
+                android:id="@+id/txt_time"
+                style="@style/BlackTxt14"
+                android:layout_alignParentLeft="true"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="删除"
-                android:textColor="@color/white"
-                android:textSize="18sp"
-                android:singleLine="true" />
-        </LinearLayout>
-        <LinearLayout
-            android:id="@+id/contactitem_layout"
-            style="@style/MMListItem"
-            android:orientation="vertical"
-            android:layout_height="80dip"
-            android:background="@drawable/setting_item_selector">
-            <RelativeLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content">
-                <TextView
-                    android:id="@+id/txt_time"
-                    style="@style/BlackTxt14"
-                    android:layout_alignParentLeft="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="2015-12-12 09:00"
-                    android:layout_marginLeft="15dp"
-                    android:singleLine="true" />
-                <TextView
-                    android:id="@+id/txt_address"
-                    style="@style/BlackTxt14"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/txt_time"
-                    android:layout_marginLeft="10dp"
-                    android:gravity="right"
-                    android:text="百里山水画廊"
-                    android:layout_marginRight="10dp"
-                    android:singleLine="true" />
-
-            </RelativeLayout>
-            <TextView
-                android:id="@+id/txt_description"
-                style="@style/BlackTxt12"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
+                android:text="2015-12-12 09:00"
                 android:layout_marginLeft="15dp"
-                android:layout_marginRight="15dp"
-                android:text="@string/nodescription"
                 android:singleLine="true" />
-        </LinearLayout>
+            <TextView
+                android:id="@+id/txt_address"
+                style="@style/BlackTxt14"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/txt_time"
+                android:layout_marginLeft="10dp"
+                android:gravity="right"
+                android:text="百里山水画廊"
+                android:layout_marginRight="10dp"
+                android:singleLine="true" />
 
-    </com.juju.app.view.SwipeLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:background="@color/black2" />
-</LinearLayout>
+        </RelativeLayout>
+        <TextView
+            android:id="@+id/txt_description"
+            style="@style/BlackTxt12"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:layout_marginLeft="15dp"
+            android:layout_marginRight="15dp"
+            android:text="@string/nodescription"
+            android:singleLine="true" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="20dp"
+            android:background="@color/black2" />
+    </LinearLayout>
+</com.juju.app.view.SwipeLayoutView>

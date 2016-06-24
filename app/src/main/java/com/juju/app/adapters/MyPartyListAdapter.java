@@ -11,7 +11,7 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.entity.Party;
 import com.juju.app.utils.ViewHolderUtil;
-import com.juju.app.view.SwipeLayout;
+import com.juju.app.view.SwipeLayoutView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public class MyPartyListAdapter extends BaseAdapter{
         if(view == null) {
             view = LayoutInflater.from(context).inflate(R.layout.my_party_item, parent, false);
         }
-        SwipeLayout layout_swipe = ViewHolderUtil.get(view, R.id.swipe);
+        SwipeLayoutView layout_swipe = ViewHolderUtil.get(view, R.id.swipe);
 
         if(party.getStatus() == -1) {
             layout_swipe.setSwipeEnabled(true);

@@ -1,23 +1,23 @@
 package com.juju.app.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.entity.Plan;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.dialog.WarnTipDialog;
-//import com.juju.app.view.dialog.WarnTipDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
+
+//import com.juju.app.view.dialog.WarnTipDialog;
 
 /**
  * 项目名称：juju
@@ -26,7 +26,7 @@ import java.util.List;
  * 日期：2016/2/21 17:09
  * 版本：V1.0.0
  */
-public class PlanListAdapter extends BaseAdapter {
+public class PlanListAdapter extends BaseSwipeAdapter {
 
     private Context context;
     private List<Plan> planList;
@@ -72,7 +72,22 @@ public class PlanListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public int getSwipeLayoutResourceId(int position) {
+        return R.id.swipe;
+    }
+
+    @Override
+    public View generateView(int position, ViewGroup parent) {
+        View convertView = renderPlanList(position, null, parent);
+        return convertView;
+    }
+
+    @Override
+    public void fillValues(int position, View convertView) {
+        renderPlanList(position, convertView, null);
+    }
+
+    public View renderPlanList(final int position, View convertView, ViewGroup parent) {
         if(convertView == null) {
             convertView = LayoutInflater.from(context).
                     inflate(R.layout.plan_item, parent, false);

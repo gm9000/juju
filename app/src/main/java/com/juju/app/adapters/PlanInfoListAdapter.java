@@ -4,18 +4,18 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.utils.DistanceUtil;
+import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.entity.Plan;
 import com.juju.app.utils.ViewHolderUtil;
-import com.juju.app.view.SwipeLayout;
+import com.juju.app.view.SwipeLayoutView;
 
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
@@ -28,7 +28,7 @@ import java.util.List;
  * 日期：2016/2/21 17:09
  * 版本：V1.0.0
  */
-public class PlanInfoListAdapter extends BaseAdapter {
+public class PlanInfoListAdapter extends BaseSwipeAdapter {
 
     private Context context;
     private List<Plan> planList;
@@ -68,11 +68,26 @@ public class PlanInfoListAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(final int position, View convertView, ViewGroup parent) {
+    public int getSwipeLayoutResourceId(int position) {
+        return R.id.swipe;
+    }
+
+    @Override
+    public View generateView(int position, ViewGroup parent) {
+        View convertView = renderPlan(position, null, parent);
+        return convertView;
+    }
+
+    @Override
+    public void fillValues(int position, View convertView) {
+        renderPlan(position, convertView, null);
+    }
+
+    public View renderPlan(final int position, View convertView, ViewGroup parent) {
         if(convertView == null) {
             convertView = LayoutInflater.from(context).
                     inflate(R.layout.plan_info_item, parent, false);
-            SwipeLayout layout_swipe = ViewHolderUtil.get(convertView, R.id.swipe);
+            SwipeLayoutView layout_swipe = ViewHolderUtil.get(convertView, R.id.swipe);
             layout_swipe.setSwipeEnabled(canSwipe);
         }
         TextView txt_time = ViewHolderUtil.get(convertView, R.id.txt_time);
