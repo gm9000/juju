@@ -68,15 +68,15 @@ public class BaseApplication extends Application {
         Log.d("BaseApplication","onCreate#costTime:"+(end-begin)+"ms");
     }
 
-//    @Override
-//    protected void attachBaseContext(Context base) {
-//        super.attachBaseContext(base);
-//        long begin = System.currentTimeMillis();
-//        MultiDex.install(BaseApplication.this);
-//        long end = System.currentTimeMillis();
-//        Log.d("BaseApplication","attachBaseContext#costTime:"+(end-begin)+"ms");
-//
-//    }
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        long begin = System.currentTimeMillis();
+        MultiDex.install(BaseApplication.this);
+        long end = System.currentTimeMillis();
+        Log.d("BaseApplication","attachBaseContext#costTime:"+(end-begin)+"ms");
+
+    }
 
 //    private void afterMultiDexInstall() {
 //
@@ -137,6 +137,8 @@ public class BaseApplication extends Application {
                                         files.add(getDatabasePath("jlm_19400000003"));
                                         files.add(getDatabasePath("jlm_19400000004"));
                                         files.add(getDatabasePath("jlm_19400000005"));
+                                        files.add(getDatabasePath("jlm_15800000024"));
+                                        files.add(getDatabasePath("jlm_19600000018"));
                                         return files;
                                     }
                                 })

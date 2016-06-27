@@ -344,14 +344,14 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
      */
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4OtherMessage(NotificationMessageEvent event) {
-        switch (event.event) {
-            case INVITE_GROUP_NOTIFY_REQ_RECEIVED:
-            case INVITE_GROUP_NOTIFY_RES_RECEIVED:
-                tab_invite_notify.setVisibility(View.VISIBLE);
-                break;
-            case INVITE_GROUP_NOTIFY_OPEN_ACTIVITY:
-                tab_invite_notify.setVisibility(View.GONE);
-                break;
-        }
+//        switch (event.event) {
+//            case INVITE_GROUP_NOTIFY_REQ_RECEIVED:
+//            case INVITE_GROUP_NOTIFY_RES_RECEIVED:
+//                tab_invite_notify.setVisibility(View.VISIBLE);
+//                break;
+//            case INVITE_GROUP_NOTIFY_OPEN_ACTIVITY:
+//                tab_invite_notify.setVisibility(View.GONE);
+//                break;
+//        }
     }
 }

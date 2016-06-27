@@ -1,5 +1,6 @@
 package com.juju.app.service.im.manager;
 
+import android.os.HandlerThread;
 import android.util.Log;
 
 import com.juju.app.R;
@@ -19,8 +20,8 @@ import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.GroupForbiddenEvent;
 import com.juju.app.event.JoinChatRoomEvent;
-import com.juju.app.event.JoinGroupEvent;
 import com.juju.app.event.LoginEvent;
+import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.user.InviteGroupEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.golobal.CommandActionConstant;
@@ -33,6 +34,7 @@ import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
+import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.service.im.thread.GetGroupUserThread;
 import com.juju.app.ui.base.BaseApplication;
@@ -524,7 +526,6 @@ public class IMGroupManager extends IMManager {
                    isGroupReady = true;
                    break;
            }
-
        }
         //粘性通知
         EventBus.getDefault().postSticky(paramObject);
@@ -597,20 +598,23 @@ public class IMGroupManager extends IMManager {
                         JSONObject jsonRoot = (JSONObject)obj;
                         int status = JSONUtils.getInt(jsonRoot, "status", -1);
                         if(status == 0) {
-                            String inviteCode = JSONUtils.getString(jsonRoot, "inviteCode");
-                            if(StringUtils.isNotBlank(inviteCode)) {
-                                //通知用户（需支持离线消息）
-                                User userInfo = IMContactManager.instance().findContact(memberNo);
-                                if(userInfo != null) {
-                                    String uuid = UUID.randomUUID().toString();
-                                    //发送通知消息
-                                    sendInviteGroupNotifyReqToMServer(userInfo,  uuid,
-                                            inviteCode,  peerId, groupId);
-                                }
-                            }
+//                            String inviteCode = JSONUtils.getString(jsonRoot, "inviteCode");
+//                            if(StringUtils.isNotBlank(inviteCode)) {
+//                                //通知用户（需支持离线消息）
+//                                User userInfo = IMContactManager.instance().findContact(memberNo);
+//                                if(userInfo != null) {
+//
+//                                }
+//                            }
+                            User userInfo = IMContactManager.instance().findContact(memberNo);
+                            String uuid = UUID.randomUUID().toString();
+                            //发送通知消息
+//                            sendInviteGroupNotifyReqToMServer(userInfo,  uuid,  peerId, groupId);
                         } else {
                             logger.d("status is not 0");
-                            triggerEvent(JoinGroupEvent.INVITE_USER_FAILED);
+                            InviteUserEvent event = new InviteUserEvent(InviteUserEvent.Event
+                                    .INVITE_USER_FAILED);
+                            triggerEvent(event);
                         }
                     }
                 }
@@ -618,8 +622,9 @@ public class IMGroupManager extends IMManager {
                 public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
                     logger.d("inviteUser Failed");
                     logger.error(e);
-                    triggerEvent(JoinGroupEvent.INVITE_USER_FAILED);
-                }
+                    InviteUserEvent event = new InviteUserEvent(InviteUserEvent.Event
+                            .INVITE_USER_FAILED);
+                    triggerEvent(event);                }
             }, valueMap, JSONObject.class);
             try {
                 client.sendPost4OK();
@@ -630,62 +635,6 @@ public class IMGroupManager extends IMManager {
             }
         }
     }
-
-    //发起加入群聊信息
-    private void sendInviteGroupNotifyReqToMServer(User userInfo, String uuid,
-                                                String inviteCode, String peerId, String groupId) {
-        GroupEntity groupEntity = groupMap.get(peerId);
-        if(groupEntity == null)
-            return;
-
-        IMBaseDefine.InviteGroupNotifyReqBean inviteGroupNotifyBean = IMBaseDefine.InviteGroupNotifyReqBean
-                .valueOf(inviteCode, groupId, groupEntity.getMainName(), userInfoBean.getJujuNo(),
-                        userInfoBean.getUserName());
-        String message = JacksonUtil.turnObj2String(inviteGroupNotifyBean);
-
-        socketService.notifyMessage(userInfo.getPeerId(), message,
-                IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_REQ, uuid, true,
-                new XMPPServiceCallbackImpl() {
-                    @Override
-                    public void onSuccess(Object t) {
-                        logger.d("sendInviteGroupNotifyToMServer success");
-                        if(t instanceof XMPPServiceImpl.ReplayMessageTime) {
-                            XMPPServiceImpl.ReplayMessageTime messageTime =
-                                    (XMPPServiceImpl.ReplayMessageTime) t;
-                            String id = messageTime.getId();
-                            String time = messageTime.getTime();
-
-                            Invite dbEntity = (Invite)
-                                    inviteDao.findUniByProperty("id", id);
-
-
-                            if(dbEntity != null) {
-                                Invite.buildInviteReq4SendOnAck(dbEntity,
-                                        Long.parseLong(time));
-                                //更新时间
-                                inviteDao.saveOrUpdate(dbEntity);
-                                triggerEvent(JoinGroupEvent.INVITE_USER_OK);
-                            } else {
-                                triggerEvent(JoinGroupEvent.INVITE_USER_FAILED);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onFailed() {
-                        logger.d("sendInviteGroupNotifyToMServer failed");
-                        triggerEvent(JoinGroupEvent.INVITE_USER_FAILED);
-                    }
-
-                    @Override
-                    public void onTimeout() {
-                        logger.d("sendInviteGroupNotifyToMServer timeout");
-                        triggerEvent(JoinGroupEvent.INVITE_USER_FAILED);
-                    }
-                });
-    }
-
-
 
 
 
@@ -700,6 +649,164 @@ public class IMGroupManager extends IMManager {
 //                break;
 //        }
 //    }
+
+
+    //暂时将消息发送到主线程消息队列 （若消息处理耗时，需要使用HandlerThread或EVENTBUS（子线程）解决）
+    static class InviteUserTask {
+        private Logger logger = Logger.getLogger(InviteUserTask.class);
+
+        private IMGroupManager imGroupManager;
+        private UserInfoBean userInfoBean;
+        private SocketService socketService;
+        private DaoSupport inviteDao;
+
+        public InviteUserTask(IMGroupManager imGroupManager, UserInfoBean userInfoBean,
+                              SocketService socketService, DaoSupport inviteDao) {
+            this.imGroupManager = imGroupManager;
+            this.userInfoBean = userInfoBean;
+            this.socketService = socketService;
+            this.inviteDao = inviteDao;
+        }
+
+        @Subscribe(threadMode = ThreadMode.POSTING)
+        public void onEvent4BusinessFlowSendEvent(InviteUserEvent.BusinessFlow.Send businessFlow) {
+            switch (businessFlow) {
+                case SEND_INVITE_USER_BSERVER_OK:
+
+                    break;
+            }
+
+        }
+
+        //发送加入群组请求——业务服务器
+        public void sendInviteUserToBServer(final InviteUserEvent.InviteUserBean inviteUserBean) {
+            CommandActionConstant.HttpReqParam JOININGROUP =
+                    CommandActionConstant.HttpReqParam.JOININGROUP;
+            Map<String, Object> valueMap = HttpReqParamUtil.instance()
+                    .buildMap("memberNo, groupId", inviteUserBean.userNo, inviteUserBean.groupId);
+            JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
+                    JOININGROUP.code(), JOININGROUP.url(),
+                    new HttpCallBack4OK() {
+                        @Override
+                        public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+                            if(obj != null && obj instanceof  JSONObject) {
+                                JSONObject jsonRoot = (JSONObject)obj;
+                                int status = JSONUtils.getInt(jsonRoot, "status", -1);
+                                if(status == 0) {
+                                    InviteUserEvent inviteUserEvent = buildBusinessSendFlow(inviteUserBean,
+                                            InviteUserEvent.BusinessFlow.Send.SEND_INVITE_USER_BSERVER_OK);
+                                    triggerEvent4Sticky(inviteUserEvent);
+                                } else {
+                                    logger.d("status is not 0");
+                                    InviteUserEvent inviteUserEvent = buildBusinessSendFlow(inviteUserBean,
+                                            InviteUserEvent.BusinessFlow.Send.SEND_INVITE_USER_BSERVER_FAILED);
+                                    triggerEvent4Sticky(inviteUserEvent);
+                                }
+                            }
+                        }
+                        @Override
+                        public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                            InviteUserEvent inviteUserEvent = buildBusinessSendFlow(inviteUserBean,
+                            InviteUserEvent.BusinessFlow.Send.SEND_INVITE_USER_BSERVER_FAILED);
+                            triggerEvent4Sticky(inviteUserEvent);
+                        }
+                    }, valueMap, JSONObject.class);
+            try {
+                client.sendPost4OK();
+            } catch (UnsupportedEncodingException e) {
+                logger.error(e);
+            } catch (JSONException e) {
+                logger.error(e);
+            }
+        }
+
+
+        //发送加入群组请求——消息服务器
+        public void sendInviteUserToMServer(InviteUserEvent.InviteUserBean inviteUserBean) {
+            String peerId = inviteUserBean.userNo+"@"+userInfoBean.getmServiceName();
+            GroupEntity groupEntity = imGroupManager.getGroupMap().get(peerId);
+            if(groupEntity == null) {
+                logger.e("groupEntity is not exist -->peerId:%s", peerId);
+                return;
+            }
+            String message = JacksonUtil.turnObj2String(inviteUserBean);
+            String  uuid = UUID.randomUUID().toString();
+
+            //通知群组
+            socketService.notifyMessage(peerId, message,
+                    IMBaseDefine.NotifyType.INVITE_USER, uuid, true,
+                    new XMPPServiceCallbackImpl() {
+                        @Override
+                        public void onSuccess(Object t) {
+                            logger.d("sendInviteGroupNotifyToMServer success");
+                            if(t instanceof XMPPServiceImpl.ReplayMessageTime) {
+                                XMPPServiceImpl.ReplayMessageTime messageTime =
+                                        (XMPPServiceImpl.ReplayMessageTime) t;
+                                String id = messageTime.getId();
+                                String time = messageTime.getTime();
+
+                                Invite dbEntity = (Invite)
+                                        inviteDao.findUniByProperty("id", id);
+
+                                if(dbEntity != null) {
+                                    Invite.buildInviteReq4SendOnAck(dbEntity,
+                                            Long.parseLong(time));
+                                    //更新时间
+                                    inviteDao.saveOrUpdate(dbEntity);
+//                                    InviteUserEvent.InviteUserBean inviteUserBean = InviteUserEvent
+//                                            .InviteUserBean.valueOf(dbEntity.getGroupId(), dbEntity.getGroupName(),
+//                                                    dbEntity.getUserNo(), dbEntity.getNickName());
+//                                    updateGroup4Members(dbEntity.getGroupId(), dbEntity.getUserNo(),
+//                                            Long.parseLong(time));
+//                                    InviteUserEvent event = new InviteUserEvent(inviteUserBean,
+//                                            InviteUserEvent.Event.INVITE_USER_OK);
+//                                    triggerEvent4Sticky(event);
+                                } else {
+                                    InviteUserEvent event = new InviteUserEvent(InviteUserEvent.Event
+                                            .INVITE_USER_FAILED);
+                                    triggerEvent4Sticky(event);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailed() {
+                            logger.d("sendInviteGroupNotifyToMServer failed");
+                            InviteUserEvent event = new InviteUserEvent(InviteUserEvent.Event
+                                    .INVITE_USER_FAILED);
+                            triggerEvent4Sticky(event);
+                        }
+
+                        @Override
+                        public void onTimeout() {
+                            logger.d("sendInviteGroupNotifyToMServer timeout");
+                            InviteUserEvent event = new InviteUserEvent(InviteUserEvent.Event
+                                    .INVITE_USER_FAILED);
+                            triggerEvent4Sticky(event);                      }
+                    });
+        }
+
+
+        private void triggerEvent4Sticky(Object paramObject) {
+            //粘性通知
+            EventBus.getDefault().postSticky(paramObject);
+        }
+
+        /**
+         * 构建业务流
+         * @param inviteUserBean
+         * @param send
+         */
+        private InviteUserEvent buildBusinessSendFlow(InviteUserEvent.InviteUserBean inviteUserBean,
+                                       InviteUserEvent.BusinessFlow.Send send) {
+            if(send == null)
+                throw new IllegalArgumentException("InviteUserTask#inviteUserBean or send is null");
+
+            InviteUserEvent.BusinessFlow businessFlow = new InviteUserEvent.BusinessFlow(send);
+            InviteUserEvent event = new InviteUserEvent(inviteUserBean, businessFlow);
+            return event;
+        }
+    }
 
 
 

@@ -149,6 +149,9 @@ public class IMLoginManager extends IMManager {
 //        DBInterface.instance().initDbHelp(ctx, mLoginId);
         //用户需要添加密码、token，目前只验证聚聚号
         User loginEntity = (User) userDao.findUniByProperty("user_no", userNo);
+        if(loginEntity == null) {
+            loginEntity = (User) userDao.findUniByProperty("user_phone", userNo);
+        }
         do{
             if(loginEntity == null){
                 break;
@@ -280,5 +283,17 @@ public class IMLoginManager extends IMManager {
         IMOtherManager.instance().setSocketService(socketService);
         IMGroupManager.instance().setSocketService(socketService);
         IMOtherManager.instance().setSocketService(socketService);
+    }
+
+    public void createAccount(final String userNo, final String password) {
+        if(socketService == null) {
+            socketService = new XMPPServiceImpl(ctx.getContentResolver(), service, messageDao);
+        }
+        ThreadPoolUtil.instance().executeImTask(new Runnable() {
+            @Override
+            public void run() {
+                socketService.createAccount(userNo, password);
+            }
+        });
     }
 }

@@ -19,6 +19,7 @@ import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.ConnectionState;
+import com.juju.app.event.ChatMessageEvent;
 import com.juju.app.event.LoginEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.PriorityEvent;
@@ -27,6 +28,7 @@ import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
+import com.juju.app.media.rtmp.packets.RtmpHeader;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.callback.FixListenerQueue;
 import com.juju.app.service.im.callback.ListenerQueue;
@@ -70,6 +72,7 @@ import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jivesoftware.smack.util.TLSUtils;
+import org.jivesoftware.smackx.iqregister.AccountManager;
 import org.jivesoftware.smackx.muc.DiscussionHistory;
 import org.jivesoftware.smackx.muc.MultiUserChat;
 import org.jivesoftware.smackx.muc.MultiUserChatManager;
@@ -87,6 +90,7 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -242,9 +246,16 @@ public class XMPPServiceImpl implements
                 RedisPacketExtensionProvider.NAMESPACE,
                 new RedisPacketExtensionProvider());
 
-        MessageTypeProvider messageTypeProvider = new MessageTypeProvider();
+
+        MsgTypeProvider msgTypeProvider = new MsgTypeProvider();
+        ProviderManager.addExtensionProvider(ElementNameType.msgType.name(),
+                IMBaseDefine.NameSpaceType.MESSAGE.value(), msgTypeProvider);
+
+        NotifyTypeProvider notifyTypeProvider = new NotifyTypeProvider();
         ProviderManager.addExtensionProvider(ElementNameType.notifyType.name(),
-                IMBaseDefine.NameSpaceType.NOTIFYMESSAGE.value(), messageTypeProvider);
+                IMBaseDefine.NameSpaceType.NOTIFY.value(), notifyTypeProvider);
+
+
         doReconnection();
 //        doPing();
     }
@@ -259,8 +270,10 @@ public class XMPPServiceImpl implements
     @Override
     public boolean login() throws IOException, XMPPException, SmackException {
         //TODO 与消息服务连接是否可以提到登陆之前 ？
-        createConnection(false);
-        xmppConnection.connect();
+        if(xmppConnection == null) {
+            createConnection(false);
+            xmppConnection.connect();
+        }
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         String userName = userInfoBean.getmAccount();
         String password = userInfoBean.getmPassword();
@@ -576,8 +589,8 @@ public class XMPPServiceImpl implements
         newMessage.setFrom(userInfoBean.getJujuNo()+"@juju");
         newMessage.setStanzaId(uuid);
         newMessage.setBody(message);
-        ExtensionElement extensionElement = new MessageExtensionElement(notifyType,
-                IMBaseDefine.NameSpaceType.NOTIFYMESSAGE);
+        ExtensionElement extensionElement = new NotifyExtensionElement(notifyType,
+                IMBaseDefine.NameSpaceType.NOTIFY);
         newMessage.addExtension(extensionElement);
         if (isAuthenticated()) {
             if(isSaveMsg) {
@@ -592,6 +605,24 @@ public class XMPPServiceImpl implements
             logger.d("notifyMessage ->  message:%s -> peerId:%s -> notifyType:%s -> uuid:%s",
                     message, peerId, notifyType.code(), uuid);
         }
+    }
+
+    @Override
+    public boolean createAccount(String userNo, String password) {
+        try {
+            createConnection(false);
+            xmppConnection.connect();
+            AccountManager accountManager = AccountManager.getInstance(xmppConnection);
+            accountManager.createAccount(userNo, password, new HashMap<String, String>());
+            return true;
+        } catch (XMPPException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SmackException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
 
@@ -711,7 +742,9 @@ public class XMPPServiceImpl implements
 //                    getExtension(ReplayMessageTime.NAME, ReplayMessageTime.NAME_SPACE) != null) {
 //                return true;
 //            }
-            if(StringUtils.isNotBlank(packet.getFrom())
+            if(bean != null
+                    && StringUtils.isNotBlank(bean.getmAccount())
+                    && StringUtils.isNotBlank(packet.getFrom())
                     && packet.getFrom().indexOf(bean.getmAccount()) >= 0) {
                 return false;
             }
@@ -864,37 +897,61 @@ public class XMPPServiceImpl implements
     }
 
 
-
     //TODO 是否考虑放在子线程
     private void handlerMessage(Stanza stanza) {
         Message message = (Message) stanza;
         logger.d("handlerMessage -> message:%s", message.toString());
-        MessageExtensionElement extensionElement = message.getExtension(ElementNameType.notifyType.name(),
-                IMBaseDefine.NameSpaceType.NOTIFYMESSAGE.value());
-        if(extensionElement == null) {
-            handlerMessage4NormalMessage(message);
+        MsgExtensionElement msgExtensionElement = message.getExtension(ElementNameType.msgType.name(),
+                IMBaseDefine.NameSpaceType.MESSAGE.value());
+        NotifyExtensionElement notifyExtensionElement = message.getExtension(ElementNameType.notifyType.name(),
+                IMBaseDefine.NameSpaceType.NOTIFY.value());
+        if(msgExtensionElement != null) {
+            handlerChatMsg(message, msgExtensionElement.msgType);
+        } else if (notifyExtensionElement != null) {
+            handlerNotifyMsg(message, notifyExtensionElement.notifyType);
         } else {
-            IMBaseDefine.NotifyType msgType = extensionElement.notifyType;
-            logger.d("handlerMessage -> type:%s", msgType.code());
-            switch (msgType) {
-                case NORMAL_MESSAGE:
-                    handlerMessage4NormalMessage(message);
-                    break;
-                //邀请相关
-                case INVITE_GROUP_NOTIFY_REQ:
-                case INVITE_GROUP_NOTIFY_RES:
-                    handlerMessage4InviteGroupNotify(message, msgType);
-                    break;
-                default:
-                    handlerMessage4OtherNotify(message, msgType);
-                    break;
+            handlerChatMsg(message, msgExtensionElement.msgType);
+        }
+    }
 
+    /**
+     * 处理聊天消息
+     */
+    private void handlerChatMsg(Message message, IMBaseDefine.MsgType msgType) {
+        if(msgType == null ) {
+            handlerMsg4NormalMessage(message);
+        } else {
+            switch (msgType) {
+                //文本消息
+                case MSG_TEXT:
+                    handlerMsg4NormalMessage(message);
+                    break;
 
             }
         }
     }
 
-    private void handlerMessage4NormalMessage(Message message) {
+    /**
+     * 处理通知消息
+     */
+    private void handlerNotifyMsg(Message message, IMBaseDefine.NotifyType notifyType) {
+        logger.d("handlerNotify -> type:%s", notifyType.code());
+        switch (notifyType) {
+            //邀请相关
+//            case INVITE_USER:
+//                triggerNotifyMsg(message, notifyType);
+//                break;
+            default:
+                triggerNotifyMsg(message, notifyType);
+                break;
+        }
+    }
+
+    /**
+     * 处理普通消息
+     * @param message
+     */
+    private void handlerMsg4NormalMessage(Message message) {
         //接收群聊消息
         if(message.getExtension(ReplayMessageTime.NAME, ReplayMessageTime.NAME_SPACE) == null) {
             String[] fromArr = message.getFrom().split("/");
@@ -955,20 +1012,29 @@ public class XMPPServiceImpl implements
         }
     }
 
-    private void handlerMessage4InviteGroupNotify(Message message,
-                                                  IMBaseDefine.NotifyType notifyType) {
+
+    /**
+     * 触发聊天消息相关事件
+     * @param message
+     * @param msgType
+     */
+    private void triggerChatMsg(Message message, IMBaseDefine.MsgType msgType) {
         //是否需要处理其他业务
-        NotifyMessageEvent event = new NotifyMessageEvent();
-        event.msgType = notifyType;
+        ChatMessageEvent event = new ChatMessageEvent();
+        event.msgType = msgType;
         event.message = message;
         triggerEvent(event);
     }
 
-
-    private void handlerMessage4OtherNotify(Message message,
-                                                  IMBaseDefine.NotifyType notifyType) {
+    /**
+     * 触发通知消息相关事件（IMOtherManager进行监听）
+     * @param message
+     * @param notifyType
+     */
+    private void triggerNotifyMsg(Message message, IMBaseDefine.NotifyType notifyType) {
+        //是否需要处理其他业务
         NotifyMessageEvent event = new NotifyMessageEvent();
-        event.msgType = notifyType;
+        event.notifyType = notifyType;
         event.message = message;
         triggerEvent(event);
     }
@@ -1069,13 +1135,52 @@ public class XMPPServiceImpl implements
 //    }
 
 
+    /**
+     * 消息相关扩展元素
+     */
+    static class MsgExtensionElement implements ExtensionElement {
 
-    static class MessageExtensionElement implements ExtensionElement {
+        public IMBaseDefine.MsgType msgType;
+        public IMBaseDefine.NameSpaceType nameSpaceType;
+
+        public MsgExtensionElement(IMBaseDefine.MsgType msgType,
+                                   IMBaseDefine.NameSpaceType nameSpaceType) {
+            this.msgType = msgType;
+            this.nameSpaceType = nameSpaceType;
+        }
+
+
+        @Override
+        public String getNamespace() {
+            return nameSpaceType.value();
+        }
+
+        @Override
+        public String getElementName() {
+            return ElementNameType.msgType.name();
+        }
+
+        @Override
+        public CharSequence toXML() {
+            StringBuilder sbf = new StringBuilder();
+            sbf.append("<"+getElementName()+" xmlns='"+getNamespace()+"'>")
+                    .append("<code>")
+                    .append(msgType.code())
+                    .append("</code>")
+                    .append("</"+getElementName()+">");
+            return sbf.toString();
+        }
+    }
+
+    /**
+     * 通知相关扩展元素
+     */
+    static class NotifyExtensionElement implements ExtensionElement {
 
         public IMBaseDefine.NotifyType notifyType;
         public IMBaseDefine.NameSpaceType nameSpaceType;
 
-        public MessageExtensionElement(IMBaseDefine.NotifyType notifyType,
+        public NotifyExtensionElement(IMBaseDefine.NotifyType notifyType,
                                        IMBaseDefine.NameSpaceType nameSpaceType) {
             this.notifyType = notifyType;
             this.nameSpaceType = nameSpaceType;
@@ -1095,21 +1200,54 @@ public class XMPPServiceImpl implements
         @Override
         public CharSequence toXML() {
             StringBuilder sbf = new StringBuilder();
-            sbf.append("<notifyType xmlns='"+getNamespace()+"'>")
+            sbf.append("<"+getElementName()+" xmlns='"+getNamespace()+"'>")
                     .append("<code>")
                     .append(notifyType.code())
                     .append("</code>")
-                    .append("</notifyType>");
+                    .append("</"+getElementName()+">");
             return sbf.toString();
         }
     }
 
+
     //自定义元素类型（可扩展）
     enum ElementNameType {
-        notifyType
+        msgType, notifyType
     }
 
-    class MessageTypeProvider extends
+
+    static class MsgTypeProvider extends
+            ExtensionElementProvider<ExtensionElement> {
+
+        @Override
+        public ExtensionElement parse(XmlPullParser parser, int initialDepth)
+                throws XmlPullParserException, IOException, SmackException {
+            boolean done = false;
+            IMBaseDefine.MsgType msgType = null;
+
+            while (!done) {
+                int eventType = parser.next();
+                String name = parser.getName();
+                // XML Tab标签
+                if (eventType == XmlPullParser.START_TAG) {
+                    if (name.equals("code")) {
+                        String codeValue = parser.nextText();
+                        msgType = IMBaseDefine.MsgType.getInstanceByCode(codeValue);
+                    }
+                }
+                if (eventType == XmlPullParser.END_TAG) {
+                    if (name.equals("msgType")) {
+                        done = true;
+                    }
+                }
+            }
+            MsgExtensionElement element = new MsgExtensionElement(msgType,
+                    IMBaseDefine.NameSpaceType.MESSAGE);
+            return element;
+        }
+    }
+
+    static class NotifyTypeProvider extends
             ExtensionElementProvider<ExtensionElement> {
 
         @Override
@@ -1134,9 +1272,8 @@ public class XMPPServiceImpl implements
                     }
                 }
             }
-//            if()
-            MessageExtensionElement element = new MessageExtensionElement(notifyType,
-                   IMBaseDefine.NameSpaceType.NOTIFYMESSAGE);
+            NotifyExtensionElement element = new NotifyExtensionElement(notifyType,
+                   IMBaseDefine.NameSpaceType.NOTIFY);
             return element;
         }
     }

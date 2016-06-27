@@ -24,10 +24,8 @@ public class NotificationMessageEvent {
 
     public enum Event {
         //加群邀请通知
-        INVITE_GROUP_NOTIFY_REQ_RECEIVED,
+        INVITE_USER_RECEIVED,
 
-        //加群回复通知
-        INVITE_GROUP_NOTIFY_RES_RECEIVED,
 
         //打开窗口，事件信息、红点需要清除（对全局有效果）
         INVITE_GROUP_NOTIFY_OPEN_ACTIVITY

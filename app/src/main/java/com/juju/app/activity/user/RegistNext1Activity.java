@@ -14,17 +14,23 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.activity.LoginActivity;
 import com.juju.app.annotation.CreateUI;
+import com.juju.app.biz.DaoSupport;
+import com.juju.app.biz.impl.UserDaoImpl;
 import com.juju.app.config.HttpConstants;
+import com.juju.app.entity.User;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.SessionConstants;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ToastUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,6 +41,7 @@ import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -78,6 +85,28 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
     private String password;
     private String nickName;
 
+    private DaoSupport userDao;
+    private IMService imService;
+
+
+    /**
+     * IMServiceConnector
+     */
+    private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("main_activity#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+        }
+
+        @Override
+        public void onServiceDisconnected() {
+
+        }
+    };
+
+
+
     /**
      *******************************************公共函数******************************************
      */
@@ -85,6 +114,9 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
 
     @Override
     public void loadData() {
+        HttpConstants.initURL();
+        imServiceConnector.connect(RegistNext1Activity.this);
+        userDao = new UserDaoImpl(getApplicationContext());
         phone = getIntent().getStringExtra(Constants.PHONE);
         password = getIntent().getStringExtra(Constants.PASSWORD);
         nickName = getIntent().getStringExtra(Constants.NICKNAME);
@@ -133,9 +165,10 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
+        imServiceConnector.disconnect(RegistNext1Activity.this);
         SMSSDK.unregisterEventHandler(eh);
         Log.d(TAG, "onDestroy");
+        super.onDestroy();
     }
 
 
@@ -146,8 +179,10 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
     @Event(R.id.btn_register_next)
     private void onClick4BtnRegisterNext(View view) {
         String yzm = et_yzm.getText().toString();
-        SMSSDK.submitVerificationCode("86", phone, yzm);
-//        registUser(nickName, null, password, phone, null);
+//        SMSSDK.submitVerificationCode("86", phone, yzm);
+        registUser(nickName, 1, password, phone, null);
+//        registUser(nickName, 1, password, phone, null);
+
     }
 
     //结束注册
@@ -187,7 +222,7 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
 //                            R.string.register_success, 0);
                     Log.i(TAG, "注册成功");
                     //TODO 发送注册协议
-                    registUser(nickName, null, password, phone, null);
+                    registUser(nickName, 1, password, phone, null);
                 }else if (event == SMSSDK.EVENT_GET_VERIFICATION_CODE){
                     //获取验证码成功
                     Log.i(TAG, "获取验证码成功");
@@ -268,6 +303,27 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
                                 //处理聚会邀请
                                 doInviteInfo(inviteInfoArr);
                             }
+                            if(inputParameter instanceof Map) {
+                                Map<String, Object> parameterMap = (Map<String, Object>)inputParameter;
+                                String nickName = (String)parameterMap.get("nickName");
+                                Integer gender = (Integer)parameterMap.get("gender");
+                                String userPhone = (String)parameterMap.get("userPhone");
+//                                String password = (String)parameterMap.get("password");
+
+//                                valueMap.put("nickName", nickName);
+//                                valueMap.put("gender", gender);
+//                                valueMap.put("userPhone", userPhone);
+//                                valueMap.put("password", _password);
+
+                                String avatar = HttpConstants.getPortraitUrl()+SessionConstants.userNo;
+                                User user = User.buildForCreate(SessionConstants.userNo,
+                                        userPhone, null, gender, nickName, null, new Date(), avatar);
+                                userDao.replaceInto(user);
+
+                                //向消息服务注册服务
+                                imService.getLoginManager().createAccount(SessionConstants.userNo, password);
+                            }
+                            ToastUtil.TextIntToast(getApplicationContext(), R.string.register_success, 2);
                             startActivity(RegistNext1Activity.this, LoginActivity.class);
                         } else {
                             showMsgDialog(R.string.regist_user_error);

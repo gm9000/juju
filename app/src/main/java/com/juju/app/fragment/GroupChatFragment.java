@@ -28,6 +28,7 @@ import com.juju.app.event.LoginEvent;
 import com.juju.app.event.SessionEvent;
 import com.juju.app.event.SmackSocketEvent;
 import com.juju.app.event.UnreadEvent;
+import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.IMUIHelper;
@@ -289,6 +290,16 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
             case SHIELD_GROUP_FAIL:
             case SHIELD_GROUP_TIMEOUT:
 //                onShieldFail();
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4InviteUserEvent(InviteUserEvent event){
+        logger.d("groupchat_fragment#UnreadEvent# -> %s", event);
+        switch (event.event){
+            case INVITE_USER_OK:
+                onRecentContactDataReady();
                 break;
         }
     }

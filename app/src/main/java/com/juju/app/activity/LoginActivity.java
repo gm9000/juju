@@ -17,6 +17,8 @@ import com.juju.app.activity.user.RegistActivity;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.biz.DaoSupport;
+import com.juju.app.biz.impl.UserDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
@@ -117,6 +119,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     private boolean autoLogin = true;
     private boolean loginSuccess = false;
 
+    DaoSupport userDao;
 
 
 
@@ -138,6 +141,8 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
         nickName = (String)SpfUtil.get(LoginActivity.this, "nickName", "");
         token  = (String)SpfUtil.get(LoginActivity.this, "token", "");
+        userDao = new UserDaoImpl(getApplicationContext());
+
     }
 
     @Override
@@ -254,6 +259,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     int status = JSONUtils.getInt(jsonRoot, "status", -1);
                     final String description = JSONUtils.getString(jsonRoot, "description", "");
                     jujuNo = JSONUtils.getString(jsonRoot, "userNo", "");
+                    BaseApplication.getInstance().getUserInfoBean().setJujuNo(jujuNo);
                     token = JSONUtils.getString(jsonRoot, "token", "");
                     //TODO 登陆协议需返回用户昵称、域名、房间名称、MUC服务名称
                     nickName = "聚龙小子";
@@ -360,7 +366,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     private void initGlobalVariable() {
         userNo = txt_userNo.getText().toString();
         pwd = txt_password.getText().toString();
-//        pwdChecked = chk_rememberPwd.isChecked();
+//        pwdChecked =
 //        autoLoginChecked = chk_autoLogin.isChecked();
     }
 
@@ -397,6 +403,11 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 //        DBUtil.instance().initDBHelp(getApplicationContext(), userNo);
 
         //TODO 登陆成功是否需要将用户插入本地数据库
+//        User user = new User();
+//        user.setUserNo(userNo);
+//        user.setNickName(nickName);
+//        userDao.replaceInto(user);
+
         User loginUser = null;
         try {
             loginUser = JujuDbUtils.getInstance()
@@ -405,9 +416,9 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
             e.printStackTrace();
         }
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        userInfoBean.setJujuNo(userNo);
+//        userInfoBean.setJujuNo(userNo);
         userInfoBean.setToken(token);
-        userInfoBean.setmAccount(userNo);
+        userInfoBean.setmAccount(userInfoBean.getJujuNo());
         userInfoBean.setmPassword(pwd);
 
         HttpReqParamUtil.instance().setUserInfoBean(userInfoBean);

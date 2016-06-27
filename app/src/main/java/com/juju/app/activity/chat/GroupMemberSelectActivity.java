@@ -31,8 +31,8 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
-import com.juju.app.event.JoinGroupEvent;
 import com.juju.app.event.UserInfoEvent;
+import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
@@ -389,9 +389,9 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
                     int beginIndex = (pageNum - 1) * length;
                     int endIndex = 0;
                     if(total < pageNum * length) {
-                        endIndex = total -1;
+                        endIndex = total;
                     } else {
-                        endIndex = (pageNum * length) -1;
+                        endIndex = (pageNum * length);
                     }
                     newPhoneSet = phoneSet.subList(beginIndex, endIndex);
                     if(newPhoneSet.size() >0) {
@@ -415,16 +415,16 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent4JoinGroup(JoinGroupEvent event) {
-        switch (event) {
+    public void onEvent4JoinGroup(InviteUserEvent event) {
+        switch (event.event) {
             case INVITE_USER_OK:
                 completeLoading(0);
-                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_code_send_success, 3);
+                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_user_send_success, 3);
                 finish(GroupMemberSelectActivity.this);
                 break;
             case INVITE_USER_FAILED:
                 completeLoading(0);
-                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_code_send_failed, 3);
+                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_user_send_failed, 3);
                 break;
         }
     }
@@ -479,6 +479,7 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
 //                            if (StringUtils.isMobileNO(phoneNumber)) {
 //                                phoneSet.add(phoneNumber);
 //                            }
+                            phoneNumber = phoneNumber.replaceAll(" ", "");
                             phoneList.add(phoneNumber);
                         } while (phones.moveToNext());
                     }
@@ -544,17 +545,18 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
                         JSONObject jsonUser = jsonUsers.getJSONObject(i);
                         String nickName = JSONUtils.getString(jsonUser, "nickName");
                         String userPhone = JSONUtils.getString(jsonUser, "userPhone");
-                        String birthday = JSONUtils.getString(jsonUser, "birthday");
+                        String birthday = JSONUtils.getString(jsonUser, "birthday", "");
                         int gender = JSONUtils.getInt(jsonUser, "gender", 1);
                         String createTime = JSONUtils.getString(jsonUser, "createTime");
                         String userNo = JSONUtils.getString(jsonUser, "userNo");
                         Date birthdayDate = null;
                         Date createTimeDate = null;
-                        if(StringUtils.isNotBlank(birthday)) {
+                        if(StringUtils.isNotBlank(birthday)
+                                && !"null".equals(birthday)) {
                             birthdayDate = DateUtils.parseDate(birthday,
                                     new String[] {"yyyy-MM-dd HH:mm:ss"});
                         }
-                        if(StringUtils.isNotBlank(createTime)) {
+                        if(StringUtils.isNotBlank(createTime) && !"null".equals(createTime)) {
                             createTimeDate = DateUtils.parseDate(createTime,
                                     new String[] {"yyyy-MM-dd HH:mm:ss"});
                         }
