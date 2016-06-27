@@ -23,6 +23,7 @@ import com.juju.app.event.GroupEvent;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.UnreadEvent;
+import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
@@ -133,35 +134,39 @@ public class IMNotificationManager extends IMManager {
         String targetNickName = "";
 
         switch (event.event) {
-            case INVITE_GROUP_NOTIFY_REQ_RECEIVED:
-                IMBaseDefine.InviteGroupNotifyReqBean inviteGroupNotifyBean =
-                        (IMBaseDefine.InviteGroupNotifyReqBean) JacksonUtil
+            case INVITE_USER_RECEIVED:
+                InviteUserEvent.InviteUserBean inviteUserBean =
+                        (InviteUserEvent.InviteUserBean) JacksonUtil
                                 .turnString2Obj(entity.getContent(),
-                                        IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_REQ.getCls());
-                userNo = inviteGroupNotifyBean.userNo;
-                userName = inviteGroupNotifyBean.userName;
-                groupName = inviteGroupNotifyBean.groupName;
-                title = IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_REQ.desc();
+                                        IMBaseDefine.NotifyType.INVITE_USER.getCls());
+                userNo = inviteUserBean.userNo;
+                userName = inviteUserBean.nickName;
+                groupName = inviteUserBean.groupName;
+                title = IMBaseDefine.NotifyType.INVITE_USER.desc();
                 detailTitle = title;
                 avatarUrl = HttpConstants.getPortraitUrl()+userNo;
                 actionName = "邀请";
                 actionName1 = "加入";
                 targetNickName = "您";
                 break;
-            case INVITE_GROUP_NOTIFY_RES_RECEIVED:
-                IMBaseDefine.InviteGroupNotifyResBean inviteGroupNotifyResBean =
-                        (IMBaseDefine.InviteGroupNotifyResBean) JacksonUtil
-                                .turnString2Obj(entity.getContent(),
-                                        IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.getCls());
-                userNo = inviteGroupNotifyResBean.userNo;
-                userName = inviteGroupNotifyResBean.userName;
-                groupName = inviteGroupNotifyResBean.groupName;
-                title = IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.desc();
-                detailTitle = title;
-                avatarUrl = HttpConstants.getPortraitUrl()+userNo;
-                actionName = "同意";
-                actionName1 = "加入";
-                break;
+//            case INVITE_GROUP_NOTIFY_RES_RECEIVED:
+//                IMBaseDefine.InviteGroupNotifyResBean inviteGroupNotifyResBean =
+//                        (IMBaseDefine.InviteGroupNotifyResBean) JacksonUtil
+//                                .turnString2Obj(entity.getContent(),
+//                                        IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.getCls());
+//                userNo = inviteGroupNotifyResBean.userNo;
+//                userName = inviteGroupNotifyResBean.userName;
+//                groupName = inviteGroupNotifyResBean.groupName;
+//                title = IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.desc();
+//                detailTitle = title;
+//                avatarUrl = HttpConstants.getPortraitUrl()+userNo;
+//                if(inviteGroupNotifyResBean.status == 1) {
+//                    actionName = "同意";
+//                } else {
+//                    actionName = "拒绝";
+//                }
+//                actionName1 = "加入";
+//                break;
         }
 
         //获取头像

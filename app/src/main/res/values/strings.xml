@@ -183,6 +183,8 @@
     <string name="invite_code_send_success">邀请码已发出</string>
     <string name="invite_code_send_failed">邀请码发送失败</string>
 
+    <string name="invite_user_send_success">加入群组成功</string>
+    <string name="invite_user_send_failed">加入群组失败</string>
 
     <!--聚会-->
     <string name="location">位置</string>

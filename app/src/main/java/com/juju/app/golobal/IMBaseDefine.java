@@ -1,5 +1,7 @@
 package com.juju.app.golobal;
 
+import com.juju.app.event.notify.InviteUserEvent;
+
 /**
  * 项目名称：juju
  * 类描述：聊天基础定义
@@ -17,17 +19,20 @@ public final class IMBaseDefine {
         GROUP_MODIFY_TYPE_DEL;
     }
 
-    //消息枚举
-    public enum NotifyType {
-        NORMAL_MESSAGE {
+
+    /**
+     * 消息枚举
+     */
+    public enum MsgType {
+        MSG_TEXT {
             @Override
             public String code() {
-                return "0000";
+                return "8000";
             }
 
             @Override
             public String desc() {
-                return "普通消息";
+                return "文本消息";
             }
 
             @Override
@@ -36,10 +41,119 @@ public final class IMBaseDefine {
             }
 
         },
-        INVITE_GROUP_NOTIFY_REQ {
+        MSG_IMAGE {
             @Override
             public String code() {
-                return "0001";
+                return "8001";
+            }
+
+            @Override
+            public String desc() {
+                return "图片消息";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+
+        },
+
+        MSG_AUDIO {
+            @Override
+            public String code() {
+                return "8003";
+            }
+
+            @Override
+            public String desc() {
+                return "短语音消息";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+
+        },
+        MSG_RECORD {
+            @Override
+            public String code() {
+                return "8005";
+            }
+
+            @Override
+            public String desc() {
+                return "录音消息";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+
+        },
+        MSG_VIDEO {
+            @Override
+            public String code() {
+                return "8007";
+            }
+
+            @Override
+            public String desc() {
+                return "短视频消息";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+
+        },
+        MSG_COMPLEX {
+            @Override
+            public String code() {
+                return "8009";
+            }
+
+            @Override
+            public String desc() {
+                return "复合消息";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+
+        };
+
+
+
+        public abstract String code();
+        public abstract String desc();
+        public abstract Class getCls();
+
+
+        public static MsgType getInstanceByCode(String code) {
+            for(MsgType msgType : MsgType.values()) {
+                if(msgType.code().equals(code)) {
+                    return msgType;
+                }
+            }
+            return null;
+        }
+
+    }
+
+    //消息通知枚举
+    public enum NotifyType {
+
+        //群相关消息通知
+        INVITE_USER {
+            @Override
+            public String code() {
+                return "1001";
             }
 
             @Override
@@ -49,19 +163,19 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return InviteGroupNotifyReqBean.class;
+                return InviteUserEvent.InviteUserBean.class;
             }
 
         },
-        INVITE_GROUP_NOTIFY_RES {
+        INVITE_PROCESS {
             @Override
             public String code() {
-                return "0002";
+                return "1003";
             }
 
             @Override
             public String desc() {
-                return "加群邀请通知";
+                return "邀请消息处理通知";
             }
 
             @Override
@@ -70,15 +184,15 @@ public final class IMBaseDefine {
             }
 
         },
-        VOTE_PARTY_NOTIFY {
+        APPLY_JOIN {
             @Override
             public String code() {
-                return "0003";
+                return "1005";
             }
 
             @Override
             public String desc() {
-                return "聚会投票通知";
+                return "申请加群通知";
             }
 
             @Override
@@ -86,15 +200,15 @@ public final class IMBaseDefine {
                 return null;
             }
         },
-        COUNT_VOTE_NOTIFY {
+        APPLY_PROCESS {
             @Override
             public String code() {
-                return "0004";
+                return "1007";
             }
 
             @Override
             public String desc() {
-                return "聚会投票计数通知";
+                return "申请加群审核通知";
             }
 
             @Override
@@ -102,15 +216,15 @@ public final class IMBaseDefine {
                 return null;
             }
         },
-        SHARE_URL_NOTIFY {
+        APPLY_IN_GROUP {
             @Override
             public String code() {
-                return "0005";
+                return "1009";
             }
 
             @Override
             public String desc() {
-                return "分享群组直播地址通知";
+                return "申请方式加入群组通知";
             }
 
             @Override
@@ -118,15 +232,15 @@ public final class IMBaseDefine {
                 return null;
             }
         },
-        LIVE_COUNTDOWN_NOTIFY {
+        INVITE_IN_GROUP {
             @Override
             public String code() {
-                return "0006";
+                return "1011";
             }
 
             @Override
             public String desc() {
-                return "抢播倒计时通知";
+                return "邀请方式加入群组通知";
             }
 
             @Override
@@ -134,15 +248,15 @@ public final class IMBaseDefine {
                 return null;
             }
         },
-        LIVE_CLICKNUM_NOTIFY {
+        REMOVE_GROUP {
             @Override
             public String code() {
-                return "0007";
+                return "1013";
             }
 
             @Override
             public String desc() {
-                return "抢播点击数上报";
+                return "移除群组通知";
             }
 
             @Override
@@ -150,15 +264,15 @@ public final class IMBaseDefine {
                 return null;
             }
         },
-        LIVE_CONTINUE_NOTIFY {
+        EXIT_GROUP {
             @Override
             public String code() {
-                return "0008";
+                return "1015";
             }
 
             @Override
             public String desc() {
-                return "续播通知";
+                return "退出群组通知";
             }
 
             @Override
@@ -169,12 +283,12 @@ public final class IMBaseDefine {
         LIVE_SWITCH_NOTIFY {
             @Override
             public String code() {
-                return "0009";
+                return "1017";
             }
 
             @Override
             public String desc() {
-                return "切换倒计时通知";
+                return "群主转让通知";
             }
 
             @Override
@@ -182,15 +296,224 @@ public final class IMBaseDefine {
                 return null;
             }
         },
-        LIVE_COMMENT {
+
+        //聚会相关消息通知
+        PARTY_RECRUIT {
             @Override
             public String code() {
-                return "0010";
+                return "2001";
             }
 
             @Override
             public String desc() {
-                return "直播评论通知";
+                return "聚会发起通知";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        PARTY_CANCEL {
+            @Override
+            public String code() {
+                return "2003";
+            }
+
+            @Override
+            public String desc() {
+                return "聚会取消通知";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        PLAN_VOTE {
+            @Override
+            public String code() {
+                return "2005";
+            }
+
+            @Override
+            public String desc() {
+                return "方案投票通知";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        PARTY_CONFIRM {
+            @Override
+            public String code() {
+                return "2007";
+            }
+
+            @Override
+            public String desc() {
+                return "聚会启动通知";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        PARTY_END {
+            @Override
+            public String code() {
+                return "2009";
+            }
+
+            @Override
+            public String desc() {
+                return "聚会结束通知";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        //地图位置相关消息通知
+        LOCATION_REPORT {
+            @Override
+            public String code() {
+                return "3001";
+            }
+
+            @Override
+            public String desc() {
+                return "位置报告";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        //直播相关消息通知
+        LIVE_START {
+            @Override
+            public String code() {
+                return "4001";
+            }
+
+            @Override
+            public String desc() {
+                return "直播开始通知";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        LIVE_STOP {
+            @Override
+            public String code() {
+                return "4003";
+            }
+
+            @Override
+            public String desc() {
+                return "直播结束通知";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        LIVE_CAPTURE {
+            @Override
+            public String code() {
+                return "4005";
+            }
+
+            @Override
+            public String desc() {
+                return "直播截屏通知";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        LIVE_DISCUSS {
+            @Override
+            public String code() {
+                return "4007";
+            }
+
+            @Override
+            public String desc() {
+                return "直播评论";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        LIVE_RELAY {
+            @Override
+            public String code() {
+                return "4009";
+            }
+
+            @Override
+            public String desc() {
+                return "直播接力";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+        RELAY_COUNT {
+            @Override
+            public String code() {
+                return "4011";
+            }
+
+            @Override
+            public String desc() {
+                return "接力计数";
+            }
+
+            @Override
+            public Class getCls() {
+                return null;
+            }
+        },
+
+
+        LIVE_RELAY_START {
+            @Override
+            public String code() {
+                return "4013";
+            }
+
+            @Override
+            public String desc() {
+                return "直播接力开始";
             }
 
             @Override
@@ -198,6 +521,10 @@ public final class IMBaseDefine {
                 return null;
             }
         };
+
+        public abstract String code();
+        public abstract String desc();
+        public abstract Class getCls();
 
         public static NotifyType getInstanceByCode(String code) {
             for(NotifyType notifyType : NotifyType.values()) {
@@ -208,50 +535,29 @@ public final class IMBaseDefine {
             return null;
         }
 
-        public abstract String code();
-        public abstract String desc();
-        public abstract Class getCls();
-
-
     }
 
     //命名空间枚举
     public enum NameSpaceType {
-        NOTIFYMESSAGE {
+        MESSAGE {
             @Override
             public String value() {
-                return "com:jlm:notifymessage";
+                return "com:jlm:message";
+            }
+        },
+        NOTIFY {
+            @Override
+            public String value() {
+                return "com:jlm:notify";
             }
         };
+
         public abstract String value();
     }
 
 
 
-    //封装消息通知对象，防止多处定义json串
-    //加群邀请通知Bean
-    public static class InviteGroupNotifyReqBean {
-        public String code;
-        public String groupId;
-        public String groupName;
-        public String userNo;
-        //需要冗余此字段（系统通知使用）
-        public String userName;
-        
-//        //0: 开始 1：通过 2: 拒绝
-//        public int status;
 
-        public static InviteGroupNotifyReqBean valueOf(String code, String groupId, String groupName,
-                                                    String userNo, String userName) {
-            InviteGroupNotifyReqBean bean = new InviteGroupNotifyReqBean();
-            bean.code = code;
-            bean.groupId = groupId;
-            bean.groupName = groupName;
-            bean.userNo = userNo;
-            bean.userName = userName;
-            return bean;
-        }
-    }
 
     //加群邀请回复Bean
     public static class InviteGroupNotifyResBean {

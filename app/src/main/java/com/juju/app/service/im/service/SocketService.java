@@ -134,4 +134,12 @@ public interface SocketService {
     public void notifyMessage(String peerId, String message, IMBaseDefine.NotifyType notifyType,
                               String uuid, boolean isSaveMsg, XMPPServiceCallbackImpl listener,
                               Object... reqEntity);
+
+    /**
+     * 创建账号
+     * @param userNo
+     * @param password
+     * @return
+     */
+    public boolean createAccount(String userNo, String password);
 }

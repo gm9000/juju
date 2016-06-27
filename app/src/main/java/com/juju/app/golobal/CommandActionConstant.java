@@ -71,8 +71,18 @@ public class CommandActionConstant {
             @Override
             public String url() {
                 return HttpConstants.getUserUrl()+"/getExistUsers";            }
-        };
+        },
 
+        INVITEUSER {
+            @Override
+            public int code() {
+                return Integer.parseInt("0020");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/inviteUser";            }
+        };
 
         public abstract int code();
 

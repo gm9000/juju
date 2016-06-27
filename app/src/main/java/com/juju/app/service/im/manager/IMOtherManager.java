@@ -10,7 +10,6 @@ import com.juju.app.entity.Invite;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.OtherMessageEntity;
-import com.juju.app.event.JoinGroupEvent;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.user.InviteGroupEvent;
@@ -135,19 +134,19 @@ public class IMOtherManager extends IMManager {
         OtherMessageEntity otherMessageEntity = OtherMessageEntity
                 .buildMessage4Send(notifyType, message, uuid);
         switch (notifyType) {
-            case INVITE_GROUP_NOTIFY_REQ:
+            case INVITE_USER:
                 Invite inviteReq = Invite.buildInviteReq4Send(otherMessageEntity);
                 inviteDao.save(inviteReq);
                 break;
-            case INVITE_GROUP_NOTIFY_RES:
-                if(reqEntity != null
-                        && reqEntity.length >0
-                        && reqEntity[0] instanceof Invite) {
-                    Invite inviteCache = (Invite)reqEntity[0];
-                    Invite inviteRes = Invite.buildInviteRes4Send(inviteCache, otherMessageEntity);
-                    inviteDao.replaceInto(inviteRes);
-                }
-                break;
+//            case INVITE_GROUP_NOTIFY_RES:
+//                if(reqEntity != null
+//                        && reqEntity.length >0
+//                        && reqEntity[0] instanceof Invite) {
+//                    Invite inviteCache = (Invite)reqEntity[0];
+//                    Invite inviteRes = Invite.buildInviteRes4Send(inviteCache, otherMessageEntity);
+//                    inviteDao.replaceInto(inviteRes);
+//                }
+//                break;
             default:
                 otherMessageDao.save(otherMessageEntity);
                 break;
@@ -155,42 +154,50 @@ public class IMOtherManager extends IMManager {
     }
 
 
-    @Subscribe(threadMode = ThreadMode.POSTING, sticky = true, priority = Constants.SERVICE_EVENTBUS_PRIORITY)
+    @Subscribe(threadMode = ThreadMode.POSTING,  priority = Constants.SERVICE_EVENTBUS_PRIORITY)
     public void onNotifyMessage4Event(NotifyMessageEvent event) {
-        OtherMessageEntity otherMessageEntity = OtherMessageEntity.buildMessage4Recv(event.msgType,
+        OtherMessageEntity otherMessageEntity = OtherMessageEntity.buildMessage4Recv(event.notifyType,
                 event.message, event.message.getStanzaId());
         NotificationMessageEvent notificationMessageEvent = new NotificationMessageEvent();
         notificationMessageEvent.entity = otherMessageEntity;
-        switch (event.msgType) {
-            case INVITE_GROUP_NOTIFY_REQ:
+        switch (event.notifyType) {
+            case INVITE_USER:
                 Invite inviteReq = Invite.buildInviteReq4Recv(otherMessageEntity);
                 inviteDao.save(inviteReq);
+
+                //获取群详情
+
+
+                //获取群组成员列表
+
+
                 //发送系统通知
-                notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_GROUP_NOTIFY_REQ_RECEIVED;
+                notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_USER_RECEIVED;
                 triggerEvent(notificationMessageEvent);
                 break;
-            case INVITE_GROUP_NOTIFY_RES:
-                IMBaseDefine.InviteGroupNotifyResBean resBean = (IMBaseDefine.InviteGroupNotifyResBean)
-                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
-                                IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.getCls());
-                if(resBean != null
-                        && StringUtils.isNotBlank(resBean.code)
-                        && StringUtils.isNotBlank(resBean.groupId)) {
-                    //通过 code+groupId 确认消息
-                    Invite dbInvite = (Invite) inviteDao
-                            .findUniByProperty("invite_code,group_id", resBean.code, resBean.groupId);
-                    Invite inviteRes = Invite.buildInviteRes4Recv(dbInvite, otherMessageEntity);
-                    inviteDao.saveOrUpdate(inviteRes);
-
-                    //通知更新groupEntity
-                    IMGroupManager.instance().updateGroup4Members(resBean.groupId,
-                            resBean.userNo, inviteRes.getTime().getTime());
-
-                    //发送系统通知
-                    notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_GROUP_NOTIFY_RES_RECEIVED;
-                    triggerEvent(notificationMessageEvent);
-                }
-                break;
+//            case INVITE_GROUP_NOTIFY_RES:
+//                IMBaseDefine.InviteGroupNotifyResBean resBean = (IMBaseDefine.InviteGroupNotifyResBean)
+//                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
+//                                IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.getCls());
+//                if(resBean != null
+//                        && StringUtils.isNotBlank(resBean.code)
+//                        && StringUtils.isNotBlank(resBean.groupId)) {
+//                    //通过 code+groupId 确认消息
+//                    Invite dbInvite = (Invite) inviteDao
+//                            .findUniByProperty("invite_code,group_id", resBean.code, resBean.groupId);
+//                    Invite inviteRes = Invite.buildInviteRes4Recv(dbInvite, otherMessageEntity);
+//                    inviteDao.saveOrUpdate(inviteRes);
+//
+//                    if(inviteRes.getStatus() == 1) {
+//                        //通知更新groupEntity
+//                        IMGroupManager.instance().updateGroup4Members(resBean.groupId,
+//                                resBean.userNo, inviteRes.getTime().getTime());
+//                    }
+//                    //发送系统通知
+//                    notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_GROUP_NOTIFY_RES_RECEIVED;
+//                    triggerEvent(notificationMessageEvent);
+//                }
+//                break;
             default:
                 otherMessageDao.replaceInto(otherMessageEntity);
                 break;
@@ -198,9 +205,11 @@ public class IMOtherManager extends IMManager {
     }
 
 
+    static class InviteUserTask {
 
 
 
+    }
 
 
 
