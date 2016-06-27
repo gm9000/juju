@@ -2,6 +2,7 @@ package com.juju.app.activity.user;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -36,6 +37,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
 import org.xutils.ex.DbException;
+import org.xutils.image.ImageOptions;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -442,6 +444,12 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
     @Override
     public void onFinished() {
 
+    }
+
+    public void setImageHead(String headUrl){
+        ImageOptions.Builder imageOptsBuilder = new ImageOptions.Builder();
+        imageOptsBuilder.setForceLoadingDrawable(true);
+        BitmapUtilFactory.getInstance(this).bind(headImg, headUrl,imageOptsBuilder.build() );
     }
 
 

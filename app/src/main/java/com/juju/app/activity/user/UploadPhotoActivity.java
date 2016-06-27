@@ -69,6 +69,9 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
 
     private String userNo;
 
+    private Bitmap newPortriat;
+    private Bitmap smallPortriat;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -151,7 +154,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
                 showCamera();
                 break;
         }
-        return false;
+        return true;
     }
 
 
@@ -193,18 +196,18 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
             ToastUtil.showShortToast(this,"图片需充满圆形区域！",1);
             return;
         }
-        Bitmap newPortriat = headImg.getCroppedImage();
+        newPortriat = headImg.getCroppedImage();
         if(newPortriat.getWidth()>600){
             newPortriat = Bitmap.createScaledBitmap(newPortriat,600,600,true);
         }
         originHeadImg.setImageBitmap(newPortriat);
-        Bitmap portraitSmall = Bitmap.createScaledBitmap(newPortriat,120,120,true);
+        smallPortriat = Bitmap.createScaledBitmap(newPortriat,120,120,true);
         Map<String, Object> valueMap = new HashMap<String, Object>();
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         valueMap.put("userNo", userInfoBean.getJujuNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("portrait", newPortriat);
-        valueMap.put("portraitSmall", portraitSmall);
+        valueMap.put("portraitSmall", smallPortriat);
 
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
                 R.id.upload_head, HttpConstants.getUserUrl() + "/uploadPortrait", this, valueMap,
@@ -294,8 +297,6 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     public void onSuccess(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
             case R.id.upload_head:
-                txt_confirm.setClickable(true);
-                txt_cancel.setClickable(true);
                 if(obj != null) {
                     JSONObject jsonRoot = (JSONObject)obj;
                     try {
@@ -303,9 +304,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
                         if(status == 0) {
                             completeLoading();
                             UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-//                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
-//                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
-                            originHeadImg.setVisibility(View.VISIBLE);
+                            ((SettingActivity)UploadPhotoActivity.this.getParent()).setImageHead(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
                             headImg.setVisibility(View.GONE);
                             menuLayout.setVisibility(View.GONE);
                         } else {
@@ -315,6 +314,8 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
                         e.printStackTrace();
                     }
                 }
+                txt_confirm.setClickable(true);
+                txt_cancel.setClickable(true);
                 break;
         }
     }
