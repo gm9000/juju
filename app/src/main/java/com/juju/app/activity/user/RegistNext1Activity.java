@@ -187,7 +187,7 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
 //                            R.string.register_success, 0);
                     Log.i(TAG, "注册成功");
                     //TODO 发送注册协议
-                    registUser(nickName, null, password, phone, null);
+                    registUser(nickName, 1, password, phone, null);
                 }else if (event == SMSSDK.EVENT_GET_VERIFICATION_CODE){
                     //获取验证码成功
                     Log.i(TAG, "获取验证码成功");

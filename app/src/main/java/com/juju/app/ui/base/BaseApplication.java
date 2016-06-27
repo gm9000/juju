@@ -68,15 +68,15 @@ public class BaseApplication extends Application {
         Log.d("BaseApplication","onCreate#costTime:"+(end-begin)+"ms");
     }
 
-//    @Override
-//    protected void attachBaseContext(Context base) {
-//        super.attachBaseContext(base);
-//        long begin = System.currentTimeMillis();
-//        MultiDex.install(BaseApplication.this);
-//        long end = System.currentTimeMillis();
-//        Log.d("BaseApplication","attachBaseContext#costTime:"+(end-begin)+"ms");
-//
-//    }
+    @Override
+    protected void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        long begin = System.currentTimeMillis();
+        MultiDex.install(BaseApplication.this);
+        long end = System.currentTimeMillis();
+        Log.d("BaseApplication","attachBaseContext#costTime:"+(end-begin)+"ms");
+
+    }
 
 //    private void afterMultiDexInstall() {
 //
