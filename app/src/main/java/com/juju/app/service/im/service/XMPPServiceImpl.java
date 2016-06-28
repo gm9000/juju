@@ -109,52 +109,10 @@ import javax.xml.parsers.DocumentBuilderFactory;
 public class XMPPServiceImpl implements
         SocketService, StanzaListener, ConnectionListener, PingFailedListener {
 
-//    private XMPPServiceCallback mServiceCallBack;
-
     private Logger logger = Logger.getLogger(XMPPServiceImpl.class);
 
-
-    private MultiUserChat multiUserChat;
-
-    static {
-//        registerSmackProviders();
-    }
-
-    //基础信息配置
-//    static void registerSmackProviders() {
-//
-//    }
-
-//    static File capsCacheDir = null;
-
-//    private ConnectionState mRequestedState = ConnectionState.OFFLINE;
-//    private ConnectionState mState = ConnectionState.OFFLINE;
-//    private String mLastError;
-
-
-//    private AlarmManager mAlarmManager;
-//    private String mPingID;
-//    private long mPingTimestamp;
-
-//    private static final String PING_ALARM = "com.juju.app.PING_ALARM";
-//    private static final String PONG_TIMEOUT_ALARM = "com.juju.app.PONG_TIMEOUT_ALARM";
-//    private Intent mPingAlarmIntent = new Intent(PING_ALARM);
-//    private Intent mPongTimeoutAlarmIntent = new Intent(PONG_TIMEOUT_ALARM);
-
-//    private PendingIntent mPingAlarmPendIntent;
-//    private PendingIntent mPongTimeoutAlarmPendIntent;
-
-//    private final ContentResolver mContentResolver;
     private Service mService;
-
-
-
     private final String serverName;
-//    private final String token;
-//    private final String resource;
-//    private final boolean saslEnabled;
-//    private final TLSMode tlsMode;
-//    private boolean started;
     XMPPTCPConnectionConfiguration.Builder builder = XMPPTCPConnectionConfiguration.builder();
 
     private AbstractXMPPConnection xmppConnection;
@@ -164,15 +122,11 @@ public class XMPPServiceImpl implements
     private DaoSupport messageDao;
 
     private IMSessionManager sessionManager = IMSessionManager.instance();
-    private IMUnreadMsgManager unreadMsgManager = IMUnreadMsgManager.instance();
 
     //callback 队列
     private ListenerQueue listenerQueue = ListenerQueue.instance();
 
     private FixListenerQueue fixListenerQueue = FixListenerQueue.instance();
-
-
-
 
     public XMPPServiceImpl(ContentResolver contentResolver, Service service,DaoSupport messageDao) {
 //        this.mContentResolver = contentResolver;
@@ -470,7 +424,7 @@ public class XMPPServiceImpl implements
         logger.d("login -> XMPPServiceImpl:%s", this.toString());
         MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(xmppConnection);
         logger.d("joinChatRoom -> chatRoom:%s", chatRoom);
-        multiUserChat = multiUserChatManager.getMultiUserChat(chatRoom);
+        MultiUserChat multiUserChat = multiUserChatManager.getMultiUserChat(chatRoom);
         //1：群组存在 2：还没有加入
         if(multiUserChat != null
                 && !multiUserChat.isJoined()) {
@@ -481,16 +435,11 @@ public class XMPPServiceImpl implements
             DiscussionHistory history = new DiscussionHistory();
             history.setSince(new Date());
             history.setMaxStanzas(0);
-            //Todo 需要调整 不需要从消息服务获取最新消息
-            multiUserChat.join(nickName, password, history,
-                    SmackConfiguration.getDefaultPacketReplyTimeout());
-
-//            try {
-//                multiUserChat.join(nickName, password);
-//            } catch (SmackException e) {
-//                e.printStackTrace();
-//            }
-
+            try {
+                multiUserChat.join(nickName, password);
+            } catch (SmackException e) {
+                e.printStackTrace();
+            }
             logger.d("joinChatRoom#chatRoom is joined OK " +
                     "-> chatRoom:%s", chatRoom);
         } else {
@@ -583,19 +532,21 @@ public class XMPPServiceImpl implements
 
     @Override
     public void notifyMessage(String peerId, String message, IMBaseDefine.NotifyType notifyType,
-                              String uuid, boolean isSaveMsg, XMPPServiceCallbackImpl callback, Object... reqEntity) {
-        Message newMessage = new Message(peerId, Message.Type.normal);
-        //需要调整
-        newMessage.setFrom(userInfoBean.getJujuNo()+"@juju");
-        newMessage.setStanzaId(uuid);
-        newMessage.setBody(message);
-        ExtensionElement extensionElement = new NotifyExtensionElement(notifyType,
-                IMBaseDefine.NameSpaceType.NOTIFY);
-        newMessage.addExtension(extensionElement);
+                              String uuid, boolean isSaveMsg, XMPPServiceCallbackImpl callback,
+                              Object... reqEntity) {
         if (isAuthenticated()) {
+            Message newMessage = new Message(peerId, Message.Type.normal);
+            //需要调整
+            newMessage.setFrom(userInfoBean.getJujuNo()+"@juju");
+            newMessage.setStanzaId(uuid);
+            newMessage.setBody(message);
+            ExtensionElement extensionElement = new NotifyExtensionElement(notifyType,
+                    IMBaseDefine.NameSpaceType.NOTIFY);
+            newMessage.addExtension(extensionElement);
             if(isSaveMsg) {
                 //保存到本地数据库(可以考虑拦截方式)
-                ((IMService)mService).getOtherManager().saveOtherMessage(newMessage, notifyType, uuid, reqEntity);
+                ((IMService)mService).getOtherManager().saveOtherMessage(newMessage, notifyType,
+                        uuid, reqEntity);
             }
             if(callback.getType() == 0) {
                 sendStanzaAndBindListener(newMessage, uuid, callback);
@@ -660,9 +611,6 @@ public class XMPPServiceImpl implements
     @Override
     public void connectionClosedOnError(Exception e) {
         logger.d("connectionClosedOnError()：连接断开");
-//        if(xmppConnection != null) {
-//            xmppConnection.disconnect();
-//        }
         if (e instanceof XMPPException) {
             XMPPException.StreamErrorException xe = (XMPPException.StreamErrorException) e;
             final StreamError streamError = xe.getStreamError();
@@ -1082,57 +1030,6 @@ public class XMPPServiceImpl implements
 //            e.printStackTrace();
 //        }
     }
-
-//    private ExtensionElement createExtensionElement(final IMBaseDefine.MsgType msgType,
-//                                                    final IMBaseDefine.NameSpaceType nameSpaceType) {
-//
-//        ExtensionElement extensionElement = new ExtensionElement() {
-//            @Override
-//            public String getNamespace() {
-//                return nameSpaceType.value();
-//            }
-//
-//            @Override
-//            public String getElementName() {
-//                return ElementNameType.msgType.name();
-//            }
-//
-//            @Override
-//            public CharSequence toXML() {
-//                StringBuilder sbf = new StringBuilder();
-//                sbf.append("<msgType xmlns='"+getNamespace()+"' code='"+msgType.code()+"'/>");
-//                return sbf.toString();
-//            }
-//        };
-//        return extensionElement;
-//    }
-
-//    private IMBaseDefine.MsgType buildMsgType(String msgTypeStr) {
-//        IMBaseDefine.MsgType msgType = null;
-//        try {
-//            XmlPullParser parser = Xml.newPullParser();
-//            parser.setInput(new StringReader(msgTypeStr));
-//            int eventType = parser.getEventType();
-//            while(eventType != XmlPullParser.END_DOCUMENT) {
-//                if(eventType == XmlPullParser.START_DOCUMENT) {
-//                    logger.d("Start Document");
-//                } else if (eventType == XmlPullParser.START_TAG) {
-//                    logger.d("Start TAG");
-//                    if(parser.getName().equals(ElementNameType.msgType.name())) {
-//                        String code = parser.getAttributeValue(IMBaseDefine
-//                                .NameSpaceType.NOTIFYMESSAGE.value(), "code");
-//                        msgType = IMBaseDefine.MsgType.getInstanceByCode(code);
-//                    }
-//                }
-//                eventType = parser.next();
-//            }
-//        } catch (XmlPullParserException e) {
-//            e.printStackTrace();
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        return msgType;
-//    }
 
 
     /**

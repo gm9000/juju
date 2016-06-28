@@ -338,22 +338,23 @@ public class IMUnreadMsgManager extends IMManager {
         if(groupPeerIds != null && groupPeerIds.size() >0) {
             final List<String> newGroupPeerIds = new ArrayList<>(groupPeerIds);
             final CountDownLatch countDownLatch = new CountDownLatch(groupPeerIds.size());
-            for(final String peerId : newGroupPeerIds) {
-                ThreadPoolUtil.instance().executeImTask(new Runnable() {
-                    @Override
-                    public void run() {
-                        reqUnreadMsgContact(peerId, countDownLatch);
-                    }
-                });
-            }
-//            ThreadPoolUtil.instance().executeImTask(new Runnable() {
-//                @Override
-//                public void run() {
-//                    for(final String peerId : newGroupPeerIds) {
+//            for(final String peerId : newGroupPeerIds) {
+//                reqUnreadMsgContact(peerId, countDownLatch);
+//                ThreadPoolUtil.instance().executeImTask(new Runnable() {
+//                    @Override
+//                    public void run() {
 //                        reqUnreadMsgContact(peerId, countDownLatch);
 //                    }
-//                }
-//            });
+//                });
+//            }
+            ThreadPoolUtil.instance().executeImTask(new Runnable() {
+                @Override
+                public void run() {
+                    for(final String peerId : newGroupPeerIds) {
+                        reqUnreadMsgContact(peerId, countDownLatch);
+                    }
+                }
+            });
             try {
                 //消息收取时间不能超过1分钟 (不能在MAIN线程中执行)
                 countDownLatch.await(timeOut, TimeUnit.SECONDS);

@@ -95,7 +95,7 @@ public class IMNotificationManager extends IMManager {
      * 接收通知信息
      * @param event
      */
-    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
+    @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4OtherMessage(NotificationMessageEvent event) {
         handleOtherMessageRecv(event);
     }

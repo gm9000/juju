@@ -355,17 +355,7 @@ public class IMMessageManager extends IMManager {
     }
 
     private void reqMsgById(String peerId, int sessionType, List<Integer> msgIds) {
-//        int userId = IMLoginManager.instance().getLoginId();
-//        IMBaseDefine.SessionType  sType = Java2ProtoBuf.getProtoSessionType(sessionType);
-//        IMMessage.IMGetMsgByIdReq  imGetMsgByIdReq = IMMessage.IMGetMsgByIdReq.newBuilder()
-//                .setSessionId(peerId)
-//                .setUserId(userId)
-//                .setSessionType(sType)
-//                .addAllMsgIdList(msgIds)
-//                .build();
-//        int sid = IMBaseDefine.ServiceID.SID_MSG_VALUE;
-//        int cid = IMBaseDefine.MessageCmdID.CID_MSG_GET_BY_MSG_ID_REQ_VALUE;
-//        imSocketManager.sendRequest(imGetMsgByIdReq,sid,cid);
+
     }
 
     public List<MessageEntity> findAll4Order(String orders) {
@@ -406,22 +396,6 @@ public class IMMessageManager extends IMManager {
         }
         return messageEntity;
     }
-
-//    long nowTime = System.currentTimeMillis();
-//    textMessage.setFromId(fromUser.getPeerId());
-//    textMessage.setToId(peerEntity.getPeerId());
-//    textMessage.setUpdated(nowTime);
-//    textMessage.setCreated(nowTime);
-//    textMessage.setDisplayType(DBConstant.SHOW_ORIGIN_TEXT_TYPE);
-//    textMessage.setGIfEmo(true);
-//    int peerType = peerEntity.getType();
-//    int msgType = peerType == DBConstant.SESSION_TYPE_GROUP ? DBConstant.MSG_TYPE_GROUP_TEXT
-//            : DBConstant.MSG_TYPE_SINGLE_TEXT;
-//    textMessage.setMsgType(msgType);
-//    textMessage.setStatus(MessageConstant.MSG_SENDING);
-//    // 内容的设定
-//    textMessage.setContent(content);
-//    textMessage.buildSessionKey(true);
 
 
     /**

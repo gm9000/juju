@@ -38,6 +38,7 @@ import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.service.im.thread.GetGroupUserThread;
+import com.juju.app.service.notify.InviteUserNotify;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.JacksonUtil;
@@ -127,8 +128,6 @@ public class IMGroupManager extends IMManager {
     final List<String> joinedGroupPeerIds = new ArrayList<>();
 
 
-    private IMGroupManager.InviteUserTask inviteUserTask;
-
     @Override
     public void doOnStart() {
         userInfoBean = BaseApplication.getInstance().getUserInfoBean();
@@ -150,8 +149,6 @@ public class IMGroupManager extends IMManager {
         userDao = null;
         otherMessageDao = null;
         inviteDao = null;
-        inviteUserTask.stop();
-        inviteUserTask = null;
     }
 
     public void onNormalLoginOk(){
@@ -448,29 +445,24 @@ public class IMGroupManager extends IMManager {
             final CountDownLatch countDownLatch = new CountDownLatch(groupEntityList.size());
             for (final GroupEntity groupEntity : groupEntityList) {
                 final String chatRoomId = groupEntity.getPeerId();
-//                ThreadPoolUtil.instance().executeImTask(new Runnable() {
-//                    @Override
-//                    public void run() {
-                        try {
-                            String chatRoom = DBConstant.SESSION_TYPE_GROUP + "_" + chatRoomId;
-                            long time = (long) SpfUtil.get(ctx, chatRoom, System.currentTimeMillis()
-                                    -24*60*60*1000l);
-                            socketService.joinChatRoom(chatRoomId, time);
-                            logger.d("joinChatRooms -> chatRoomId:%s", chatRoomId);
-                            joinedGroupPeerIds.add(chatRoomId);
-                            countDownLatch.countDown();
-                        } catch (JUJUXMPPException e) {
-                            logger.error(e);
-                        } catch (XMPPException e) {
-                            logger.error(e);
-                        } catch (SmackException.NotConnectedException e) {
-                            logger.error(e);
-                            e.printStackTrace();
-                        } catch (SmackException.NoResponseException e) {
-                            logger.error(e);
-                        }
-//                    }
-//                });
+                try {
+                    String chatRoom = DBConstant.SESSION_TYPE_GROUP + "_" + chatRoomId;
+                    long time = (long) SpfUtil.get(ctx, chatRoom, System.currentTimeMillis()
+                            -24*60*60*1000l);
+                    socketService.joinChatRoom(chatRoomId, time);
+                    logger.d("joinChatRooms -> chatRoomId:%s", chatRoomId);
+                    joinedGroupPeerIds.add(chatRoomId);
+                    countDownLatch.countDown();
+                } catch (JUJUXMPPException e) {
+                    logger.error(e);
+                } catch (XMPPException e) {
+                    logger.error(e);
+                } catch (SmackException.NotConnectedException e) {
+                    logger.error(e);
+                    e.printStackTrace();
+                } catch (SmackException.NoResponseException e) {
+                    logger.error(e);
+                }
             }
             try {
                 //控制群组登陆时间
@@ -582,8 +574,6 @@ public class IMGroupManager extends IMManager {
             inviteDao = new InviteDaoImpl(ctx);
         }
 
-        inviteUserTask = new IMGroupManager.InviteUserTask();
-        inviteUserTask.start(ctx, this, userInfoBean, socketService, inviteDao);
     }
 
     private void reqChangeGroupMemberToBServer(final String peerId, final String groupId,
@@ -600,7 +590,7 @@ public class IMGroupManager extends IMManager {
             User userInfo = IMContactManager.instance().findContact(memberNo);
             inviteUserBean.userNo = userInfo.getUserNo();
             inviteUserBean.nickName = userInfo.getNickName();
-            inviteUserTask.executeCommand4Send(inviteUserBean);
+            InviteUserNotify.instance().executeCommand4Send(inviteUserBean);
         }
     }
 
@@ -619,344 +609,31 @@ public class IMGroupManager extends IMManager {
 //    }
 
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent4BusinessFlowSendEvent(InviteUserEvent.BusinessFlow.SendParam sendParam) {
-        switch (sendParam.send) {
-            case SEND_INVITE_USER_BSERVER_OK:
-                inviteUserTask.sendInviteUserToMServer4Send(sendParam.bean);
-                break;
-            case SEND_INVITE_USER_MSERVER_OK:
-                updateGroup4Members(sendParam.bean.groupId,
-                        sendParam.bean.userNo, sendParam.replayTime);
-                inviteUserTask.buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam
-                        .Send.UPDATE_LOCAL_CACHE_DATA_OK, sendParam.bean);
-                break;
-            case UPDATE_LOCAL_CACHE_DATA_OK:
-                InviteUserEvent inviteUserEvent = new InviteUserEvent(InviteUserEvent.Event
-                        .INVITE_USER_OK);
-                triggerEvent(inviteUserEvent);
-//                ToastUtil.TextIntToast(ctx, R.string.invite_user_send_success, 3);
-                break;
-            case SEND_INVITE_USER_BSERVER_FAILED:
-            case SEND_INVITE_USER_MSERVER_FAILED:
-                ToastUtil.TextIntToast(ctx, R.string.invite_user_send_failed, 3);
-                break;
-        }
-    }
-
-    //暂时将消息发送到主线程消息队列 （若消息处理耗时，需要使用HandlerThread或EVENTBUS（子线程）解决）
-    public static class InviteUserTask {
-        private Logger logger = Logger.getLogger(InviteUserTask.class);
-
-        final static int GETGROUPINFO_TIMEOUT = 10;
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onEvent4BusinessFlowSendEvent(InviteUserEvent.BusinessFlow.SendParam sendParam) {
+//        switch (sendParam.send) {
+//            case SEND_INVITE_USER_BSERVER_OK:
+//                inviteUserTask.sendInviteUserToMServer4Send(sendParam.bean);
+//                break;
+//            case SEND_INVITE_USER_MSERVER_OK:
+//                updateGroup4Members(sendParam.bean.groupId,
+//                        sendParam.bean.userNo, sendParam.replayTime);
+//                inviteUserTask.buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam
+//                        .Send.UPDATE_LOCAL_CACHE_DATA_OK, sendParam.bean);
+//                break;
+//            case UPDATE_LOCAL_CACHE_DATA_OK:
+//                InviteUserEvent inviteUserEvent = new InviteUserEvent(InviteUserEvent.Event
+//                        .INVITE_USER_OK);
+//                triggerEvent(inviteUserEvent);
+////                ToastUtil.TextIntToast(ctx, R.string.invite_user_send_success, 3);
+//                break;
+//            case SEND_INVITE_USER_BSERVER_FAILED:
+//            case SEND_INVITE_USER_MSERVER_FAILED:
+//                ToastUtil.TextIntToast(ctx, R.string.invite_user_send_failed, 3);
+//                break;
+//        }
+//    }
 
 
-        private IMGroupManager imGroupManager;
-        private UserInfoBean userInfoBean;
-        private SocketService socketService;
-        private DaoSupport inviteDao;
-//        private InviteUserEvent.InviteUserBean inviteUserBean;
-
-        private Context context;
-
-//        private long replayTime = 0l;
-//        private String replayId = "";
-
-        public InviteUserTask() {
-
-        }
-
-        public void start(Context context, IMGroupManager imGroupManager, UserInfoBean userInfoBean,
-                          SocketService socketService, DaoSupport inviteDao) {
-            this.context = context;
-            this.imGroupManager = imGroupManager;
-            this.userInfoBean = userInfoBean;
-            this.socketService = socketService;
-
-            this.inviteDao = inviteDao;
-//            if(!EventBus.getDefault().isRegistered(this)) {
-//                EventBus.getDefault().register(this);
-//            }
-        }
-
-        /**
-         * 执行发送命令
-         */
-        public void executeCommand4Send(InviteUserEvent.InviteUserBean inviteUserBean) {
-            sendInviteUserToBServer4Send(inviteUserBean);
-        }
-
-        /**
-         * 执行接收命令
-         */
-        public void executeCommand4Recv(InviteUserEvent.InviteUserBean inviteUserBean) {
-            sendGetGroupInfoToBServer4Recv(inviteUserBean);
-        }
-
-        public void stop() {
-//            EventBus.getDefault().unregister(this);
-        }
-
-
-
-
-        //发送加入群组请求——业务服务器
-        public void sendInviteUserToBServer4Send(final InviteUserEvent.InviteUserBean inviteUserBean) {
-            CommandActionConstant.HttpReqParam INVITEUSER =
-                    CommandActionConstant.HttpReqParam.INVITEUSER;
-            Map<String, Object> valueMap = HttpReqParamUtil.instance()
-                    .buildMap("memberNo, groupId", inviteUserBean.userNo, inviteUserBean.groupId);
-            JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
-                    INVITEUSER.code(), INVITEUSER.url(),
-                    new HttpCallBack4OK() {
-                        @Override
-                        public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
-                            if(obj != null && obj instanceof  JSONObject) {
-                                JSONObject jsonRoot = (JSONObject)obj;
-                                int status = JSONUtils.getInt(jsonRoot, "status", -1);
-                                if(status == 0) {
-                                     buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam
-                                             .Send.SEND_INVITE_USER_BSERVER_OK, inviteUserBean);
-                                } else {
-                                    logger.d("status is not 0");
-                                    buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam
-                                            .Send.SEND_INVITE_USER_BSERVER_FAILED, inviteUserBean);
-                                }
-                            }
-                        }
-                        @Override
-                        public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
-                            buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam.Send
-                                    .SEND_INVITE_USER_BSERVER_FAILED, inviteUserBean);
-                        }
-                    }, valueMap, JSONObject.class);
-            try {
-                client.sendPost4OK();
-            } catch (UnsupportedEncodingException e) {
-                logger.error(e);
-            } catch (JSONException e) {
-                logger.error(e);
-            }
-        }
-
-
-        //发送加入群组请求——消息服务器
-        public void sendInviteUserToMServer4Send(final InviteUserEvent.InviteUserBean inviteUserBean) {
-            String peerId = inviteUserBean.userNo+"@"+userInfoBean.getmServiceName();
-            String message = JacksonUtil.turnObj2String(inviteUserBean);
-            String  uuid = UUID.randomUUID().toString();
-
-            //通知群组
-            socketService.notifyMessage(peerId, message,
-                    IMBaseDefine.NotifyType.INVITE_USER, uuid, true,
-                    new XMPPServiceCallbackImpl() {
-                        @Override
-                        public void onSuccess(Object t) {
-                            logger.d("InviteUserTask#sendInviteUserToMServer success");
-                            if(t instanceof XMPPServiceImpl.ReplayMessageTime) {
-                                XMPPServiceImpl.ReplayMessageTime messageTime =
-                                        (XMPPServiceImpl.ReplayMessageTime) t;
-                                String id = messageTime.getId();
-                                String time = messageTime.getTime();
-                                Invite dbEntity = (Invite)
-                                        inviteDao.findUniByProperty("id", id);
-
-                                if(dbEntity != null) {
-                                    Invite.buildInviteReq4SendOnAck(dbEntity,
-                                            Long.parseLong(time));
-                                    //更新时间
-                                    inviteDao.saveOrUpdate(dbEntity);
-                                    long replayTime = Long.parseLong(time);
-                                    buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam
-                                            .Send.SEND_INVITE_USER_MSERVER_OK, inviteUserBean, id, replayTime);
-
-                                } else {
-                                    buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam
-                                            .Send.SEND_INVITE_USER_MSERVER_FAILED, inviteUserBean);
-                                }
-                            }
-                        }
-
-                        @Override
-                        public void onFailed() {
-                            logger.d("InviteUserTask#sendInviteUserToMServer failed");
-                            buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam
-                                    .Send.SEND_INVITE_USER_MSERVER_FAILED, null);
-                        }
-
-                        @Override
-                        public void onTimeout() {
-                            logger.d("InviteUserTask#sendInviteUserToMServer timeout");
-                            buildAndTriggerBusinessFlow4Send(InviteUserEvent.BusinessFlow.SendParam
-                                    .Send.SEND_INVITE_USER_MSERVER_FAILED, null);
-                        }
-                    });
-        }
-
-
-        /**
-         * 查询群组详情
-         * @param inviteUserBean
-         */
-        public void sendGetGroupInfoToBServer4Recv(final InviteUserEvent.InviteUserBean inviteUserBean) {
-            Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("groupId", inviteUserBean.groupId);
-            CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GETGROUPINFO;
-            JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
-                    httpReqParam.url(), new HttpCallBack4OK() {
-                @Override
-                public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
-                    if(obj instanceof JSONObject) {
-                        JSONObject jsonRoot = (JSONObject)obj;
-                        int status = JSONUtils.getInt(jsonRoot, "status", -1);
-                        if(status == 0) {
-                            JSONObject jsonGroup = null;
-                            try {
-                                jsonGroup = jsonRoot.getJSONObject("group");
-                            } catch (JSONException e) {
-                                e.printStackTrace();
-                            }
-                            if(jsonGroup != null) {
-                                String desc = JSONUtils.getString(jsonGroup, "desc");
-                                String id = JSONUtils.getString(jsonGroup, "id");
-                                String name = JSONUtils.getString(jsonGroup, "name");
-                                String creatorNo = JSONUtils.getString(jsonGroup, "creatorNo");
-                                String masterNo = JSONUtils.getString(jsonGroup, "masterNo");
-                                String createTime = JSONUtils.getString(jsonGroup, "createTime");
-                                Date createTimeDate = null;
-                                try {
-                                    createTimeDate = DateUtils.parseDate(createTime, new String[] {"yyyy-MM-dd HH:mm:ss"});
-                                } catch (ParseException e) {
-                                    e.printStackTrace();
-                                }
-                                InviteUserEvent.BusinessFlow.RecvParam recvParam = new InviteUserEvent
-                                        .BusinessFlow.RecvParam(InviteUserEvent.BusinessFlow
-                                        .RecvParam.Recv.SEND_GET_GROUP_INFO_BSERVER_OK, inviteUserBean);
-                                recvParam.groupId = id;
-                                recvParam.groupName = name;
-                                recvParam.desc = desc;
-                                recvParam.creatorNo = creatorNo;
-                                recvParam.masterNo = masterNo;
-                                recvParam.createTimeDate = createTimeDate;
-                                buildAndTriggerBusinessFlow4Recv(recvParam);
-                            }
-                        }
-                    }
-                }
-                @Override
-                public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
-                    buildAndTriggerBusinessFlow4Recv(InviteUserEvent.BusinessFlow.RecvParam
-                            .Recv.SEND_GET_GROUP_INFO_BSERVER_FAILED, inviteUserBean);
-                }
-            }, valueMap, JSONObject.class);
-            try {
-                client.sendGet4OK();
-            } catch (UnsupportedEncodingException e) {
-                logger.error(e);
-            } catch (JSONException e) {
-                logger.error(e);
-            }
-        }
-
-
-        /**
-         * 获取成员列表
-         * @param inviteUserBean
-         * @param groupId
-         * @param groupName
-         * @param desc
-         * @param creatorNo
-         * @param masterNo
-         * @param createTimeDate
-         */
-        public void sendGetGroupUsersToBServer4Recv(InviteUserEvent.InviteUserBean inviteUserBean,
-                                                    String groupId, String groupName, String desc,
-                                                    String creatorNo, String masterNo, Date createTimeDate) {
-            CountDownLatch countDownLatch = new CountDownLatch(1);
-            imGroupManager.sendGetGroupUsersToBServer(countDownLatch,
-                    groupId, groupName, desc, creatorNo, createTimeDate);
-            try {
-                countDownLatch.await(GETGROUPINFO_TIMEOUT, TimeUnit.SECONDS);
-                buildAndTriggerBusinessFlow4Recv(InviteUserEvent.BusinessFlow.RecvParam.Recv
-                        .SEND_GET_GROUP_USERS_BSERVER_OK, inviteUserBean);
-//                                    imService.getGroupManager().joinChatRooms(imService
-//                                            .getGroupManager().getGroupMap().values());
-//                                    inviteGroupEvent.event = InviteGroupEvent.Event.GETGROUPINFO_SUCCESS;
-//                                    triggerEvent(inviteGroupEvent);
-            } catch (InterruptedException e) {
-                buildAndTriggerBusinessFlow4Recv(InviteUserEvent.BusinessFlow.RecvParam.Recv
-                        .SEND_GET_GROUP_USERS_BSERVER_FAILED, inviteUserBean);
-
-            }
-
-        }
-
-        //TODO 不合理 需要结合GetGroupUserThread调整
-        public void sendJoinChatRoomToMServer4Recv() {
-            imGroupManager.joinChatRooms(imGroupManager.getGroupMap().values());
-            buildAndTriggerBusinessFlow4Recv(InviteUserEvent.BusinessFlow.RecvParam.Recv
-                    .JOIN_CHAT_ROOM_MSERVER_OK, null);
-        }
-
-        /**
-         * 构建业务流
-         * @param send
-         */
-        private void buildAndTriggerBusinessFlow4Send(
-                InviteUserEvent.BusinessFlow.SendParam.Send send,
-                InviteUserEvent.InviteUserBean inviteUserBean) {
-            if(send == null)
-                throw new IllegalArgumentException("InviteUserTask#send is null");
-
-            InviteUserEvent.BusinessFlow.SendParam sendParam = new InviteUserEvent.BusinessFlow
-                    .SendParam(send, inviteUserBean);
-            triggerEvent(sendParam);
-        }
-
-        /**
-         * 构建业务流
-         * @param send
-         */
-        private void buildAndTriggerBusinessFlow4Send(
-                InviteUserEvent.BusinessFlow.SendParam.Send send,
-                InviteUserEvent.InviteUserBean inviteUserBean, String replayId, long replayTime) {
-            if(send == null)
-                throw new IllegalArgumentException("InviteUserTask#send is null");
-
-            InviteUserEvent.BusinessFlow.SendParam sendParam = new InviteUserEvent.BusinessFlow
-                    .SendParam(send, inviteUserBean);
-            sendParam.replayId = replayId;
-            sendParam.replayTime = replayTime;
-            triggerEvent(sendParam);
-        }
-
-        /**
-         * 构建业务流
-         */
-        private void buildAndTriggerBusinessFlow4Recv(
-                InviteUserEvent.BusinessFlow.RecvParam.Recv recv,
-                InviteUserEvent.InviteUserBean inviteUserBean) {
-            if(recv == null)
-                throw new IllegalArgumentException("InviteUserTask#recv is null");
-            InviteUserEvent.BusinessFlow.RecvParam recvParam = new InviteUserEvent.BusinessFlow
-                    .RecvParam(recv, inviteUserBean);
-            triggerEvent(recvParam);
-        }
-
-
-        /**
-         * 构建业务流
-         */
-        private void buildAndTriggerBusinessFlow4Recv(
-                InviteUserEvent.BusinessFlow.RecvParam recvParam) {
-            triggerEvent(recvParam);
-        }
-
-
-        private void triggerEvent(Object paramObject) {
-            //粘性通知
-            EventBus.getDefault().post(paramObject);
-        }
-
-    }
 
 }

@@ -23,6 +23,7 @@ import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
+import com.juju.app.service.notify.InviteUserNotify;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.JacksonUtil;
@@ -62,8 +63,6 @@ public class IMOtherManager extends IMManager {
 
     private UserInfoBean userInfoBean;
 
-    private IMGroupManager.InviteUserTask inviteUserTask;
-
 
     //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMOtherManager instance() {
@@ -95,8 +94,7 @@ public class IMOtherManager extends IMManager {
         otherMessageDao = null;
         inviteDao = null;
         EventBus.getDefault().unregister(inst);
-        inviteUserTask.stop();
-        inviteUserTask = null;
+        InviteUserNotify.instance().stop();
     }
 
     //网络登陆
@@ -134,8 +132,8 @@ public class IMOtherManager extends IMManager {
         if (inviteDao == null) {
             inviteDao = new InviteDaoImpl(ctx);
         }
-        inviteUserTask = new IMGroupManager.InviteUserTask();
-        inviteUserTask.start(ctx, IMGroupManager.instance(), userInfoBean, socketService, inviteDao);
+        InviteUserNotify.instance().start(ctx, IMGroupManager.instance(), userInfoBean,
+                socketService, inviteDao);
     }
 
     //TODO 需要使用新线程（不确定xutils 是否对数据存储这块进行了优化）
@@ -170,7 +168,7 @@ public class IMOtherManager extends IMManager {
                 InviteUserEvent.InviteUserBean inviteUserBean = (InviteUserEvent.InviteUserBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
                                 IMBaseDefine.NotifyType.INVITE_USER.getCls());
-                inviteUserTask.executeCommand4Recv(inviteUserBean);
+//                inviteUserTask.executeCommand4Recv(inviteUserBean);
 
                 //发送系统通知
                 notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_USER_RECEIVED;
@@ -205,27 +203,27 @@ public class IMOtherManager extends IMManager {
         }
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent4BusinessFlowRecvEvent(InviteUserEvent.BusinessFlow.RecvParam recvParam) {
-        switch (recvParam.recv) {
-            case SEND_GET_GROUP_INFO_BSERVER_OK:
-                inviteUserTask.sendGetGroupUsersToBServer4Recv(recvParam.bean, recvParam.groupId,
-                        recvParam.groupName, recvParam.desc, recvParam.creatorNo, recvParam.masterNo,
-                        recvParam.createTimeDate);
-                break;
-            case SEND_GET_GROUP_USERS_BSERVER_OK:
-                inviteUserTask.sendJoinChatRoomToMServer4Recv();
-                break;
-            case JOIN_CHAT_ROOM_MSERVER_OK:
-                //不需要打开会话窗口
-
-                break;
-            case SEND_GET_GROUP_INFO_BSERVER_FAILED:
-            case SEND_GET_GROUP_USERS_BSERVER_FAILED:
-                ToastUtil.TextIntToast(ctx, R.string.invite_user_send_failed, 3);
-                break;
-        }
-    }
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    public void onEvent4BusinessFlowRecvEvent(InviteUserEvent.BusinessFlow.RecvParam recvParam) {
+//        switch (recvParam.recv) {
+//            case SEND_GET_GROUP_INFO_BSERVER_OK:
+//                inviteUserTask.sendGetGroupUsersToBServer4Recv(recvParam.bean, recvParam.groupId,
+//                        recvParam.groupName, recvParam.desc, recvParam.creatorNo, recvParam.masterNo,
+//                        recvParam.createTimeDate);
+//                break;
+//            case SEND_GET_GROUP_USERS_BSERVER_OK:
+//                inviteUserTask.sendJoinChatRoomToMServer4Recv();
+//                break;
+//            case JOIN_CHAT_ROOM_MSERVER_OK:
+//                //不需要打开会话窗口
+//
+//                break;
+//            case SEND_GET_GROUP_INFO_BSERVER_FAILED:
+//            case SEND_GET_GROUP_USERS_BSERVER_FAILED:
+//                ToastUtil.TextIntToast(ctx, R.string.invite_user_send_failed, 3);
+//                break;
+//        }
+//    }
 
 
 
