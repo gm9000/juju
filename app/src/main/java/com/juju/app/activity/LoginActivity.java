@@ -38,6 +38,7 @@ import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.DBUtil;
 import com.juju.app.utils.HttpReqParamUtil;
+import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
@@ -427,7 +428,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         if( loginUser == null){
             SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
         }else{
-            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, loginUser);
+            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(loginUser));
             //需要调整
             SpfUtil.put(this, "nickName", loginUser.getNickName());
         }

@@ -406,8 +406,6 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
             switch (msg.what) {
                 case MSG_UPDATE_DURATION: {
 
-//                    long videoCachedDuration = ijkMediaPlayer.getVideoCachedDuration();
-//                    long audioCachedDuration = ijkMediaPlayer.getAudioCachedDuration();
                     System.out.println("-------------------------------------------ad:"+ijkMediaPlayer.getAudioCachedDuration()+"-vd:"+ijkMediaPlayer.getVideoCachedDuration()+"-aps:"+ijkMediaPlayer.getAudioCachedPackets()+"-vps:"+ijkMediaPlayer.getVideoCachedPackets());
                     if(aTrackIndex>-1 && !delayProcessing && ijkMediaPlayer.getAudioCachedDuration()>1000){
                         ijkMediaPlayer.deselectTrack(aTrackIndex);

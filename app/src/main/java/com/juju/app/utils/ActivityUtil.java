@@ -3,6 +3,7 @@ package com.juju.app.utils;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Bundle;
 import android.os.Parcelable;
 
 import com.juju.app.R;
@@ -153,6 +154,28 @@ public class ActivityUtil {
      * @param name
      */
     public static void startActivity4UP(Activity activity, Class<?> cls,
+                                        BasicNameValuePair... name) {
+        Intent intent = new Intent();
+        intent.setClass(activity, cls);
+        if (name != null)
+            for (int i = 0; i < name.length; i++) {
+                intent.putExtra(name[i].getName(), name[i].getValue());
+            }
+        activity.startActivity(intent);
+        activity.overridePendingTransition(R.anim.push_up_in,
+                R.anim.push_up_out);
+
+    }
+
+
+    /**
+     * 打开Activity
+     *
+     * @param activity
+     * @param cls
+     * @param name
+     */
+    public static void startActivityWithParent(Activity activity, Class<?> cls,
                                         BasicNameValuePair... name) {
         Intent intent = new Intent();
         intent.setClass(activity, cls);

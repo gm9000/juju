@@ -18,7 +18,6 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
-import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
@@ -28,6 +27,7 @@ import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CircleCopperImageView;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.imagezoom.utils.DecodeUtils;
+import com.squareup.picasso.Picasso;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -43,7 +43,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ContentView(R.layout.activity_upload_photo)
-public class UploadPhotoActivity extends BaseActivity implements View.OnLongClickListener, HttpCallBack {
+public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, View.OnLongClickListener {
 
     private static final String TAG = "UploadPhotoActivity";
     private static final int PHOTO_REQUEST_TAKEPHOTO = 1;// 拍照
@@ -92,7 +92,10 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
         String targetNo = userNo==null?userInfoBean.getJujuNo():userNo;
-        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
+        Picasso.with(getApplicationContext())
+                .load(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo)
+                .into(originHeadImg);
+//        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
     }
 
 
@@ -103,8 +106,24 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
     }
 
 
-    // 拍照部分
-    private void showCamera() {
+//    @Event(type = View.OnLongClickListener.class, value = R.id.head)
+//    private void headLongClick(View view){
+//        if(userNo == null){
+//            showPicMenu();
+//        }
+//    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        switch(v.getId()){
+            case R.id.head:
+                showPicMenu();
+                break;
+        }
+        return true;
+    }
+
+    private void showPicMenu() {
         final AlertDialog dlg = new AlertDialog.Builder(this).create();
         dlg.show();
         Window window = dlg.getWindow();
@@ -147,15 +166,7 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
 
     }
 
-    @Override
-    public boolean onLongClick(View v) {
-        switch (v.getId()){
-            case R.id.head:
-                showCamera();
-                break;
-        }
-        return true;
-    }
+
 
 
     @Override
@@ -303,10 +314,43 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
                             completeLoading();
-                            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-                            ((SettingActivity)UploadPhotoActivity.this.getParent()).setImageHead(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+                            Intent intent = getIntent();
+                            intent.setData(Uri.parse(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
+                            this.setResult(RESULT_OK,intent);
                             headImg.setVisibility(View.GONE);
                             menuLayout.setVisibility(View.GONE);
+                            originHeadImg.setVisibility(View.VISIBLE);
+
+
+
+                            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+
+                            Picasso.with(getApplicationContext()).invalidate(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
+
+//                            BitmapUtilFactory.getInstance(this).loadDrawable(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(), ImageOptions.DEFAULT,new Callback.CacheCallback<Drawable>(){
+//                                @Override
+//                                public void onSuccess(Drawable result) {
+//                                    originHeadImg.setImageDrawable(result);
+//                                }
+//                                @Override
+//                                public void onError(Throwable ex, boolean isOnCallback) {
+//                                }
+//
+//                                @Override
+//                                public void onCancelled(CancelledException cex) {
+//                                }
+//
+//                                @Override
+//                                public void onFinished() {
+//                                }
+//
+//                                @Override
+//                                public boolean onCache(Drawable result) {
+//                                    return false;
+//                                }
+//
+//                            });
+
                         } else {
                         }
                     } catch (JSONException e) {
@@ -325,7 +369,10 @@ public class UploadPhotoActivity extends BaseActivity implements View.OnLongClic
         completeLoading();
         ToastUtil.showShortToast(this,"上传失败",1);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(), BitmapUtilFactory.Option.imageOptions());
+        Picasso.with(getApplicationContext())
+                .load(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo())
+                .into(originHeadImg);
+//        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(), BitmapUtilFactory.Option.imageOptions());
         txt_confirm.setClickable(true);
         txt_cancel.setClickable(true);
         originHeadImg.setVisibility(View.VISIBLE);

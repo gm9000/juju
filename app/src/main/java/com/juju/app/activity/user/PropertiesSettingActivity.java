@@ -188,7 +188,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
             txt_male.setCompoundDrawables(null, null, drawable, null);
             userInfo.setGender(1);
             userInfo.setUpdate(true);
-            SpfUtil.put(getApplicationContext(),Constants.USER_INFO,userInfo);
+            SpfUtil.put(getApplicationContext(),Constants.USER_INFO,JacksonUtil.turnObj2String(userInfo));
         }
         ActivityUtil.finish(this);
     }
@@ -200,7 +200,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
             txt_female.setCompoundDrawables(null,null,drawable,null);
             userInfo.setGender(0);
             userInfo.setUpdate(true);
-            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfo));
         }
         ActivityUtil.finish(this);
     }
@@ -299,63 +299,6 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
         }
     }
 
-//    @Override
-//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-//        switch (accessId) {
-//            case R.id.txt_property:
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            userInfo.setUpdate(false);
-//                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
-//                            JujuDbUtils.saveOrUpdate(userInfo);
-//                            ActivityUtil.finish(this);
-//                        } else {
-//                            Log.e(TAG,"return status code:"+status);
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//            case R.id.txt_phone:
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            userInfo.setUpdate(false);
-//                            userInfo.setUserPhone(newPhone);
-//                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
-//                            JujuDbUtils.saveOrUpdate(userInfo);
-//                            ActivityUtil.finish(this);
-//                        } else {
-//                            String desc = jsonRoot.getString("desc");
-//                            if(desc != null) {
-//                                showMsgDialog(getResValue(desc));
-//                            }else{
-//                               ToastUtil.showShortToast(this,"unknown error",1);
-//                            }
-//
-//                            Log.e(TAG,"return status code:"+status);
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//        }
-//    }
-//
-//    @Override
-//    public void onFailure(HttpException error, String msg, int accessId) {
-//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-//                error.getExceptionCode());
-//    }
 
     @Override
     public void onSuccess(Object obj, int accessId, Object inputParameter) {
@@ -367,7 +310,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
                             userInfo.setUpdate(false);
-                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfo));
                             JujuDbUtils.saveOrUpdate(userInfo);
                             ActivityUtil.finish(this);
                         } else {
@@ -387,7 +330,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
                         if(status == 0) {
                             userInfo.setUpdate(false);
                             userInfo.setUserPhone(newPhone);
-                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfo));
                             JujuDbUtils.saveOrUpdate(userInfo);
                             ActivityUtil.finish(this);
                         } else {

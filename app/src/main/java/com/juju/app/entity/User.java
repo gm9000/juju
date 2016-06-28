@@ -87,8 +87,10 @@ public class  User extends BaseEntity {
     @Column(name = "create_time")
     private Date createTime;
 
+
     /**
      * 头像地址
+
      */
     @Column(name = "avatar")
     private String avatar;
@@ -261,6 +263,10 @@ public class  User extends BaseEntity {
         //暂时这样处理，需要结合注册用户
         peerId = userNo+"@juju";
         return peerId;
+    }
+
+    public void setPeerId(String peerId) {
+        this.peerId = peerId;
     }
 
 

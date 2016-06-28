@@ -2,7 +2,6 @@ package com.juju.app.activity.user;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -18,7 +17,6 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
-import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -31,13 +29,13 @@ import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.dialog.WarnTipDialog;
+import com.squareup.picasso.Picasso;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
 import org.xutils.ex.DbException;
-import org.xutils.image.ImageOptions;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -50,6 +48,8 @@ import java.util.Map;
 public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     private static final String TAG = "SettingActivity";
+
+    private final int UPDATE_PHOTO_ACTIVITY = 1;
 
     @ViewInject(R.id.txt_title)
     private TextView txt_title;
@@ -149,8 +149,10 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     private void loadUserInfo() {
         String targetNo = userNo==null?BaseApplication.getInstance().getUserInfoBean().getJujuNo():userNo;
-
-        BitmapUtilFactory.getInstance(this).bind(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
+        Picasso.with(getApplicationContext())
+                .load(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo)
+                .into(headImg);
+//        BitmapUtilFactory.getInstance(this).bind(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
         User userInfo = null;
         if(StringUtils.isBlank(userNo)) {
             String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
@@ -238,7 +240,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     @Event(R.id.head)
     private void showHeadImg(View view){
-        ActivityUtil.startActivity(this, UploadPhotoActivity.class, new BasicNameValuePair(Constants.USER_NO, userNo));
+        ActivityUtil.startActivityForResult(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY, new BasicNameValuePair(Constants.USER_NO, userNo));
     }
 
     @Event(R.id.layout_nick_name)
@@ -393,7 +395,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
                             txt_nickName.setText(userInfo.getNickName());
                             JujuDbUtils.saveOrUpdate(userInfo);
                             if(userNo == null) {
-                                SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+                                SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfo));
                             }else{
                                 txt_title.setText(userInfo.getNickName());
                             }
@@ -416,7 +418,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
                             User userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
                             userInfo.setUpdate(false);
                             JujuDbUtils.saveOrUpdate(userInfo);
-                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, userInfo);
+                            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfo));
                         } else {
                             Log.e(TAG,"return status code:"+status);
                         }
@@ -446,10 +448,49 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     }
 
-    public void setImageHead(String headUrl){
-        ImageOptions.Builder imageOptsBuilder = new ImageOptions.Builder();
-        imageOptsBuilder.setForceLoadingDrawable(true);
-        BitmapUtilFactory.getInstance(this).bind(headImg, headUrl,imageOptsBuilder.build() );
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case UPDATE_PHOTO_ACTIVITY:
+                    setImageHead(data.getData().toString());
+                    break;
+            }
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private void setImageHead(String headUrl){
+
+        Picasso.with(getApplicationContext()).invalidate(headUrl);
+        Picasso.with(getApplicationContext())
+                .load(headUrl)
+                .into(headImg);
+//        BitmapUtilFactory.getInstance(this).loadDrawable(headUrl, ImageOptions.DEFAULT,new Callback.CacheCallback<Drawable>(){
+//            @Override
+//            public void onSuccess(Drawable result) {
+//                headImg.setImageDrawable(result);
+//            }
+//            @Override
+//            public void onError(Throwable ex, boolean isOnCallback) {
+//            }
+//
+//            @Override
+//            public void onCancelled(CancelledException cex) {
+//            }
+//
+//            @Override
+//            public void onFinished() {
+//            }
+//
+//            @Override
+//            public boolean onCache(Drawable result) {
+//                return false;
+//            }
+//
+//        });
     }
 
 

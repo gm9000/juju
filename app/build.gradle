@@ -86,6 +86,7 @@ dependencies {
     //    compile 'com.squareup.okhttp:okhttp-urlconnection:2.4.0'
     compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
     compile 'org.xutils:xutils:3.3.34'
+    compile 'com.squareup.picasso:picasso:2.5.2'
 //    compile files('libs/locSDK_6.13.jar')
     //    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     //    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'
@@ -103,9 +104,8 @@ dependencies {
     compile files('libs/pldroid-camera-streaming-1.6.2.jar')
     compile 'com.qiniu:happy-dns:0.2.7'
 //    compile files('libs/nodemedia-client-v0.9.6.jar')
-
-    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.4.5'
-//    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.5.1'
+//    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.4.5'
+    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.5.1'
 }
 
 repositories {
