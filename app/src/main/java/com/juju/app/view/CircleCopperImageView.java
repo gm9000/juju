@@ -17,6 +17,7 @@ import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.AttributeSet;
+import android.util.Log;
 
 import com.juju.app.utils.PaintUtil;
 import com.juju.app.view.edge.Edge;
@@ -27,6 +28,8 @@ import com.juju.app.view.imagezoom.graphics.FastBitmapDrawable;
  * Created by Administrator on 2016/4/8 0008.
  */
 public class CircleCopperImageView extends ImageViewTouch{
+
+    private static final String LOG = "CircleCopperImageView";
 
     // The Paint used to darken the surrounding areas outside the crop area.
     private Paint mSurroundingAreaOverlayPaint;
@@ -50,6 +53,8 @@ public class CircleCopperImageView extends ImageViewTouch{
     @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
+        float scale  = getScale();
+        Log.d(LOG,"scale:"+scale);
         if(originRatio==0.0f && getScale()==1.0f){
             originRatio = (float)((FastBitmapDrawable) getDrawable()).getBitmap().getWidth()/canvas.getWidth();
         }
