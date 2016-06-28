@@ -49,6 +49,9 @@ public class GetGroupUserThread implements Runnable {
     private Logger logger = Logger.getLogger(GetGroupUserThread.class);
 
 
+    //是否执行成功
+    private boolean isExecuteSuccess = true;
+
     //回调超时时间为10秒
     private final int TIME_WAIT = 10;
 
@@ -110,7 +113,7 @@ public class GetGroupUserThread implements Runnable {
 
 
     private void execute() {
-        Map<String, Object> valueMap = new HashMap<String, Object>();
+        Map<String, Object> valueMap = new HashMap<>();
         valueMap.put("userNo", userInfoBean.getJujuNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("groupId", id);
@@ -199,7 +202,8 @@ public class GetGroupUserThread implements Runnable {
                     @Override
                     public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
                         myCountDownLatch.countDown();
-                        logger.d("end GetGroupUserThread -> groupId:%s", id);
+                        isExecuteSuccess = false;
+                        logger.d("End GetGroupUserThread onFailure -> groupId:%s", id);
                     }
 
                     @Override
@@ -218,10 +222,13 @@ public class GetGroupUserThread implements Runnable {
             myCountDownLatch.await(TIME_WAIT, TimeUnit.SECONDS);
         } catch (UnsupportedEncodingException e) {
             logger.error(e);
+            isExecuteSuccess = false;
         } catch (JSONException e) {
             logger.error(e);
+            isExecuteSuccess = false;
         } catch (InterruptedException e) {
             logger.error(e);
+            isExecuteSuccess = false;
         }
     }
 
@@ -260,6 +267,9 @@ public class GetGroupUserThread implements Runnable {
         EventBus.getDefault().post(paramObject);
     }
 
+    public boolean isExecuteSuccess() {
+        return isExecuteSuccess;
+    }
 }
 
 

@@ -95,7 +95,7 @@ public class IMNotificationManager extends IMManager {
      * 接收通知信息
      * @param event
      */
-    @Subscribe(threadMode = ThreadMode.MAIN)
+    @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEvent4OtherMessage(NotificationMessageEvent event) {
         handleOtherMessageRecv(event);
     }
@@ -132,6 +132,7 @@ public class IMNotificationManager extends IMManager {
         String actionName = "";
         String actionName1 = "";
         String targetNickName = "";
+        String sessionKey = "";
 
         switch (event.event) {
             case INVITE_USER_RECEIVED:
@@ -142,6 +143,8 @@ public class IMNotificationManager extends IMManager {
                 userNo = inviteUserBean.userNo;
                 userName = inviteUserBean.nickName;
                 groupName = inviteUserBean.groupName;
+                sessionKey = DBConstant.SESSION_TYPE_GROUP+"_"+inviteUserBean.groupId+"@"
+                        +userInfoBean.getmMucServiceName()+ "."+userInfoBean.getmServiceName();
                 title = IMBaseDefine.NotifyType.INVITE_USER.desc();
                 detailTitle = title;
                 avatarUrl = HttpConstants.getPortraitUrl()+userNo;
@@ -174,8 +177,8 @@ public class IMNotificationManager extends IMManager {
         final String ticker = String.format("[%s]%s: %s%s%s%s",detailTitle, userName, actionName,
                 targetNickName, actionName1, groupName);
         final int notificationId = getSessionNotificationId(userNo);
-        final Intent intent = new Intent(ctx, MyInviteListActivity.class);
-//        intent.putExtra(Constants.SESSION_ID_KEY, unreadEntity.getSessionKey());
+        final Intent intent = new Intent(ctx, ChatActivity.class);
+        intent.putExtra(Constants.SESSION_ID_KEY, sessionKey);
         logger.d("notification#notification avatarUrl:%s", avatarUrl);
         final String finalTitle = title;
         ImageLoader.getInstance().loadImage(avatarUrl, targetSize, null, new SimpleImageLoadingListener() {
@@ -200,6 +203,8 @@ public class IMNotificationManager extends IMManager {
         });
     }
 
+
+    /*****************************************************************************************/
 
     /**
      * 接收未读消息通知
@@ -293,28 +298,6 @@ public class IMNotificationManager extends IMManager {
         String content = unreadEntity.getLatestMsgData();
         String unit = ctx.getString(R.string.msg_cnt_unit);
         int totalUnread = unreadEntity.getUnReadCnt();
-
-//        if(unreadEntity.getSessionType() == DBConstant.SESSION_TYPE_SINGLE){
-//            UserEntity contact = IMContactManager.instance().findContact(peerId);
-//            if(contact !=null){
-//                title = contact.getMainName();
-//                avatarUrl = contact.getAvatar();
-//            }else{
-//                title = "User_"+peerId;
-//                avatarUrl = "";
-//            }
-//
-//        }else{
-//            GroupEntity group = IMGroupManager.instance().findGroup(peerId);
-//            if(group !=null){
-//                title = group.getMainName();
-//                avatarUrl = group.getAvatar();
-//            }else{
-//                title = "Group_"+peerId;
-//                avatarUrl = "";
-//            }
-//        }
-
         GroupEntity group = IMGroupManager.instance().findGroup(peerId);
         if(group !=null){
             title = group.getMainName();
