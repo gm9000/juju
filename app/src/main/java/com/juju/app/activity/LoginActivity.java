@@ -310,6 +310,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4Login(LoginEvent event) {
         switch (event) {
+
             case LOCAL_LOGIN_SUCCESS:
                 loginSuccess = true;
                 saveUserInfo();

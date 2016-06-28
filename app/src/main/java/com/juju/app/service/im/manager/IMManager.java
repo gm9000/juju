@@ -66,6 +66,11 @@ public abstract class IMManager {
         EventBus.getDefault().post(paramObject);
     }
 
+    //发送消息，消息发布者，UI需监听
+    protected void triggerEvent4Sticky(Object paramObject)
+    {
+        EventBus.getDefault().postSticky(paramObject);
+    }
 
     protected boolean isAuthenticated() {
         boolean isAuth = false;

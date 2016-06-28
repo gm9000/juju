@@ -250,7 +250,8 @@ public class IMLoginManager extends IMManager {
 
     //重连
     public void reConnect() {
-        socketService.reConnect();
+        if(socketService != null)
+            socketService.reConnect();
     }
 
     public String getUserNo() {

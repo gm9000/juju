@@ -910,7 +910,7 @@ public class XMPPServiceImpl implements
         } else if (notifyExtensionElement != null) {
             handlerNotifyMsg(message, notifyExtensionElement.notifyType);
         } else {
-            handlerChatMsg(message, msgExtensionElement.msgType);
+            handlerChatMsg(message, null);
         }
     }
 

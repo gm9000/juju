@@ -1,5 +1,6 @@
 package com.juju.app.service.im.manager;
 
+import com.juju.app.R;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
@@ -12,6 +13,7 @@ import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.OtherMessageEntity;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
+import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.user.InviteGroupEvent;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
@@ -26,6 +28,7 @@ import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
 
 import org.greenrobot.eventbus.EventBus;
@@ -59,6 +62,9 @@ public class IMOtherManager extends IMManager {
 
     private UserInfoBean userInfoBean;
 
+    private IMGroupManager.InviteUserTask inviteUserTask;
+
+
     //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMOtherManager instance() {
         if(inst == null) {
@@ -89,6 +95,8 @@ public class IMOtherManager extends IMManager {
         otherMessageDao = null;
         inviteDao = null;
         EventBus.getDefault().unregister(inst);
+        inviteUserTask.stop();
+        inviteUserTask = null;
     }
 
     //网络登陆
@@ -120,12 +128,14 @@ public class IMOtherManager extends IMManager {
      * 初始化DAO和服务(退出登录后或者第一次加载需要初始化)
      */
     public void initDaoAndService() {
-        if(otherMessageDao == null) {
+        if (otherMessageDao == null) {
             otherMessageDao = new OtherMessageDaoImpl(ctx);
         }
-        if(inviteDao == null) {
+        if (inviteDao == null) {
             inviteDao = new InviteDaoImpl(ctx);
         }
+        inviteUserTask = new IMGroupManager.InviteUserTask();
+        inviteUserTask.start(ctx, IMGroupManager.instance(), userInfoBean, socketService, inviteDao);
     }
 
     //TODO 需要使用新线程（不确定xutils 是否对数据存储这块进行了优化）
@@ -138,15 +148,6 @@ public class IMOtherManager extends IMManager {
                 Invite inviteReq = Invite.buildInviteReq4Send(otherMessageEntity);
                 inviteDao.save(inviteReq);
                 break;
-//            case INVITE_GROUP_NOTIFY_RES:
-//                if(reqEntity != null
-//                        && reqEntity.length >0
-//                        && reqEntity[0] instanceof Invite) {
-//                    Invite inviteCache = (Invite)reqEntity[0];
-//                    Invite inviteRes = Invite.buildInviteRes4Send(inviteCache, otherMessageEntity);
-//                    inviteDao.replaceInto(inviteRes);
-//                }
-//                break;
             default:
                 otherMessageDao.save(otherMessageEntity);
                 break;
@@ -162,18 +163,18 @@ public class IMOtherManager extends IMManager {
         notificationMessageEvent.entity = otherMessageEntity;
         switch (event.notifyType) {
             case INVITE_USER:
+                //TODO inviteDao 是否保留
                 Invite inviteReq = Invite.buildInviteReq4Recv(otherMessageEntity);
                 inviteDao.save(inviteReq);
 
-                //获取群详情
-
-
-                //获取群组成员列表
-
+                InviteUserEvent.InviteUserBean inviteUserBean = (InviteUserEvent.InviteUserBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
+                                IMBaseDefine.NotifyType.INVITE_USER.getCls());
+                inviteUserTask.executeCommand4Recv(inviteUserBean);
 
                 //发送系统通知
                 notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_USER_RECEIVED;
-                triggerEvent(notificationMessageEvent);
+                triggerEvent4Sticky(notificationMessageEvent);
                 break;
 //            case INVITE_GROUP_NOTIFY_RES:
 //                IMBaseDefine.InviteGroupNotifyResBean resBean = (IMBaseDefine.InviteGroupNotifyResBean)
@@ -204,12 +205,28 @@ public class IMOtherManager extends IMManager {
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4BusinessFlowRecvEvent(InviteUserEvent.BusinessFlow.RecvParam recvParam) {
+        switch (recvParam.recv) {
+            case SEND_GET_GROUP_INFO_BSERVER_OK:
+                inviteUserTask.sendGetGroupUsersToBServer4Recv(recvParam.bean, recvParam.groupId,
+                        recvParam.groupName, recvParam.desc, recvParam.creatorNo, recvParam.masterNo,
+                        recvParam.createTimeDate);
+                break;
+            case SEND_GET_GROUP_USERS_BSERVER_OK:
+                inviteUserTask.sendJoinChatRoomToMServer4Recv();
+                break;
+            case JOIN_CHAT_ROOM_MSERVER_OK:
+                //不需要打开会话窗口
 
-    static class InviteUserTask {
-
-
-
+                break;
+            case SEND_GET_GROUP_INFO_BSERVER_FAILED:
+            case SEND_GET_GROUP_USERS_BSERVER_FAILED:
+                ToastUtil.TextIntToast(ctx, R.string.invite_user_send_failed, 3);
+                break;
+        }
     }
+
 
 
 
