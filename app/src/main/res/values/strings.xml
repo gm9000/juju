@@ -188,6 +188,8 @@
     <string name="delete_group_member_send_failed">移除群组失败</string>
     <string name="master_transfer_send_success">群主转让成功</string>
     <string name="master_transfer_send_failed">群主转让失败</string>
+    <string name="exit_group_send_success">退出群组成功</string>
+    <string name="exit_group_send_failed">退出群组失败</string>
 
     <!--聚会-->
     <string name="location">位置</string>

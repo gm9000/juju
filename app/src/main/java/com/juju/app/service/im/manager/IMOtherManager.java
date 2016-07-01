@@ -29,6 +29,7 @@ import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.service.notify.BaseNotify;
+import com.juju.app.service.notify.ExitGroupNotify;
 import com.juju.app.service.notify.InviteUserNotify;
 import com.juju.app.service.notify.MasterTransferNotify;
 import com.juju.app.service.notify.RemoveGroupNotify;
@@ -105,6 +106,7 @@ public class IMOtherManager extends IMManager {
         InviteUserNotify.instance().stop();
         RemoveGroupNotify.instance().stop();
         MasterTransferNotify.instance().stop();
+        ExitGroupNotify.instance().stop();
     }
 
     //网络登陆
@@ -152,6 +154,7 @@ public class IMOtherManager extends IMManager {
         InviteUserNotify.instance().start(this, IMGroupManager.instance());
         RemoveGroupNotify.instance().start(this, IMGroupManager.instance());
         MasterTransferNotify.instance().start(this, IMGroupManager.instance());
+        ExitGroupNotify.instance().start(this, IMGroupManager.instance());
 //
 //        BaseNotify baseNotify = new BaseNotify() {
 //

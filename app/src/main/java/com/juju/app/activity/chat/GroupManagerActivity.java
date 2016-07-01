@@ -1,5 +1,6 @@
 package com.juju.app.activity.chat;
 
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
@@ -20,6 +21,7 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
@@ -30,6 +32,8 @@ import com.juju.app.helper.CheckboxConfigHelper;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.sp.ConfigurationSp;
+import com.juju.app.service.notify.ExitGroupNotify;
+import com.juju.app.service.notify.MasterTransferNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
@@ -37,6 +41,7 @@ import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
+import com.juju.app.view.dialog.WarnTipDialog;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
@@ -210,6 +215,25 @@ public class GroupManagerActivity extends BaseActivity {
                 valueMap);
     }
 
+    @Event(value = R.id.quit_group)
+    private void onClick4QuitGroup(View view) {
+        String message = "确定退出"+peerEntity.getMainName()+"吗？";
+        WarnTipDialog tipdialog = new WarnTipDialog(GroupManagerActivity.this, message);
+        tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                User user = imService.getContactManager().findContact(userInfoBean.getJujuNo());
+                //主动退出
+                ExitGroupEvent.ExitGroupBean exitGroupBean = ExitGroupEvent.ExitGroupBean
+                        .valueOf(peerEntity.getId(), userInfoBean.getJujuNo(), userInfoBean.getUserName(), 1);
+                ExitGroupNotify.instance().executeCommand4Send(exitGroupBean);
+            }
+        });
+        tipdialog.show();
+    }
+
+
+
 
 
     private void initCheckbox() {
@@ -261,6 +285,16 @@ public class GroupManagerActivity extends BaseActivity {
                 break;
         }
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4ExitGroup(ExitGroupEvent exitGroupEvent) {
+        switch (exitGroupEvent.event) {
+            case SEND_EXIT_GROUP_OK:
+                finish(GroupManagerActivity.this);
+                break;
+        }
+    }
+
 
 
     private String buildItemList(String peerId) {

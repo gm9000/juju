@@ -85,6 +85,15 @@ public abstract class BaseNotify<Req> {
 
     public abstract void executeCommand4Recv(Req req);
 
+    protected int getResValue(String name, String... type) {
+        int resId = 0;
+        if(type == null || type.length == 0) {
+            resId = context.getResources().getIdentifier(name, "string", "com.juju.app");
+        } else {
+            resId = context.getResources().getIdentifier(name, type[0], "com.juju.app");
+        }
+        return resId;
+    }
 
 
 }

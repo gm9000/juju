@@ -108,7 +108,21 @@ public class CommandActionConstant {
             public String url() {
                 return HttpConstants.getUserUrl()+"/updateGroupMaster";
             }
+        },
+
+        //群主转让
+        QUITGROUP {
+            @Override
+            public int code() {
+                return Integer.parseInt("0015");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/quitGroup";
+            }
         };
+
 
 
         public abstract int code();
