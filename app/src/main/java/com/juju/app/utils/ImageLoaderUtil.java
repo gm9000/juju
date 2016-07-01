@@ -5,11 +5,10 @@ import android.graphics.Bitmap;
 import android.util.DisplayMetrics;
 import android.view.WindowManager;
 
-
 import com.juju.app.R;
 import com.juju.app.golobal.Constants;
 import com.juju.app.view.groupchat.CircleBitmapDisplayer;
-import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiscCache;
+import com.nostra13.universalimageloader.cache.disc.impl.UnlimitedDiskCache;
 import com.nostra13.universalimageloader.cache.disc.naming.Md5FileNameGenerator;
 import com.nostra13.universalimageloader.cache.memory.impl.UsingFreqLimitedMemoryCache;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
@@ -29,6 +28,7 @@ public class ImageLoaderUtil {
     private static Logger logger = Logger.getLogger(ImageLoaderUtil.class);
     private static ImageLoaderConfiguration IMImageLoaderConfig;
     private static ImageLoader IMImageLoadInstance;
+    public final static DisplayImageOptions DISPLAY_IMAGE_OPTIONS = new DisplayImageOptions.Builder().cacheInMemory(true).cacheOnDisk(true).build();
     private static Map<Integer,Map<Integer,DisplayImageOptions>> avatarOptionsMaps=new HashMap<Integer,Map<Integer,DisplayImageOptions>>();
     public final static int CIRCLE_CORNER = -10;
 
@@ -52,7 +52,7 @@ public class ImageLoaderUtil {
                     .diskCacheFileNameGenerator(new Md5FileNameGenerator())
                     .tasksProcessingOrder(QueueProcessingType.LIFO)
                     .diskCacheExtraOptions(metrics.widthPixels, metrics.heightPixels, null)
-                    .diskCache(new UnlimitedDiscCache(cacheDir,reserveCacheDir,new Md5FileNameGenerator()))
+                    .diskCache(new UnlimitedDiskCache(cacheDir,reserveCacheDir,new Md5FileNameGenerator()))
                     .diskCacheSize(1024 * 1024 * 1024)
                     .diskCacheFileCount(1000)
                     .build();

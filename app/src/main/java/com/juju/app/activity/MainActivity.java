@@ -1,36 +1,29 @@
 package com.juju.app.activity;
 
-import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
-import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
-import android.provider.ContactsContract;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.party.GroupSelectActivity;
+import com.juju.app.activity.party.MyPartyListActivity;
 import com.juju.app.activity.party.PartyCreateActivity;
+import com.juju.app.activity.party.StockPartyListActivity;
 import com.juju.app.annotation.CreateUI;
-import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
-import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.GroupEntity;
-import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
-import com.juju.app.event.JoinChatRoomEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
@@ -38,20 +31,14 @@ import com.juju.app.fragment.MeFragment;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.GlobalVariable;
-import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
-import com.juju.app.service.im.manager.IMGroupManager;
-import com.juju.app.service.im.manager.IMMessageManager;
-import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
-
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.StringUtils;
@@ -62,13 +49,11 @@ import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
 import com.rey.material.app.Dialog;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -76,7 +61,6 @@ import org.xutils.view.annotation.ViewInject;
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 @ContentView(R.layout.activity_main)
@@ -93,6 +77,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 //    private final int GET_GROUP_INVITE_CODE = 0x03;
 
     private final int JOIN_IN_GROUP = 0x03;
+
+
+    private final int CHOOSE_GROUP = 0x04;
 
     private Handler uiHandler = new Handler();
 
@@ -118,6 +105,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     private GroupPartyFragment groupPartyFragment;
     private MeFragment meFragment;
     private TitlePopup titlePopup;
+    private TitlePopup partyTitlePopup;
 
 
     private Fragment[] fragments;
@@ -250,7 +238,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 //                img_right.setVisibility(View.VISIBLE);
 //                img_right.setImageResource(R.mipmap.icon_add);
                 setTopTitle(R.string.group_party);
-                setTopRightButton(R.mipmap.icon_add);
+                setTopRightButton(R.mipmap.top_menu);
                 break;
             case R.id.re_profile:
                 index = 2;
@@ -280,7 +268,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     }
 
 
-    private OnItemOnClickListener onitemClick = new OnItemOnClickListener() {
+    private OnItemOnClickListener onGroupItemClick = new OnItemOnClickListener() {
 
         @Override
         public void onItemClick(ActionItem item, int position) {
@@ -300,11 +288,31 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         }
     };
 
+    private OnItemOnClickListener onPartyItemClick = new OnItemOnClickListener() {
+
+        @Override
+        public void onItemClick(ActionItem item, int position) {
+            switch (position) {
+                case 0:// 创建聚会
+                    ActivityUtil.startActivityForResult(MainActivity.this, GroupSelectActivity.class,CHOOSE_GROUP);
+                    break;
+                case 1:// 发起的聚会
+                    ActivityUtil.startActivity4UP(MainActivity.this, MyPartyListActivity.class);
+                    break;
+                case 2:// 归档的聚会
+                    ActivityUtil.startActivity4UP(MainActivity.this, StockPartyListActivity.class);
+                    break;
+                default:
+                    break;
+            }
+        }
+    };
+
     private void initPopWindow() {
-        // 实例化标题栏弹窗
+        // 实例化群聊标题栏弹窗
         titlePopup = new TitlePopup(this, ViewGroup.LayoutParams.WRAP_CONTENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
-        titlePopup.setItemOnClickListener(onitemClick);
+        titlePopup.setItemOnClickListener(onGroupItemClick);
         // 给标题栏弹窗添加子类
         titlePopup.addAction(new ActionItem(this, R.string.menu_group,
                 R.mipmap.icon_menu_group));
@@ -312,6 +320,19 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 R.mipmap.icon_menu_qrcode));
         titlePopup.addAction(new ActionItem(this, R.string.menu_invitecode,
                 R.mipmap.icon_menu_invitecode));
+
+        // 实例化聚会菜单栏弹窗
+        partyTitlePopup = new TitlePopup(this, ViewGroup.LayoutParams.WRAP_CONTENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+        partyTitlePopup.setItemOnClickListener(onPartyItemClick);
+        // 给标题栏弹窗添加子类
+        partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_add,
+                R.mipmap.icon_menu_group));
+        partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_my,
+                R.mipmap.icon_menu_qrcode));
+        partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_stock,
+                R.mipmap.icon_menu_invitecode));
+
 
     }
 
@@ -323,10 +344,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 titlePopup.show(layout_bar);
                 break;
             case 1: //  聚会
+
+                partyTitlePopup.show(layout_bar);
                 //TODO 需要修改为从群聊中发起聚会
-                String groupId = "570dbc6fe4b092891a647e32";
-                BasicNameValuePair groupIdValue = new BasicNameValuePair(Constants.GROURP_ID,groupId);
-                ActivityUtil.startActivity(this,PartyCreateActivity.class,groupIdValue);
+//                String groupId = "570dbc6fe4b092891a647e32";
+//                BasicNameValuePair groupIdValue = new BasicNameValuePair(Constants.GROURP_ID,groupId);
+//                ActivityUtil.startActivity(this,PartyCreateActivity.class,groupIdValue);
                 break;
         }
     }
@@ -527,6 +550,19 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         } else if (accessId == JOIN_IN_GROUP) {
             completeLoadingCommon();
             showMsgDialog(R.string.invite_group_no_pass);
+        }
+    }
+
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case CHOOSE_GROUP:
+                    String groupId = data.getStringExtra("selectedGroupId");
+                    ActivityUtil.startActivityNew(MainActivity.this,PartyCreateActivity.class,Constants.GROURP_ID,groupId);
+                    break;
+            }
         }
     }
 

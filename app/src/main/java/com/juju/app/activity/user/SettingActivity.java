@@ -24,12 +24,14 @@ import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.dialog.WarnTipDialog;
-import com.squareup.picasso.Picasso;
+import com.nostra13.universalimageloader.utils.DiskCacheUtils;
+import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
@@ -149,10 +151,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     private void loadUserInfo() {
         String targetNo = userNo==null?BaseApplication.getInstance().getUserInfoBean().getJujuNo():userNo;
-        Picasso.with(getApplicationContext())
-                .load(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo)
-                .into(headImg);
-//        BitmapUtilFactory.getInstance(this).bind(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         User userInfo = null;
         if(StringUtils.isBlank(userNo)) {
             String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
@@ -464,33 +463,11 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     private void setImageHead(String headUrl){
 
-        Picasso.with(getApplicationContext()).invalidate(headUrl);
-        Picasso.with(getApplicationContext())
-                .load(headUrl)
-                .into(headImg);
-//        BitmapUtilFactory.getInstance(this).loadDrawable(headUrl, ImageOptions.DEFAULT,new Callback.CacheCallback<Drawable>(){
-//            @Override
-//            public void onSuccess(Drawable result) {
-//                headImg.setImageDrawable(result);
-//            }
-//            @Override
-//            public void onError(Throwable ex, boolean isOnCallback) {
-//            }
-//
-//            @Override
-//            public void onCancelled(CancelledException cex) {
-//            }
-//
-//            @Override
-//            public void onFinished() {
-//            }
-//
-//            @Override
-//            public boolean onCache(Drawable result) {
-//                return false;
-//            }
-//
-//        });
+        MemoryCacheUtils.removeFromCache(headUrl,ImageLoaderUtil.getImageLoaderInstance().getMemoryCache());
+        DiskCacheUtils.removeFromCache(headUrl,ImageLoaderUtil.getImageLoaderInstance().getDiskCache());
+
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(headUrl,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+
     }
 
 

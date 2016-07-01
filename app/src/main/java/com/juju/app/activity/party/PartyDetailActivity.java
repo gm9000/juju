@@ -1,7 +1,7 @@
 package com.juju.app.activity.party;
 
+import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -9,19 +9,9 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.baidu.location.BDLocation;
-import com.baidu.location.BDLocationListener;
-import com.baidu.location.LocationClient;
-import com.baidu.mapapi.map.BitmapDescriptor;
-import com.baidu.mapapi.map.BitmapDescriptorFactory;
-import com.baidu.mapapi.map.MapStatus;
-import com.baidu.mapapi.map.MapStatusUpdateFactory;
-import com.baidu.mapapi.map.MarkerOptions;
-import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.juju.app.R;
 import com.juju.app.adapters.PlanInfoListAdapter;
@@ -34,14 +24,15 @@ import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
-import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
+import com.juju.app.view.dialog.WarnTipDialog;
 import com.juju.app.view.scroll.NoScrollListView;
 
 import org.json.JSONException;
@@ -87,6 +78,8 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
     @ViewInject(R.id.btn_start)
     private Button btn_start;
+    @ViewInject(R.id.btn_cancel)
+    private Button btn_cancel;
 
     @ViewInject(R.id.listview_plan)
     private NoScrollListView listview_plan;
@@ -129,8 +122,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
         String userNo = party.getUserNo();
         User creator = party.getCreator();
-        BitmapUtilFactory.getInstance(this).bind(img_head,
-                HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo);
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,img_head,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         txt_nickName.setText(creator.getNickName());
 
         isOwner = creator.getUserNo().equals(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
@@ -163,8 +155,10 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
         if(isOwner){
             btn_start.setVisibility(View.VISIBLE);
+            btn_cancel.setVisibility(View.VISIBLE);
         }else{
             btn_start.setVisibility(View.GONE);
+            btn_cancel.setVisibility(View.GONE);
         }
 
         txt_left.setVisibility(View.VISIBLE);
@@ -200,13 +194,32 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
             }
         }
 
-        if(planId == null){
+        final String  selectedPlanId = planId;
+
+        if(selectedPlanId == null){
             ToastUtil.showShortToast(this,"请选择确定的方案",1);
         }else{
-            startPartyToServer(planId);
+            WarnTipDialog tipdialog = new WarnTipDialog(this,"正式启动聚会？");
+            tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    startPartyToServer(selectedPlanId);
+                }
+            });
+            tipdialog.show();
         }
+    }
 
-
+    @Event(R.id.btn_cancel)
+    private void cancelParty(View view){
+        WarnTipDialog tipdialog = new WarnTipDialog(this,"取消本次聚会？");
+        tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                deletePartyFromServer();
+            }
+        });
+        tipdialog.show();
     }
 
     private void startPartyToServer(String planId) {
@@ -231,6 +244,25 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         }
     }
 
+    private void deletePartyFromServer() {
+
+        UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        Map<String,Object> reqBean = new HashMap<String,Object>();
+        reqBean.put("userNo",userTokenInfoBean.getJujuNo());
+        reqBean.put("token", userTokenInfoBean.getToken());
+        reqBean.put("partyId", partyId);
+
+        JlmHttpClient<Map<String,Object>> client = new JlmHttpClient<Map<String,Object>>(R.id.txt_cancel, HttpConstants.getUserUrl() + "/deleteParty", this, reqBean,JSONObject.class);
+        try {
+            loading(true, R.string.canceling);
+            client.sendPost();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
     @Override
     public void onResume(){
         super.onResume();
@@ -246,46 +278,6 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         }
 
     }
-
-//    @Override
-//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-//        switch (accessId) {
-//            case R.id.txt_party:
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            completeLoading();
-//                            partyId = jsonRoot.getString("partyId");
-//                            Party party = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(Party.class).where("id", "=", partyId));
-//                            party.setStatus(1);
-//                            party.setFollowFlag(1);
-//                            party.setAttendFlag(1);
-//                            JujuDbUtils.saveOrUpdate(party);
-//                            //  TOTO    通知 Party已经启动
-//                            ActivityUtil.finish(this);
-//                        } else {
-//                            completeLoading();
-//                            Log.e(TAG,"return status code:"+status);
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    } catch(DbException e){
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//        }
-//    }
-//
-//    @Override
-//    public void onFailure(HttpException error, String msg, int accessId) {
-//        completeLoading();
-//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-//                error.getExceptionCode());
-//    }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
@@ -358,6 +350,34 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
                             ActivityUtil.finish(this);
                         } else {
                             completeLoading();
+                            Log.e(TAG,"return status code:"+status);
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "回调解析失败", e);
+                        e.printStackTrace();
+                    } catch(DbException e){
+                        e.printStackTrace();
+                    }
+                }
+                break;
+            case R.id.txt_cancel:
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
+                    try {
+                        int status = jsonRoot.getInt("status");
+                        if(status == 0) {
+                            completeLoading();
+                            Party party = JujuDbUtils.getInstance().selector(Party.class).where("id", "=", partyId).findFirst();
+                            party.setStatus(-1);
+                            party.setFollowFlag(0);
+                            party.setAttendFlag(1);
+                            JujuDbUtils.saveOrUpdate(party);
+                            //  TOTO    通知 Party已经取消
+                            ActivityUtil.finish(this);
+                        } else {
+                            completeLoading();
+                            String desc = jsonRoot.getString("desc");
+                            showMsgDialog(getResValue(desc));
                             Log.e(TAG,"return status code:"+status);
                         }
                     } catch (JSONException e) {

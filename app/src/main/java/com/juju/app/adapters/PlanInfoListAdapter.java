@@ -147,6 +147,7 @@ public class PlanInfoListAdapter extends BaseSwipeAdapter {
         txt_operate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ((SwipeLayoutView)v.getParent().getParent()).close();
                 ((PartyDetailActivity)context).operatePlan(position);
             }
         });

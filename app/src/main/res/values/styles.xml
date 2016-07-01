@@ -66,6 +66,23 @@
         <item name="android:textColor">@color/gray</item>
     </style>
 
+    <style name="TxtWhite">
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="WhiteTxt8" parent="@style/TxtWhite">
+        <item name="android:textSize">8sp</item>
+        <item name="android:focusable">false</item>
+    </style>
+    <style name="WhiteTxt10" parent="@style/TxtWhite">
+        <item name="android:textSize">10sp</item>
+        <item name="android:focusable">false</item>
+    </style>
+    <style name="WhiteTxt12" parent="@style/TxtWhite">
+        <item name="android:textSize">12sp</item>
+        <item name="android:focusable">false</item>
+    </style>
+
     <style name="GrayTxt10" parent="@style/TxtGray">
         <item name="android:textSize">10sp</item>
         <item name="android:focusable">false</item>

@@ -1,5 +1,6 @@
 package com.juju.app.activity.party;
 
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
@@ -26,6 +27,7 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.view.dialog.WarnTipDialog;
 
 import org.apache.http.message.BasicNameValuePair;
 import org.xutils.db.Selector;
@@ -39,9 +41,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ContentView(R.layout.layout_my_party_list)
-public class MyPartyListlActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener {
+public class MyPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener {
 
-    private static final String TAG = "MyPartyListlActivity";
+    private static final String TAG = "MyPartyListActivity";
 
     @ViewInject(R.id.txt_title)
     private TextView txt_title;
@@ -97,7 +99,7 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
         try {
             Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("user_no", "=", userInfoBean.getJujuNo());
             totalSize = selector.count();
-            selector.orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);;
+            selector.orderBy("status").orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);;
             partyList = selector.findAll();
         } catch (DbException e) {
             e.printStackTrace();
@@ -211,19 +213,27 @@ public class MyPartyListlActivity extends BaseActivity implements AdapterView.On
     }
 
     @Override
-    public void deleteParty(int position) {
+    public void deleteParty(final int position) {
 
-        try {
-            Party party = partyList.get(position);
-            String delSql = "delete from plan_vote where plan_id in (select id from plan where party_id=\""+party.getId()+"\")";
-            JujuDbUtils.getInstance().execNonQuery(delSql);
-            JujuDbUtils.getInstance().delete(Plan.class, WhereBuilder.b("party_id", "=", party.getId()));
-            JujuDbUtils.delete(party);
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
-        partyList.remove(position);
-        partyListAdapter.setPartyList(partyList);
-        partyListAdapter.notifyDataSetChanged();
+        WarnTipDialog tipdialog = new WarnTipDialog(this,"确定要删除该聚会吗？");
+        tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                try {
+                    Party party = partyList.get(position);
+                    String delSql = "delete from plan_vote where plan_id in (select id from plan where party_id=\""+party.getId()+"\")";
+                    JujuDbUtils.getInstance().execNonQuery(delSql);
+                    JujuDbUtils.getInstance().delete(Plan.class, WhereBuilder.b("party_id", "=", party.getId()));
+                    JujuDbUtils.delete(party);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+                partyList.remove(position);
+                partyListAdapter.setPartyList(partyList);
+                partyListAdapter.notifyDataSetChanged();
+            }
+        });
+        tipdialog.show();
+
     }
 }

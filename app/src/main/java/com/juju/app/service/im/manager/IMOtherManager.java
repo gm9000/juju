@@ -168,7 +168,7 @@ public class IMOtherManager extends IMManager {
                 InviteUserEvent.InviteUserBean inviteUserBean = (InviteUserEvent.InviteUserBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
                                 IMBaseDefine.NotifyType.INVITE_USER.getCls());
-//                inviteUserTask.executeCommand4Recv(inviteUserBean);
+                InviteUserNotify.instance().executeCommand4Recv(inviteUserBean);
 
                 //发送系统通知
                 notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_USER_RECEIVED;

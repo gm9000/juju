@@ -12,17 +12,27 @@
         android:id="@+id/layout_back"
         android:gravity="center"
         android:layout_width="wrap_content"
-        android:layout_height="65.0dip">
+        android:layout_height="80dp">
         <TextView
-            android:id="@+id/txt_operate"
+            android:id="@+id/txt_stock"
             style="@style/MMFontTitleInList"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="选择"
+            android:layout_height="match_parent"
+            android:text="归档"
             android:paddingLeft="20dp"
             android:paddingRight="20dp"
-            android:paddingTop="10dp"
-            android:paddingBottom="10dp"
+            android:textColor="@color/white"
+            android:background="@color/gray"
+            android:textSize="18sp"
+            android:singleLine="true" />
+        <TextView
+            android:id="@+id/txt_follow"
+            style="@style/MMFontTitleInList"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="置顶"
+            android:paddingLeft="20dp"
+            android:paddingRight="20dp"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:singleLine="true" />
@@ -72,11 +82,18 @@
                 android:orientation="horizontal"
                 android:layout_alignParentRight="true"
                 android:layout_marginRight="5dp">
-                <ImageView
-                    android:id="@+id/follow_icon"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:src="@drawable/heart"
+                <TextView
+                    android:id="@+id/flag_follow"
+                    style="@style/WhiteTxt8"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@color/red"
+                    android:paddingLeft="5dp"
+                    android:paddingRight="5dp"
+                    android:paddingBottom="2dp"
+                    android:paddingTop="2dp"
+                    android:text="置顶"
+                    android:visibility="gone"
                     android:layout_marginRight="3dp"
                     />
                 <TextView

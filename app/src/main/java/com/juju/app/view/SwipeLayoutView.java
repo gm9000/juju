@@ -2,8 +2,6 @@ package com.juju.app.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.view.MotionEvent;
-import android.view.ViewConfiguration;
 
 import com.daimajia.swipe.SwipeLayout;
 /**

@@ -1,25 +1,18 @@
 package com.juju.app.helper;
 
-import android.app.AlertDialog;
-import android.content.Context;
-import android.content.DialogInterface;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.Uri;
 import android.text.Spannable;
 import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
-import android.view.ContextThemeWrapper;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.TextView.BufferType;
 
 import com.juju.app.R;
+import com.juju.app.entity.Party;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SearchElement;
@@ -34,11 +27,6 @@ import com.nostra13.universalimageloader.core.assist.ImageScaleType;
 import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 public class IMUIHelper {
-
-
-
-
-
 
     // 文字高亮显示
     public static void setTextHilighted(TextView textView, String text,SearchElement searchElement) {
@@ -55,7 +43,7 @@ public class IMUIHelper {
             return;
         }
         // 开始高亮处理
-        int color =  Color.rgb(69, 192, 26);
+        int color =  Color.rgb(0, 130, 227);
         textView.setText(text, BufferType.SPANNABLE);
         Spannable span = (Spannable) textView.getText();
         span.setSpan(new ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
@@ -157,6 +145,24 @@ public class IMUIHelper {
         return handleTokenFirstCharsSearch(key, group.getPinyinElement(), group.getSearchElement())
                 || handleTokenPinyinFullSearch(key, group.getPinyinElement(), group.getSearchElement())
                 || handleNameSearch(group.getMainName(), key, group.getSearchElement());
+    }
+
+    public static boolean handlePartySearch(String key, Party party) {
+        if (TextUtils.isEmpty(key) || party == null) {
+            return false;
+        }
+        party.getSearchElement().reset();
+
+        if(handleNameSearch(party.getName(), key, party.getSearchElement())){
+            party.setDescMatch(false);
+            return true;
+        }
+
+        if(handleNameSearch(party.getDesc(), key, party.getSearchElement())){
+            party.setDescMatch(true);
+            return true;
+        }
+        return false;
     }
 
     public static void setViewTouchHightlighted(final View view) {

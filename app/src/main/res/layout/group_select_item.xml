@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content"
+    android:gravity="center_vertical"
+    android:orientation="vertical" >
+
+    <View
+        android:id="@+id/group_divider"
+        android:layout_width="match_parent"
+        android:layout_height="0.5dp"
+        android:layout_marginLeft="10dp"
+        android:background="@color/default_line_color" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp"
+        android:layout_weight="1"
+        android:background="@drawable/tt_list_item_bk" >
+
+        <CheckBox
+            android:id="@+id/checkBox"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_centerVertical="true"
+            android:button="@drawable/checkbox_background"
+            android:clickable="false"
+            android:focusable="false"
+            android:layout_alignParentLeft="true"
+            android:layout_marginRight="10dp"
+            />
+
+        <com.juju.app.view.groupchat.IMGroupAvatar
+            android:id="@+id/iv_head"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_toRightOf="@+id/checkBox"
+            android:scaleType="centerCrop"
+            android:background="@mipmap/group_avatar_bk" />
+
+        <TextView
+            android:id="@+id/txt_group_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/iv_head"
+            android:layout_marginLeft="5dp"
+            android:textColor="@color/contact_name_color"
+            android:text="群组"
+            android:textSize="17sp" />
+
+    </RelativeLayout>
+
+</LinearLayout>

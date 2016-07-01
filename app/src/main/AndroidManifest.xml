@@ -150,7 +150,7 @@
             android:label="@string/title_activity_plan_detail"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".activity.party.MyPartyListlActivity"
+            android:name=".activity.party.MyPartyListActivity"
             android:label="@string/title_activity_plan_detail"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
@@ -180,6 +180,12 @@
         <activity
             android:name=".activity.chat.GroupMemberSelectActivity"
             android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activity.party.GroupSelectActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activity.party.StockPartyListActivity"
+            android:screenOrientation="portrait" />
     </application>
 
 </manifest>
