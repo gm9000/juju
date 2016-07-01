@@ -132,6 +132,9 @@ public class BaseApplication extends Application {
                                     @Override
                                     public List<File> getDatabaseFiles() {
                                         List<File> files = new ArrayList<>();
+                                        files.add(getDatabasePath("jlm_15833333333"));
+                                        files.add(getDatabasePath("jlm_15855555555"));
+                                        files.add(getDatabasePath("jlm_19900000001"));
                                         files.add(getDatabasePath("jlm_19400000001"));
                                         files.add(getDatabasePath("jlm_19400000002"));
                                         files.add(getDatabasePath("jlm_19400000003"));

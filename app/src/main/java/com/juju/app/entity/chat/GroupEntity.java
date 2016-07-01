@@ -54,6 +54,9 @@ public class GroupEntity extends PeerEntity {
     @Column(name = "invite_code")
     private String inviteCode;
 
+    @Column(name = "master_id")
+    private String masterId;
+
 
     private PinYinUtil.PinYinElement pinyinElement = new PinYinUtil.PinYinElement();
     private SearchElement searchElement = new SearchElement();
@@ -65,25 +68,6 @@ public class GroupEntity extends PeerEntity {
     public GroupEntity(Long localId) {
         this.localId = localId;
     }
-
-//    public GroupEntity(Long localId, String id, String peerId, int groupType, String mainName,
-//                       String avatar, String creatorId, int userCnt, String userList,
-//                       int version, int status, int created, int updated, String desc) {
-//        this.localId = localId;
-//        this.id = id;
-//        this.peerId = peerId;
-//        this.groupType = groupType;
-//        this.mainName = mainName;
-//        this.avatar = avatar;
-//        this.creatorId = creatorId;
-//        this.userCnt = userCnt;
-//        this.userList = userList;
-//        this.version = version;
-//        this.status = status;
-//        this.created = created;
-//        this.updated = updated;
-//        this.desc = desc;
-//    }
 
 
 
@@ -191,6 +175,14 @@ public class GroupEntity extends PeerEntity {
         this.inviteCode = inviteCode;
     }
 
+    public String getMasterId() {
+        return masterId;
+    }
+
+    public void setMasterId(String masterId) {
+        this.masterId = masterId;
+    }
+
     @Override
     public int getType() {
         return DBConstant.SESSION_TYPE_GROUP;
@@ -270,7 +262,7 @@ public class GroupEntity extends PeerEntity {
      * @return
      */
     public static GroupEntity buildForReceive(String id, String peerId, int groupType, String name,
-                                              String userNos, String creatorId, String desc,
+                                              String userNos, String creatorId, String masterId, String desc,
                                               Date created, Date updated) {
         if(StringUtils.isBlank(userNos)
                 || StringUtils.isBlank(id)
@@ -295,6 +287,7 @@ public class GroupEntity extends PeerEntity {
         }
         groupEntity.setUserList(userNoSbf.toString());
         groupEntity.setCreatorId(creatorId);
+        groupEntity.setMasterId(masterId);
         groupEntity.setDesc(desc);
         if(created != null) {
             groupEntity.setCreated(created.getTime());
@@ -330,6 +323,7 @@ public class GroupEntity extends PeerEntity {
         groupEntity.setUserCnt(1);
         groupEntity.setUserList(creatorId);
         groupEntity.setCreatorId(creatorId);
+        groupEntity.setMasterId(creatorId);
         groupEntity.setDesc(desc);
         if(time != null) {
             groupEntity.setCreated(time.getTime());

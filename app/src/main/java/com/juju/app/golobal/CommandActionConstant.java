@@ -76,13 +76,40 @@ public class CommandActionConstant {
         INVITEUSER {
             @Override
             public int code() {
+                return Integer.parseInt("0012");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/inviteUser";
+            }
+        },
+
+        DELETEGROUPMEMBER {
+            @Override
+            public int code() {
+                return Integer.parseInt("0015");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/deleteGroupMember";
+            }
+        },
+
+        //群主转让
+        UPDATEGROUPMASTER {
+            @Override
+            public int code() {
                 return Integer.parseInt("0020");
             }
 
             @Override
             public String url() {
-                return HttpConstants.getUserUrl()+"/inviteUser";            }
+                return HttpConstants.getUserUrl()+"/updateGroupMaster";
+            }
         };
+
 
         public abstract int code();
 

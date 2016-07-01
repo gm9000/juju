@@ -211,7 +211,6 @@ public class XMPPServiceImpl implements
 
 
         doReconnection();
-//        doPing();
     }
 
 
@@ -235,7 +234,8 @@ public class XMPPServiceImpl implements
         xmppConnection.login(userName, password, serviceName);
 
         boolean isOk = xmppConnection.isAuthenticated();
-        if(isOk)  doPing();
+        if(isOk)
+            sendPing();
 
         logger.d("login -> isOk:%b", isOk);
         logger.d("login -> XMPPServiceImpl:%s", this.toString());
@@ -451,6 +451,16 @@ public class XMPPServiceImpl implements
     }
 
     @Override
+    public void leaveChatRoom(String peerId) throws SmackException.NotConnectedException {
+        MultiUserChatManager multiUserChatManager = MultiUserChatManager.getInstanceFor(xmppConnection);
+        logger.d("leaveChatRoom -> chatRoomId:%s", peerId);
+        MultiUserChat multiUserChat = multiUserChatManager.getMultiUserChat(peerId);
+        if(multiUserChat != null) {
+            multiUserChat.leave();
+        }
+    }
+
+    @Override
     public boolean createChatRoom(String groupId, String groupName, String groupDesc,
                                   String mucServiceName, String serviceName) {
         boolean bool = false;
@@ -531,11 +541,11 @@ public class XMPPServiceImpl implements
     }
 
     @Override
-    public void notifyMessage(String peerId, String message, IMBaseDefine.NotifyType notifyType,
-                              String uuid, boolean isSaveMsg, XMPPServiceCallbackImpl callback,
-                              Object... reqEntity) {
+    public void notifyMessage(String peerId, String message, Message.Type type,
+                              IMBaseDefine.NotifyType notifyType, String uuid, boolean isSaveMsg,
+                              XMPPServiceCallbackImpl callback, Object... reqEntity) {
         if (isAuthenticated()) {
-            Message newMessage = new Message(peerId, Message.Type.normal);
+            Message newMessage = new Message(peerId, type);
             //需要调整
             newMessage.setFrom(userInfoBean.getJujuNo()+"@juju");
             newMessage.setStanzaId(uuid);
@@ -574,6 +584,22 @@ public class XMPPServiceImpl implements
             e.printStackTrace();
         }
         return false;
+    }
+
+    /**
+     * 发送心跳包
+     */
+    @Override
+    public void sendPing() {
+        PingManager pingManager = PingManager.getInstanceFor(xmppConnection);
+        try {
+            //频率
+            pingManager.setPingInterval(30);
+            pingManager.pingMyServer();
+//            pingManager.registerPingFailedListener();
+        } catch (SmackException.NotConnectedException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -667,7 +693,6 @@ public class XMPPServiceImpl implements
     @Override
     public void pingFailed() {
         logger.d("pingFailed()：ping失败");
-//        doPing();
     }
 
 
@@ -1017,19 +1042,6 @@ public class XMPPServiceImpl implements
         reconnectionManager.enableAutomaticReconnection();
     }
 
-    /**
-     * 处理心跳包
-     */
-    private void doPing() {
-//        PingManager pingManager = PingManager.getInstanceFor(xmppConnection);
-//        try {
-//            //频率
-//            pingManager.setPingInterval(30);
-//            pingManager.pingMyServer();
-//        } catch (SmackException.NotConnectedException e) {
-//            e.printStackTrace();
-//        }
-    }
 
 
     /**

@@ -19,7 +19,7 @@ public class GroupEvent {
 
     /**很多的场景只是关心改变的类型以及change的Ids*/
     private int changeType;
-    private List<Integer> changeList;
+    private List<String> changeList;
 
     public GroupEvent(Event event){
         this.event = event;
@@ -59,11 +59,11 @@ public class GroupEvent {
         this.changeType = changeType;
     }
 
-    public List<Integer> getChangeList() {
+    public List<String> getChangeList() {
         return changeList;
     }
 
-    public void setChangeList(List<Integer> changeList) {
+    public void setChangeList(List<String> changeList) {
         this.changeList = changeList;
     }
 

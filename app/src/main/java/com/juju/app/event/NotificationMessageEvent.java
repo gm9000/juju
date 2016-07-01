@@ -26,6 +26,9 @@ public class NotificationMessageEvent {
         //加群邀请通知
         INVITE_USER_RECEIVED,
 
+        //移除群组通知
+        REMOVE_GROUP_RECEIVED,
+
 
         //打开窗口，事件信息、红点需要清除（对全局有效果）
         INVITE_GROUP_NOTIFY_OPEN_ACTIVITY

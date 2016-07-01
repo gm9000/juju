@@ -1,5 +1,7 @@
 package com.juju.app.service.im.manager;
 
+import android.content.Context;
+
 import com.juju.app.R;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
@@ -14,16 +16,22 @@ import com.juju.app.entity.chat.OtherMessageEntity;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.event.user.InviteGroupEvent;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.IMBaseDefine;
+import com.juju.app.golobal.MessageConstant;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
+import com.juju.app.service.notify.BaseNotify;
 import com.juju.app.service.notify.InviteUserNotify;
+import com.juju.app.service.notify.MasterTransferNotify;
+import com.juju.app.service.notify.RemoveGroupNotify;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.JacksonUtil;
@@ -95,6 +103,8 @@ public class IMOtherManager extends IMManager {
         inviteDao = null;
         EventBus.getDefault().unregister(inst);
         InviteUserNotify.instance().stop();
+        RemoveGroupNotify.instance().stop();
+        MasterTransferNotify.instance().stop();
     }
 
     //网络登陆
@@ -121,6 +131,13 @@ public class IMOtherManager extends IMManager {
         return socketService;
     }
 
+    public Context getContext() {
+        return ctx;
+    }
+
+    public UserInfoBean getUserInfoBean() {
+        return userInfoBean;
+    }
 
     /**
      * 初始化DAO和服务(退出登录后或者第一次加载需要初始化)
@@ -132,11 +149,34 @@ public class IMOtherManager extends IMManager {
         if (inviteDao == null) {
             inviteDao = new InviteDaoImpl(ctx);
         }
-        InviteUserNotify.instance().start(ctx, IMGroupManager.instance(), userInfoBean,
-                socketService, inviteDao);
+        InviteUserNotify.instance().start(this, IMGroupManager.instance());
+        RemoveGroupNotify.instance().start(this, IMGroupManager.instance());
+        MasterTransferNotify.instance().start(this, IMGroupManager.instance());
+//
+//        BaseNotify baseNotify = new BaseNotify() {
+//
+//            @Override
+//            public void executeCommand4Send(Object o) {
+//
+//            }
+//
+//            @Override
+//            public void executeCommand4Recv(Object o) {
+//
+//            }
+//        };
+//
+//        baseNotify.start(this);
+
     }
 
-    //TODO 需要使用新线程（不确定xutils 是否对数据存储这块进行了优化）
+    /**
+     * 保存通知消息
+     * @param message
+     * @param notifyType
+     * @param uuid
+     * @param reqEntity
+     */
     public void saveOtherMessage(Message message, IMBaseDefine.NotifyType notifyType, String uuid,
                                  Object... reqEntity) {
         OtherMessageEntity otherMessageEntity = OtherMessageEntity
@@ -152,6 +192,19 @@ public class IMOtherManager extends IMManager {
         }
     }
 
+    /**
+     * 修改通知消息
+     * @param id
+     * @param replayTime
+     */
+    public void updateOtherMessage(String id, long replayTime) {
+        OtherMessageEntity entityDb = (OtherMessageEntity) otherMessageDao.findUniByProperty("id", id);
+        if(entityDb != null) {
+            OtherMessageEntity.buildMessage4SendOnAck(entityDb, replayTime);
+            otherMessageDao.update(entityDb);
+        }
+    }
+
 
     @Subscribe(threadMode = ThreadMode.POSTING,  priority = Constants.SERVICE_EVENTBUS_PRIORITY)
     public void onNotifyMessage4Event(NotifyMessageEvent event) {
@@ -164,6 +217,9 @@ public class IMOtherManager extends IMManager {
                 //TODO inviteDao 是否保留
                 Invite inviteReq = Invite.buildInviteReq4Recv(otherMessageEntity);
                 inviteDao.save(inviteReq);
+                //发送系统通知
+                notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_USER_RECEIVED;
+                triggerEvent4Sticky(notificationMessageEvent);
 
                 InviteUserEvent.InviteUserBean inviteUserBean = (InviteUserEvent.InviteUserBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
@@ -171,32 +227,18 @@ public class IMOtherManager extends IMManager {
                 InviteUserNotify.instance().executeCommand4Recv(inviteUserBean);
 
                 //发送系统通知
-                notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_USER_RECEIVED;
+                notificationMessageEvent.event = NotificationMessageEvent.Event.REMOVE_GROUP_RECEIVED;
                 triggerEvent4Sticky(notificationMessageEvent);
+                RemoveGroupEvent.RemoveGroupBean removeGroupBean = (RemoveGroupEvent.RemoveGroupBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.REMOVE_GROUP.getCls());
+                RemoveGroupNotify.instance().executeCommand4Recv(removeGroupBean);
                 break;
-//            case INVITE_GROUP_NOTIFY_RES:
-//                IMBaseDefine.InviteGroupNotifyResBean resBean = (IMBaseDefine.InviteGroupNotifyResBean)
-//                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
-//                                IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.getCls());
-//                if(resBean != null
-//                        && StringUtils.isNotBlank(resBean.code)
-//                        && StringUtils.isNotBlank(resBean.groupId)) {
-//                    //通过 code+groupId 确认消息
-//                    Invite dbInvite = (Invite) inviteDao
-//                            .findUniByProperty("invite_code,group_id", resBean.code, resBean.groupId);
-//                    Invite inviteRes = Invite.buildInviteRes4Recv(dbInvite, otherMessageEntity);
-//                    inviteDao.saveOrUpdate(inviteRes);
-//
-//                    if(inviteRes.getStatus() == 1) {
-//                        //通知更新groupEntity
-//                        IMGroupManager.instance().updateGroup4Members(resBean.groupId,
-//                                resBean.userNo, inviteRes.getTime().getTime());
-//                    }
-//                    //发送系统通知
-//                    notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_GROUP_NOTIFY_RES_RECEIVED;
-//                    triggerEvent(notificationMessageEvent);
-//                }
-//                break;
+            case MASTER_TRANSFER:
+                //不需要通知
+                MasterTransferEvent.MasterTransferBean masterTransferBean = (MasterTransferEvent.MasterTransferBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.MASTER_TRANSFER.getCls());
+                MasterTransferNotify.instance().executeCommand4Recv(masterTransferBean);
+                break;
             default:
                 otherMessageDao.replaceInto(otherMessageEntity);
                 break;

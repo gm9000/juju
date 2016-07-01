@@ -278,8 +278,15 @@ public class OtherMessageEntity extends BaseEntity {
         } else {
             entity.setToId(message.getTo());
         }
-        //目前只有此类型，后期可扩展
-        entity.setMsgType(DBConstant.MSG_TYPE_SINGLE_TEXT);
+        switch (notifyType) {
+            case APPLY_IN_GROUP:
+            case INVITE_IN_GROUP:
+                entity.setMsgType(DBConstant.MSG_TYPE_SINGLE_TEXT);
+                break;
+            default:
+                entity.setMsgType(DBConstant.MSG_TYPE_SINGLE_TEXT);
+                break;
+        }
         return entity;
     }
 

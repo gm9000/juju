@@ -245,11 +245,13 @@ public class IMGroupManager extends IMManager {
                                             String desc = JSONUtils.getString(jsonObject, "desc");
                                             String creatorNo = JSONUtils.getString(jsonObject, "creatorNo");
                                             String createTime = JSONUtils.getString(jsonObject, "createTime");
+                                            String masterNo = JSONUtils.getString(jsonObject, "masterNo");
                                             Date createTimeDate = null;
                                             if(StringUtils.isNotBlank(createTime)) {
                                                 createTimeDate = DateUtils.parseDate(createTime, new String[]{"yyyy-MM-dd HH:mm:ss"});
                                             }
-                                            sendGetGroupUsersToBServer(countDownLatch, id, name, desc, creatorNo, createTimeDate);
+                                            sendGetGroupUsersToBServer(countDownLatch, id, name,
+                                                    desc, creatorNo, masterNo, createTimeDate);
                                         }
                                         countDownLatch.await(GET_GROUP_TIMEOUT, TimeUnit.SECONDS);
                                         //群组及群组下用户持久化完毕
@@ -294,10 +296,10 @@ public class IMGroupManager extends IMManager {
     }
 
     public void sendGetGroupUsersToBServer(CountDownLatch countDownLatch, String id, String name,
-                                            String desc, String userNo, Date createTime) {
+                                            String desc, String userNo, String masterId, Date createTime) {
         GetGroupUserThread thread = new
                 GetGroupUserThread(countDownLatch, id,  name,
-                desc,  userNo, createTime,  userInfoBean,  groupDao, userDao, groupMap,
+                desc,  userNo, masterId, createTime,  userInfoBean,  groupDao, userDao, groupMap,
                 IMContactManager.instance().getUserMap());
         Thread t = new Thread(thread, "GetGroupUserThread");
         ThreadPoolUtil.instance().executeImTask(t);
@@ -367,12 +369,18 @@ public class IMGroupManager extends IMManager {
         return searchList;
     }
 
-    public GroupEntity findGroup(String groupId) {
-        logger.d("group#findGroup groupId:%s", groupId);
-        if(groupMap.containsKey(groupId)){
-            return groupMap.get(groupId);
+    public GroupEntity findGroup(String  peerId) {
+        logger.d("group#findGroup peerId:%s", peerId);
+        if(groupMap.containsKey(peerId)){
+            return groupMap.get(peerId);
         }
         return null;
+    }
+
+    public GroupEntity findGroupById(String groupId) {
+        String peerId = groupId+"@"+userInfoBean.getmMucServiceName()
+                +"."+userInfoBean.getmServiceName();
+        return findGroup(peerId);
     }
 
 
@@ -481,14 +489,26 @@ public class IMGroupManager extends IMManager {
         }
     }
 
-    public void updateGroup4Members(String groupId, String userNo, long updated) {
+    /**
+     *
+     * @param groupId
+     * @param userNo
+     * @param updated
+     * @param action 0:添加 1：删除
+     */
+    public void updateGroup4Members(String groupId, String userNo, long updated, int action) {
         //TODO 后期需要调整
         String peerId = groupId+"@"+userInfoBean.getmMucServiceName()
                 +"."+userInfoBean.getmServiceName();
         GroupEntity cacheGroup = groupMap.get(peerId);
         if(cacheGroup != null) {
             cacheGroup.setUpdated(updated);
-            cacheGroup.setUserList(cacheGroup.getUserList()+","+userNo);
+            if(action == 0) {
+                cacheGroup.setUserList(cacheGroup.getUserList()+","+userNo);
+            } else {
+                cacheGroup.setUserList(cacheGroup.getUserList().replaceAll(userNo, ""));
+                cacheGroup.setUserList(cacheGroup.getUserList().replaceAll(",,", ","));
+            }
             triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
             groupDao.replaceInto(cacheGroup);
         }
@@ -633,6 +653,22 @@ public class IMGroupManager extends IMManager {
 //                break;
 //        }
 //    }
+
+    //加入聊天室
+    public void joinChatRoom(String peerId) {
+//        socketService
+    }
+
+    //离开聊天室
+    public boolean exitChatRoom(String peerId) {
+        try {
+            socketService.leaveChatRoom(peerId);
+            return true;
+        } catch (SmackException.NotConnectedException e) {
+            logger.error(e);
+        }
+        return false;
+    }
 
 
 
