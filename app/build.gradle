@@ -71,7 +71,7 @@ dependencies {
     compile "org.igniterealtime.smack:smack-android-extensions:$smackVersion"
     compile "org.igniterealtime.smack:smack-experimental:$smackVersion"
     compile "org.igniterealtime.smack:smack-tcp:$smackVersion"
-    compile files('libs/universal-image-loader-1.9.3.jar')
+    compile files('libs/universal-image-loader-1.9.5.jar')
 //    compile files('libs/baidumapapi_base_v3_7_3.jar')
 //    compile files('libs/baidumapapi_cloud_v3_7_3.jar')
 //    compile files('libs/baidumapapi_map_v3_7_3.jar')
@@ -86,7 +86,6 @@ dependencies {
     //    compile 'com.squareup.okhttp:okhttp-urlconnection:2.4.0'
     compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
     compile 'org.xutils:xutils:3.3.34'
-    compile 'com.squareup.picasso:picasso:2.5.2'
 //    compile files('libs/locSDK_6.13.jar')
     //    debugCompile 'com.squareup.leakcanary:leakcanary-android:1.4-beta2'
     //    releaseCompile 'com.squareup.leakcanary:leakcanary-android-no-op:1.4-beta2'

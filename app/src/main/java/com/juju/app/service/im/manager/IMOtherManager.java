@@ -228,8 +228,7 @@ public class IMOtherManager extends IMManager {
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
                                 IMBaseDefine.NotifyType.INVITE_USER.getCls());
                 InviteUserNotify.instance().executeCommand4Recv(inviteUserBean);
-                break;
-            case REMOVE_GROUP:
+
                 //发送系统通知
                 notificationMessageEvent.event = NotificationMessageEvent.Event.REMOVE_GROUP_RECEIVED;
                 triggerEvent4Sticky(notificationMessageEvent);

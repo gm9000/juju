@@ -72,7 +72,7 @@ import java.util.concurrent.TimeUnit;
 @ContentView(R.layout.layout_my_invite_list)
 public class MyInviteListActivity extends BaseActivity implements MyInviteListAdapter.Callback {
 
-    private static final String TAG = "MyPartyListlActivity";
+    private static final String TAG = "MyInviteListActivity";
 
     private Logger logger = Logger.getLogger(MyInviteListActivity.class);
 
@@ -178,7 +178,7 @@ public class MyInviteListActivity extends BaseActivity implements MyInviteListAd
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 //        imServiceConnector.connect(MyInviteListActivity.this);
-        EventBus.getDefault().register(MyInviteListActivity.this);
+//        EventBus.getDefault().register(MyInviteListActivity.this);
         super.onCreate(savedInstanceState);
         initParam();
         initData();
@@ -238,6 +238,11 @@ public class MyInviteListActivity extends BaseActivity implements MyInviteListAd
 
     @Event(R.id.txt_left)
     private void cancelOperation(View view){
+        ActivityUtil.finish(this);
+    }
+
+    @Event(R.id.img_back)
+    private void goBack(View view){
         ActivityUtil.finish(this);
     }
 

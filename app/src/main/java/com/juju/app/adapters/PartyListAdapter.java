@@ -3,7 +3,6 @@ package com.juju.app.adapters;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Filter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -12,57 +11,79 @@ import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
-import com.juju.app.golobal.BitmapUtilFactory;
+import com.juju.app.helper.IMUIHelper;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.view.RoundImageView;
+import com.juju.app.view.SwipeLayoutView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 
 public class PartyListAdapter extends BaseSwipeAdapter {
-    private DataFilter dataFilter;
     private LayoutInflater inflater;
 
-    public void setPartyList(List<Party> partyList) {
-        if(partyList != null){
-            this.partyList = partyList;
-        }
+    private boolean isSearchMode = false;
+    private String searchKey;
 
-    }
+    private boolean isStockMode = false;
+
 
     private List<Party> partyList = new ArrayList<Party>();
+    private List<Party> matchPartyList = new ArrayList<Party>();
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private Callback mCallback;
+    private Comparator<Party> comparator = new Comparator<Party>() {
+        @Override
+        public int compare(Party p1, Party p2) {
+            if(p1.getFollowFlag()==p2.getFollowFlag()){
+                Long.valueOf(p2.getLocalId()).compareTo(p1.getLocalId());
+            }
+            if(p1.getFollowFlag()==1){
+                return -1;
+            }else{
+                return 1;
+            }
+        }
+    };
 
-    public void setFilterType(int filterType) {
-        this.filterType = filterType;
+    public void setPartyList(List<Party> partyList) {
+        if (partyList != null) {
+            this.partyList = partyList;
+            this.matchPartyList = partyList;
+        }
+
     }
 
-    private int filterType = 0;
+    public void reOrderParty() {
+        Collections.sort(partyList,comparator);
+        if(isSearchMode()){
+            Collections.sort(matchPartyList,comparator);
+        }
+    }
+
 
     public interface Callback {
-        public void click(View v);
-        public void follow(Party party,int follow);
+        public void follow(Party party, int follow);
     }
 
-    public PartyListAdapter(LayoutInflater inflater, List<Party> list, Callback callback) {
+    public PartyListAdapter(LayoutInflater inflater,Callback callback) {
         this.inflater = inflater;
-        if (list != null) {
-            this.partyList = list;
-        }
         this.mCallback = callback;
     }
 
     @Override
     public int getCount() {
-        return partyList.size();
+        return matchPartyList.size();
     }
 
     @Override
     public Object getItem(int position) {
         // TODO Auto-generated method stub
-        return partyList.get(position);
+        return matchPartyList.get(position);
     }
 
     @Override
@@ -88,7 +109,7 @@ public class PartyListAdapter extends BaseSwipeAdapter {
     }
 
     public View renderParty(int position, View view, ViewGroup parent) {
-        final Party party = partyList.get(position);
+        final Party party = matchPartyList.get(position);
         if (view == null) {
             view = inflater.inflate(R.layout.party_item, parent, false);
         }
@@ -98,14 +119,20 @@ public class PartyListAdapter extends BaseSwipeAdapter {
         TextView txtTime = (TextView) view.findViewById(R.id.time);
         TextView txtPartyDesc = (TextView) view.findViewById(R.id.partyDesc);
         TextView txtStatus = (TextView) view.findViewById(R.id.txt_status);
-        ImageView imgFollow = (ImageView) view.findViewById(R.id.follow_icon);
-        TextView txtOperate = (TextView) view.findViewById(R.id.txt_operate);
+        TextView txtViewFollow = (TextView) view.findViewById(R.id.flag_follow);
+        TextView txtOperate = (TextView) view.findViewById(R.id.txt_follow);
+        TextView txtStock = (TextView) view.findViewById(R.id.txt_stock);
         ImageView imgFlag = (ImageView) view.findViewById(R.id.img_flag);
-        LinearLayout layoutBack = (LinearLayout) view.findViewById(R.id.layout_back);
+
+        if(isStockMode){
+            txtOperate.setVisibility(View.GONE);
+            txtStock.setText("恢复");
+        }
 
         txtOperate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ((SwipeLayoutView)v.getParent().getParent()).close();
                 if (party.getFollowFlag() == 0) {
                     mCallback.follow(party, 1);
                 } else {
@@ -114,31 +141,56 @@ public class PartyListAdapter extends BaseSwipeAdapter {
             }
         });
 
-        BitmapUtilFactory.getInstance(inflater.getContext()).bind(imgCreatorHead,
-                HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
-                        + party.getUserNo(), BitmapUtilFactory.Option.imageOptions());
+        txtStock.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ((SwipeLayoutView)v.getParent().getParent()).close();
+                mCallback.follow(party, isStockMode?0:-1);
+            }
+        });
+
+
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                + party.getUserNo(), imgCreatorHead, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+
         txtCreatorName.setText(party.getCreator().getNickName());
-        txtPartyName.setText(party.getName());
-        if(party.getTime()!=null) {
+
+        if (isSearchMode) {
+            // 高亮显示
+            if(party.isDescMatch()) {
+                IMUIHelper.setTextHilighted(txtPartyDesc, party.getDesc(),
+                        party.getSearchElement());
+                txtPartyName.setText(party.getName());
+            }else{
+                IMUIHelper.setTextHilighted(txtPartyName, party.getName(),
+                        party.getSearchElement());
+                txtPartyDesc.setText(party.getDesc());
+            }
+        } else {
+            txtPartyName.setText(party.getName());
+            txtPartyDesc.setText(party.getDesc());
+        }
+
+        if (party.getTime() != null) {
             txtTime.setText(dateFormat.format(party.getTime()));
-        }else{
+        } else {
             txtTime.setText("暂无任何方案");
         }
 
-        switch (party.getFollowFlag()){
+        switch (party.getFollowFlag()) {
             case 0:
-                imgFollow.setImageResource(R.mipmap.heart_hollow);
-                txtOperate.setText(R.string.follow);
-                layoutBack.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.red));
+                txtViewFollow.setVisibility(View.GONE);
+                txtOperate.setText(R.string.top_location);
+                txtOperate.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.red));
                 break;
             case 1:
-                imgFollow.setImageResource(R.mipmap.heart_red);
-                txtOperate.setText(R.string.unfollow);
-                layoutBack.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.blue1));
+                txtViewFollow.setVisibility(View.VISIBLE);
+                txtOperate.setText(R.string.cancel_top_message);
+                txtOperate.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.blue1));
                 break;
         }
 
-        switch (party.getStatus()){
+        switch (party.getStatus()) {
             case -1:
                 imgFlag.setImageResource(R.mipmap.description);
                 txtStatus.setText(R.string.drafts);
@@ -156,36 +208,37 @@ public class PartyListAdapter extends BaseSwipeAdapter {
                 txtStatus.setText(R.string.finished);
                 break;
         }
-        txtPartyDesc.setText(party.getDesc());
         return view;
     }
 
-    public Filter getFilter() {
-        if (dataFilter == null) {
-            dataFilter = new DataFilter();
-        }
-        return dataFilter;
+    public void recover() {
+        isSearchMode = false;
+        matchPartyList = partyList;
+        notifyDataSetChanged();
     }
 
-    class DataFilter extends Filter {
-        //执行筛选
-        @Override
-        protected FilterResults performFiltering(CharSequence charSequence) {
-            FilterResults filterResults = new FilterResults();
-            List<Party> filterPartyList = new ArrayList<Party>();
-            for (Party party : partyList) {
-                if (party.getName().contains(charSequence) || party.getDesc().contains(charSequence)) {
-                    filterPartyList.add(party);
-                }
+    public void onSearch(String key) {
+        isSearchMode = true;
+        searchKey = key;
+        List<Party> searchList = new ArrayList<Party>();
+        for (Party party : partyList) {
+            if (IMUIHelper.handlePartySearch(searchKey, party)) {
+                searchList.add(party);
             }
-            filterResults.values = filterPartyList;
-            return filterResults;
         }
-
-        @Override
-        protected void publishResults(CharSequence arg0, FilterResults results) {
-            notifyDataSetChanged();
-        }
+        matchPartyList = searchList;
+        notifyDataSetChanged();
     }
 
+    public List<Party> getMatchPartyList() {
+        return matchPartyList;
+    }
+
+    public boolean isSearchMode() {
+        return isSearchMode;
+    }
+
+    public void setStockMode(boolean stockMode) {
+        isStockMode = stockMode;
+    }
 }

@@ -1,2 +1,1 @@
-include ':app', ':jujulibs'
-include ':mgimlibs'
+include ':jujulibs', ':app'

@@ -49,6 +49,7 @@
     <string name="group_chat">群聊</string>
     <string name="group_party">聚会</string>
     <string name="my_party">我发起的聚会</string>
+    <string name="stock_party">归档的聚会</string>
     <string name="party_plan">聚会方案</string>
     <string name="group_invite">邀请</string>
     <string name="me">我</string>
@@ -207,12 +208,12 @@
     <string name="start">启动</string>
     <string name="saving">正在保存&#8230;</string>
     <string name="starting">正在启动&#8230;</string>
+    <string name="canceling">正在取消&#8230;</string>
     <string name="select">选择</string>
     <string name="unselect">取消选择</string>
     <string name="selected">未选</string>
     <string name="signed">已报</string>
-    <string name="follow">关注</string>
-    <string name="unfollow">取消关注</string>
+    <string name="top_location">置顶</string>
     <string name="have"> 已有</string>
     <string name="attended"> 人报名</string>
     <string name="signup">报名</string>
@@ -238,6 +239,9 @@
     <string name="phone_call">打电话</string>
     <string name="send_sms">发短信</string>
 
+    <!-- 群组选择列表-->
+    <string name="choose_group">选择群</string>
+    <string name="select_group_empty">请先选择群</string>
 
     <string-array name="weeks">
         <item>星期一</item>
@@ -291,6 +295,10 @@
     <string name="menu_qrcode">扫一扫加群</string>
     <string name="menu_invitecode">邀请码加群</string>
     <string name="menu_add_live">发起直播</string>
+    <string name="menu_party_add">创建聚会</string>
+    <string name="menu_party_my">我发起的聚会</string>
+    <string name="menu_party_stock">归档的聚会</string>
+
 
 
     <item name="tag_follow_status" type="id"></item>

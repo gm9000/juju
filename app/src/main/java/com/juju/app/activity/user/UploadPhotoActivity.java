@@ -23,11 +23,13 @@ import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CircleCopperImageView;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.imagezoom.utils.DecodeUtils;
-import com.squareup.picasso.Picasso;
+import com.nostra13.universalimageloader.utils.DiskCacheUtils;
+import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -92,10 +94,8 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
         String targetNo = userNo==null?userInfoBean.getJujuNo():userNo;
-        Picasso.with(getApplicationContext())
-                .load(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo)
-                .into(originHeadImg);
-//        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo, BitmapUtilFactory.Option.imageOptions());
+
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo,originHeadImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
     }
 
 
@@ -180,6 +180,7 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
                     menuLayout.setVisibility(View.VISIBLE);
                     Bitmap bitmap = DecodeUtils.decode(this, Uri.parse(Environment.getExternalStorageDirectory()+"/juju/"+imageName), size, size);
                     headImg.setImageBitmap(bitmap);
+
                     break;
 
                 case PHOTO_REQUEST_GALLERY:
@@ -321,35 +322,11 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
                             menuLayout.setVisibility(View.GONE);
                             originHeadImg.setVisibility(View.VISIBLE);
 
-
-
                             UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
-                            Picasso.with(getApplicationContext()).invalidate(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
-
-//                            BitmapUtilFactory.getInstance(this).loadDrawable(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(), ImageOptions.DEFAULT,new Callback.CacheCallback<Drawable>(){
-//                                @Override
-//                                public void onSuccess(Drawable result) {
-//                                    originHeadImg.setImageDrawable(result);
-//                                }
-//                                @Override
-//                                public void onError(Throwable ex, boolean isOnCallback) {
-//                                }
-//
-//                                @Override
-//                                public void onCancelled(CancelledException cex) {
-//                                }
-//
-//                                @Override
-//                                public void onFinished() {
-//                                }
-//
-//                                @Override
-//                                public boolean onCache(Drawable result) {
-//                                    return false;
-//                                }
-//
-//                            });
+                            String imgUrl = HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo();
+                            MemoryCacheUtils.removeFromCache(imgUrl,ImageLoaderUtil.getImageLoaderInstance().getMemoryCache());
+                            DiskCacheUtils.removeFromCache(imgUrl,ImageLoaderUtil.getImageLoaderInstance().getDiskCache());
 
                         } else {
                         }
@@ -369,9 +346,10 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
         completeLoading();
         ToastUtil.showShortToast(this,"上传失败",1);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        Picasso.with(getApplicationContext())
-                .load(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo())
-                .into(originHeadImg);
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(),originHeadImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+//        Picasso.with(getApplicationContext())
+//                .load(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo())
+//                .into(originHeadImg);
 //        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(), BitmapUtilFactory.Option.imageOptions());
         txt_confirm.setClickable(true);
         txt_cancel.setClickable(true);

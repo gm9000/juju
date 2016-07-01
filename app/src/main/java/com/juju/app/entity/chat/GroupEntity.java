@@ -236,6 +236,14 @@ public class GroupEntity extends PeerEntity {
     }
 
 
+    public String getSectionName() {
+        if (TextUtils.isEmpty(pinyinElement.pinyin)) {
+            return "";
+        }
+        return pinyinElement.pinyin.substring(0, 1);
+    }
+
+
 
 //    GroupEntity groupEntity = new GroupEntity(0l, id,
 //            peerId, 0, name, avatarSbf.toString(), creatorId,

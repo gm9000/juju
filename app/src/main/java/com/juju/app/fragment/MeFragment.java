@@ -12,7 +12,7 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.activity.party.MyInviteListActivity;
-import com.juju.app.activity.party.MyPartyListlActivity;
+import com.juju.app.activity.party.MyPartyListActivity;
 import com.juju.app.activity.user.SettingActivity;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.UserInfoBean;
@@ -21,22 +21,18 @@ import com.juju.app.entity.Invite;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.User;
 import com.juju.app.event.NotificationMessageEvent;
-import com.juju.app.event.NotifyMessageEvent;
-import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
-import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.ImageUtils;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.SpfUtil;
-import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.RoundImageView;
 
 import org.apache.http.message.BasicNameValuePair;
@@ -51,7 +47,6 @@ import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -179,7 +174,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
 
     public void loadUserInfo() {
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        BitmapUtilFactory.getInstance(getActivity()).bind(img_head,HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+userInfoBean.getJujuNo());
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+userInfoBean.getJujuNo(),img_head,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
 
         String userInfoStr = (String) SpfUtil.get(getActivity().getApplicationContext(), Constants.USER_INFO,null);
 
@@ -227,7 +222,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.lin_party:
-                ActivityUtil.startActivity(getActivity(), MyPartyListlActivity.class);
+                ActivityUtil.startActivity(getActivity(), MyPartyListActivity.class);
                 break;
             case R.id.lin_invite:
                 tab_invite_notify.setVisibility(View.GONE);

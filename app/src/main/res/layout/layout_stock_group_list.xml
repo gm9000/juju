@@ -5,6 +5,8 @@
     android:layout_height="match_parent"
     android:background="@color/background"
     android:orientation="vertical">
+    <!--标题 -->
+    <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>
 
     <com.juju.app.view.SearchEditText
         android:id="@+id/filter_edit"

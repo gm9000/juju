@@ -5,9 +5,11 @@ import android.content.Context;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
+import com.juju.app.entity.chat.SearchElement;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
+import com.juju.app.utils.pinyin.PinYinUtil;
 
 import org.xutils.db.Selector;
 import org.xutils.db.annotation.Column;
@@ -32,11 +34,14 @@ public class Party extends BaseEntity {
     @Column(name = "status")
     private int status;
 
+    //  -1：归档 0：正常 1：特别关注
     @Column(name = "follow_flag")
     private int followFlag;
 
     @Column(name = "attend_flag")
     private int attendFlag;
+
+    private boolean descMatch;
 
     public boolean isHidden() {
         return hidden;
@@ -61,6 +66,9 @@ public class Party extends BaseEntity {
     private String groupId;
 
     private User creator;
+
+    private PinYinUtil.PinYinElement pinyinElement = new PinYinUtil.PinYinElement();
+    private SearchElement searchElement = new SearchElement();
 
 
     public String getName() {
@@ -112,7 +120,31 @@ public class Party extends BaseEntity {
         this.attendFlag = attendFlag;
     }
 
-//    public User getCreator() {
+    public PinYinUtil.PinYinElement getPinyinElement() {
+        return pinyinElement;
+    }
+
+    public void setPinyinElement(PinYinUtil.PinYinElement pinyinElement) {
+        this.pinyinElement = pinyinElement;
+    }
+
+    public SearchElement getSearchElement() {
+        return searchElement;
+    }
+
+    public void setSearchElement(SearchElement searchElement) {
+        this.searchElement = searchElement;
+    }
+
+    public boolean isDescMatch() {
+        return descMatch;
+    }
+
+    public void setDescMatch(boolean descMatch) {
+        this.descMatch = descMatch;
+    }
+
+    //    public User getCreator() {
 //        return creator;
 //    }
 //
