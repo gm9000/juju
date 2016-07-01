@@ -41,7 +41,6 @@
     <string name="login_failed">登陆失败,请重试</string>
 
 
-
     <!-- 公共 -->
     <string name="title_activity_main">MainActivity</string>
     <string name="title_activity_group">GroupActivity</string>
@@ -126,8 +125,6 @@
     <string name="message_receive_loading">收取中...</string>
 
 
-
-
     <!-- 消息 -->
     <string name="call_mode">听筒模式</string>
     <string name="speaker_mode">扬声器模式</string>
@@ -167,6 +164,9 @@
     <string name="quit_group_success">退出群组成功</string>
     <string name="transfer_group">转让群主</string>
     <string name="qr_desc_info">扫一扫上面的二维码图案，加群组微信</string>
+    <string name="group_management_transfer">群主管理权转让</string>
+    <string name="select_new_group_manager">选择新群主</string>
+
 
     <!--用户详情 -->
     <string name="page_user_detail">详细资料</string>
@@ -179,12 +179,15 @@
     <string name="select_group_member_empty">请先选择群组成员</string>
     <string name="create_temp_group_dialog_title">讨论组名字</string>
 
-    <!--邀请加入群组 -->
+    <!--群组通知相关 -->
     <string name="invite_code_send_success">邀请码已发出</string>
     <string name="invite_code_send_failed">邀请码发送失败</string>
-
     <string name="invite_user_send_success">加入群组成功</string>
     <string name="invite_user_send_failed">加入群组失败</string>
+    <string name="delete_group_member_send_success">移除群组成功</string>
+    <string name="delete_group_member_send_failed">移除群组失败</string>
+    <string name="master_transfer_send_success">群主转让成功</string>
+    <string name="master_transfer_send_failed">群主转让失败</string>
 
     <!--聚会-->
     <string name="location">位置</string>

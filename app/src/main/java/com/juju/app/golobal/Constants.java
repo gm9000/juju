@@ -55,6 +55,12 @@ public class Constants {
     public static final String KEY_PEERID = "key_peerid";
     public static final String KEY_AVATAR_URL = "key_avatar_url";
     public static final String KEY_IS_IMAGE_CONTACT_AVATAR = "is_image_contact_avatar";
+
+
+    public static final String SINGLE_CHECK_LIST_DATA = "single_check_list_data";
+    public static final String SINGLE_CHECK_TARGET_ID = "single_check_target_id";
+
+
     /**
      *1. 配置的全局key
      * */

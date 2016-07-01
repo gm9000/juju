@@ -12,6 +12,7 @@ import com.juju.app.golobal.DBConstant;
 import com.juju.app.ui.base.BaseApplication;
 
 import org.xutils.DbManager;
+import org.xutils.DbManager.DbUpgradeListener;
 import org.xutils.db.table.TableEntity;
 import org.xutils.ex.DbException;
 
@@ -27,6 +28,9 @@ import java.util.List;
  * 版本：V1.0.0
  */
 public class DBUtil {
+
+    private Logger logger = Logger.getLogger(DBUtil.class);
+
 
     private final String TABLE_MESSAGE = "message";
     private final String TABLE_OTHER_MESSAGE = "other_message";
@@ -83,6 +87,15 @@ public class DBUtil {
         daoConfig = new DbManager.DaoConfig()
                 .setDbDir(file)
                 .setDbName("jlm_"+userNO)
+                .setDbVersion(2)
+                .setDbUpgradeListener(new DbUpgradeListener() {
+                    @Override
+                    public void onUpgrade(DbManager db, int oldVersion, int newVersion) {
+                        logger.d("setDbUpgradeListener#->oldVersion:%d, newVersion:%d",
+                                oldVersion, newVersion);
+                        handlerDbUpgrade(db, oldVersion, newVersion);
+                    }
+                })
                 //监听table表创建事件
                 .setTableCreateListener(new DbManager.TableCreateListener() {
                     @Override
@@ -92,9 +105,19 @@ public class DBUtil {
                 });
     }
 
-
     private void handlerTableCreated(DbManager db, TableEntity<?> table) {
         executeDDL(db, table);
+    }
+
+    private void handlerDbUpgrade(DbManager db, int oldVersion, int newVersion) {
+        if(oldVersion == 1
+                && newVersion == 2) {
+            try {
+                db.execNonQuery("alter table user_group add column master_id varchar(20)");
+            } catch (DbException e) {
+                logger.error(e);
+            }
+        }
     }
 
     //执行DDL

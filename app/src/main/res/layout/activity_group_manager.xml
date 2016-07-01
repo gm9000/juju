@@ -7,32 +7,46 @@
 
 
 
+
+    <ScrollView
+    android:scrollbars="none"
+    android:layout_width="fill_parent"
+    android:layout_height="wrap_content">
+
     <LinearLayout
         android:id="@+id/gridlayout"
         android:layout_width="fill_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical" >
+        android:orientation="vertical"
+        android:background="@color/white">
 
         <com.juju.app.view.groupchat.GroupManagerGridView
             android:id="@+id/group_manager_grid"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="#ececec"
+            android:background="@color/wheel_bg"
             android:gravity="center"
             android:numColumns="4"
             android:scrollbarStyle="outsideInset"
             android:verticalSpacing="10dp"
             android:scrollbars="vertical" />
 
-        <ScrollView android:scrollbars="none" android:layout_width="fill_parent" android:layout_height="wrap_content">
-            <LinearLayout android:orientation="vertical" android:layout_width="fill_parent" android:layout_height="wrap_content">
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="20dp"
+            android:background="@color/wheel_bg" />
+
+            <LinearLayout android:orientation="vertical"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content">
                 <RelativeLayout
                     android:id="@+id/group_manager_name"
                     android:layout_width="fill_parent"
                     android:layout_height="wrap_content"
                     android:minHeight="44dp"
                     android:gravity="center_vertical"
-                    android:paddingRight="15dp">
+                    android:paddingRight="15dp"
+                    android:background="@drawable/setting_item_selector">
 
                     <TextView
                         android:id="@+id/group_manager_name_title"
@@ -75,6 +89,7 @@
                     android:layout_height="44dp"
                     android:gravity="center_vertical"
                     android:paddingRight="15dp"
+                    android:background="@drawable/setting_item_selector"
                     android:clickable="true">
 
                     <TextView
@@ -142,16 +157,14 @@
 
                 <View
                     android:layout_width="fill_parent"
-                    android:layout_height="0.5dp"
-                    android:layout_marginLeft="10dp"
-                    android:background="@mipmap/tt_divide_line" />
+                    android:layout_height="20dp"
+                    android:background="@color/wheel_bg" />
 
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="44dp"
                     android:gravity="center_vertical"
-                    android:paddingRight="15dp"
-                    >
+                    android:paddingRight="15dp">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -185,7 +198,7 @@
                     android:layout_height="44dp"
                     android:gravity="center_vertical"
                     android:paddingRight="15dp"
-                    >
+                    android:clickable="true">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -207,38 +220,53 @@
                         android:visibility="visible" />
                 </RelativeLayout>
 
-
-                <TextView
-                    android:id="@+id/quit_group"
-                    android:textSize="16.0sp"
-                    android:textColor="@android:color/white"
-                    android:gravity="center"
-                    android:background="@drawable/btn_radius"
-                    android:clickable="true"
+                <View
                     android:layout_width="fill_parent"
-                    android:layout_height="40.0dip"
-                    android:visibility="gone"
-                    android:layout_marginLeft="20.0dip"
-                    android:layout_marginTop="10.0dip"
-                    android:layout_marginRight="20.0dip"
-                    android:text="@string/quit_group" />
+                    android:layout_height="20dp"
+                    android:background="@color/wheel_bg" />
 
-
-                <TextView
+                <RelativeLayout
                     android:id="@+id/transfer_group"
-                    android:textSize="16.0sp"
-                    android:textColor="@android:color/white"
-                    android:gravity="center"
-                    android:background="@drawable/btn_radius"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:gravity="center_vertical"
+                    android:paddingRight="15dp"
                     android:visibility="gone"
-                    android:clickable="true"
-                    android:layout_width="fill_parent"
-                    android:layout_height="40.0dip"
-                    android:layout_marginLeft="20.0dip"
-                    android:layout_marginTop="10.0dip"
-                    android:layout_marginRight="20.0dip"
-                    android:layout_marginBottom="15.0dip"
-                    android:text="@string/transfer_group" />
+                    android:background="@drawable/setting_item_selector">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentLeft="true"
+                        android:paddingLeft="20dp"
+                        android:layout_centerInParent="true"
+                        android:text="@string/group_management_transfer"
+                        android:textColor="#a3a2a8"
+                        android:textSize="15sp" />
+
+
+
+
+                </RelativeLayout>
+
+
+
+
+                <!--<TextView-->
+                    <!--android:id="@+id/transfer_group"-->
+                    <!--android:textSize="16.0sp"-->
+                    <!--android:textColor="@android:color/white"-->
+                    <!--android:gravity="center"-->
+                    <!--android:background="@drawable/btn_radius"-->
+                    <!--android:visibility="gone"-->
+                    <!--android:clickable="true"-->
+                    <!--android:layout_width="fill_parent"-->
+                    <!--android:layout_height="40.0dip"-->
+                    <!--android:layout_marginLeft="20.0dip"-->
+                    <!--android:layout_marginTop="10.0dip"-->
+                    <!--android:layout_marginRight="20.0dip"-->
+                    <!--android:layout_marginBottom="15.0dip"-->
+                    <!--android:text="@string/transfer_group" />-->
             </LinearLayout>
 
             <!--<LinearLayout-->
@@ -250,12 +278,37 @@
                 <!---->
             <!--</LinearLayout>-->
 
+        <View
+            android:layout_width="fill_parent"
+            android:layout_height="20dp"
+            android:background="@color/wheel_bg" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/wheel_bg">
 
+            <TextView
+                android:id="@+id/quit_group"
+                android:textSize="16.0sp"
+                android:textColor="@android:color/white"
+                android:gravity="center"
+                android:background="@drawable/btn_radius"
+                android:clickable="true"
+                android:layout_width="fill_parent"
+                android:layout_height="40.0dip"
+                android:layout_marginLeft="20.0dip"
+                android:layout_marginTop="10.0dip"
+                android:layout_marginRight="20.0dip"
+                android:layout_marginBottom="15.0dip"
+                android:text="@string/quit_group" />
 
-        </ScrollView>
+        </LinearLayout>
+
 
     </LinearLayout>
+
+    </ScrollView>
 
 
 

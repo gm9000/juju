@@ -17,11 +17,13 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.IMUIHelper;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.manager.IMContactManager;
+import com.juju.app.service.notify.RemoveGroupNotify;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
@@ -43,7 +45,6 @@ public class GroupManagerAdapter extends BaseAdapter {
 	private boolean removeState = false;
     private boolean showMinusTag = false;
     private boolean showPlusTag = false;
-
 
 	private List<User> memberList = new ArrayList<>();
     private IMService imService;
@@ -77,7 +78,7 @@ public class GroupManagerAdapter extends BaseAdapter {
 
     private void setGroupData(GroupEntity entity){
         String loginId = userInfoBean.getJujuNo();
-        String ownerId = entity.getCreatorId();
+        String ownerId = entity.getMasterId();
         IMContactManager manager = imService.getContactManager();
         for(String memId:entity.getlistGroupMemberIds()){
            User user =  manager.findContact(memId);
@@ -94,7 +95,7 @@ public class GroupManagerAdapter extends BaseAdapter {
         //按钮状态的判断
         switch (entity.getGroupType()){
             case DBConstant.GROUP_TYPE_TEMP:{
-                if(loginId.equals(entity.getCreatorId())){
+                if(loginId.equals(entity.getMasterId())){
                     showMinusTag = true;
                     showPlusTag = true;
                 }else{
@@ -104,12 +105,13 @@ public class GroupManagerAdapter extends BaseAdapter {
             }
             break;
             case DBConstant.GROUP_TYPE_NORMAL:{
-                if(loginId .equals(entity.getCreatorId())){
+                if(loginId .equals(entity.getMasterId())){
                     // 展示加减
                     showMinusTag = true;
                     showPlusTag = true;
                 }else{
-                    // 什么也不展示
+                    //展示 +
+                    showPlusTag = true;
                 }
             }
             break;
@@ -162,6 +164,18 @@ public class GroupManagerAdapter extends BaseAdapter {
 		memberList.add(contact);
 		notifyDataSetChanged();
 	}
+
+    public void remove(User contact) {
+        removeState = false;
+        memberList.remove(contact);
+        notifyDataSetChanged();
+    }
+
+    public void refreshGroupData(GroupEntity groupData) {
+        memberList.clear();
+        setGroupData(groupData);
+        notifyDataSetChanged();
+    }
 
     public void add(List<User> list){
         removeState = false;
@@ -288,6 +302,12 @@ public class GroupManagerAdapter extends BaseAdapter {
                         removeById(userId);
                         Set<String> removeMemberlist = new HashSet<>(1);
                         removeMemberlist.add(userId);
+
+                        //TODO 放在IMOtherManager处理更合理
+                        RemoveGroupEvent.RemoveGroupBean removeGroupBean = RemoveGroupEvent
+                                .RemoveGroupBean.valueOf(peerEntity.getId(), peerEntity.getMainName(), userId);
+                        RemoveGroupNotify.instance().executeCommand4Send(removeGroupBean);
+
 //                        imService.getGroupManager().reqRemoveGroupMember(peerEntity.getPeerId(), removeMemberlist);
 					}
 				});

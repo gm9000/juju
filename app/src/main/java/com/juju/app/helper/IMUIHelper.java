@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.TextView.BufferType;
 
 import com.juju.app.R;
+import com.juju.app.adapter.SingleCheckAdapter;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SearchElement;
@@ -59,6 +60,17 @@ public class IMUIHelper {
         textView.setText(text, BufferType.SPANNABLE);
         Spannable span = (Spannable) textView.getText();
         span.setSpan(new ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+
+    public static boolean handleItemSearch(String key, SingleCheckAdapter.ItemBean itemBean) {
+        if (TextUtils.isEmpty(key) || itemBean == null) {
+            return false;
+        }
+        itemBean.getSearchElement().reset();
+        return handleTokenFirstCharsSearch(key, itemBean.getPinyinElement(), itemBean.getSearchElement())
+                || handleTokenPinyinFullSearch(key, itemBean.getPinyinElement(), itemBean.getSearchElement())
+                || handleNameSearch(itemBean.getMainName(), key, itemBean.getSearchElement());
+
     }
 
 

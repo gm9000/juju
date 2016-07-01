@@ -14,10 +14,15 @@ import android.widget.Toast;
 
 import com.juju.app.R;
 import com.juju.app.adapter.GroupManagerAdapter;
+import com.juju.app.adapter.SingleCheckAdapter;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IntentConstant;
@@ -29,17 +34,24 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.StringUtils;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
 import org.apache.http.message.BasicNameValuePair;
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 @ContentView(R.layout.activity_group_manager)
@@ -56,7 +68,7 @@ public class GroupManagerActivity extends BaseActivity {
     private TextView quit_group;
 
     @ViewInject(R.id.transfer_group)
-    private TextView transfer_group;
+    private View transfer_group;
 
 
     @ViewInject(R.id.tv_invite_code)
@@ -114,12 +126,16 @@ public class GroupManagerActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        if(!EventBus.getDefault().isRegistered(this)) {
+            EventBus.getDefault().register(this);
+        }
         imServiceConnector.connect(GroupManagerActivity.this);
     }
 
     @Override
     protected void onDestroy() {
         imServiceConnector.disconnect(GroupManagerActivity.this);
+        EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
 
@@ -144,7 +160,7 @@ public class GroupManagerActivity extends BaseActivity {
         switch (peerEntity.getType()){
             case DBConstant.SESSION_TYPE_GROUP:{
                 GroupEntity groupEntity = (GroupEntity) peerEntity;
-                ownerId = groupEntity.getCreatorId();
+                ownerId = groupEntity.getMasterId();
                 setTopTitle(getString(R.string.chat_detail)+"("+groupEntity.getUserCnt()+")");
                 // 群组名称的展示
                 groupNameView.setText(groupEntity.getMainName());
@@ -156,8 +172,6 @@ public class GroupManagerActivity extends BaseActivity {
         String loginId = userInfoBean.getJujuNo();
         if(ownerId.equals(loginId)) {
             transfer_group.setVisibility(View.VISIBLE);
-        } else {
-            quit_group.setVisibility(View.VISIBLE);
         }
         // 初始化配置checkBox
         initCheckbox();
@@ -185,6 +199,19 @@ public class GroupManagerActivity extends BaseActivity {
 
     }
 
+    @Event(value = R.id.transfer_group)
+    private void onClick4Transfer(View view) {
+        String itemListData =  buildItemList(peerEntity.getPeerId());
+        String groupId = peerEntity.getId();
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put(Constants.SINGLE_CHECK_LIST_DATA, itemListData);
+        valueMap.put(Constants.SINGLE_CHECK_TARGET_ID, groupId);
+        startActivityNew(GroupManagerActivity.this, GroupTransferActivity.class,
+                valueMap);
+    }
+
+
+
     private void initCheckbox() {
 //        checkBoxConfiger.initCheckBox(noDisturbCheckbox, curSessionKey,
 //                ConfigurationSp.CfgDimension.NOTIFICATION);
@@ -193,6 +220,72 @@ public class GroupManagerActivity extends BaseActivity {
         checkBoxConfiger.initTopCheckBox(topSessionCheckBox, curSessionKey);
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4InviteUser(InviteUserEvent inviteUserEvent) {
+        switch (inviteUserEvent.event) {
+            case INVITE_USER_OK:
+                User userEntity =  imService.getContactManager()
+                        .findContact(inviteUserEvent.bean.userNo);
+                if(userEntity != null) {
+                    adapter.add(userEntity);
+                }
+                break;
+        }
+    }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4InviteRemoveGroup(RemoveGroupEvent inviteUserEvent) {
+        switch (inviteUserEvent.event) {
+            case SEND_REMOVE_GROUP_OK:
+                User userEntity =  imService.getContactManager()
+                        .findContact(inviteUserEvent.bean.userNo);
+                if(userEntity != null) {
+                    adapter.remove(userEntity);
+                }
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4MasterTransfer(MasterTransferEvent masterTransferEvent) {
+        switch (masterTransferEvent.event) {
+            case SEND_MASTER_TRANSFER_OK:
+                GroupEntity groupEntity = imService.getGroupManager()
+                        .findGroupById(masterTransferEvent.bean.groupId);
+                if(groupEntity != null) {
+                    adapter.refreshGroupData(groupEntity);
+                    if(!userInfoBean.getJujuNo().equals(masterTransferEvent.bean.masterNo)) {
+                        transfer_group.setVisibility(View.GONE);
+                    }
+                }
+                break;
+        }
+    }
+
+
+    private String buildItemList(String peerId) {
+        String itemListData = null;
+        GroupEntity groupEntity = imService.getGroupManager().findGroup(peerId);
+        if(groupEntity != null && StringUtils.isNotBlank(groupEntity.getUserList())) {
+            String[] userNoArr = groupEntity.getUserList().split(",");
+            List<SingleCheckAdapter.ItemBean> itemBeanList = new ArrayList<>();
+            for(String userNo : userNoArr) {
+                if(userInfoBean.getJujuNo().equals(userNo)){
+                    continue;
+                } else {
+                    User user = imService.getContactManager().findContact(userNo);
+                    if(user != null) {
+                        SingleCheckAdapter.ItemBean itemBean = SingleCheckAdapter
+                                .ItemBean.build4UserEntity(user);
+                        itemBeanList.add(itemBean);
+                    }
+                }
+            }
+            if(itemBeanList.size() >0) {
+                itemListData = JacksonUtil.turnObj2String(itemBeanList);
+            }
+        }
+        return itemListData;
+    }
 
 }

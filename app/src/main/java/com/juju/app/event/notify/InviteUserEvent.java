@@ -1,12 +1,13 @@
 package com.juju.app.event.notify;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.juju.app.entity.Invite;
 
 import java.util.Date;
 
 /**
  * 项目名称：juju
- * 类描述：加群邀请通知
+ * 类描述：加群邀请通知+申请方式加入群组通知
  * 创建人：gm
  * 日期：2016/6/27 11:40
  * 版本：V1.0.0
@@ -31,10 +32,7 @@ public class InviteUserEvent {
         this.event = event;
     }
 
-    public InviteUserEvent(InviteUserBean bean, BusinessFlow businessFlow) {
-        this.bean = bean;
-        this.businessFlow = businessFlow;
-    }
+
 
     public enum Event {
         INVITE_USER_OK,
@@ -43,6 +41,7 @@ public class InviteUserEvent {
 
     //封装消息通知对象，防止多处定义json串
     //加群邀请通知Bean
+    @JsonIgnoreProperties(value = {"replayId", "replayTime"})
     public static class InviteUserBean {
         public String groupId;
         public String groupName;
@@ -50,12 +49,39 @@ public class InviteUserEvent {
         //需要冗余此字段（系统通知使用）
         public String nickName;
 
+        public String replayId;
+        public long replayTime;
+
 
         public static InviteUserBean valueOf(String groupId, String groupName,
                                              String userNo, String nickName) {
             InviteUserBean bean = new InviteUserBean();
             bean.groupId = groupId;
             bean.groupName = groupName;
+            bean.userNo = userNo;
+            bean.nickName = nickName;
+            return bean;
+        }
+
+
+
+    }
+
+    /**
+     * 申请方式加入群组通知
+     */
+    @JsonIgnoreProperties(value = {"replayId", "replayTime"})
+    public static class ApplyInGroupBean {
+        public String groupId;
+        public String userNo;
+        public String nickName;
+
+        public String replayId;
+        public long replayTime;
+
+        public static ApplyInGroupBean valueOf(String groupId, String userNo, String nickName) {
+            ApplyInGroupBean bean = new ApplyInGroupBean();
+            bean.groupId = groupId;
             bean.userNo = userNo;
             bean.nickName = nickName;
             return bean;
@@ -70,12 +96,16 @@ public class InviteUserEvent {
         public static class SendParam {
             public Send send;
             public InviteUserBean bean;
-            public String replayId;
-            public long replayTime;
+            public ApplyInGroupBean applyInGroupBean;
 
             public SendParam(Send send, InviteUserBean bean) {
                 this.send = send;
                 this.bean = bean;
+            }
+
+            public SendParam(Send send, ApplyInGroupBean applyInGroupBean) {
+                this.send = send;
+                this.applyInGroupBean = applyInGroupBean;
             }
 
             public enum Send {
@@ -86,6 +116,11 @@ public class InviteUserEvent {
                 //发送加入群组消息（消息服务器）
                 SEND_INVITE_USER_MSERVER_OK,
                 SEND_INVITE_USER_MSERVER_FAILED,
+
+
+                //发送“申请方式加入群组通知”
+                SEND_APPLY_IN_GROUP_MSERVER_OK,
+                SEND_APPLY_IN_GROUP_MSERVER_FAILED,
 
                 //更新本地数据
                 UPDATE_LOCAL_CACHE_DATA_OK,
@@ -101,6 +136,7 @@ public class InviteUserEvent {
         public static class RecvParam {
             public Recv recv;
             public InviteUserBean bean;
+            public ApplyInGroupBean applyInGroupBean;
             public String groupId;
             public String groupName;
             public String desc;
@@ -111,6 +147,11 @@ public class InviteUserEvent {
             public RecvParam(Recv recv, InviteUserBean bean) {
                 this.recv = recv;
                 this.bean = bean;
+            }
+
+            public RecvParam(Recv recv, ApplyInGroupBean applyInGroupBean) {
+                this.recv = recv;
+                this.applyInGroupBean = applyInGroupBean;
             }
 
             //获取群详情

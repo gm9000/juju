@@ -1,6 +1,8 @@
 package com.juju.app.golobal;
 
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.RemoveGroupEvent;
 
 /**
  * 项目名称：juju
@@ -261,7 +263,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return RemoveGroupEvent.RemoveGroupBean.class;
             }
         },
         EXIT_GROUP {
@@ -280,7 +282,7 @@ public final class IMBaseDefine {
                 return null;
             }
         },
-        LIVE_SWITCH_NOTIFY {
+        MASTER_TRANSFER {
             @Override
             public String code() {
                 return "1017";
@@ -293,7 +295,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return MasterTransferEvent.MasterTransferBean.class;
             }
         },
 

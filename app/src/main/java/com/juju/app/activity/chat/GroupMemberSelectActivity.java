@@ -79,7 +79,8 @@ import java.util.concurrent.TimeUnit;
 
 @ContentView(R.layout.activity_group_member_select)
 @CreateUI(showTopView = true)
-public class GroupMemberSelectActivity extends BaseActivity implements CreateUIHelper, SortSideBar.OnTouchingLetterChangedListener {
+public class GroupMemberSelectActivity extends BaseActivity implements CreateUIHelper,
+        SortSideBar.OnTouchingLetterChangedListener {
 
     protected static Logger logger = Logger.getLogger(GroupMemberSelectActivity.class);
 

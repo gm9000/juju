@@ -6,6 +6,7 @@ import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Message;
 
 import java.io.IOException;
 
@@ -111,6 +112,12 @@ public interface SocketService {
     public void joinChatRoom(String chatRoom, long lastUpdateTime) throws JUJUXMPPException, XMPPException,
             SmackException.NotConnectedException, SmackException.NoResponseException;
 
+    /**
+     * 离开聊天室
+     * @param peerId
+     */
+    public void leaveChatRoom(String peerId) throws SmackException.NotConnectedException;
+
 
     /**
      * 创建聊天室
@@ -131,9 +138,9 @@ public interface SocketService {
     public void reConnect();
 
     //通知消息
-    public void notifyMessage(String peerId, String message, IMBaseDefine.NotifyType notifyType,
-                              String uuid, boolean isSaveMsg, XMPPServiceCallbackImpl listener,
-                              Object... reqEntity);
+    public void notifyMessage(String peerId, String message, Message.Type type,
+                              IMBaseDefine.NotifyType notifyType, String uuid, boolean isSaveMsg,
+                              XMPPServiceCallbackImpl listener, Object... reqEntity);
 
     /**
      * 创建账号
@@ -142,4 +149,9 @@ public interface SocketService {
      * @return
      */
     public boolean createAccount(String userNo, String password);
+
+    /**
+     * 发送心跳包
+     */
+    public void sendPing();
 }

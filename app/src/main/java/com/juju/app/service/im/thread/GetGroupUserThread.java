@@ -75,6 +75,7 @@ public class GetGroupUserThread implements Runnable {
     private String name;
     private String desc;
     private String creatorId;
+    private String masterId;
     private Date createTime;
 
     private UserInfoBean userInfoBean;
@@ -83,7 +84,8 @@ public class GetGroupUserThread implements Runnable {
 
 
     public GetGroupUserThread(CountDownLatch countDownLatch, String id, String name,
-                              String desc, String creatorId, Date createTime, UserInfoBean userInfoBean,
+                              String desc, String creatorId, String masterId,
+                              Date createTime, UserInfoBean userInfoBean,
                               DaoSupport groupDao, DaoSupport userDao,
                               Map<String, GroupEntity> groupMap, Map<String, User> userMap) {
         this.countDownLatch = countDownLatch;
@@ -91,6 +93,7 @@ public class GetGroupUserThread implements Runnable {
         this.name = name;
         this.desc = desc;
         this.creatorId = creatorId;
+        this.masterId = masterId;
         this.createTime = createTime;
         this.userInfoBean = userInfoBean;
         this.groupDao = groupDao;
@@ -176,7 +179,7 @@ public class GetGroupUserThread implements Runnable {
                                         }
                                         GroupEntity groupEntity = GroupEntity.buildForReceive(id,
                                                 peerId, DBConstant.GROUP_TYPE_NORMAL,  name,
-                                                userNoSbf.toString(), creatorId, desc, createTime, null);
+                                                userNoSbf.toString(), creatorId, masterId, desc, createTime, null);
 
                                         //暂时这样处理
                                         GroupEntity cacheGroup = groupMap.get(groupEntity.getPeerId());

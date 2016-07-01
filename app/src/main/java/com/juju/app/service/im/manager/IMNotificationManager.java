@@ -24,6 +24,7 @@ import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
@@ -132,7 +133,6 @@ public class IMNotificationManager extends IMManager {
         String actionName = "";
         String actionName1 = "";
         String targetNickName = "";
-        String sessionKey = "";
 
         switch (event.event) {
             case INVITE_USER_RECEIVED:
@@ -143,8 +143,6 @@ public class IMNotificationManager extends IMManager {
                 userNo = inviteUserBean.userNo;
                 userName = inviteUserBean.nickName;
                 groupName = inviteUserBean.groupName;
-                sessionKey = DBConstant.SESSION_TYPE_GROUP+"_"+inviteUserBean.groupId+"@"
-                        +userInfoBean.getmMucServiceName()+ "."+userInfoBean.getmServiceName();
                 title = IMBaseDefine.NotifyType.INVITE_USER.desc();
                 detailTitle = title;
                 avatarUrl = HttpConstants.getPortraitUrl()+userNo;
@@ -152,24 +150,21 @@ public class IMNotificationManager extends IMManager {
                 actionName1 = "加入";
                 targetNickName = "您";
                 break;
-//            case INVITE_GROUP_NOTIFY_RES_RECEIVED:
-//                IMBaseDefine.InviteGroupNotifyResBean inviteGroupNotifyResBean =
-//                        (IMBaseDefine.InviteGroupNotifyResBean) JacksonUtil
-//                                .turnString2Obj(entity.getContent(),
-//                                        IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.getCls());
-//                userNo = inviteGroupNotifyResBean.userNo;
-//                userName = inviteGroupNotifyResBean.userName;
-//                groupName = inviteGroupNotifyResBean.groupName;
-//                title = IMBaseDefine.NotifyType.INVITE_GROUP_NOTIFY_RES.desc();
-//                detailTitle = title;
-//                avatarUrl = HttpConstants.getPortraitUrl()+userNo;
-//                if(inviteGroupNotifyResBean.status == 1) {
-//                    actionName = "同意";
-//                } else {
-//                    actionName = "拒绝";
-//                }
-//                actionName1 = "加入";
-//                break;
+            case REMOVE_GROUP_RECEIVED:
+                RemoveGroupEvent.RemoveGroupBean removeGroupBean = (RemoveGroupEvent.RemoveGroupBean)
+                        JacksonUtil.turnString2Obj(entity.getContent(), IMBaseDefine.NotifyType.REMOVE_GROUP.getCls());
+                if(removeGroupBean != null) {
+                    userNo = userInfoBean.getJujuNo();
+                    userName = "管理员";
+                    GroupEntity groupEntity = IMGroupManager.instance().findGroupById(removeGroupBean.groupId);
+                    groupName = groupEntity.getMainName();
+                    title = IMBaseDefine.NotifyType.REMOVE_GROUP.desc();
+                    detailTitle = title;
+                    actionName = "将";
+                    actionName1 = "移除";
+                    targetNickName = "您";
+                }
+                break;
         }
 
         //获取头像
@@ -177,8 +172,10 @@ public class IMNotificationManager extends IMManager {
         final String ticker = String.format("[%s]%s: %s%s%s%s",detailTitle, userName, actionName,
                 targetNickName, actionName1, groupName);
         final int notificationId = getSessionNotificationId(userNo);
-        final Intent intent = new Intent(ctx, ChatActivity.class);
-        intent.putExtra(Constants.SESSION_ID_KEY, sessionKey);
+//        final Intent intent = new Intent(ctx, ChatActivity.class);
+//        intent.putExtra(Constants.SESSION_ID_KEY, sessionKey);
+
+        final Intent intent = new Intent(Intent.ACTION_MAIN);
         logger.d("notification#notification avatarUrl:%s", avatarUrl);
         final String finalTitle = title;
         ImageLoader.getInstance().loadImage(avatarUrl, targetSize, null, new SimpleImageLoadingListener() {
@@ -187,7 +184,7 @@ public class IMNotificationManager extends IMManager {
                                           Bitmap loadedImage) {
                 logger.d("notification#icon onLoadComplete");
                 // holder.image.setImageBitmap(loadedImage);
-                showInNotificationBar(finalTitle,ticker,loadedImage,notificationId,intent);
+                showInNotificationBar(finalTitle,ticker,loadedImage,notificationId, intent);
             }
 
             @Override
