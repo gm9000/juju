@@ -4,7 +4,6 @@ import com.juju.app.R;
 import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
-import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMOtherManager;
 import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.utils.JacksonUtil;
@@ -34,11 +33,9 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
         return inst;
     }
 
-    private IMGroupManager imGroupManager;
 
-    public void start(IMOtherManager imOtherManager, IMGroupManager imGroupManager) {
+    public void start(IMOtherManager imOtherManager) {
         super.start(imOtherManager);
-        this.imGroupManager = imGroupManager;
         if(!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
@@ -51,12 +48,12 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
 
     @Override
     public void executeCommand4Recv(PartyNotifyEvent.PartyNotifyBean partyNotifyBean) {
+        recvUpdateLocalData(partyNotifyBean);
     }
 
 
     public void stop() {
         super.stop();
-        imGroupManager = null;
         EventBus.getDefault().unregister(this);
     }
 
@@ -84,12 +81,12 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
     }
 
     public void sendPartyRecruitToMServer(final PartyNotifyEvent.PartyNotifyBean partyNotifyBean) {
-        String peerId = partyNotifyBean.groupId+"@"+userInfoBean.getmServiceName();
+        String peerId = partyNotifyBean.groupId+"@"+userInfoBean.getmMucServiceName()+"."+userInfoBean.getmServiceName();
         String message = JacksonUtil.turnObj2String(partyNotifyBean);
         String uuid = UUID.randomUUID().toString();
 
         //通知用户
-        notifyMessage4User(peerId, message,
+        notifyMessage4Group(peerId, message,
                 IMBaseDefine.NotifyType.PARTY_RECRUIT, uuid, true,
                 new XMPPServiceCallbackImpl() {
                     @Override
@@ -148,10 +145,27 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
     public void onEvent4BusinessFlowRecvEvent(PartyNotifyEvent.BusinessFlow.RecvParam recvParam) {
         switch (recvParam.recv) {
             case UPDATE_LOCAL_CACHE_DATA_OK:
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ToastUtil.TextStringToast(context,"receive success",0);
+                    }
+                });
                 break;
             case UPDATE_LOCAL_CACHE_DATA_FAILED:
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ToastUtil.TextStringToast(context,"receive failue",0);
+                    }
+                });
                 break;
         }
+    }
+
+    private void recvUpdateLocalData(PartyNotifyEvent.PartyNotifyBean partyNotifyBean) {
+        buildAndTriggerBusinessFlow4Recv(PartyNotifyEvent.BusinessFlow
+                .RecvParam.Recv.UPDATE_LOCAL_CACHE_DATA_OK, partyNotifyBean);
     }
 
     /**

@@ -2,55 +2,33 @@ package com.juju.app.service.im.manager;
 
 import android.content.Context;
 
-import com.juju.app.R;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
-import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.biz.impl.InviteDaoImpl;
 import com.juju.app.biz.impl.OtherMessageDaoImpl;
-import com.juju.app.biz.impl.UserDaoImpl;
 import com.juju.app.entity.Invite;
-import com.juju.app.entity.User;
-import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.OtherMessageEntity;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
-import com.juju.app.event.user.InviteGroupEvent;
-import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.IMBaseDefine;
-import com.juju.app.golobal.MessageConstant;
-import com.juju.app.https.HttpCallBack4OK;
-import com.juju.app.https.JlmHttpClient;
-import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.service.SocketService;
-import com.juju.app.service.im.service.XMPPServiceImpl;
-import com.juju.app.service.notify.BaseNotify;
 import com.juju.app.service.notify.InviteUserNotify;
 import com.juju.app.service.notify.MasterTransferNotify;
+import com.juju.app.service.notify.PartyRecruitNotify;
 import com.juju.app.service.notify.RemoveGroupNotify;
 import com.juju.app.ui.base.BaseApplication;
-import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
-import com.juju.app.utils.StringUtils;
-import com.juju.app.utils.ToastUtil;
-import com.juju.app.utils.json.JSONUtils;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.jivesoftware.smack.packet.Message;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.UnsupportedEncodingException;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 /**
  * 项目名称：juju
@@ -152,6 +130,9 @@ public class IMOtherManager extends IMManager {
         InviteUserNotify.instance().start(this, IMGroupManager.instance());
         RemoveGroupNotify.instance().start(this, IMGroupManager.instance());
         MasterTransferNotify.instance().start(this, IMGroupManager.instance());
+        PartyRecruitNotify.instance().start(this);
+
+
 //
 //        BaseNotify baseNotify = new BaseNotify() {
 //
@@ -238,6 +219,11 @@ public class IMOtherManager extends IMManager {
                 MasterTransferEvent.MasterTransferBean masterTransferBean = (MasterTransferEvent.MasterTransferBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.MASTER_TRANSFER.getCls());
                 MasterTransferNotify.instance().executeCommand4Recv(masterTransferBean);
+                break;
+            case PARTY_RECRUIT:
+                PartyNotifyEvent.PartyNotifyBean partyNotify = (PartyNotifyEvent.PartyNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_RECRUIT.getCls());
+                PartyRecruitNotify.instance().executeCommand4Recv(partyNotify);
                 break;
             default:
                 otherMessageDao.replaceInto(otherMessageEntity);
