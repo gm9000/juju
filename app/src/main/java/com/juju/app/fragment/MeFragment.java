@@ -16,6 +16,8 @@ import com.juju.app.activity.party.MyPartyListActivity;
 import com.juju.app.activity.user.SettingActivity;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.biz.DaoSupport;
+import com.juju.app.biz.impl.UserDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Invite;
 import com.juju.app.entity.Party;
@@ -83,6 +85,8 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     @ViewInject(R.id.lin_party)
     private ViewGroup lin_party;
 
+    private DaoSupport userDao;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -113,12 +117,11 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
         txt_nickName = (TextView) findViewById(R.id.nick_name);
         img_gender = (ImageView) findViewById(R.id.iv_sex);
         txt_jujuNo = (TextView) findViewById(R.id.txt_jujuNo);
-
-
     }
 
     @Override
     public void loadData() {
+        userDao = new UserDaoImpl(getActivity().getApplicationContext());
         loadUserInfo();
         // TODO 通过消息驱动生成相关的邀请信息，并删除模拟数据生成的相关代码
 //        generateInviteDate();
@@ -174,7 +177,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
 
     public void loadUserInfo() {
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+userInfoBean.getJujuNo(),img_head,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+userInfoBean.getUserNo(),img_head,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
 
         String userInfoStr = (String) SpfUtil.get(getActivity().getApplicationContext(), Constants.USER_INFO,null);
 
@@ -185,9 +188,9 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
         if(userInfo == null){
 
             Map<String, Object> valueMap = new HashMap<String, Object>();
-            valueMap.put("userNo", userInfoBean.getJujuNo());
+            valueMap.put("userNo", userInfoBean.getUserNo());
             valueMap.put("token", userInfoBean.getToken());
-            valueMap.put("targetNo", userInfoBean.getJujuNo());
+            valueMap.put("targetNo", userInfoBean.getUserNo());
 
             JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
                     R.id.txt_property, HttpConstants.getUserUrl() + "/getUserInfo", this, valueMap,
@@ -234,7 +237,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
             case R.id.view_user:
                 UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
                 ActivityUtil.startActivity(this.getActivity(), SettingActivity.class,
-                        new BasicNameValuePair(Constants.USER_NO,userInfoBean.getJujuNo()));
+                        new BasicNameValuePair(Constants.USER_NO,userInfoBean.getUserNo()));
                 break;
         }
     }
@@ -263,6 +266,9 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                             txt_jujuNo.setText(userInfo.getUserNo());
                             txt_nickName.setText(userInfo.getNickName());
 
+
+                            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                            userInfoBean.setNickName(userInfo.getNickName());
                         } else {
                         }
                     } catch (JSONException e) {

@@ -49,6 +49,7 @@ import com.juju.app.R;
 import com.juju.app.adapter.ChatAdapter;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
+import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
@@ -57,6 +58,8 @@ import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.MessageEvent;
 import com.juju.app.event.PriorityEvent;
+import com.juju.app.event.notify.InviteInGroupEvent;
+import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.HandlerConstant;
@@ -200,6 +203,8 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     private static Handler uiHandler = null;
 
+    private UserInfoBean userInfoBean;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -217,6 +222,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     @Override
     public void loadData() {
+        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         EventBus.getDefault().register(this);
         initHandler();
         imServiceConnector.connect(this);
@@ -225,9 +231,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
         loginUser = new UserEntity();
         loginUser.setGender(1);
-        loginUser.setPeerId(userInfoBean.getmAccount());
-
-
+        loginUser.setPeerId(userInfoBean.getUserNo() + "@"+userInfoBean.getmServiceName());
         String[] sessionKeyArr = currentSessionKey.split("_");
         if(sessionKeyArr.length > 1) {
             //测试使用
@@ -963,14 +967,52 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                     message.what = HandlerConstant.MSG_RECEIVED_MESSAGE;
                     message.obj = entity;
                     uiHandler.sendMessage(message);
-
-//                    onMsgRecv(entity);
-//                    imService.getUnReadMsgManager().onNotifyRead(entity);
                     //取消事件传递（阻止IMService监听到此事件）
                     EventBus.getDefault().cancelEventDelivery(event);
                 }
             }
             break;
+        }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4InviteUser(InviteUserEvent event) {
+        switch (event.event) {
+            case INVITE_USER_OK:
+                InviteUserEvent.InviteUserBean inviteUserBean  = event.bean;
+                if(currentSessionKey.indexOf(inviteUserBean.groupId) >= 0) {
+                    User fromUser = imService.getContactManager().findContact(userInfoBean.getUserNo());
+                    GroupEntity groupEntity = imService.getGroupManager().findGroupById(inviteUserBean.groupId);
+                    //需考虑批量邀请
+                    String content = "你邀请"+inviteUserBean.nickName+"加入了群聊";
+                    TextMessage textMessage = TextMessage.buildForSend2Notify(content,
+                            fromUser.getPeerId(), groupEntity.getPeerId());
+                    onMsgRecv(textMessage);
+                }
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4InviteUser(InviteInGroupEvent event) {
+        switch (event.event) {
+            case RECV_INVITE_IN_GROUP_OK:
+                InviteInGroupEvent.InviteInGroupBean inviteInGroupBean  = event.bean;
+                if(currentSessionKey.indexOf(inviteInGroupBean.groupId) >= 0) {
+                    GroupEntity groupEntity = imService.getGroupManager().findGroupById(inviteInGroupBean.groupId);
+                    User toUser = imService.getContactManager().findContact(userInfoBean.getUserNo());
+                    String targetName = inviteInGroupBean.nickName;
+                    if(inviteInGroupBean.userNo.equals(userInfoBean.getUserNo())) {
+                        targetName = "你";
+                    }
+                    //需考虑批量邀请
+                    String content = inviteInGroupBean.invitorNickName+"邀请"+targetName+"加入了群聊";
+                    TextMessage textMessage = TextMessage.buildForSend2Notify(content,
+                            groupEntity.getPeerId(), toUser.getPeerId());
+                    onMsgRecv(textMessage);
+                }
+                break;
         }
     }
 
@@ -1012,6 +1054,12 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
             public void handleMessage(Message msg) {
                 super.handleMessage(msg);
                 switch (msg.what) {
+                    case HandlerConstant.MSG_RECEIVED_MESSAGE:
+                        MessageEntity entity = (MessageEntity) msg.obj;
+                        onMsgRecv(entity);
+                        imService.getUnReadMsgManager().onNotifyRead(entity);
+                        break;
+
 //                    case HandlerConstant.HANDLER_RECORD_FINISHED:
 //                        onRecordVoiceEnd((Float) msg.obj);
 //                        break;
@@ -1030,11 +1078,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 //                        doFinishRecordAudio();
 //                        break;
 
-                    case HandlerConstant.MSG_RECEIVED_MESSAGE:
-                        MessageEntity entity = (MessageEntity) msg.obj;
-                        onMsgRecv(entity);
-                        imService.getUnReadMsgManager().onNotifyRead(entity);
-                        break;
                     default:
                         break;
                 }

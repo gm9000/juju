@@ -48,13 +48,14 @@ public interface SocketService {
 
     /**
      * 发送消息
+     * @param from
      * @param to
      * @param message
      * @param uuid
      * @param listener
      * @throws SmackException.NotConnectedException
      */
-    public void sendMessage(String to, String message, String uuid,
+    public void sendMessage(String from, String to, String message, String uuid,
                             XMPPServiceCallbackImpl listener) throws SmackException.NotConnectedException;
 
 

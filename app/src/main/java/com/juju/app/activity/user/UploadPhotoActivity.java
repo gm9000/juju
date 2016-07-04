@@ -97,9 +97,9 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
         size = (int) (Math.min(metrics.widthPixels, metrics.heightPixels) / 0.55);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
-        String targetNo = userNo==null?userInfoBean.getJujuNo():userNo;
+        String targetNo = userNo==null?userInfoBean.getUserNo():userNo;
 
-        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo,originHeadImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getUserNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo,originHeadImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
     }
 
 
@@ -229,7 +229,7 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
         smallPortriat = Bitmap.createScaledBitmap(newPortriat,120,120,true);
         Map<String, Object> valueMap = new HashMap<String, Object>();
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("portrait", newPortriat);
         valueMap.put("portraitSmall", smallPortriat);
@@ -329,7 +329,7 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
                         if(status == 0) {
                             completeLoading();
                             Intent intent = getIntent();
-                            intent.setData(Uri.parse(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
+                            intent.setData(Uri.parse(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getUserNo()));
                             this.setResult(RESULT_OK,intent);
                             headImg.setVisibility(View.GONE);
                             menuLayout.setVisibility(View.GONE);
@@ -337,7 +337,7 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
 
                             UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
-                            String imgUrl = HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo();
+                            String imgUrl = HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getUserNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getUserNo();
                             MemoryCacheUtils.removeFromCache(imgUrl,ImageLoaderUtil.getImageLoaderInstance().getMemoryCache());
                             DiskCacheUtils.removeFromCache(imgUrl,ImageLoaderUtil.getImageLoaderInstance().getDiskCache());
 
@@ -359,7 +359,7 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
         completeLoading();
         ToastUtil.showShortToast(this,"上传失败",1);
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(),originHeadImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getUserNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getUserNo(),originHeadImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
 //        Picasso.with(getApplicationContext())
 //                .load(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo())
 //                .into(originHeadImg);

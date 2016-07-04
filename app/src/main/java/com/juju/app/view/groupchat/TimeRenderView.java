@@ -14,8 +14,7 @@ import com.juju.app.utils.DateUtil;
 import java.util.Date;
 
 /**
- * @author : yingmu on 15-1-9.
- * @email : yingmu@mogujie.com.
+ *
  *
  * 消息列表中的时间气泡
  * [备注] 插入条件是前后两条消息发送的时间diff 超过某个范围

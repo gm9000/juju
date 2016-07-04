@@ -30,12 +30,17 @@ public interface DBConstant {
      * 2. 纯图片信息
      * 3. 语音
      * 4. 图文混排
+     * 5. GIF
+     * 6. 通知
+     *
      * */
     public final int SHOW_ORIGIN_TEXT_TYPE = 1;
     public final int  SHOW_IMAGE_TYPE = 2;
     public final int  SHOW_AUDIO_TYPE = 3;
     public final int  SHOW_MIX_TEXT = 4;
     public final int  SHOW_GIF_TYPE = 5;
+    public final int  SHOW_NOTIFY_TYPE = 6;
+
 
 
     public final String DISPLAY_FOR_IMAGE = "[图片]";

@@ -23,6 +23,7 @@ import com.juju.app.service.im.manager.IMRecentSessionManager;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.manager.IMUnreadMsgManager;
 import com.juju.app.service.im.sp.ConfigurationSp;
+import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.SpfUtil;
@@ -156,7 +157,7 @@ public class IMService extends Service {
         //获取群组或联系人构造群聊列表
 
         Context ctx = getApplicationContext();
-        String userNo = loginMgr.getUserNo();
+        String userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
         configSp = ConfigurationSp.instance(ctx, userNo);
         //先获取群组
         groupMgr.onNormalLoginOk();
@@ -176,7 +177,7 @@ public class IMService extends Service {
     private void onLocalLoginOk(){
 //        Context ctx = getApplicationContext();
         Context ctx = getApplicationContext();
-        String userNo = loginMgr.getUserNo();
+        String userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
         configSp = ConfigurationSp.instance(ctx, userNo);
         groupMgr.onLocalLoginOk();
         contactMgr.onLocalLoginOk();
@@ -196,7 +197,7 @@ public class IMService extends Service {
      */
     private void onLocalNetOk(){
         Context ctx = getApplicationContext();
-        String userNo = loginMgr.getUserNo();
+        String userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
         configSp = ConfigurationSp.instance(ctx, userNo);
 
         groupMgr.onLocalNetOk();

@@ -720,4 +720,6 @@ public abstract class BaseActivity extends AppCompatActivity {
         topSearchEdt.setVisibility(View.GONE);
     }
 
+
+
 }

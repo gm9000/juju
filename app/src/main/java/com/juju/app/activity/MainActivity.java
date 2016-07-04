@@ -6,6 +6,7 @@ import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -176,6 +177,42 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         initPopWindow();
         long end = System.currentTimeMillis();
         Log.d(TAG, "init MainActivity cost time:" + (end - begin) + "毫秒");
+    }
+
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        if (keyCode == KeyEvent.KEYCODE_BACK) {
+//            Intent intent = new Intent(Intent.ACTION_MAIN);
+//            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+//            intent.addCategory(Intent.CATEGORY_HOME);
+//            startActivity(intent);
+//            return true;
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
+
+//    @Override
+//    public boolean onKeyDown(int keyCode, KeyEvent event) {
+//        // 过滤按键动作
+//        if (event.getKeyCode() == KeyEvent.KEYCODE_BACK) {
+//            moveTaskToBack(true);
+//        }
+//        return super.onKeyDown(keyCode, event);
+//    }
+//
+//    @Override
+//    public void onBackPressed() {
+//        moveTaskToBack(true);
+//        super.onBackPressed();
+//    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            moveTaskToBack(false);
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
     }
 
     /**
@@ -605,7 +642,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         Map<String, Object> valueMap = new HashMap<>();
         Map<String, Object> groupMap = new HashMap<>();
 
-        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
         groupMap.put("name", name);
         if (StringUtils.isNotBlank(description)) {
@@ -631,7 +668,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             return;
         }
         Map<String, Object> valueMap = new HashMap<>();
-        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("inviteCode", inViteCode);
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
@@ -687,7 +724,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 }
 
                 GroupEntity groupEntity = GroupEntity.buildForCreate(groupId, peerId,
-                        DBConstant.GROUP_TYPE_NORMAL, name,  userInfoBean.getJujuNo(),  desc,  null);
+                        DBConstant.GROUP_TYPE_NORMAL, name,  userInfoBean.getUserNo(),  desc,  null);
 
                 //更新数据
                 groupDao.replaceInto(groupEntity);
@@ -723,7 +760,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             else {
                 //删除业务服务器群组消息
                 Map<String, Object> valueMap = new HashMap<String, Object>();
-                valueMap.put("userNo", userInfoBean.getJujuNo());
+                valueMap.put("userNo", userInfoBean.getUserNo());
                 valueMap.put("token", userInfoBean.getToken());
                 valueMap.put("groupId", groupId);
                 JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(

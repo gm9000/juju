@@ -28,6 +28,7 @@ import com.juju.app.event.LoginEvent;
 import com.juju.app.event.SessionEvent;
 import com.juju.app.event.SmackSocketEvent;
 import com.juju.app.event.UnreadEvent;
+import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.golobal.Constants;
@@ -297,7 +298,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4InviteUserEvent(InviteUserEvent event){
-        logger.d("groupchat_fragment#UnreadEvent# -> %s", event);
+        logger.d("groupchat_fragment#InviteUserEvent# -> %s", event);
         switch (event.event){
             case INVITE_USER_OK:
                 onRecentContactDataReady();
@@ -307,10 +308,20 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4RemoveGroupEvent(RemoveGroupEvent event){
-        logger.d("groupchat_fragment#UnreadEvent# -> %s", event);
+        logger.d("groupchat_fragment#RemoveGroupEvent# -> %s", event);
         switch (event.event){
             case SEND_REMOVE_GROUP_OK:
             case RECV_REMOVE_GROUP_OK:
+                onRecentContactDataReady();
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4ExitGroupEvent(ExitGroupEvent event){
+        logger.d("groupchat_fragment#ExitGroupEvent# -> %s", event);
+        switch (event.event){
+            case SEND_EXIT_GROUP_OK:
                 onRecentContactDataReady();
                 break;
         }

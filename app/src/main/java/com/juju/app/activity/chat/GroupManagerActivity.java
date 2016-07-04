@@ -1,5 +1,6 @@
 package com.juju.app.activity.chat;
 
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.support.v7.app.AppCompatActivity;
@@ -20,23 +21,33 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IntentConstant;
 import com.juju.app.helper.CheckboxConfigHelper;
+import com.juju.app.https.HttpCallBack4OK;
+import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.sp.ConfigurationSp;
+import com.juju.app.service.notify.ExitGroupNotify;
+import com.juju.app.service.notify.MasterTransferNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ToastUtil;
+import com.juju.app.utils.json.JSONUtils;
+import com.juju.app.view.dialog.WarnTipDialog;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
@@ -44,10 +55,13 @@ import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -59,7 +73,6 @@ import java.util.Map;
 public class GroupManagerActivity extends BaseActivity {
 
     protected static Logger logger = Logger.getLogger(GroupManagerActivity.class);
-
 
     @ViewInject(R.id.group_manager_grid)
     private GridView gridView;
@@ -73,7 +86,6 @@ public class GroupManagerActivity extends BaseActivity {
 
     @ViewInject(R.id.tv_invite_code)
     private TextView tv_invite_code;
-
 
 
     private GroupManagerAdapter adapter;
@@ -169,8 +181,8 @@ public class GroupManagerActivity extends BaseActivity {
             }break;
         }
 
-        String loginId = userInfoBean.getJujuNo();
-        if(ownerId.equals(loginId)) {
+        String userNo = userInfoBean.getUserNo();
+        if(ownerId.equals(userNo)) {
             transfer_group.setVisibility(View.VISIBLE);
         }
         // 初始化配置checkBox
@@ -209,6 +221,62 @@ public class GroupManagerActivity extends BaseActivity {
         startActivityNew(GroupManagerActivity.this, GroupTransferActivity.class,
                 valueMap);
     }
+
+    @Event(value = R.id.quit_group)
+    private void onClick4QuitGroup(View view) {
+        String message = "确定退出"+peerEntity.getMainName()+"吗？";
+        WarnTipDialog tipdialog = new WarnTipDialog(GroupManagerActivity.this, message);
+        tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                User user = imService.getContactManager().findContact(userInfoBean.getUserNo());
+                GroupEntity groupEntity = imService.getGroupManager().findGroupById(peerEntity.getId());
+                if(groupEntity != null && groupEntity.getUserCnt() == 1) {
+                    //删除群组
+                    Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("groupId", groupEntity.getId());
+                    CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.DELETEGROUP;
+                    JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
+                            httpReqParam.url(), new HttpCallBack4OK() {
+                        @Override
+                        public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+                            if(obj != null && obj instanceof JSONObject) {
+                                JSONObject jsonRoot = (JSONObject)obj;
+                                int status = JSONUtils.getInt(jsonRoot, "status", -1);
+                                String desc = JSONUtils.getString(jsonRoot, "desc");
+                                if(status == 0) {
+                                    ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_success, 0);
+                                    finish(GroupManagerActivity.this);
+                                } else {
+                                    ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_failed, 0);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                            ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_failed, 0);
+                        }
+                    }, valueMap, JSONObject.class);
+                    try {
+                        client.sendGet4OK();
+                    } catch (UnsupportedEncodingException e) {
+                        logger.error(e);
+                    } catch (JSONException e) {
+                        logger.error(e);
+                    }
+
+                } else {
+                    //主动退出
+                    ExitGroupEvent.ExitGroupBean exitGroupBean = ExitGroupEvent.ExitGroupBean
+                            .valueOf(peerEntity.getId(), userInfoBean.getUserNo(), userInfoBean.getNickName(), 1);
+                    ExitGroupNotify.instance().executeCommand4Send(exitGroupBean);
+                }
+            }
+        });
+        tipdialog.show();
+    }
+
+
 
 
 
@@ -254,13 +322,23 @@ public class GroupManagerActivity extends BaseActivity {
                         .findGroupById(masterTransferEvent.bean.groupId);
                 if(groupEntity != null) {
                     adapter.refreshGroupData(groupEntity);
-                    if(!userInfoBean.getJujuNo().equals(masterTransferEvent.bean.masterNo)) {
+                    if(!userInfoBean.getUserNo().equals(masterTransferEvent.bean.masterNo)) {
                         transfer_group.setVisibility(View.GONE);
                     }
                 }
                 break;
         }
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4ExitGroup(ExitGroupEvent exitGroupEvent) {
+        switch (exitGroupEvent.event) {
+            case SEND_EXIT_GROUP_OK:
+                finish(GroupManagerActivity.this);
+                break;
+        }
+    }
+
 
 
     private String buildItemList(String peerId) {
@@ -270,7 +348,7 @@ public class GroupManagerActivity extends BaseActivity {
             String[] userNoArr = groupEntity.getUserList().split(",");
             List<SingleCheckAdapter.ItemBean> itemBeanList = new ArrayList<>();
             for(String userNo : userNoArr) {
-                if(userInfoBean.getJujuNo().equals(userNo)){
+                if(userInfoBean.getUserNo().equals(userNo)){
                     continue;
                 } else {
                     User user = imService.getContactManager().findContact(userNo);

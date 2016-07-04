@@ -34,7 +34,7 @@ import java.util.UUID;
 
 /**
  * 项目名称：juju
- * 类描述：
+ * 类描述：移除群组
  * 创建人：gm
  * 日期：2016/6/30 10:12
  * 版本：V1.0.0
@@ -289,7 +289,7 @@ public class RemoveGroupNotify extends BaseNotify<RemoveGroupEvent.RemoveGroupBe
             RemoveGroupEvent.BusinessFlow.RecvParam.Recv recv,
             RemoveGroupEvent.RemoveGroupBean removeGroupBean) {
         if(recv == null)
-            throw new IllegalArgumentException("InviteUserTask#recv is null");
+            throw new IllegalArgumentException("RemoveGroupNotify#recv is null");
 
         RemoveGroupEvent.BusinessFlow.RecvParam recvParam = new RemoveGroupEvent.BusinessFlow
                 .RecvParam(recv, removeGroupBean);

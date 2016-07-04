@@ -276,7 +276,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
 
         Map<String, Object> valueMap = new HashMap<String, Object>();
         UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        valueMap.put("userNo", userTokenInfoBean.getJujuNo());
+        valueMap.put("userNo", userTokenInfoBean.getUserNo());
         valueMap.put("token", userTokenInfoBean.getToken());
 
         switch(propertyType){
@@ -409,7 +409,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
     private void updateUserPhone() {
         Map<String, Object> valueMap = new HashMap<String, Object>();
         UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        valueMap.put("userNo", userTokenInfoBean.getJujuNo());
+        valueMap.put("userNo", userTokenInfoBean.getUserNo());
         valueMap.put("token", userTokenInfoBean.getToken());
         valueMap.put("phone",newPhone);
 

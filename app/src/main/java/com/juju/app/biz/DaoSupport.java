@@ -305,6 +305,32 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
             Log.e(TAG, "execute findByProperty error:"+clazz.getSimpleName(), e);
         }
         return list;
+    }
+
+    @Override
+    public Object findUniByProperty4Or(String propertys, Object... values) {
+        Object obj = null;
+        try {
+            Selector selector = db.selector(clazz);
+            if(StringUtils.isNotBlank(propertys)) {
+                String[] propertysArr = propertys.split(",");
+                if(values == null || propertysArr.length != values.length) {
+                    throw new DbException("MISMATCH");
+                }
+                for (int i = 0; i <propertysArr.length; i++) {
+                    if(i == 0) {
+                        selector.where(propertysArr[i].trim(), "=", values[i]);
+                    } else {
+                        selector.or(propertysArr[i].trim(), "=", values[i]);
+                    }
+                }
+            }
+            obj = selector.findFirst();
+        } catch (DbException e) {
+            e.printStackTrace();
+            Log.e(TAG, "execute findByProperty error:"+clazz.getSimpleName(), e);
+        }
+        return obj;
 
     }
 

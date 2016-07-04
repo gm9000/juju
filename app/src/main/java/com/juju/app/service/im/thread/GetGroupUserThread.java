@@ -117,7 +117,7 @@ public class GetGroupUserThread implements Runnable {
 
     private void execute() {
         Map<String, Object> valueMap = new HashMap<>();
-        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("groupId", id);
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(

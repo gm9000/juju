@@ -98,9 +98,9 @@ public class GroupTransferActivity extends BaseActivity implements CreateUIHelpe
                 tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        User user = imService.getContactManager().findContact(userInfoBean.getJujuNo());
+                        User user = imService.getContactManager().findContact(userInfoBean.getUserNo());
                         MasterTransferEvent.MasterTransferBean masterTransferBean = MasterTransferEvent
-                                .MasterTransferBean.valueOf(groupId, userInfoBean.getJujuNo(),
+                                .MasterTransferBean.valueOf(groupId, userInfoBean.getUserNo(),
                                         user.getNickName(), itemBean.getId(), itemBean.getMainName());
                         MasterTransferNotify.instance().executeCommand4Send(masterTransferBean);
                         finish(GroupTransferActivity.this);

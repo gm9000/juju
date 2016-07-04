@@ -28,6 +28,7 @@ import com.juju.app.utils.CommonUtil;
 import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.view.groupchat.MessageOperatePopup;
+import com.juju.app.view.groupchat.NormalNotifyRenderView;
 import com.juju.app.view.groupchat.TextRenderView;
 import com.juju.app.view.groupchat.TimeRenderView;
 
@@ -133,6 +134,9 @@ public class ChatAdapter extends BaseAdapter {
                 case MESSAGE_TYPE_OTHER_GIF:
 //                    convertView = gifMsgRender(position, convertView, parent, false);
                     break;
+                case MESSAGE_TYPE_NORMAL_NOTIFY:
+                    convertView = normalNotifyRender(position, convertView, parent);
+                    break;
             }
             return convertView;
         } catch (Exception e) {
@@ -179,6 +183,9 @@ public class ChatAdapter extends BaseAdapter {
                                     : RenderType.MESSAGE_TYPE_OTHER_TEXT;
                         }
 
+                        break;
+                    case DBConstant.SHOW_NOTIFY_TYPE:
+                        type = RenderType.MESSAGE_TYPE_NORMAL_NOTIFY;
                         break;
                     case DBConstant.SHOW_MIX_TEXT:
                         //
@@ -264,9 +271,6 @@ public class ChatAdapter extends BaseAdapter {
                 timeRenderView = TimeRenderView.inflater(ctx, parent);
             }
         }
-
-//        timeRenderView = TimeRenderView.inflater(ctx, parent);
-
         timeRenderView.setTime(timeBubble);
         return timeRenderView;
     }
@@ -286,29 +290,7 @@ public class ChatAdapter extends BaseAdapter {
                                final ViewGroup viewGroup, final boolean isMine) {
         TextRenderView textRenderView;
         final TextMessage textMessage = (TextMessage) msgObjectList.get(position);
-        User user = imService.getContactManager().findContact(textMessage.getFromId());
-
-
-//        UserEntity userEntity = new UserEntity();
-//        //测试使用
-//        if(textMessage.getFromId().equals("100000001")) {
-//            userEntity.setAvatar("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
-//            userEntity.setMainName("100000001");
-//        } else if (textMessage.getFromId().indexOf("100000002") >= 0 ) {
-//            userEntity.setAvatar("http://cdn.duitang.com/uploads/item/201511/07/20151107210255_UzQaN.thumb.700_0.jpeg");
-//            userEntity.setMainName("100000002");
-//        }
-
-
-
-//        if(BaseApplication.getInstance().getUserInfoBean().getmAccount().equals("100000001")) {
-//            userEntity.setAvatar("http://img4.duitang.com/uploads/item/201511/07/20151107174431_emPdc.jpeg");
-//        } else {
-//            userEntity.setAvatar("http://cdn.duitang.com/uploads/item/201601/08/20160108130846_MS4TW.thumb.700_0.png");
-//        }
-
-
-
+        User user = imService.getContactManager().findContactByFormId(textMessage.getFromId());
         if (null == convertView) {
             textRenderView = TextRenderView.inflater(ctx, viewGroup, isMine); //new TextRenderView(ctx,viewGroup,isMine);
         } else {
@@ -341,7 +323,7 @@ public class ChatAdapter extends BaseAdapter {
             }
         });
 
-        // url 路径可以设定 跳转哦哦
+        // url 路径可以设定 跳转
         final String content = textMessage.getContent();
 //        textView.setOnTouchListener(new OnDoubleClickListener() {
 //            @Override
@@ -358,6 +340,27 @@ public class ChatAdapter extends BaseAdapter {
 //        });
         textRenderView.render(textMessage, user, ctx);
         return textRenderView;
+    }
+
+
+    /**
+     * 普通通知的渲染展示
+     */
+    private View normalNotifyRender(int position, View convertView, ViewGroup parent) {
+        NormalNotifyRenderView normalNotifyRenderView;
+        TextMessage notifyMsg = (TextMessage) msgObjectList.get(position);
+        if (null == convertView) {
+            normalNotifyRenderView = NormalNotifyRenderView.inflater(ctx, parent);
+        } else {
+            // 不用再使用tag 标签了
+            if(convertView instanceof  NormalNotifyRenderView) {
+                normalNotifyRenderView = (NormalNotifyRenderView) convertView;
+            } else {
+                normalNotifyRenderView = NormalNotifyRenderView.inflater(ctx, parent);
+            }
+        }
+        normalNotifyRenderView.setNotifyMsg(notifyMsg.getContent());
+        return normalNotifyRenderView;
     }
 
     public void clearItem() {

@@ -130,10 +130,18 @@ public class IMContactManager extends IMManager implements HttpCallBack4OK {
 //        int updateTime = dbInterface.getUserInfoLastTime();
 //        logger.d("contact#loadAllUserInfo req-updateTime:%d", updateTime);
 //        reqGetAllUsers(updateTime);
-        sendGetUserInfo2BServer(userInfoBean.getJujuNo());
+        sendGetUserInfo2BServer(userInfoBean.getUserNo());
     }
 
     public User findContact(String userNo){
+        if(userMap.containsKey(userNo)){
+            return userMap.get(userNo);
+        }
+        return null;
+    }
+
+    public User findContactByFormId(String fromId){
+        String userNo = fromId.split("@")[0];
         if(userMap.containsKey(userNo)){
             return userMap.get(userNo);
         }
@@ -265,7 +273,7 @@ public class IMContactManager extends IMManager implements HttpCallBack4OK {
                     int gender = JSONUtils.getInt(jsonUser, "gender", 1);
                     String createTime = JSONUtils.getString(jsonUser, "createTime");
                     userInfoBean.setPhone(userPhone);
-                    userInfoBean.setUserName(nickName);
+                    userInfoBean.setNickName(nickName);
                     userInfoBean.setGender(gender);
 //                    if(NumberUtils.isNumber(birthday)) {
 //                        userInfoBean.setBirthday(Long.parseLong(birthday));

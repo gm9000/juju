@@ -8,6 +8,7 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.InviteDaoImpl;
 import com.juju.app.entity.Invite;
+import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.IMBaseDefine;
@@ -121,9 +122,9 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
          * 发送步骤:
          * 1: 发送"加入群组请求"（业务服务）
          * 2：发送"加群邀请通知--1001"（消息服务）
-         * 3：发送"请方式加入群组通知--1009" (消息服务)
-         * 4：更新缓存
-         * 5：通知发送成功
+//         * 3：发送"请方式加入群组通知--1009" (消息服务)
+         * 3：更新缓存
+         * 4：通知发送成功
          * 注意：按顺序发送，某个步骤出现异常，后面步骤停止
          */
         switch (sendParam.send) {
@@ -131,20 +132,27 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
                 sendInviteUserToMServer4Send(sendParam.bean);
                 break;
             case SEND_INVITE_USER_MSERVER_OK:
-                sendApplyInGroupToMServer4Send(sendParam.applyInGroupBean);
+                //更新成员列表
+                imGroupManager.updateGroup4Members(sendParam.bean.groupId,
+                        sendParam.bean.userNo, sendParam.bean.replayTime, 0);
+                buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
+                        .Send.UPDATE_LOCAL_CACHE_DATA_OK, sendParam.bean);
+
+                //发送“邀请方式加入群组指令”（独立存在）
+                InviteInGroupEvent.InviteInGroupBean inviteInGroupBean = InviteInGroupEvent.InviteInGroupBean
+                        .valueOf(sendParam.bean.groupId, sendParam.bean.userNo, sendParam.bean.nickName,
+                                userInfoBean.getUserNo(), userInfoBean.getNickName());
+                InviteInGroupNotify.instance().executeCommand4Send(inviteInGroupBean);
                 break;
-            case SEND_APPLY_IN_GROUP_MSERVER_OK:
-                imGroupManager.updateGroup4Members(sendParam.applyInGroupBean.groupId,
-                        sendParam.applyInGroupBean.userNo, sendParam.applyInGroupBean.replayTime, 0);
-                buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                        .Send.UPDATE_LOCAL_CACHE_DATA_OK, sendParam.applyInGroupBean);
-                break;
+//            case SEND_APPLY_IN_GROUP_MSERVER_OK:
+//                imGroupManager.updateGroup4Members(sendParam.applyInGroupBean.groupId,
+//                        sendParam.applyInGroupBean.userNo, sendParam.applyInGroupBean.replayTime, 0);
+//                buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
+//                        .Send.UPDATE_LOCAL_CACHE_DATA_OK, sendParam.applyInGroupBean);
+//                break;
             case UPDATE_LOCAL_CACHE_DATA_OK:
                 //通知群组
-                InviteUserEvent.InviteUserBean inviteUserBean = InviteUserEvent.InviteUserBean
-                        .valueOf(sendParam.applyInGroupBean.groupId, "",
-                                sendParam.applyInGroupBean.userNo, sendParam.applyInGroupBean.nickName);
-                InviteUserEvent inviteUserEvent = new InviteUserEvent(inviteUserBean,
+                InviteUserEvent inviteUserEvent = new InviteUserEvent(sendParam.bean,
                         InviteUserEvent.Event.INVITE_USER_OK);
                 triggerEvent(inviteUserEvent);
                 break;
@@ -232,13 +240,12 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
                                 inviteUserBean.replayId = id;
                                 inviteUserBean.replayTime = replayTime;
 
-
-                                buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                                        .Send.SEND_INVITE_USER_MSERVER_OK, applyInGroupBean);
+                                buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
+                                        .Send.SEND_INVITE_USER_MSERVER_OK, inviteUserBean);
 
                             } else {
-                                buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                                        .Send.SEND_INVITE_USER_MSERVER_FAILED, applyInGroupBean);
+                                buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
+                                        .Send.SEND_INVITE_USER_MSERVER_FAILED, inviteUserBean);
                             }
                         }
                     }
@@ -246,15 +253,15 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
                     @Override
                     public void onFailed() {
                         logger.d("InviteUserNotify#sendInviteUserToMServer failed");
-                        buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                                .Send.SEND_INVITE_USER_MSERVER_FAILED, applyInGroupBean);
+                        buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
+                                .Send.SEND_INVITE_USER_MSERVER_FAILED, inviteUserBean);
                     }
 
                     @Override
                     public void onTimeout() {
                         logger.d("InviteUserNotify#sendInviteUserToMServer timeout");
-                        buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                                .Send.SEND_INVITE_USER_MSERVER_FAILED, applyInGroupBean);
+                        buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
+                                .Send.SEND_INVITE_USER_MSERVER_FAILED, inviteUserBean);
                     }
                 });
     }

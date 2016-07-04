@@ -51,7 +51,7 @@ public class HttpReqParamUtil {
 
         Map<String, Object> map = new HashMap<>();
         if(userInfoBean != null) {
-            map.put("userNo", userInfoBean.getJujuNo());
+            map.put("userNo", userInfoBean.getUserNo());
             map.put("token", userInfoBean.getToken());
         }
         for (int i = 0; i < keyArr.length; i++) {

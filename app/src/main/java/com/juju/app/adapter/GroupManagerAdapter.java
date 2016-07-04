@@ -77,7 +77,7 @@ public class GroupManagerAdapter extends BaseAdapter {
 	}
 
     private void setGroupData(GroupEntity entity){
-        String loginId = userInfoBean.getJujuNo();
+        String loginId = userInfoBean.getUserNo();
         String ownerId = entity.getMasterId();
         IMContactManager manager = imService.getContactManager();
         for(String memId:entity.getlistGroupMemberIds()){
@@ -299,20 +299,15 @@ public class GroupManagerAdapter extends BaseAdapter {
 					public void onClick(View v) {
                         if(holder.contactEntity == null){return;}
                         String userId = holder.contactEntity.getUserNo();
-                        removeById(userId);
-                        Set<String> removeMemberlist = new HashSet<>(1);
-                        removeMemberlist.add(userId);
-
+//                        removeById(userId);
                         //TODO 放在IMOtherManager处理更合理
                         RemoveGroupEvent.RemoveGroupBean removeGroupBean = RemoveGroupEvent
                                 .RemoveGroupBean.valueOf(peerEntity.getId(), peerEntity.getMainName(), userId);
                         RemoveGroupNotify.instance().executeCommand4Send(removeGroupBean);
 
-//                        imService.getGroupManager().reqRemoveGroupMember(peerEntity.getPeerId(), removeMemberlist);
 					}
 				});
 			}
-
 			holder.userTitle.setText(name);
 			holder.imageView.setVisibility(View.VISIBLE);
 			holder.userTitle.setVisibility(View.VISIBLE);

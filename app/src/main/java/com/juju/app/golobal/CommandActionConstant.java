@@ -23,7 +23,7 @@ public class CommandActionConstant {
         GETUSERINFO {
             @Override
             public int code() {
-                return Integer.parseInt("0010");
+                return Integer.parseInt("0022");
             }
 
             @Override
@@ -108,7 +108,34 @@ public class CommandActionConstant {
             public String url() {
                 return HttpConstants.getUserUrl()+"/updateGroupMaster";
             }
+        },
+
+        //退出群组
+        QUITGROUP {
+            @Override
+            public int code() {
+                return Integer.parseInt("0015");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/quitGroup";
+            }
+        },
+
+        //删除群组
+        DELETEGROUP {
+            @Override
+            public int code() {
+                return Integer.parseInt("0009");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/deleteGroup";
+            }
         };
+
 
 
         public abstract int code();

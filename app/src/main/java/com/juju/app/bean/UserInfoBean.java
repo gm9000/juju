@@ -13,8 +13,8 @@ public class UserInfoBean {
         initTest();
     }
 
-    //消息服务器账号
-    private String mAccount;
+//    //消息服务器账号
+//    private String mAccount;
 
     private String mServiceName;
 
@@ -37,13 +37,15 @@ public class UserInfoBean {
     private String phone;
 
     //用户名
-    private String userName;
+    private String nickName;
 
     //性别
     private int gender;
 
     //聚聚号
-    private String jujuNo;
+    private String userNo;
+
+    private String token;
 
     //生日
     private long birthday;
@@ -56,15 +58,15 @@ public class UserInfoBean {
         this.token = token;
     }
 
-    private String token;
 
-    public String getmAccount() {
-        return mAccount;
-    }
 
-    public void setmAccount(String mAccount) {
-        this.mAccount = mAccount;
-    }
+//    public String getmAccount() {
+//        return mAccount;
+//    }
+//
+//    public void setmAccount(String mAccount) {
+//        this.mAccount = mAccount;
+//    }
 
     public String getmPassword() {
         return mPassword;
@@ -82,12 +84,12 @@ public class UserInfoBean {
         this.phone = phone;
     }
 
-    public String getUserName() {
-        return userName;
+    public String getNickName() {
+        return nickName;
     }
 
-    public void setUserName(String userName) {
-        this.userName = userName;
+    public void setNickName(String nickName) {
+        this.nickName = nickName;
     }
 
     public int getGender() {
@@ -98,12 +100,12 @@ public class UserInfoBean {
         this.gender = gender;
     }
 
-    public String getJujuNo() {
-        return jujuNo;
+    public String getUserNo() {
+        return userNo;
     }
 
-    public void setJujuNo(String jujuNo) {
-        this.jujuNo = jujuNo;
+    public void setUserNo(String userNo) {
+        this.userNo = userNo;
     }
 
     public String getmRoomName() {
@@ -155,13 +157,12 @@ public class UserInfoBean {
     }
 
     private void initTest() {
-//        this.mAccount = "100000001";
         this.mHost = "219.143.237.230";
         this.mPort = 5222;
 //        this.mPassword = "123456";
         this.mRoomName = "ceshi";
         this.mMucServiceName = "conference";
         this.mServiceName = "juju";
-        this.userName = "100000001";
+        this.nickName = "100000001";
     }
 }

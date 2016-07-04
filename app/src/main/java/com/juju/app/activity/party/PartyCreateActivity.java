@@ -293,7 +293,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         if (isPublish){
             UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
             PartyReqBean reqBean = new PartyReqBean();
-            reqBean.setUserNo(userTokenInfoBean.getJujuNo());
+            reqBean.setUserNo(userTokenInfoBean.getUserNo());
             reqBean.setToken(userTokenInfoBean.getToken());
             reqBean.setGroupId(groupId);
 
@@ -336,7 +336,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             party.setName(txt_partyTitle.getText().toString());
             party.setDesc(txt_description.getText().toString());
             party.setStatus(-1);
-            party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+            party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getUserNo());
             party.setGroupId(groupId);
 
             if(!StringUtils.isEmpty(party.getGroupId())){
@@ -565,7 +565,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                             party.setName(txt_partyTitle.getText().toString());
                             party.setDesc(txt_description.getText().toString());
                             party.setId(partyId);
-                            party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+                            party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getUserNo());
 
                             party.setStatus(0); //  召集中
 

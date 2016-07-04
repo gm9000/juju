@@ -130,7 +130,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         if(userInfo != null && userInfo.isUpdate()){
             Map<String, Object> valueMap = new HashMap<String, Object>();
             UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
-            valueMap.put("userNo", userTokenInfoBean.getJujuNo());
+            valueMap.put("userNo", userTokenInfoBean.getUserNo());
             valueMap.put("token", userTokenInfoBean.getToken());
             valueMap.put("nickName", userInfo.getNickName());
             valueMap.put("gender", userInfo.getGender());
@@ -150,7 +150,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
 
     private void loadUserInfo() {
-        String targetNo = userNo==null?BaseApplication.getInstance().getUserInfoBean().getJujuNo():userNo;
+        String targetNo = userNo==null?BaseApplication.getInstance().getUserInfoBean().getUserNo():userNo;
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         User userInfo = null;
         if(StringUtils.isBlank(userNo)) {
@@ -171,9 +171,9 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         if(userInfo == null){
             UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
             Map<String, Object> valueMap = new HashMap<String, Object>();
-            valueMap.put("userNo", userInfoBean.getJujuNo());
+            valueMap.put("userNo", userInfoBean.getUserNo());
             valueMap.put("token", userInfoBean.getToken());
-            valueMap.put("targetNo", userNo==null?userInfoBean.getJujuNo():userNo);
+            valueMap.put("targetNo", userNo==null?userInfoBean.getUserNo():userNo);
 
             JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
                     R.id.txt_jujuNo, HttpConstants.getUserUrl() + "/getUserInfo", this, valueMap,
@@ -318,7 +318,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
     private void logout(){
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         Map<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
 
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(

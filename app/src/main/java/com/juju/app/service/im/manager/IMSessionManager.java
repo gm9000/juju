@@ -67,6 +67,7 @@ public class IMSessionManager extends IMManager {
 
     private DaoSupport messageDao;
 
+    private UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
 
     //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMSessionManager instance() {
@@ -137,8 +138,8 @@ public class IMSessionManager extends IMManager {
             ;
             return;
         }
-        String loginId = BaseApplication.getInstance().getUserInfoBean().getmAccount();
-        boolean isSend = msg.isSend(loginId);
+        String userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
+        boolean isSend = msg.isSend(userNo);
         String peerId = msg.getPeerId(isSend);
 
         SessionEntity sessionEntity = sessionMap.get(msg.getSessionKey());
@@ -229,7 +230,7 @@ public class IMSessionManager extends IMManager {
         Map<String, UnreadEntity> unreadMsgMap = IMUnreadMsgManager.instance().getUnreadMsgMap();
         Map<String, GroupEntity> groupEntityMap = IMGroupManager.instance().getGroupMap();
         HashSet<String> topList = ConfigurationSp.instance(ctx,
-                IMLoginManager.instance().getUserNo()).getSessionTopList();
+                userInfoBean.getUserNo()).getSessionTopList();
 
         //是否考虑每次都遍历群组
         for(GroupEntity groupEntity : groupList) {
