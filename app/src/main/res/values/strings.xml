@@ -136,6 +136,7 @@
     <string name="send">发送</string>
     <string name="preview">预览</string>
     <string name="cancel">取消</string>
+    <string name="close">关闭</string>
     <string name="title_activity_preview">PreviewActivity</string>
     <string name="request_login_faild">请求登陆消息服务器失败</string>
     <string name="sdcard_unavaluable">请检查存储卡是否可用</string>
@@ -212,6 +213,7 @@
     <string name="selected">未选</string>
     <string name="signed">已报</string>
     <string name="top_location">置顶</string>
+    <string name="stock">归档</string>
     <string name="have"> 已有</string>
     <string name="attended"> 人报名</string>
     <string name="signup">报名</string>

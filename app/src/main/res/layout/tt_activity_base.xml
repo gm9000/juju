@@ -24,7 +24,7 @@
             android:drawableLeft="@mipmap/tt_search"
             android:drawablePadding="10dp"
             android:gravity="left|center_vertical"
-            android:hint="搜索群组"
+            android:hint="@string/search"
             android:paddingLeft="10dp"
             android:singleLine="true"
             android:textColor="@android:color/black"

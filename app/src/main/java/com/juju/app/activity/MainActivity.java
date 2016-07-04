@@ -218,6 +218,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         switch (view.getId()) {
             case R.id.re_group_chat:
 //                img_right.setVisibility(View.VISIBLE);
+                hideTopLeftButton();
                 setTopRightButton(0);
                 index = 0;
                 if (groupChatFragment != null) {
@@ -234,14 +235,13 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 break;
             case R.id.re_group_party:
                 index = 1;
-//                txt_title.setText(R.string.group_party);
-//                img_right.setVisibility(View.VISIBLE);
-//                img_right.setImageResource(R.mipmap.icon_add);
+                setTopLeftButton(R.mipmap.tt_search);
                 setTopTitle(R.string.group_party);
                 setTopRightButton(R.mipmap.top_menu);
                 break;
             case R.id.re_profile:
                 index = 2;
+                hideTopLeftButton();
 //                txt_title.setText(R.string.me);
                 setTopTitle(R.string.me);
                 break;
@@ -796,4 +796,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 //                break;
 //        }
 //    }
+
+
+    public ImageView getTopLeftBtn(){
+        return topLeftBtn;
+    }
 }

@@ -5,60 +5,60 @@
     android:orientation="vertical">
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="1dp"
-        android:paddingBottom="1dp"
+        android:layout_height="50dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
         android:id="@+id/view_user"
-        android:layout_marginTop="1dp"
+        android:layout_marginTop="2dp"
         android:background="@drawable/setting_item_selector">
         <com.juju.app.view.RoundImageView
             android:id="@+id/img_head"
             android:layout_marginRight="5dp"
             android:layout_marginLeft="10dp"
-            android:layout_width="80dip"
-            android:layout_height="80dip"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_alignParentBottom="true"
             android:layout_centerVertical="true"
             android:src="@mipmap/head" />
         <TextView
-            android:textSize="14dp"
             android:id="@+id/live_user_name"
-            android:layout_marginTop="10dp"
+            style="@style/BlackTxt14"
             android:layout_marginLeft="5dp"
             android:layout_toRightOf="@+id/img_head"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="2dp"
             android:text="聚龙小子"/>
-        <TextView
-            android:id="@+id/live_type_txt"
-            android:textSize="16dp"
-            style="@style/txt_ContextStyle1"
-            android:layout_marginTop="12dp"
-            android:layout_marginLeft="20dp"
-            android:layout_below="@+id/live_user_name"
-            android:layout_toRightOf="@+id/img_head"
-            android:text="视频直播"
-            android:textColor="@color/black"/>
-
-
-        <ImageView
-            android:id="@+id/img_right"
-            android:layout_marginRight="20dp"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@mipmap/right" />
-
         <TextView
             android:id="@+id/live_time_txt"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentRight="true"
-            android:layout_marginTop="10dp"
             android:layout_marginRight="10dp"
-            android:text="正在直播..."
-            android:textSize="12dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="2dp"
+            android:text="直播中..."
+            android:textSize="14dp"
             android:textColor="@color/red"/>
+    </RelativeLayout>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <ImageView
+            android:id="@+id/img_capture"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:adjustViewBounds="true"
+            android:src="@drawable/capture"
+            />
+        <ImageView
+            android:id="@+id/img_play"
+            android:layout_centerInParent="true"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:src="@mipmap/play"
+            />
     </RelativeLayout>
 
 </LinearLayout>

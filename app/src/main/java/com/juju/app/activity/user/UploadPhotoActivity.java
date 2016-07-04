@@ -1,7 +1,6 @@
 package com.juju.app.activity.user;
 
 import android.annotation.SuppressLint;
-import android.app.AlertDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
@@ -11,7 +10,6 @@ import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -30,6 +28,7 @@ import com.juju.app.view.RoundImageView;
 import com.juju.app.view.imagezoom.utils.DecodeUtils;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
+import com.rey.material.app.BottomSheetDialog;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -73,6 +72,11 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
 
     private Bitmap newPortriat;
     private Bitmap smallPortriat;
+
+    private BottomSheetDialog msgDialog;
+    private TextView txtCapture;
+    private TextView txtPhoto;
+    private TextView txtCancel;
 
 
     @Override
@@ -124,16 +128,14 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
     }
 
     private void showPicMenu() {
-        final AlertDialog dlg = new AlertDialog.Builder(this).create();
-        dlg.show();
-        Window window = dlg.getWindow();
-        // *** 主要就是在这里实现这种效果的.
-        // 设置窗口的内容页面,shrew_exit_dialog.xml文件中定义view内容
-        window.setContentView(R.layout.alertdialog);
-        // 为确认按钮添加事件,执行退出应用操作
-        TextView tv_paizhao = (TextView) window.findViewById(R.id.tv_content1);
-        tv_paizhao.setText(R.string.take_camera_btn_text);
-        tv_paizhao.setOnClickListener(new View.OnClickListener() {
+
+        msgDialog = new BottomSheetDialog(this);
+        msgDialog.setCanceledOnTouchOutside(false);
+        msgDialog.contentView(R.layout.layout_bottom_menu)
+                .inDuration(300);
+        txtCapture = (TextView)msgDialog.findViewById(R.id.btn_menu1);
+        txtCapture.setText(R.string.take_camera_btn_text);
+        txtCapture.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("SdCardPath")
             public void onClick(View v) {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
@@ -149,20 +151,31 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
                 intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
                 startActivityForResult(intent, PHOTO_REQUEST_TAKEPHOTO);
-                dlg.cancel();
+                msgDialog.dismiss();
             }
         });
-        TextView tv_xiangce = (TextView) window.findViewById(R.id.tv_content2);
-        tv_xiangce.setText(R.string.album);
-        tv_xiangce.setOnClickListener(new View.OnClickListener() {
+
+        txtPhoto = (TextView)msgDialog.findViewById(R.id.btn_menu2);
+        txtPhoto.setText(R.string.album);
+        txtPhoto.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 Intent intent = new Intent(Intent.ACTION_PICK, null);
                 intent.setDataAndType(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI, "image/*");
                 startActivityForResult(intent, PHOTO_REQUEST_GALLERY);
-                dlg.cancel();
+                msgDialog.dismiss();
             }
         });
+
+        txtCancel = (TextView)msgDialog.findViewById(R.id.txt_cancel);
+        txtCancel.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                msgDialog.dismiss();
+            }
+        });
+
+        msgDialog.show();
 
     }
 

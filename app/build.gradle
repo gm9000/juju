@@ -105,6 +105,7 @@ dependencies {
 //    compile files('libs/nodemedia-client-v0.9.6.jar')
 //    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.4.5'
     compile 'tv.danmaku.ijk.media:ijkplayer-java:0.5.1'
+    compile 'com.panxw.imageindicator:library:1.0.2'
 }
 
 repositories {

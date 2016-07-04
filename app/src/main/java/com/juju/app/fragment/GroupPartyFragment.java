@@ -14,8 +14,9 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.baidu.location.BDLocation;
 import com.baidu.location.BDLocationListener;
@@ -24,25 +25,21 @@ import com.baidu.location.LocationClientOption;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.juju.app.R;
+import com.juju.app.activity.MainActivity;
 import com.juju.app.activity.party.PartyActivity;
 import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.adapters.PartyListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.entity.Party;
-import com.juju.app.entity.User;
-import com.juju.app.entity.http.GetPartysRes;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
-import com.juju.app.https.HttpCallBack;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.SpfUtil;
-import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.SearchEditText;
+import com.rey.material.app.BottomSheetDialog;
 
-import org.apache.http.message.BasicNameValuePair;
-import org.xutils.common.Callback;
 import org.xutils.db.Selector;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
@@ -59,7 +56,7 @@ import java.util.List;
  */
 @ContentView(R.layout.layout_group_list)
 @CreateFragmentUI(viewId = R.layout.layout_group_list)
-public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,ListView.OnItemClickListener,PartyListAdapter.Callback, PullToRefreshBase.OnRefreshListener {
+public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,PartyListAdapter.Callback, PullToRefreshBase.OnRefreshListener {
 
     private static final String TAG = "GroupPartyFragment";
     private PullToRefreshListView listView;
@@ -75,9 +72,15 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,L
     private int pageSize = 15;
     private long totalSize = 0;
 
+    private BottomSheetDialog msgDialog;
+    private TextView txtTop;
+    private TextView txtStock;
+    private TextView txtCancel;
+
+    private ImageView topLeftBtn;
+
     LocationClient mLocClient;
     public MyLocationListenner myListener = new MyLocationListenner();
-
 
     @Override
     public void onStop() {
@@ -146,6 +149,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,L
                 String key = s.toString();
                 if(TextUtils.isEmpty(key)){
                     partyListAdapter.recover();
+                    searchEditText.setVisibility(View.GONE);
                 }else{
                     partyListAdapter.onSearch(key);
                 }
@@ -171,7 +175,6 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,L
         listView.getLoadingLayoutProxy().setPullLabel(getResources().getString(R.string.pull_up_refresh_pull_label));
         listView.getRefreshableView().setCacheColorHint(Color.WHITE);
         listView.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
-        listView.getRefreshableView().setOnItemClickListener(this);
         listView.setOnRefreshListener(this);
 
         loadPartyData();
@@ -202,7 +205,13 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,L
 
     @Override
     public void initView() {
-
+        topLeftBtn = ((MainActivity)getActivity()).getTopLeftBtn();
+        topLeftBtn.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                searchEditText.setVisibility((searchEditText.getVisibility()==View.VISIBLE && TextUtils.isEmpty(searchEditText.getText().toString()))?View.GONE:View.VISIBLE);
+            }
+        });
     }
 
     private void wrapPartyList(List<Party> partyList) {
@@ -213,24 +222,60 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,L
 
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Party curParty = (Party)listView.getRefreshableView().getItemAtPosition(position);
-        switch(curParty.getStatus()){
-            case 0: // 召集中
-                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
-                ActivityUtil.startActivity4UP(getActivity(), PartyDetailActivity.class,param);
-                break;
-            case 1: //  进行中
-                ActivityUtil.startActivity4UP(getActivity(), PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
-                break;
-            case 2: //  已结束
-                ActivityUtil.startActivity4UP(getActivity(), PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
-                break;
+    public void follow(final Party party) {
+
+        msgDialog = new BottomSheetDialog(getActivity());
+        msgDialog.setCanceledOnTouchOutside(false);
+        msgDialog.contentView(R.layout.layout_bottom_menu)
+                .inDuration(300);
+        txtTop = (TextView)msgDialog.findViewById(R.id.btn_menu1);
+        txtStock = (TextView)msgDialog.findViewById(R.id.btn_menu2);
+        txtCancel = (TextView)msgDialog.findViewById(R.id.txt_cancel);
+        txtCancel.setOnClickListener(new View.OnClickListener(){
+            @Override
+            public void onClick(View v) {
+                msgDialog.dismiss();
+            }
+        });
+
+        if(party.getFollowFlag()==0) {
+            txtTop.setText(R.string.top_location);
+            txtTop.setOnClickListener(null);
+            txtTop.setOnClickListener(new View.OnClickListener(){
+
+                @Override
+                public void onClick(View v) {
+                    follow(party,1);
+                    msgDialog.dismiss();
+                }
+            });
+        }else{
+            txtTop.setText(R.string.cancel_top_message);
+            txtTop.setOnClickListener(null);
+            txtTop.setOnClickListener(new View.OnClickListener(){
+
+                @Override
+                public void onClick(View v) {
+                    follow(party,0);
+                    msgDialog.dismiss();
+                }
+            });
         }
+        txtStock.setText(R.string.stock);
+        txtStock.setOnClickListener(null);
+        txtStock.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                follow(party,-1);
+                msgDialog.dismiss();
+            }
+        });
+
+        msgDialog.show();
     }
 
-    @Override
-    public void follow(Party party, int follow) {
+    private void follow(Party party,int follow){
         party.setFollowFlag(follow);
         JujuDbUtils.saveOrUpdate(party);
         // TODO 处理特别关注和归档的操作
@@ -250,6 +295,21 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,L
                 break;
         }
         partyListAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void showParty(Party party) {
+        switch(party.getStatus()){
+            case 0: // 召集中
+                ActivityUtil.startActivityNew(getActivity(), PartyDetailActivity.class,Constants.PARTY_ID,party.getId());
+                break;
+            case 1: //  进行中
+                ActivityUtil.startActivityNew(getActivity(), PartyActivity.class,Constants.PARTY_ID,party.getId());
+                break;
+            case 2: //  已结束
+                ActivityUtil.startActivityNew(getActivity(), PartyActivity.class,Constants.PARTY_ID,party.getId());
+                break;
+        }
     }
 
     @Override

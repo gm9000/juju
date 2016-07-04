@@ -1,14 +1,12 @@
 package com.juju.app.fragment.party;
 
 import android.util.Log;
-import android.view.View;
-import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.juju.app.R;
 import com.juju.app.activity.party.PartyActivity;
 import com.juju.app.activity.party.PlayVideoActivity;
-import com.juju.app.adapters.VideoProgramListAdpter;
+import com.juju.app.adapters.VideoProgramListAadpter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.bean.json.GetVideoUrlsResBean;
 import com.juju.app.config.HttpConstants;
@@ -18,8 +16,6 @@ import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.ToastUtil;
-
 
 import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
@@ -42,8 +38,7 @@ import java.util.UUID;
  */
 @ContentView(R.layout.fragment_live)
 @CreateFragmentUI(viewId = R.layout.fragment_live)
-public class LiveFragment extends BaseFragment implements CreateUIHelper,
-        AdapterView.OnItemClickListener, HttpCallBack {
+public class LiveFragment extends BaseFragment implements CreateUIHelper,HttpCallBack, VideoProgramListAadpter.Callback {
 
 
     private PartyActivity parentActivity;
@@ -56,20 +51,7 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
 
     @Override
     public void setOnListener() {
-        listView.setOnItemClickListener(this);
     }
-
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-            VideoProgram videoProgram = videoProgramList.get(position);
-//            ToastUtil.showShortToast(getActivity(), videoProgram.getCreatorName() + "的直播节目", 1);
-
-        //  TODO 获取视频请求的URL参数，传入播放界面
-        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
-        ActivityUtil.startActivity(getActivity(), PlayVideoActivity.class,nvPair);
-    }
-
 
     /**
      * 刷新页面
@@ -164,8 +146,9 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
                     videoProgramList.add(v2);
                     videoProgramList.add(v3);
 
-                    VideoProgramListAdpter adpter = new VideoProgramListAdpter(getActivity(), videoProgramList);
-                    listView.setAdapter(adpter);
+                    VideoProgramListAadpter adapter = new VideoProgramListAadpter(getActivity(), videoProgramList);
+                    adapter.setCallback(this);
+                    listView.setAdapter(adapter);
                 }
                 break;
         }
@@ -187,4 +170,10 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,
 
     }
 
+    @Override
+    public void playVideo(VideoProgram videoProgram) {
+        //  TODO 获取视频请求的URL参数，传入播放界面
+        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
+        ActivityUtil.startActivity4UP(getActivity(), PlayVideoActivity.class,nvPair);
+    }
 }
