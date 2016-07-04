@@ -28,12 +28,18 @@ import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.service.im.manager.IMOtherManager;
+import com.juju.app.service.notify.BaseNotify;
+import com.juju.app.service.notify.MasterTransferNotify;
+import com.juju.app.service.notify.PartyRecruitNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
@@ -561,20 +567,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                             party.setId(partyId);
                             party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getUserNo());
 
-                            //TODO 是否需要保存组信息？
-                            if(StringUtils.isBlank(party.getGroupId())){
-                                GroupEntity group = groupDao.findUniByProperty("id", groupId);
-                                // TODO 组信息正常保存后需要删除下面的代码
-                                if(group == null) {
-                                    group = new GroupEntity();
-                                    group.setId(groupId);
-                                    group.setMainName("聚龙小组");
-                                    group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
-                                    group.setCreatorId(party.getUserNo());
-                                    groupDao.save(group);
-                                }
-                                party.setGroupId(groupId);
-                            }
                             party.setStatus(0); //  召集中
 
                             String planIds = jsonRoot.getString("planIds");
@@ -603,6 +595,15 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                                     plan.setAddtendNum(1);
                                     JujuDbUtils.save(plan);
                                 }
+
+                                PartyNotifyEvent.PartyNotifyBean partyNotifyBean = PartyNotifyEvent
+                                        .PartyNotifyBean.valueOf(groupId,partyId,party.getName(),
+                                                BaseApplication.getInstance().getUserInfoBean().getJujuNo()
+                                                ,BaseApplication.getInstance().getUserInfoBean().getUserName());
+                                PartyRecruitNotify.instance().executeCommand4Send(partyNotifyBean);
+
+
+
                             }else{
                                 Log.e(TAG,"planId return length error:"+planIdArray.length);
                             }

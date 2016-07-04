@@ -161,25 +161,21 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         userLocationInfoList = new ArrayList<UserLocationInfo>();
         boundsBuilder = new LatLngBounds.Builder();
 
-        String userNo = "100000002";
+        String userNo = "19400000005";
         UserLocationInfo userLocationInfo = new UserLocationInfo(userNo,39.9727856437081,116.328102464588);
         userLocationInfoList.add(userLocationInfo);
 
-        String userNo1 = "100000003";
+        String userNo1 = "19400000006";
         UserLocationInfo userLocationInfo1 = new UserLocationInfo(userNo1,39.9128964508378,116.317821504652);
         userLocationInfoList.add(userLocationInfo1);
 
-        String userNo2 = "100000005";
+        String userNo2 = "19400000007";
         UserLocationInfo userLocationInfo2 = new UserLocationInfo(userNo2,39.974325406894,116.386965867815);
         userLocationInfoList.add(userLocationInfo2);
 
-        String userNo3 = "100000001";
+        String userNo3 = "19400000008";
         UserLocationInfo userLocationInfo3 = new UserLocationInfo(userNo3,39.9222810304695,116.401137771222);
         userLocationInfoList.add(userLocationInfo3);
-
-        String userNo4 = "100000004";
-        UserLocationInfo userLocationInfo4 = new UserLocationInfo(userNo4,40.0368943327654,116.391552769546);
-        userLocationInfoList.add(userLocationInfo4);
 
     }
 
