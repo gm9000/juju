@@ -1,5 +1,6 @@
 package com.juju.app.activity;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -7,6 +8,7 @@ import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -75,15 +77,11 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
     private Handler uiHandler = new Handler();
 
-
     /**
     *******************************************Activity组件***************************************
      */
-    @ViewInject(R.id.userNoTxt)
-    private ClearEditText txt_userNo;
-
-    private String jujuNo;
-    private String token;
+    @ViewInject(R.id.txt_loginId)
+    private ClearEditText txt_loginId;
 
     @ViewInject(R.id.passwordTxt)
     private ClearEditText txt_password;
@@ -114,13 +112,16 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     /**
      *******************************************全局属性******************************************
      */
-    private String userNo;
+    private String loginId;   //手机号或聚聚号
     private String pwd;
     private String nickName;
     private boolean autoLogin = true;
     private boolean loginSuccess = false;
-
+    private String userNo;
+    private String token;
     DaoSupport userDao;
+
+    private UserInfoBean userInfoBean;
 
 
 
@@ -137,18 +138,19 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     @Override
     public void loadData() {
         HttpConstants.initURL();
-        imServiceConnector.connect(LoginActivity.this);
+        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        loginId = (String)SpfUtil.get(LoginActivity.this, "loginId", "");
         userNo = (String)SpfUtil.get(LoginActivity.this, "userNo", "");
         pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
         nickName = (String)SpfUtil.get(LoginActivity.this, "nickName", "");
         token  = (String)SpfUtil.get(LoginActivity.this, "token", "");
         userDao = new UserDaoImpl(getApplicationContext());
-
+        imServiceConnector.connect(LoginActivity.this);
     }
 
     @Override
     public void initView() {
-        txt_userNo.setText(userNo);
+        txt_loginId.setText(loginId);
         boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD, true);
         if(rememberPwd) {
             txt_password.setText(pwd);
@@ -156,19 +158,18 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         setLoginBtnBackgroud();
         layout_login_main.setFocusableInTouchMode(true);
 
-        if(BaseApplication.getInstance().getUserInfoBean().getJujuNo()!=null){
+        if(StringUtils.isNotBlank(BaseApplication.getInstance().getUserInfoBean().getUserNo())){
             BitmapUtilFactory.getInstance(this).bind(portrait, HttpConstants.getUserUrl() +
-                    "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo(),
+                    "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getUserNo(),
                     BitmapUtilFactory.Option.imageOptions());
         }
 
-        if(BaseApplication.getInstance().getUserInfoBean().getUserName() != null){
+        if(BaseApplication.getInstance().getUserInfoBean().getNickName() != null){
             tv_nickName.setText(nickName);
         }
 
         //初始化自动登陆信息
         initAutoLogin();
-
 
     }
 
@@ -206,20 +207,16 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      */
     @Event(value = R.id.loginBtn, type = View.OnClickListener.class)
     private void onClickBtnLogin(Button btn) {
+        hideInput(LoginActivity.this, btn);
         Log.d(TAG, "threadId" + Thread.currentThread().getId());
-//        if(GlobalVariable.isSkipLogin()){
-//            startActivity(LoginActivity.this, MainActivity.class);
-//            return;
-//        }
         initGlobalVariable();
         boolean vsBool = validateLogin();
 
         if(vsBool) {
-//            loadingCommon(R.string.login_progress_signing_in);
             loading(R.string.login_progress_signing_in);
             String password = MD5Util.MD5(pwd);
             Map<String, Object> valueMap = new HashMap<>();
-            valueMap.put("userNo", userNo);
+            valueMap.put("userNo", loginId);
             valueMap.put("password", password);
             JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
                     R.id.loginBtn, HttpConstants.getUserUrl() + "/login", this, valueMap,
@@ -240,13 +237,17 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     }
 
 
+
+    @Event(value = R.id.login_main)
+    private void onClick4LoginMain(View view) {
+        hideInput(view.getContext(), view);
+    }
+
     /**
      *******************************************回调函数******************************************
      */
-
     @Override
     public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
-        Log.d(TAG, "回调线程:" + Thread.currentThread().getName());
         switch (accessId) {
             case R.id.loginBtn:
                 if(obj != null) {
@@ -258,13 +259,12 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     });
                     JSONObject jsonRoot = (JSONObject)obj;
                     int status = JSONUtils.getInt(jsonRoot, "status", -1);
-                    final String description = JSONUtils.getString(jsonRoot, "description", "");
-                    jujuNo = JSONUtils.getString(jsonRoot, "userNo", "");
-                    BaseApplication.getInstance().getUserInfoBean().setJujuNo(jujuNo);
-                    token = JSONUtils.getString(jsonRoot, "token", "");
-                    //TODO 登陆协议需返回用户昵称、域名、房间名称、MUC服务名称
-                    nickName = "聚龙小子";
+                    final String description = JSONUtils.getString(jsonRoot, "desc", "");
                     if(status == 0) {
+                        //TODO 登陆协议需返回用户昵称、域名、房间名称、MUC服务名称
+                        userNo = JSONUtils.getString(jsonRoot, "userNo", "");
+                        token = JSONUtils.getString(jsonRoot, "token", "");
+                        nickName = "";
                         //初始化DB（针对http服务登陆）
                         DBUtil.instance().initDBHelp(getApplicationContext(), userNo);
                         LoginActivity.this.runOnUiThread(new Runnable() {
@@ -286,7 +286,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                                     showMsgDialog(R.string.error_login_psw);
                                 }
                                 clearUserInfo(true, true);
-
                             }
                         });
                     }
@@ -312,10 +311,10 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     public void onEvent4Login(LoginEvent event) {
         switch (event) {
             case LOCAL_LOGIN_SUCCESS:
+                logger.d("####################LOCAL_LOGIN_SUCCESS################");
                 loginSuccess = true;
                 saveUserInfo();
-//                startActivity(LoginActivity.this, MainActivity.class);
-                ActivityUtil.startActivityNew(LoginActivity.this, MainActivity.class);
+                startActivityNew(LoginActivity.this, MainActivity.class);
                 if(!imService.getLoginManager().isAuthenticated()) {
                     imService.getLoginManager().login();
                 }
@@ -324,19 +323,13 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     triggerEvent4Sticky(new UnreadEvent(UnreadEvent.Event.UNREAD_MSG_LIST_OK));
                 }
                 finish(LoginActivity.this);
-//                uiHandler.postDelayed(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        finish(LoginActivity.this);
-//                    }
-//                }, 5000);
                 break;
             case LOGIN_BSERVER_OK:
+                logger.d("####################LOGIN_BSERVER_OK################");
                 loginSuccess = true;
                 saveUserInfo();
-                imService.getLoginManager().setUserNo(userNo);
-//                startActivity(LoginActivity.this, MainActivity.class);
-                ActivityUtil.startActivityNew(LoginActivity.this, MainActivity.class);
+//                imService.getLoginManager().setUserNo(userNo);
+                startActivityNew(LoginActivity.this, MainActivity.class);
                 //登陆聊天服务
                 if(imService != null) {
                     imService.getLoginManager().login();
@@ -357,15 +350,25 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      *******************************************私有函数******************************************
      */
     private void setListeners() {
-        txt_userNo.addTextChangedListener(new TextChange());
+        txt_loginId.addTextChangedListener(new TextChange());
         txt_password.addTextChangedListener(new TextChange());
+
+        txt_loginId.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                //离开焦点
+                if(!hasFocus) {
+                    hideInput(LoginActivity.this, v);
+                }
+            }
+        });
     }
 
     /**
      * 初始化全局变量
      */
     private void initGlobalVariable() {
-        userNo = txt_userNo.getText().toString();
+        loginId = txt_loginId.getText().toString();
         pwd = txt_password.getText().toString();
 //        pwdChecked =
 //        autoLoginChecked = chk_autoLogin.isChecked();
@@ -376,10 +379,10 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      * @return
      */
     private boolean validateLogin() {
-        if(userNo.trim().equals("")){
-            txt_userNo.setShakeAnimation();
+        if(loginId.trim().equals("")){
+            txt_loginId.setShakeAnimation();
             ToastUtil.TextIntToast(getApplicationContext(), R.string.user_no_null, 0);
-            txt_userNo.requestFocus();
+            txt_loginId.requestFocus();
             return false;
         }
         if(pwd.trim().equals("")){
@@ -396,41 +399,29 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      */
     private void saveUserInfo() {
         //将登录信息保存到SharedPreferences
+        SpfUtil.put(this, "loginId", loginId);
         SpfUtil.put(this, "userNo", userNo);
         SpfUtil.put(this, "pwd", pwd);
         SpfUtil.put(this, "nickName", nickName);
         SpfUtil.put(this, "token", token);
-
-//        DBUtil.instance().initDBHelp(getApplicationContext(), userNo);
-
-        //TODO 登陆成功是否需要将用户插入本地数据库
-//        User user = new User();
-//        user.setUserNo(userNo);
-//        user.setNickName(nickName);
-//        userDao.replaceInto(user);
-
-        User loginUser = null;
-        try {
-            loginUser = JujuDbUtils.getInstance()
-                    .selector(User.class).where("user_no","=",userNo).findFirst();
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-//        userInfoBean.setJujuNo(userNo);
-        userInfoBean.setToken(token);
-        userInfoBean.setmAccount(userInfoBean.getJujuNo());
-        userInfoBean.setmPassword(pwd);
-
+        initUserInfoBean();
         HttpReqParamUtil.instance().setUserInfoBean(userInfoBean);
+//        User loginUser = (User) userDao.findUniByProperty4Or("user_no,user_phone", userNo, userNo);
+//        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+//        userInfoBean.setUserNo(loginUser.getUserNo());
+//        userInfoBean.setToken(token);
+//        userInfoBean.setmAccount(loginUser.getUserPhone());
+//        userInfoBean.setmPassword(pwd);
+//        HttpReqParamUtil.instance().setUserInfoBean(userInfoBean);
+//
+//        if( loginUser == null){
+//            SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
+//        }else{
+//            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(loginUser));
+//            //需要调整
+//            SpfUtil.put(this, "nickName", loginUser.getNickName());
+//        }
 
-        if( loginUser == null){
-            SpfUtil.remove(getApplicationContext(), Constants.USER_INFO);
-        }else{
-            SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(loginUser));
-            //需要调整
-            SpfUtil.put(this, "nickName", loginUser.getNickName());
-        }
     }
 
     /**
@@ -438,21 +429,17 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
      */
     private void clearUserInfo(boolean clearUserNo, boolean clearPwd) {
         if(clearUserNo) {
-            SpfUtil.remove(this, "userNo");
-            txt_userNo.setText("");
+            SpfUtil.remove(this, "loginId");
+            txt_loginId.setText("");
         }
         if(clearPwd) {
             SpfUtil.remove(this, "pwd");
             txt_password.setText("");
         }
-        SpfUtil.remove(this, "pwdChecked");
-        SpfUtil.remove(this, "autoLoginChecked");
-//        chk_rememberPwd.setChecked(false);
-//        chk_autoLogin.setChecked(false);
         //获取焦点
         if(clearUserNo) {
-            txt_userNo.setFocusable(true);
-            txt_userNo.requestFocus();
+            txt_loginId.setFocusable(true);
+            txt_loginId.requestFocus();
         } else {
             txt_password.setFocusable(true);
             txt_password.requestFocus();
@@ -462,7 +449,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
 
     private void setLoginBtnBackgroud() {
-        boolean sign1 = txt_userNo.getText().length() > 5;
+        boolean sign1 = txt_loginId.getText().length() > 5;
         boolean sign2 = txt_password.getText().length() > 5;
         if (sign1 && sign2) {
             btn_login.setEnabled(true);
@@ -604,16 +591,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         autoLogin = shouldAutoLogin();
         splash_main.setVisibility(autoLogin ? View.VISIBLE : View.GONE);
         login_main.setVisibility(autoLogin ? View.GONE : View.VISIBLE);
-
-//        if (autoLogin) {
-//            Animation splashAnimation = AnimationUtils.loadAnimation(this, R.anim.login_splash);
-//            if (splashAnimation == null) {
-//                logger.e("login#loadAnimation login_splash failed");
-//                return;
-//            }
-//
-//            splashPage.startAnimation(splashAnimation);
-//        }
     }
 
     // 主动退出的时候， 这个地方会有值,更具pwd来判断
@@ -626,4 +603,21 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         }
         return true;
     }
+
+    private void initUserInfoBean() {
+        userInfoBean.setUserNo(userNo);
+        userInfoBean.setToken(token);
+        userInfoBean.setmPassword(pwd);
+    }
+
+    /**
+     * 强制隐藏输入法键盘
+     */
+    private void hideInput(Context context, View view){
+        InputMethodManager inputMethodManager =
+                (InputMethodManager)context.getSystemService(Context.INPUT_METHOD_SERVICE);
+        inputMethodManager.hideSoftInputFromWindow(view.getWindowToken(), 0);
+    }
+
+
 }

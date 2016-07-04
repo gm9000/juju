@@ -85,7 +85,7 @@ public class IMNotificationManager extends IMManager {
 
     public void onLoginSuccess(){
         userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        String loginId = userInfoBean.getJujuNo();
+        String loginId = userInfoBean.getUserNo();
         configurationSp = ConfigurationSp.instance(ctx, loginId);
         if(!EventBus.getDefault().isRegistered(inst)){
             EventBus.getDefault().register(inst);
@@ -115,7 +115,7 @@ public class IMNotificationManager extends IMManager {
             return;
         }
         // 判断是否是自己的消息
-        if(fromId.indexOf(userInfoBean.getJujuNo()) < 0){
+        if(fromId.indexOf(userInfoBean.getUserNo()) < 0){
             showOtherMessageNotification(event);
         }
     }
@@ -154,7 +154,7 @@ public class IMNotificationManager extends IMManager {
                 RemoveGroupEvent.RemoveGroupBean removeGroupBean = (RemoveGroupEvent.RemoveGroupBean)
                         JacksonUtil.turnString2Obj(entity.getContent(), IMBaseDefine.NotifyType.REMOVE_GROUP.getCls());
                 if(removeGroupBean != null) {
-                    userNo = userInfoBean.getJujuNo();
+                    userNo = userInfoBean.getUserNo();
                     userName = "管理员";
                     GroupEntity groupEntity = IMGroupManager.instance().findGroupById(removeGroupBean.groupId);
                     groupName = groupEntity.getMainName();
@@ -277,7 +277,7 @@ public class IMNotificationManager extends IMManager {
         }
 
         // 判断是否是自己的消息
-        if(!userInfoBean.getJujuNo().equals(peerId)){
+        if(!userInfoBean.getUserNo().equals(peerId)){
             showNotification(entity);
         }
     }

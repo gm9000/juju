@@ -47,11 +47,9 @@ public class BaseApplication extends Application {
     private List<Activity> mActivities = new ArrayList<>();
 
 
-    // 单例模式中获取唯一的ExitApplication 实例
     public static BaseApplication getInstance() {
         if (null == mInstance) {
             mInstance = new BaseApplication();
-
         }
         return mInstance;
     }
@@ -197,6 +195,11 @@ public class BaseApplication extends Application {
         super.onTerminate();
     }
 
+    /**
+     * 此方法调用有问题，需要调整
+     * @return
+     */
+    @Deprecated
     public UserInfoBean getUserInfoBean() {
         return userInfoBean;
     }

@@ -27,5 +27,7 @@ public enum RenderType {
     //其他人的语音
     MESSAGE_TYPE_OTHER_AUDIO,
     //时间
-    MESSAGE_TYPE_TIME_TITLE
+    MESSAGE_TYPE_TIME_TITLE,
+    //普通通知
+    MESSAGE_TYPE_NORMAL_NOTIFY
 }

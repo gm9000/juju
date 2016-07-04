@@ -299,12 +299,12 @@ public class  User extends BaseEntity {
     public static User build4UserInfoBean(UserInfoBean userInfoBean) {
         User user = new User();
         user.setGender(userInfoBean.getGender());
-        user.setAvatar(HttpConstants.getPortraitUrl()+userInfoBean.getJujuNo());
+        user.setAvatar(HttpConstants.getPortraitUrl()+userInfoBean.getUserNo());
         user.setUserPhone(userInfoBean.getPhone());
-        user.setNickName(userInfoBean.getUserName());
+        user.setNickName(userInfoBean.getNickName());
         user.setBirthday(new Date(userInfoBean.getBirthday()));
         user.setUpdate(true);
-        user.setUserNo(userInfoBean.getJujuNo());
+        user.setUserNo(userInfoBean.getUserNo());
         return user;
     }
 }

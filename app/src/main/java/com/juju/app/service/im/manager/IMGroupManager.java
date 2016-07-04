@@ -216,7 +216,7 @@ public class IMGroupManager extends IMManager {
      */
     private void reqGetServerGroupList() {
         Map<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("index", 0);
         valueMap.put("size", Integer.MAX_VALUE);
@@ -386,7 +386,7 @@ public class IMGroupManager extends IMManager {
 
     public void getGroupInviteCode(String groupId) {
         Map<String, Object> valueMap = new HashMap<>();
-        valueMap.put("userNo", userInfoBean.getJujuNo());
+        valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("groupId", groupId);
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient(
@@ -505,9 +505,11 @@ public class IMGroupManager extends IMManager {
             cacheGroup.setUpdated(updated);
             if(action == 0) {
                 cacheGroup.setUserList(cacheGroup.getUserList()+","+userNo);
+                cacheGroup.setUserCnt(cacheGroup.getUserList().split(",").length);
             } else {
                 cacheGroup.setUserList(cacheGroup.getUserList().replaceAll(userNo, ""));
                 cacheGroup.setUserList(cacheGroup.getUserList().replaceAll(",,", ","));
+                cacheGroup.setUserCnt(cacheGroup.getUserList().split(",").length);
             }
             triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
             groupDao.replaceInto(cacheGroup);

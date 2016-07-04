@@ -155,7 +155,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         latitude = plan.getLatitude();
         longitude = plan.getLongitude();
 
-        userNo = BaseApplication.getInstance().getUserInfoBean().getJujuNo();
+        userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
 
         userMarkerMap = new HashMap<String,Marker>();
         userLocationInfoList = new ArrayList<UserLocationInfo>();

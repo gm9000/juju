@@ -25,6 +25,7 @@
 
     <RelativeLayout
         android:id="@+id/login_main"
+        android:focusable="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@mipmap/background"
@@ -114,7 +115,7 @@
                 android:src="@mipmap/yonghu" />
 
             <com.juju.app.view.ClearEditText
-                android:id="@+id/userNoTxt"
+                android:id="@+id/txt_loginId"
                 android:layout_width="fill_parent"
                 android:layout_height="35dip"
                 android:layout_gravity="center"

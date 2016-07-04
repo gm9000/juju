@@ -30,6 +30,7 @@ import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.service.notify.BaseNotify;
 import com.juju.app.service.notify.ExitGroupNotify;
+import com.juju.app.service.notify.InviteInGroupNotify;
 import com.juju.app.service.notify.InviteUserNotify;
 import com.juju.app.service.notify.MasterTransferNotify;
 import com.juju.app.service.notify.RemoveGroupNotify;
@@ -107,6 +108,7 @@ public class IMOtherManager extends IMManager {
         RemoveGroupNotify.instance().stop();
         MasterTransferNotify.instance().stop();
         ExitGroupNotify.instance().stop();
+        InviteInGroupNotify.instance().stop();
     }
 
     //网络登陆
@@ -152,9 +154,11 @@ public class IMOtherManager extends IMManager {
             inviteDao = new InviteDaoImpl(ctx);
         }
         InviteUserNotify.instance().start(this, IMGroupManager.instance());
+        InviteInGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance());
         RemoveGroupNotify.instance().start(this, IMGroupManager.instance());
         MasterTransferNotify.instance().start(this, IMGroupManager.instance());
         ExitGroupNotify.instance().start(this, IMGroupManager.instance());
+
 //
 //        BaseNotify baseNotify = new BaseNotify() {
 //
@@ -208,7 +212,20 @@ public class IMOtherManager extends IMManager {
         }
     }
 
+//    /**
+//     * 获取账号详情
+//     * @param targetNo
+//     */
+//    public void getAccountInfo(String targetNo) {
+//
+//    }
 
+
+
+    /**
+     * 处理XMPP通知消息
+     * @param event
+     */
     @Subscribe(threadMode = ThreadMode.POSTING,  priority = Constants.SERVICE_EVENTBUS_PRIORITY)
     public void onNotifyMessage4Event(NotifyMessageEvent event) {
         OtherMessageEntity otherMessageEntity = OtherMessageEntity.buildMessage4Recv(event.notifyType,
@@ -228,7 +245,11 @@ public class IMOtherManager extends IMManager {
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
                                 IMBaseDefine.NotifyType.INVITE_USER.getCls());
                 InviteUserNotify.instance().executeCommand4Recv(inviteUserBean);
+                break;
+            case INVITE_IN_GROUP:
 
+                break;
+            case REMOVE_GROUP:
                 //发送系统通知
                 notificationMessageEvent.event = NotificationMessageEvent.Event.REMOVE_GROUP_RECEIVED;
                 triggerEvent4Sticky(notificationMessageEvent);
@@ -237,7 +258,7 @@ public class IMOtherManager extends IMManager {
                 RemoveGroupNotify.instance().executeCommand4Recv(removeGroupBean);
                 break;
             case MASTER_TRANSFER:
-                //不需要通知
+                //不需要系统通知
                 MasterTransferEvent.MasterTransferBean masterTransferBean = (MasterTransferEvent.MasterTransferBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.MASTER_TRANSFER.getCls());
                 MasterTransferNotify.instance().executeCommand4Recv(masterTransferBean);
@@ -269,6 +290,7 @@ public class IMOtherManager extends IMManager {
 //                break;
 //        }
 //    }
+
 
 
 

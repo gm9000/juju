@@ -97,6 +97,26 @@ public class TextMessage extends MessageEntity implements Serializable {
     }
 
 
+    public static TextMessage buildForSend2Notify(String content, String fromPeerId, String toPeerId){
+        TextMessage textMessage = new TextMessage();
+        long nowTime = System.currentTimeMillis();
+        textMessage.setFromId(fromPeerId);
+        textMessage.setToId(toPeerId);
+        textMessage.setUpdated(nowTime);
+        textMessage.setCreated(nowTime);
+        textMessage.setDisplayType(DBConstant.SHOW_NOTIFY_TYPE);
+        textMessage.setGIfEmo(true);
+        int msgType = DBConstant.MSG_TYPE_GROUP_TEXT;
+        textMessage.setMsgType(msgType);
+        //执行此方法时，消息已经发送成功
+        textMessage.setStatus(MessageConstant.MSG_SUCCESS);
+        // 内容的设定
+        textMessage.setContent(content);
+        textMessage.buildSessionKey(true);
+        return textMessage;
+    }
+
+
     /**
      * Not-null value.
      * DB的时候需要

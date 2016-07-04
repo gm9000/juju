@@ -109,7 +109,7 @@ public class IMMessageManager extends IMManager {
             final MessageEntity dbMessage = msgEntity.clone();
             messageDao.saveOrUpdate(dbMessage);
             try {
-                socketService.sendMessage(msgEntity.getToId(),
+                socketService.sendMessage(msgEntity.getFromId(), msgEntity.getToId(),
                         msgEntity.getContent(), uuid, new XMPPServiceCallbackImpl() {
                             @Override
                             public void onSuccess(Object t) {

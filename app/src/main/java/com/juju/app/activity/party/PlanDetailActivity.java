@@ -175,7 +175,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
                     planVote1.setAttender(dbUser);
                 }
             }
-            planVote = JujuDbUtils.getInstance().selector(PlanVote.class).where("plan_id", "=", planId).and("attender_no", "=", userInfoBean.getJujuNo()).findFirst();
+            planVote = JujuDbUtils.getInstance().selector(PlanVote.class).where("plan_id", "=", planId).and("attender_no", "=", userInfoBean.getUserNo()).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
@@ -263,7 +263,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
 
         UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
         PlanVoteReqBean reqBean = new PlanVoteReqBean();
-        reqBean.setUserNo(userTokenInfoBean.getJujuNo());
+        reqBean.setUserNo(userTokenInfoBean.getUserNo());
         reqBean.setToken(userTokenInfoBean.getToken());
 
         PlanVoteBean planVote = new PlanVoteBean();
@@ -352,7 +352,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
                             UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
                             if(isSigned){
 
-                                WhereBuilder whereBuilder = WhereBuilder.b("attender_no", "=", userTokenInfoBean.getJujuNo());
+                                WhereBuilder whereBuilder = WhereBuilder.b("attender_no", "=", userTokenInfoBean.getUserNo());
                                 whereBuilder.and("planId", "=", planId);
                                 JujuDbUtils.getInstance().delete(PlanVote.class, whereBuilder);
                                 Plan plan = JujuDbUtils.getInstance().selector(Plan.class).where("id", "=", planId).findFirst();
@@ -361,10 +361,10 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
                                 JujuDbUtils.saveOrUpdate(plan);
 
                             }else{
-                                User user = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userTokenInfoBean.getJujuNo()).findFirst();
+                                User user = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userTokenInfoBean.getUserNo()).findFirst();
                                 PlanVote planVote = new PlanVote();
                                 planVote.setPlanId(planId);
-                                planVote.setAttenderNo(userTokenInfoBean.getJujuNo());
+                                planVote.setAttenderNo(userTokenInfoBean.getUserNo());
                                 planVote.setAttender(user);
                                 JujuDbUtils.save(planVote);
 

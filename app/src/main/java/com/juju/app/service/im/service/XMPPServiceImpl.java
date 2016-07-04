@@ -227,11 +227,12 @@ public class XMPPServiceImpl implements
             createConnection(false);
             xmppConnection.connect();
         }
+
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        String userName = userInfoBean.getmAccount();
+        String userNo = userInfoBean.getUserNo();
         String password = userInfoBean.getmPassword();
         String serviceName = userInfoBean.getmServiceName();
-        xmppConnection.login(userName, password, serviceName);
+        xmppConnection.login(userNo, password, serviceName);
 
         boolean isOk = xmppConnection.isAuthenticated();
         if(isOk)
@@ -287,9 +288,12 @@ public class XMPPServiceImpl implements
      * @param callback
      */
     @Override
-    public void sendMessage(String to, String message, String uuid,
+    public void sendMessage(String from, String to, String message, String uuid,
                             XMPPServiceCallbackImpl callback) {
         Message newMessage = new Message(to, Message.Type.groupchat);
+        if(StringUtils.isNotBlank(from)) {
+            newMessage.setFrom(from);
+        }
         newMessage.setStanzaId(uuid);
         newMessage.setBody(message);
         if (isAuthenticated()) {
@@ -430,13 +434,13 @@ public class XMPPServiceImpl implements
                 && !multiUserChat.isJoined()) {
             logger.d("joinChatRoom#chatRoom will be join " +
                     "-> chatRoom:%s", chatRoom);
-            String nickName = userInfoBean.getmAccount();
+            String userNo = userInfoBean.getUserNo();
             String password = userInfoBean.getmPassword();
             DiscussionHistory history = new DiscussionHistory();
             history.setSince(new Date());
             history.setMaxStanzas(0);
             try {
-                multiUserChat.join(nickName, password);
+                multiUserChat.join(userNo, password);
             } catch (SmackException e) {
                 e.printStackTrace();
             }
@@ -547,7 +551,7 @@ public class XMPPServiceImpl implements
         if (isAuthenticated()) {
             Message newMessage = new Message(peerId, type);
             //需要调整
-            newMessage.setFrom(userInfoBean.getJujuNo()+"@juju");
+            newMessage.setFrom(userInfoBean.getUserNo()+"@juju");
             newMessage.setStanzaId(uuid);
             newMessage.setBody(message);
             ExtensionElement extensionElement = new NotifyExtensionElement(notifyType,
@@ -716,9 +720,9 @@ public class XMPPServiceImpl implements
 //                return true;
 //            }
             if(bean != null
-                    && StringUtils.isNotBlank(bean.getmAccount())
+                    && StringUtils.isNotBlank(bean.getUserNo())
                     && StringUtils.isNotBlank(packet.getFrom())
-                    && packet.getFrom().indexOf(bean.getmAccount()) >= 0) {
+                    && packet.getFrom().indexOf(bean.getUserNo()) >= 0) {
                 return false;
             }
             return true;

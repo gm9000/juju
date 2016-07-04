@@ -125,7 +125,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,img_head,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         txt_nickName.setText(creator.getNickName());
 
-        isOwner = creator.getUserNo().equals(BaseApplication.getInstance().getUserInfoBean().getJujuNo());
+        isOwner = creator.getUserNo().equals(BaseApplication.getInstance().getUserInfoBean().getUserNo());
 
         try {
             planList = JujuDbUtils.getInstance().selector(Plan.class).where("party_id", "=", partyId).findAll();
@@ -228,7 +228,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
         UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
         Map<String,Object> reqBean = new HashMap<String,Object>();
-        reqBean.put("userNo",userTokenInfoBean.getJujuNo());
+        reqBean.put("userNo",userTokenInfoBean.getUserNo());
         reqBean.put("token", userTokenInfoBean.getToken());
         reqBean.put("partyId", partyId);
         reqBean.put("planId", planId);
@@ -248,7 +248,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
         UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
         Map<String,Object> reqBean = new HashMap<String,Object>();
-        reqBean.put("userNo",userTokenInfoBean.getJujuNo());
+        reqBean.put("userNo",userTokenInfoBean.getUserNo());
         reqBean.put("token", userTokenInfoBean.getToken());
         reqBean.put("partyId", partyId);
 

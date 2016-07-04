@@ -266,7 +266,7 @@ public class ExitGroupNotify extends BaseNotify<ExitGroupEvent.ExitGroupBean> {
     private void recvUpdateLocalData(ExitGroupEvent.ExitGroupBean exitGroupBean) {
         GroupEntity groupEntity = imGroupManager.findGroupById(exitGroupBean.groupId);
         if(groupEntity != null) {
-            if(exitGroupBean.flag == 0 && exitGroupBean.userNo.equals(userInfoBean.getJujuNo())) {
+            if(exitGroupBean.flag == 0 && exitGroupBean.userNo.equals(userInfoBean.getUserNo())) {
                 //TODO 删除群组
             } else {
                 //更新群组成员关系

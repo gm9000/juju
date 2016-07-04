@@ -172,7 +172,7 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
             }break;
 
             case DBConstant.SESSION_TYPE_SINGLE:{
-                String loginId = userInfoBean.getJujuNo();
+                String loginId = userInfoBean.getUserNo();
                 alreadyListSet.add(loginId);
                 alreadyListSet.add(peerEntity.getPeerId());
             }break;
@@ -232,7 +232,7 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
                 //自己与自己对话，也能创建群的，这个时候要判断，群组成员一定要大于2个
                 int sessionType = peerEntity.getType();
                 if (sessionType == DBConstant.SESSION_TYPE_SINGLE) {
-                    String loginId = userInfoBean.getJujuNo();
+                    String loginId = userInfoBean.getUserNo();
                     logger.d("tempgroup#loginId:%d", loginId);
                     checkListSet.add(loginId);
                     checkListSet.add(peerEntity.getPeerId());

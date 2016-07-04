@@ -79,4 +79,13 @@ public interface IDAO<T, PK> {
      */
     public T findUniByProperty(String propertys, Object[] values);
 
+
+    /**
+     *
+     * @param propertys
+     * @param values
+     * @return
+     */
+    public Object findUniByProperty4Or(String propertys, Object[] values);
+
 }

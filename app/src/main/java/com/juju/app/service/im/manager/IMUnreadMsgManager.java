@@ -164,9 +164,9 @@ public class IMUnreadMsgManager extends IMManager {
         boolean isFirst = false;
         logger.d("unread#unreadMgr#add unread msg:%s", msg);
         UnreadEntity unreadEntity;
-        String loginId = userInfoBean.getmAccount();
+        String userNo = userInfoBean.getUserNo();
         String sessionKey = msg.getSessionKey();
-        boolean isSend = msg.isSend(loginId);
+        boolean isSend = msg.isSend(userNo);
         if(isSend){
             IMNotificationManager.instance().cancelSessionNotifications(sessionKey);
             return;
@@ -261,8 +261,8 @@ public class IMUnreadMsgManager extends IMManager {
         // 不做复杂判断了，简单处理
         int msgId = msg.getMsgId();
         int sessionType = msg.getSessionType();
-        String loginId = BaseApplication.getInstance().getUserInfoBean().getmAccount();
-        boolean isSend = msg.isSend(loginId);
+        String userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
+        boolean isSend = msg.isSend(userNo);
         String peerId = msg.getPeerId(isSend);
 
         String sessionKey = EntityChangeEngine.getSessionKey(peerId, sessionType);
