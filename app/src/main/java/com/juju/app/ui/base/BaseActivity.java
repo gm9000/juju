@@ -285,7 +285,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 txt_status_message.setText(objs[0]);
             }
         } else {
-            txt_status_message.setText(R.string.completed);
+//            txt_status_message.setText(R.string.completed);
         }
         try {
             Thread.sleep(100);
@@ -444,6 +444,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         } else {
             resId = getResources().getIdentifier(name, type[0], "com.juju.app");
         }
+        if(resId == 0) resId = R.string.system_service_error;
         return resId;
     }
 

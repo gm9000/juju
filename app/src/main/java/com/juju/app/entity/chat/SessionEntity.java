@@ -3,10 +3,13 @@ package com.juju.app.entity.chat;
 
 import com.juju.app.entity.base.BaseEntity;
 import com.juju.app.helper.chat.EntityChangeEngine;
+import com.juju.app.helper.chat.SequenceNumberMaker;
 import com.juju.app.utils.StringUtils;
 
 import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
+
+import java.util.UUID;
 
 
 @Table(name = "session", onCreated = "CREATE UNIQUE INDEX index_session_session_key ON session(session_key);")
@@ -158,5 +161,25 @@ public class SessionEntity extends BaseEntity {
         return sessionKey;
     }
     // KEEP METHODS END
+
+    /**
+     * 更新Session会话
+     * @return
+     */
+    public static SessionEntity build4Update(String peerId, int peerType, int latestMsgType,
+                                             String latestMsgData, String talkId, Long created) {
+        SessionEntity sessionEntity = new SessionEntity();
+        sessionEntity.setId(UUID.randomUUID().toString());
+        sessionEntity.setPeerId(peerId);
+        sessionEntity.setPeerType(peerType);
+        sessionEntity.buildSessionKey();
+        sessionEntity.setLatestMsgType(latestMsgType);
+        sessionEntity.setLatestMsgData(latestMsgData);
+        sessionEntity.setUpdated(created);
+        sessionEntity.setLatestMsgId(SequenceNumberMaker.getInstance().makelocalUniqueMsgId(created));
+        return sessionEntity;
+    }
+
+
 
 }

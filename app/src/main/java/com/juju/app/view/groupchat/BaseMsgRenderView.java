@@ -68,7 +68,7 @@ public abstract class BaseMsgRenderView extends RelativeLayout{
     }
 
     /**控件赋值*/
-    public void render(final MessageEntity entity, User user,final Context ctx){
+    public void render(final MessageEntity entity, User user, final Context ctx){
         this.messageEntity = entity;
         if(user == null){
             // 没有找到对应的用户信息 todo

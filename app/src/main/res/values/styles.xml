@@ -363,5 +363,10 @@
         <item name="android:windowIsFloating">true</item> <!-- 是否浮在activity之上 -->
     </style>
 
+    <style name="AnimSpeeker" parent="@android:style/Animation">
+        <item name="android:windowEnterAnimation">@anim/tt_speeker_in</item>
+        <item name="android:windowExitAnimation">@anim/tt_speeker_out</item>
+    </style>
+
 
 </resources>

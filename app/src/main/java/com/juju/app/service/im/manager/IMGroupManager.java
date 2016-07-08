@@ -68,6 +68,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -109,7 +110,7 @@ public class IMGroupManager extends IMManager {
     private final static int GET_GROUP_TIMEOUT = 15;
 
     //正式群,临时群都会有的，存在竞争 如果不同时请求的话
-    private Map<String, GroupEntity> groupMap = new ConcurrentHashMap<String, GroupEntity>();
+    private Map<String, GroupEntity> groupMap = new ConcurrentHashMap<>();
 
     private boolean isGroupReady = false;
 
@@ -164,9 +165,9 @@ public class IMGroupManager extends IMManager {
                     //构造拼音属性
                     PinYinUtil.getPinYin(groupInfo.getMainName(), groupInfo.getPinyinElement());
                     groupMap.put(groupInfo.getPeerId(), groupInfo);
-                    if(StringUtils.isBlank(groupInfo.getInviteCode())) {
+//                    if(StringUtils.isBlank(groupInfo.getInviteCode())) {
                         getGroupInviteCode(groupInfo.getId());
-                    }
+//                    }
                 }
             }
         }
@@ -194,9 +195,9 @@ public class IMGroupManager extends IMManager {
                     //构造拼音属性
                     PinYinUtil.getPinYin(groupInfo.getMainName(), groupInfo.getPinyinElement());
                     groupMap.put(groupInfo.getPeerId(), groupInfo);
-                    if(StringUtils.isBlank(groupInfo.getInviteCode())) {
+//                    if(StringUtils.isBlank(groupInfo.getInviteCode())) {
                         getGroupInviteCode(groupInfo.getId());
-                    }
+//                    }
                 }
             }
         }
@@ -215,13 +216,20 @@ public class IMGroupManager extends IMManager {
      * 获取远程服务群组列表 ？ TODO 是否需要考虑同步本地群组，目前只是累加
      */
     private void reqGetServerGroupList() {
-        Map<String, Object> valueMap = new HashMap<String, Object>();
+        final Set<String> localGroupIds = new HashSet<>();
+        final Set<String> netGroupIds = new HashSet<>();
+
+        List<GroupEntity> groupEntityList = getGroupList();
+        for(GroupEntity groupEntity : groupEntityList) {
+            localGroupIds.add(groupEntity.getId());
+        }
+        Map<String, Object> valueMap = new HashMap<>();
         valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
         valueMap.put("index", 0);
         valueMap.put("size", Integer.MAX_VALUE);
 
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
                 0, HttpConstants.getUserUrl() + "/getGroups",
                 new HttpCallBack4OK() {
 
@@ -250,6 +258,7 @@ public class IMGroupManager extends IMManager {
                                             if(StringUtils.isNotBlank(createTime)) {
                                                 createTimeDate = DateUtils.parseDate(createTime, new String[]{"yyyy-MM-dd HH:mm:ss"});
                                             }
+                                            netGroupIds.add(id);
                                             sendGetGroupUsersToBServer(countDownLatch, id, name,
                                                     desc, creatorNo, masterNo, createTimeDate);
                                         }
@@ -264,6 +273,20 @@ public class IMGroupManager extends IMManager {
                                                 groupMap.put(groupInfo.getPeerId(), groupInfo);
                                             }
                                         }
+
+                                        //整理缓存数据(很糟糕 需要整理)
+                                        localGroupIds.removeAll(netGroupIds);
+                                        if(localGroupIds.size() >= 0) {
+                                            for(String groupId : localGroupIds) {
+                                                GroupEntity dbGroup = (GroupEntity) groupDao.findUniByProperty("id", groupId);
+                                                if(dbGroup != null) {
+                                                    groupDao.delete(dbGroup);
+                                                    groupMap.remove(dbGroup.getPeerId());
+                                                }
+                                            }
+
+                                        }
+
                                         //更新群组
                                         triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_OK));
                                         //加入群聊
@@ -293,6 +316,7 @@ public class IMGroupManager extends IMManager {
             logger.error(e);
         }
         logger.i("group#send packet to server");
+
     }
 
     public void sendGetGroupUsersToBServer(CountDownLatch countDownLatch, String id, String name,
@@ -403,12 +427,13 @@ public class IMGroupManager extends IMManager {
                                 String inviteCode = JSONUtils.getString(result, "inviteCode");
                                 String peerId = groupId+"@"+userInfoBean.getmMucServiceName()
                                         +"."+userInfoBean.getmServiceName();
+                                String appDownUrl =  JSONUtils.getString(result, "appDownUrl");
                                 GroupEntity groupEntity = findGroup(peerId);
                                 if(groupEntity != null) {
                                     //保存二维码
-                                    String qrCode =
-                                            HttpConstants.getUserUrl() + "/joinInGroup?inviteCode="+inviteCode;
-                                    groupEntity.setQrCode(qrCode);
+//                                    String qrCode =
+//                                            HttpConstants.getUserUrl() + "/joinInGroup?inviteCode="+inviteCode;
+                                    groupEntity.setQrCode(appDownUrl);
                                     //保存邀请码
                                     groupEntity.setInviteCode(inviteCode);
                                     groupDao.replaceInto(groupEntity);
@@ -431,9 +456,6 @@ public class IMGroupManager extends IMManager {
         }
     }
 
-//    public void replaceGroup(GroupEntity groupEntity) {
-//        groupDao.replaceInto(groupEntity);
-//    }
 
     /**
      * 新增群成员
@@ -450,7 +472,7 @@ public class IMGroupManager extends IMManager {
     public void joinChatRooms(final Collection<GroupEntity> groupEntityList) {
         joinedGroupPeerIds.clear();
         if(groupEntityList != null && groupEntityList.size() >0) {
-            final CountDownLatch countDownLatch = new CountDownLatch(groupEntityList.size());
+//            final CountDownLatch countDownLatch = new CountDownLatch(groupEntityList.size());
             for (final GroupEntity groupEntity : groupEntityList) {
                 final String chatRoomId = groupEntity.getPeerId();
                 try {
@@ -460,7 +482,7 @@ public class IMGroupManager extends IMManager {
                     socketService.joinChatRoom(chatRoomId, time);
                     logger.d("joinChatRooms -> chatRoomId:%s", chatRoomId);
                     joinedGroupPeerIds.add(chatRoomId);
-                    countDownLatch.countDown();
+//                    countDownLatch.countDown();
                 } catch (JUJUXMPPException e) {
                     logger.error(e);
                 } catch (XMPPException e) {
@@ -472,14 +494,15 @@ public class IMGroupManager extends IMManager {
                     logger.error(e);
                 }
             }
-            try {
-                //控制群组登陆时间
-                countDownLatch.await(JOIN_GROUP_TIMEOUT, TimeUnit.SECONDS);
-                //通知群组信息更新
-                triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
-            } catch (InterruptedException e) {
-               logger.error(e);
-            }
+            triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
+//            try {
+//                //控制群组登陆时间
+////                countDownLatch.await(JOIN_GROUP_TIMEOUT, TimeUnit.SECONDS);
+//                //通知群组信息更新
+//                triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
+//            } catch (InterruptedException e) {
+//               logger.error(e);
+//            }
 
             //通知IMUnreadMsgManager 获取未读消息
             JoinChatRoomEvent joinChatRoomEvent = new JoinChatRoomEvent();
@@ -514,6 +537,24 @@ public class IMGroupManager extends IMManager {
             triggerEvent(new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED));
             groupDao.replaceInto(cacheGroup);
         }
+    }
+
+    /**
+     * 添加或删除group信息
+     * @param action
+     */
+    public void changeGroup4Trigger(String groupId, int action) {
+        GroupEntity dbGroup = (GroupEntity) groupDao.findUniByProperty("id", groupId);
+        if(dbGroup != null) {
+            groupDao.delete(dbGroup);
+            groupMap.remove(dbGroup.getPeerId());
+        }
+        GroupEvent groupEvent = new GroupEvent(GroupEvent.Event.GROUP_INFO_UPDATED);
+        groupEvent.setChangeType(action);
+        List<String> changeList = new ArrayList<String>();
+        changeList.add(groupId);
+        groupEvent.setChangeList(changeList);
+        EventBus.getDefault().post(groupEvent);
     }
 
     //TODO 未读消息和加入群聊没关系 （本地登陆成功也需要加入群聊）

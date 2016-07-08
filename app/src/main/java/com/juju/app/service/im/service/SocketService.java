@@ -56,7 +56,8 @@ public interface SocketService {
      * @throws SmackException.NotConnectedException
      */
     public void sendMessage(String from, String to, String message, String uuid,
-                            XMPPServiceCallbackImpl listener) throws SmackException.NotConnectedException;
+                            IMBaseDefine.MsgType msgType, XMPPServiceCallbackImpl listener)
+            throws SmackException.NotConnectedException;
 
 
     /**

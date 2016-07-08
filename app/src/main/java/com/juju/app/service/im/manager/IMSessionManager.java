@@ -448,11 +448,35 @@ public class IMSessionManager extends IMManager {
      * （统计未读消息条目时，能够返回最新的未读消息）供IMUnreadMsgManager调用
      * @param sessionEntity
      */
-    public void saveSession(SessionEntity  sessionEntity) {
+    public void updateSession4RedisQuery(SessionEntity  sessionEntity) {
         sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
         sessionDao.replaceInto(sessionEntity);
         triggerEvent(SessionEvent.RECENT_SESSION_LIST_UPDATE);
     }
+
+    /**
+     * 更新会话信息（创建群组，被邀请加入群组调用）
+     * @param peerId
+     * @param peerType
+     * @param latestMsgType
+     * @param latestMsgData
+     * @param talkId
+     * @param created
+     */
+    public void updateSessionEntity(String peerId, int peerType, int latestMsgType,
+                                                String latestMsgData, String talkId, Long created) {
+        SessionEntity sessionEntity = SessionEntity.build4Update(peerId, peerType,
+                    latestMsgType, latestMsgData, talkId, created);
+        SessionEntity dbSession = sessionMap.get(sessionEntity.getSessionKey());
+        if(dbSession != null) {
+            sessionEntity.setCreated(dbSession.getCreated());
+        } else {
+            sessionEntity.setCreated(sessionEntity.getUpdated());
+        }
+        sessionDao.replaceInto(sessionEntity);
+        sessionMap.put(sessionEntity.getSessionKey(), sessionEntity);
+    }
+
 
     public List<SessionEntity> findAll(){
         return sessionDao.findAll();

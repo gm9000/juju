@@ -174,7 +174,7 @@ public class MasterTransferNotify extends BaseNotify<MasterTransferEvent.MasterT
         String message = JacksonUtil.turnObj2String(masterTransferBean);
         String uuid = UUID.randomUUID().toString();
 
-        //通知用户
+        //TODO 通知用户? 应该是通知群组？
         notifyMessage4User(peerId, message,
                 IMBaseDefine.NotifyType.MASTER_TRANSFER, uuid, true,
                 new XMPPServiceCallbackImpl() {

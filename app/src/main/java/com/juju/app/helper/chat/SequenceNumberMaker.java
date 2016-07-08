@@ -61,7 +61,6 @@ public class SequenceNumberMaker {
     public int makelocalUniqueMsgId(long time){
         int timeStamp = (int) (time % 10000000);
         int localId = timeStamp + 90000000;
-        //logger.e("#yingmu2#之前的msgId:%d",preMsgId);
         if (localId >= 100000000) {
             localId = 90000000;
         }

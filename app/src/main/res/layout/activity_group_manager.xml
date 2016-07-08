@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/scrollView1"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -122,38 +122,38 @@
                     android:background="@mipmap/tt_divide_line" />
 
 
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="44dp"
-                    android:gravity="center_vertical"
-                    android:paddingRight="15dp">
+                <!--<RelativeLayout-->
+                    <!--android:layout_width="match_parent"-->
+                    <!--android:layout_height="44dp"-->
+                    <!--android:gravity="center_vertical"-->
+                    <!--android:paddingRight="15dp">-->
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentLeft="true"
-                        android:paddingLeft="20dp"
-                        android:layout_centerInParent="true"
-                        android:text="@string/group_invite_code"
-                        android:textColor="#a3a2a8"
-                        android:textSize="15sp" />
+                    <!--<TextView-->
+                        <!--android:layout_width="wrap_content"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_alignParentLeft="true"-->
+                        <!--android:paddingLeft="20dp"-->
+                        <!--android:layout_centerInParent="true"-->
+                        <!--android:text="@string/group_invite_code"-->
+                        <!--android:textColor="#a3a2a8"-->
+                        <!--android:textSize="15sp" />-->
 
-                    <TextView
-                        android:id="@+id/tv_invite_code"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_alignParentRight="true"
-                        android:layout_centerVertical="true"
-                        android:ellipsize="end"
-                        android:gravity="right"
-                        android:singleLine="true"
-                        android:text="123456"
-                        android:textColor="@color/group_manager_group_title"
-                        android:textIsSelectable="true"
-                        android:textSize="14sp" />
+                    <!--<TextView-->
+                        <!--android:id="@+id/tv_invite_code"-->
+                        <!--android:layout_width="match_parent"-->
+                        <!--android:layout_height="wrap_content"-->
+                        <!--android:layout_alignParentRight="true"-->
+                        <!--android:layout_centerVertical="true"-->
+                        <!--android:ellipsize="end"-->
+                        <!--android:gravity="right"-->
+                        <!--android:singleLine="true"-->
+                        <!--android:text="123456"-->
+                        <!--android:textColor="@color/group_manager_group_title"-->
+                        <!--android:textIsSelectable="true"-->
+                        <!--android:textSize="14sp" />-->
 
 
-                </RelativeLayout>
+                <!--</RelativeLayout>-->
 
                 <View
                     android:layout_width="fill_parent"
@@ -311,5 +311,15 @@
     </ScrollView>
 
 
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:layout_gravity="center"
+        android:indeterminateDrawable="@drawable/tt_progressbar"
+        android:indeterminateDuration="4000"
+        android:visibility="gone" />
 
-</LinearLayout>
+
+</RelativeLayout>

@@ -46,7 +46,7 @@ public class InviteInGroupEvent {
 
     //封装消息通知对象，防止多处定义json串
     //加群邀请通知Bean
-    @JsonIgnoreProperties(value = {"replayId", "replayTime"})
+    @JsonIgnoreProperties(value = {"replyId", "replyTime"})
     public static class InviteInGroupBean extends ReplyBean {
         public String groupId;
         public String userNo;

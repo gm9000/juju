@@ -39,5 +39,5 @@ public interface MessageDao {
      * 本质上还是最后一条成功消息的时间
      * @return
      */
-    public long getSessionLastTime();
+    public long getSessionLastTime(String sessionKey);
 }

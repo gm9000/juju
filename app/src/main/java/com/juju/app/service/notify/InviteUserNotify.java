@@ -8,9 +8,11 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.InviteDaoImpl;
 import com.juju.app.entity.Invite;
+import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.golobal.CommandActionConstant;
+import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
@@ -19,6 +21,7 @@ import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMOtherManager;
+import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.utils.HttpReqParamUtil;
@@ -74,12 +77,15 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
     }
 
     private IMGroupManager imGroupManager;
+    private IMSessionManager imSessionManager;
     private DaoSupport inviteDao;
 
 
-    public void start(IMOtherManager imOtherManager, IMGroupManager imGroupManager) {
+    public void start(IMOtherManager imOtherManager, IMGroupManager imGroupManager,
+                      IMSessionManager imSessionManager) {
         super.start(imOtherManager);
         this.imGroupManager = imGroupManager;
+        this.imSessionManager = imSessionManager;
         inviteDao = new InviteDaoImpl(context);
         if(!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
@@ -97,7 +103,7 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
      * 执行接收命令(加群邀请通知)
      */
     public void executeCommand4Recv(InviteUserEvent.InviteUserBean inviteUserBean) {
-        sendGetGroupInfoToBServer4Recv(inviteUserBean);
+        recvGetGroupInfoToBServer(inviteUserBean);
     }
 
     /**
@@ -134,7 +140,8 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
             case SEND_INVITE_USER_MSERVER_OK:
                 //更新成员列表
                 imGroupManager.updateGroup4Members(sendParam.bean.groupId,
-                        sendParam.bean.userNo, sendParam.bean.replayTime, 0);
+                        sendParam.bean.userNo, sendParam.bean.replyTime, 0);
+
                 buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
                         .Send.UPDATE_LOCAL_CACHE_DATA_OK, sendParam.bean);
 
@@ -187,7 +194,7 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
                                 buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
                                         .Send.SEND_INVITE_USER_BSERVER_OK, inviteUserBean);
                             } else {
-                                logger.d("status is not 0");
+                                logger.d("InviteUserNotify#sendInviteUserToBServer4Send failed -> status:%d", status);
                                 buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
                                         .Send.SEND_INVITE_USER_BSERVER_FAILED, inviteUserBean);
                             }
@@ -195,6 +202,7 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
                     }
                     @Override
                     public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                        logger.d("InviteUserNotify#sendInviteUserToBServer4Send failed");
                         buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam.Send
                                 .SEND_INVITE_USER_BSERVER_FAILED, inviteUserBean);
                     }
@@ -214,8 +222,8 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
         String peerId = inviteUserBean.userNo+"@"+userInfoBean.getmServiceName();
         String message = JacksonUtil.turnObj2String(inviteUserBean);
         String  uuid = UUID.randomUUID().toString();
-        final InviteUserEvent.ApplyInGroupBean applyInGroupBean = InviteUserEvent.ApplyInGroupBean
-                .valueOf(inviteUserBean.groupId, inviteUserBean.userNo, inviteUserBean.nickName);
+//        final InviteUserEvent.ApplyInGroupBean applyInGroupBean = InviteUserEvent.ApplyInGroupBean
+//                .valueOf(inviteUserBean.groupId, inviteUserBean.userNo, inviteUserBean.nickName);
         //通知用户
         notifyMessage4User(peerId, message,
                 IMBaseDefine.NotifyType.INVITE_USER, uuid, true,
@@ -228,25 +236,16 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
                                     (XMPPServiceImpl.ReplayMessageTime) t;
                             String id = messageTime.getId();
                             String time = messageTime.getTime();
-                            Invite dbEntity = (Invite)
-                                    inviteDao.findUniByProperty("id", id);
-
-                            if(dbEntity != null) {
-                                Invite.buildInviteReq4SendOnAck(dbEntity,
-                                        Long.parseLong(time));
-                                //更新时间
-                                inviteDao.saveOrUpdate(dbEntity);
-                                long replayTime = Long.parseLong(time);
-                                inviteUserBean.replayId = id;
-                                inviteUserBean.replayTime = replayTime;
-
-                                buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
-                                        .Send.SEND_INVITE_USER_MSERVER_OK, inviteUserBean);
-
-                            } else {
-                                buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
-                                        .Send.SEND_INVITE_USER_MSERVER_FAILED, inviteUserBean);
-                            }
+                            long replyTime = Long.parseLong(time);
+                            inviteUserBean.replyId = id;
+                            inviteUserBean.replyTime = replyTime;
+                            imOtherManager.updateOtherMessage(id, replyTime);
+                            buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
+                                    .Send.SEND_INVITE_USER_MSERVER_OK, inviteUserBean);
+                        } else {
+                            logger.d("InviteUserNotify#sendInviteUserToMServer failed");
+                            buildAndTriggerBusinessFlow4SendInviteUser(InviteUserEvent.BusinessFlow.SendParam
+                                    .Send.SEND_INVITE_USER_MSERVER_FAILED, inviteUserBean);
                         }
                     }
 
@@ -266,53 +265,6 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
                 });
     }
 
-    //发送通知
-    public void sendApplyInGroupToMServer4Send(final InviteUserEvent.ApplyInGroupBean applyInGroupBean) {
-        String peerId = applyInGroupBean.groupId+"@"
-                +userInfoBean.getmMucServiceName()+"."+userInfoBean.getmServiceName();
-        String message = JacksonUtil.turnObj2String(applyInGroupBean);
-        String  uuid = UUID.randomUUID().toString();
-
-        notifyMessage4Group(peerId, message, IMBaseDefine.NotifyType.APPLY_IN_GROUP, uuid, true,
-                new XMPPServiceCallbackImpl() {
-
-            @Override
-            public void onSuccess(Object t) {
-                logger.d("InviteUserNotify#sendApplyInGroupToMServer4Send success");
-                if(t instanceof XMPPServiceImpl.ReplayMessageTime) {
-                    XMPPServiceImpl.ReplayMessageTime messageTime =
-                            (XMPPServiceImpl.ReplayMessageTime) t;
-                    String id = messageTime.getId();
-                    String time = messageTime.getTime();
-                    imOtherManager.updateOtherMessage(id, Long.parseLong(time));
-
-                    //处理回复请求
-                    applyInGroupBean.replayId = id;
-                    applyInGroupBean.replayTime = Long.parseLong(time);
-                    buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                            .Send.SEND_APPLY_IN_GROUP_MSERVER_OK, applyInGroupBean);
-                } else {
-                    buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                            .Send.SEND_APPLY_IN_GROUP_MSERVER_FAILED, applyInGroupBean);
-                }
-            }
-
-
-            @Override
-            public void onFailed() {
-                logger.d("InviteUserNotify#sendApplyInGroupToMServer4Send failed");
-                buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                        .Send.SEND_APPLY_IN_GROUP_MSERVER_FAILED, applyInGroupBean);
-            }
-
-            @Override
-            public void onTimeout() {
-                logger.d("InviteUserNotify#sendApplyInGroupToMServer4Send failed");
-                buildAndTriggerBusinessFlow4SendApplyInGroup(InviteUserEvent.BusinessFlow.SendParam
-                        .Send.SEND_APPLY_IN_GROUP_MSERVER_FAILED, applyInGroupBean);
-            }
-        });
-    }
 
 
     /**
@@ -328,18 +280,23 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
     public void onEvent4BusinessFlowRecvEvent(InviteUserEvent.BusinessFlow.RecvParam recvParam) {
         switch (recvParam.recv) {
             case SEND_GET_GROUP_INFO_BSERVER_OK:
-                sendGetGroupUsersToBServer4Recv(recvParam.bean, recvParam.groupId,
+                recvGetGroupUsersToBServer(recvParam.bean, recvParam.groupId,
                         recvParam.groupName, recvParam.desc, recvParam.creatorNo, recvParam.masterNo,
                         recvParam.createTimeDate);
                 break;
             case SEND_GET_GROUP_USERS_BSERVER_OK:
-                sendJoinChatRoomToMServer4Recv();
+                recvJoinChatRoomToMServer(recvParam.bean);
                 break;
             case JOIN_CHAT_ROOM_MSERVER_OK:
+                updateLocalData4Recv(recvParam.bean);
                 break;
+            case UPDATE_LOCAL_CACHE_DATA_OK:
 
+                break;
             case SEND_GET_GROUP_INFO_BSERVER_FAILED:
             case SEND_GET_GROUP_USERS_BSERVER_FAILED:
+            case JOIN_CHAT_ROOM_MSERVER_FAILED:
+            case UPDATE_LOCAL_CACHE_DATA_FAILED:
                 ToastUtil.TextIntToast(context, R.string.invite_user_send_failed, 3);
                 break;
         }
@@ -350,7 +307,7 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
      * 查询群组详情
      * @param inviteUserBean
      */
-    public void sendGetGroupInfoToBServer4Recv(final InviteUserEvent.InviteUserBean inviteUserBean) {
+    public void recvGetGroupInfoToBServer(final InviteUserEvent.InviteUserBean inviteUserBean) {
         Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("groupId", inviteUserBean.groupId);
         CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GETGROUPINFO;
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
@@ -420,7 +377,7 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
      * @param masterNo
      * @param createTimeDate
      */
-    public void sendGetGroupUsersToBServer4Recv(InviteUserEvent.InviteUserBean inviteUserBean,
+    public void recvGetGroupUsersToBServer(InviteUserEvent.InviteUserBean inviteUserBean,
                                                 String groupId, String groupName, String desc,
                                                 String creatorNo, String masterNo, Date createTimeDate) {
         CountDownLatch countDownLatch = new CountDownLatch(1);
@@ -437,13 +394,25 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
     }
 
     //TODO 不合理 需要结合GetGroupUserThread调整
-    public void sendJoinChatRoomToMServer4Recv() {
+    public void recvJoinChatRoomToMServer(InviteUserEvent.InviteUserBean inviteUserBean) {
         imGroupManager.joinChatRooms(imGroupManager.getGroupMap().values());
         buildAndTriggerBusinessFlow4RecvInviteUser(InviteUserEvent.BusinessFlow.RecvParam.Recv
-                .JOIN_CHAT_ROOM_MSERVER_OK, null);
+                .JOIN_CHAT_ROOM_MSERVER_OK, inviteUserBean);
     }
 
 
+    //更新本地缓存
+    public void updateLocalData4Recv(InviteUserEvent.InviteUserBean inviteUserBean) {
+        imGroupManager.joinChatRooms(imGroupManager.getGroupMap().values());
+        //更新会话
+        String peerId = inviteUserBean.groupId+"@"+userInfoBean.getmMucServiceName()
+                +"."+userInfoBean.getmServiceName();
+        String talkId = inviteUserBean.userNo+"@"+userInfoBean.getmServiceName();
+        imSessionManager.updateSessionEntity(peerId, DBConstant.SESSION_TYPE_GROUP,
+                DBConstant.MSG_TYPE_GROUP_TEXT, "", talkId, inviteUserBean.replyTime);
+        buildAndTriggerBusinessFlow4RecvInviteUser(InviteUserEvent.BusinessFlow.RecvParam.Recv
+                .UPDATE_LOCAL_CACHE_DATA_OK, inviteUserBean);
+    }
 
 
 
@@ -463,18 +432,6 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
         triggerEvent(sendParam);
     }
 
-    private void buildAndTriggerBusinessFlow4SendApplyInGroup(
-            InviteUserEvent.BusinessFlow.SendParam.Send send,
-            InviteUserEvent.ApplyInGroupBean applyInGroupBean) {
-        if(send == null)
-            throw new IllegalArgumentException("InviteUserTask#send is null");
-
-        InviteUserEvent.BusinessFlow.SendParam sendParam = new InviteUserEvent.BusinessFlow
-                .SendParam(send, applyInGroupBean);
-        triggerEvent(sendParam);
-    }
-
-
     /**
      * 构建业务流
      */
@@ -488,18 +445,6 @@ public class InviteUserNotify extends BaseNotify<InviteUserEvent.InviteUserBean>
         triggerEvent(recvParam);
     }
 
-    /**
-     * 构建业务流
-     */
-    private void buildAndTriggerBusinessFlow4RecvApplyInGroup(
-            InviteUserEvent.BusinessFlow.RecvParam.Recv recv,
-            InviteUserEvent.ApplyInGroupBean applyInGroupBean) {
-        if(recv == null)
-            throw new IllegalArgumentException("InviteUserTask#recv is null");
-        InviteUserEvent.BusinessFlow.RecvParam recvParam = new InviteUserEvent.BusinessFlow
-                .RecvParam(recv, applyInGroupBean);
-        triggerEvent(recvParam);
-    }
 
     /**
      * 构建业务流

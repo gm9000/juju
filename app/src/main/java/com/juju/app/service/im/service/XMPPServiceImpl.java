@@ -1,14 +1,7 @@
 package com.juju.app.service.im.service;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ContentResolver;
-import android.content.ContentValues;
-import android.content.Intent;
-import android.net.Uri;
-import android.util.Log;
-import android.util.Xml;
 
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
@@ -18,7 +11,6 @@ import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
-import com.juju.app.enums.ConnectionState;
 import com.juju.app.event.ChatMessageEvent;
 import com.juju.app.event.LoginEvent;
 import com.juju.app.event.NotifyMessageEvent;
@@ -28,7 +20,6 @@ import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
-import com.juju.app.media.rtmp.packets.RtmpHeader;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.callback.FixListenerQueue;
 import com.juju.app.service.im.callback.ListenerQueue;
@@ -37,9 +28,7 @@ import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 
 import com.juju.app.service.im.iq.RedisResIQ;
 import com.juju.app.service.im.manager.IMSessionManager;
-import com.juju.app.service.im.manager.IMUnreadMsgManager;
 import com.juju.app.service.im.provider.RedisPacketExtensionProvider;
-import com.juju.app.service.im.tls.TLSMode;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
@@ -49,9 +38,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.jivesoftware.smack.AbstractXMPPConnection;
 import org.jivesoftware.smack.ConnectionConfiguration;
 import org.jivesoftware.smack.ConnectionListener;
-import org.jivesoftware.smack.MessageListener;
 import org.jivesoftware.smack.ReconnectionManager;
-import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.StanzaListener;
 import org.jivesoftware.smack.XMPPConnection;
@@ -60,11 +47,9 @@ import org.jivesoftware.smack.filter.StanzaFilter;
 import org.jivesoftware.smack.packet.ExtensionElement;
 import org.jivesoftware.smack.packet.IQ;
 import org.jivesoftware.smack.packet.Message;
-import org.jivesoftware.smack.packet.PacketExtension;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Stanza;
 import org.jivesoftware.smack.packet.StreamError;
-import org.jivesoftware.smack.packet.XMPPError;
 import org.jivesoftware.smack.parsing.ExceptionLoggingCallback;
 import org.jivesoftware.smack.provider.ExtensionElementProvider;
 import org.jivesoftware.smack.provider.ProviderManager;
@@ -83,20 +68,14 @@ import org.jivesoftware.smackx.xdata.FormField;
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.StringReader;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentHashMap;
 
-import javax.xml.parsers.DocumentBuilderFactory;
 
 
 /**
@@ -166,8 +145,6 @@ public class XMPPServiceImpl implements
         }
         builder.setCompressionEnabled(false);
         builder.setSendPresence(true);
-
-//        builder.setUsernameAndPassword(userInfoBean.getmAccount(), userInfoBean.getmPassword());
         try {
             TLSUtils.acceptAllCertificates(builder);
             TLSUtils.disableHostnameVerificationForTlsCertificicates(builder);
@@ -201,16 +178,18 @@ public class XMPPServiceImpl implements
                 new RedisPacketExtensionProvider());
 
 
+        //监听扩展消息
         MsgTypeProvider msgTypeProvider = new MsgTypeProvider();
         ProviderManager.addExtensionProvider(ElementNameType.msgType.name(),
                 IMBaseDefine.NameSpaceType.MESSAGE.value(), msgTypeProvider);
 
+        //监听通知
         NotifyTypeProvider notifyTypeProvider = new NotifyTypeProvider();
         ProviderManager.addExtensionProvider(ElementNameType.notifyType.name(),
                 IMBaseDefine.NameSpaceType.NOTIFY.value(), notifyTypeProvider);
 
-
-        doReconnection();
+        //设置重连策略
+        setReconnectionPolicy();
     }
 
 
@@ -285,14 +264,20 @@ public class XMPPServiceImpl implements
      * @param to
      * @param message
      * @param uuid
+     * @param msgType
      * @param callback
      */
     @Override
     public void sendMessage(String from, String to, String message, String uuid,
-                            XMPPServiceCallbackImpl callback) {
+                            IMBaseDefine.MsgType msgType, XMPPServiceCallbackImpl callback) {
         Message newMessage = new Message(to, Message.Type.groupchat);
         if(StringUtils.isNotBlank(from)) {
             newMessage.setFrom(from);
+        }
+        if(msgType != null) {
+            ExtensionElement extensionElement = new MsgExtensionElement(msgType,
+                    IMBaseDefine.NameSpaceType.MESSAGE);
+            newMessage.addExtension(extensionElement);
         }
         newMessage.setStanzaId(uuid);
         newMessage.setBody(message);
@@ -400,23 +385,6 @@ public class XMPPServiceImpl implements
         return null;
     }
 
-//    /**
-//     * 注册回调方法
-//     *
-//     * @param callBack
-//     */
-//    @Override
-//    public void registerCallback(XMPPServiceCallback callBack) {
-//        this.mServiceCallBack = callBack;
-//    }
-//
-//    /**
-//     * 注销回调方法
-//     */
-//    @Override
-//    public void unRegisterCallback() {
-//        this.mServiceCallBack = null;
-//    }
 
     /**
      * 加入聊天室
@@ -903,6 +871,10 @@ public class XMPPServiceImpl implements
                 case MSG_TEXT:
                     handlerMsg4NormalMessage(message);
                     break;
+                //短语音
+                case MSG_AUDIO:
+                    handlerMsg4Audio(message);
+                    break;
 
             }
         }
@@ -989,6 +961,14 @@ public class XMPPServiceImpl implements
         }
     }
 
+    /**
+     * 处理录音消息
+     * @param message
+     */
+    private void handlerMsg4Audio(Message message) {
+        ((IMService)mService).getMessageManager().onRecvMsg(message, IMBaseDefine.MsgType.MSG_AUDIO);
+    }
+
 
     /**
      * 触发聊天消息相关事件
@@ -1036,9 +1016,9 @@ public class XMPPServiceImpl implements
     }
 
     /**
-     * 处理断线重连
+     * 设置断线重连策略
      */
-    private void doReconnection() {
+    private void setReconnectionPolicy() {
         ReconnectionManager reconnectionManager = ReconnectionManager.getInstanceFor(xmppConnection);
         reconnectionManager.setReconnectionPolicy(ReconnectionManager.ReconnectionPolicy.FIXED_DELAY);
         //重连时间10秒

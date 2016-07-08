@@ -8,6 +8,7 @@ import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.golobal.CommandActionConstant;
+import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
@@ -24,6 +25,7 @@ import com.juju.app.utils.json.JSONUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.jivesoftware.smack.SmackException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -69,12 +71,18 @@ public class ExitGroupNotify extends BaseNotify<ExitGroupEvent.ExitGroupBean> {
 
     @Override
     public void executeCommand4Send(ExitGroupEvent.ExitGroupBean exitGroupBean) {
-        sendQuitGroupMasterToBServer(exitGroupBean);
+        if(exitGroupBean.flag == 1) {
+            sendQuitGroupMasterToBServer(exitGroupBean);
+        }
+        //管理员移除群员
+        else if (exitGroupBean.flag == 0) {
+            sendExitGroupToMServer(exitGroupBean);
+        }
     }
 
     @Override
     public void executeCommand4Recv(ExitGroupEvent.ExitGroupBean exitGroupBean) {
-//        recvUpdateLocalData(exitGroupBean);
+        recvUpdateLocalData(exitGroupBean);
     }
 
 
@@ -90,31 +98,43 @@ public class ExitGroupNotify extends BaseNotify<ExitGroupEvent.ExitGroupBean> {
     public void onEvent4BusinessFlowSendEvent(ExitGroupEvent.BusinessFlow.SendParam sendParam) {
         switch (sendParam.send) {
             case SEND_QUIT_GROUP_BSERVER_OK:
-                sendExitGroupToMServer(sendParam.bean);
+                if(sendParam.bean.flag == 1) {
+                    sendExitGroupToMServer(sendParam.bean);
+                }
                 break;
             case SEND_EXIT_GROUP_MSERVER_OK:
-                GroupEntity groupEntity = imGroupManager.findGroupById(sendParam.bean.groupId);
-                if(groupEntity != null) {
-                    imGroupManager.getGroupMap().remove(groupEntity.getPeerId());
-                    GroupEntity dbGroup = (GroupEntity) groupDao.findUniByProperty("id", groupEntity.getId());
-                    if(dbGroup != null) {
-                        groupDao.delete(dbGroup);
-                    }
+                if(sendParam.bean.flag == 1) {
+                    sendExitChatRoomToMServer(sendParam.bean);
                 }
-                buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam.Send
-                        .UPDATE_LOCAL_CACHE_DATA_OK, sendParam.bean);
+                break;
+            case SEND_EXIT_CHAT_ROOM_MSERVER_OK:
+                if(sendParam.bean.flag == 1) {
+                    GroupEntity groupEntity = imGroupManager.findGroupById(sendParam.bean.groupId);
+                    if(groupEntity != null) {
+                        imGroupManager.getGroupMap().remove(groupEntity.getPeerId());
+                        GroupEntity dbGroup = (GroupEntity) groupDao.findUniByProperty("id", groupEntity.getId());
+                        if(dbGroup != null) {
+                            groupDao.delete(dbGroup);
+                        }
+                    }
+                    buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam.Send
+                            .UPDATE_LOCAL_CACHE_DATA_OK, sendParam.bean);
+                }
                 break;
             case UPDATE_LOCAL_CACHE_DATA_OK:
-                //抛出对外事件
-                ExitGroupEvent externalEvent = new ExitGroupEvent(ExitGroupEvent.Event
-                        .SEND_EXIT_GROUP_OK, sendParam.bean);
-                triggerEvent(externalEvent);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ToastUtil.TextIntToast(context, R.string.exit_group_send_success, 0);
-                    }
-                });
+                if(sendParam.bean.flag == 1) {
+                    //抛出对外事件
+                    ExitGroupEvent externalEvent = new ExitGroupEvent(ExitGroupEvent.Event
+                            .SEND_EXIT_GROUP_OK, sendParam.bean);
+                    triggerEvent(externalEvent);
+                    imGroupManager.changeGroup4Trigger(sendParam.bean.groupId, DBConstant.GROUP_MODIFY_TYPE_DEL);
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ToastUtil.TextIntToast(context, R.string.exit_group_send_success, 0);
+                        }
+                    });
+                }
                 break;
             case SEND_QUIT_GROUP_BSERVER_FAILED:
                 int resId = getResValue(sendParam.bean.errorDesc);
@@ -181,14 +201,28 @@ public class ExitGroupNotify extends BaseNotify<ExitGroupEvent.ExitGroupBean> {
         }
     }
 
+    private void sendExitChatRoomToMServer(ExitGroupEvent.ExitGroupBean exitGroupBean) {
+        String peerId = exitGroupBean.groupId+"@"+userInfoBean.getmMucServiceName()
+                +"."+userInfoBean.getmServiceName();
+        try {
+            socketService.leaveChatRoom(peerId);
+            buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
+                    .Send.SEND_EXIT_CHAT_ROOM_MSERVER_OK, exitGroupBean);
+        } catch (SmackException.NotConnectedException e) {
+            logger.error(e);
+            buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
+                    .Send.SEND_EXIT_CHAT_ROOM_MSERVER_FAILED, exitGroupBean);
+        }
+    }
+
     public void sendExitGroupToMServer(final ExitGroupEvent.ExitGroupBean exitGroupBean) {
         String peerId = exitGroupBean.groupId+"@"+userInfoBean.getmMucServiceName()+"."
                 +userInfoBean.getmServiceName();
         String message = JacksonUtil.turnObj2String(exitGroupBean);
         String uuid = UUID.randomUUID().toString();
 
-        //通知用户
-        notifyMessage4User(peerId, message,
+        //通知群组
+        notifyMessage4Group(peerId, message,
                 IMBaseDefine.NotifyType.EXIT_GROUP, uuid, true,
                 new XMPPServiceCallbackImpl() {
                     @Override
@@ -266,12 +300,24 @@ public class ExitGroupNotify extends BaseNotify<ExitGroupEvent.ExitGroupBean> {
     private void recvUpdateLocalData(ExitGroupEvent.ExitGroupBean exitGroupBean) {
         GroupEntity groupEntity = imGroupManager.findGroupById(exitGroupBean.groupId);
         if(groupEntity != null) {
-            if(exitGroupBean.flag == 0 && exitGroupBean.userNo.equals(userInfoBean.getUserNo())) {
-                //TODO 删除群组
+            //管理员移除
+            if(exitGroupBean.flag == 0
+                    && exitGroupBean.userNo.equals(userInfoBean.getUserNo())) {
+                //TODO 退出聊天室，删除群组
+                String peerId = exitGroupBean.groupId+"@"+userInfoBean.getmMucServiceName()+"."+userInfoBean.getmServiceName();
+                try {
+                    socketService.leaveChatRoom(peerId);
+                    imGroupManager.getGroupMap().remove(peerId);
+                    GroupEntity dbGroup = (GroupEntity) groupDao.findUniByProperty("id", exitGroupBean.groupId);
+                    if(dbGroup != null) {
+                        groupDao.delete(dbGroup);
+                    }
+                } catch (SmackException.NotConnectedException e) {
+                    logger.error(e);
+                }
             } else {
-                //更新群组成员关系
+               imGroupManager.updateGroup4Members(exitGroupBean.groupId, exitGroupBean.userNo, exitGroupBean.replyTime, 1);
             }
-//            groupEntity.setUserList(groupEntity.getUserList().replaceAll(exitGroupBean.userNo));
             buildAndTriggerBusinessFlow4Recv(ExitGroupEvent.BusinessFlow
                     .RecvParam.Recv.UPDATE_LOCAL_CACHE_DATA_OK, exitGroupBean);
         }

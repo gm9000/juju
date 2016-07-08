@@ -51,13 +51,17 @@ import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
+import com.juju.app.event.GroupEvent;
 import com.juju.app.event.MessageEvent;
 import com.juju.app.event.PriorityEvent;
+import com.juju.app.event.notify.ApplyInGroupEvent;
+import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.golobal.Constants;
@@ -66,13 +70,17 @@ import com.juju.app.golobal.HandlerConstant;
 import com.juju.app.golobal.IntentConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.service.im.audio.AudioPlayerHandler;
+import com.juju.app.service.im.audio.AudioRecordHandler;
 import com.juju.app.service.im.manager.IMGroupManager;
+import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.service.im.manager.IMMessageManager;
 import com.juju.app.tools.Emoparser;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.CommonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.SystemConfigSp;
 import com.juju.app.utils.ToastUtil;
@@ -94,6 +102,8 @@ import org.xutils.view.annotation.ViewInject;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 项目名称：juju
@@ -107,11 +117,12 @@ import java.util.Set;
 public class ChatActivity extends BaseActivity implements CreateUIHelper,
         PullToRefreshBase.OnRefreshListener2<ListView>,
         TextWatcher,
+        View.OnTouchListener,
         SensorEventListener {
 
     private Logger logger = Logger.getLogger(ChatActivity.class);
     private InputMethodManager inputManager = null;
-    private Dialog soundVolumeDialog = null;
+//    private Dialog soundVolumeDialog = null;
 
     private MGProgressbar progressbar = null;
     private static SensorManager sensorManager = null;
@@ -201,7 +212,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     private int historyTimes = 0;
 
-    private static Handler uiHandler = null;
+    private static Handler uiHandler = null; //处理语音
 
     private UserInfoBean userInfoBean;
 
@@ -263,6 +274,8 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     protected void setOnListener() {
         super.setOnListener();
         messageEdt.addTextChangedListener(this);
+        recordAudioBtn.setOnTouchListener(this);
+
     }
 
 //    //结束群聊
@@ -454,11 +467,88 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
 
 
+    private String audioSavePath = null;
+    private AudioRecordHandler audioRecorderInstance = null;
+    private Thread audioRecorderThread = null;
 
-    @Event(value = R.id.record_voice_btn, type = View.OnTouchListener.class)
-    private void onTouch4TxtMessage(View v, MotionEvent event) {
 
-    }
+    /**
+     * 发送语音
+     * @param v
+     * @param event
+     * @return
+     */
+//    @Event(value = R.id.record_voice_btn, type = View.OnTouchListener.class)
+//    private boolean onTouch4RecordVoiceBtn(View v, MotionEvent event) {
+//        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+//            if (AudioPlayerHandler.getInstance().isPlaying())
+//                AudioPlayerHandler.getInstance().stopPlayer();
+//            y1 = event.getY();
+//            recordAudioBtn.setBackgroundResource(R.drawable.tt_pannel_btn_voiceforward_pressed);
+//            recordAudioBtn.setText(ChatActivity.this.getResources().getString(
+//                    R.string.release_to_send_voice));
+//
+//            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_01);
+//            soundVolumeImg.setVisibility(View.VISIBLE);
+//            soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_default_bk);
+//            soundVolumeDialog.show();
+//            audioSavePath = CommonUtil
+//                    .getAudioSavePath(userInfoBean.getUserNo());
+//
+//            logger.d("onTouch4RecordVoiceBtn -> audioSavePath:%s", audioSavePath);
+//            // 这个callback很蛋疼，发送消息从MotionEvent.ACTION_UP 判断
+//            audioRecorderInstance = new AudioRecordHandler(audioSavePath);
+//
+//            audioRecorderThread = new Thread(audioRecorderInstance);
+//            audioRecorderInstance.setRecording(true);
+//            logger.d("message_activity#audio#audio record thread starts");
+//            audioRecorderThread.start();
+//        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+//            y2 = event.getY();
+//            if (y1 - y2 > 180) {
+//                soundVolumeImg.setVisibility(View.GONE);
+//                soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_cancel_bk);
+//            } else {
+//                soundVolumeImg.setVisibility(View.VISIBLE);
+//                soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_default_bk);
+//            }
+//        } else if (event.getAction() == MotionEvent.ACTION_UP) {
+//            y2 = event.getY();
+//            if (audioRecorderInstance.isRecording()) {
+//                audioRecorderInstance.setRecording(false);
+//            }
+//            if (soundVolumeDialog.isShowing()) {
+//                soundVolumeDialog.dismiss();
+//            }
+//            recordAudioBtn.setBackgroundResource(R.drawable.tt_pannel_btn_voiceforward_normal);
+//            recordAudioBtn.setText(ChatActivity.this.getResources().getString(
+//                    R.string.tip_for_voice_forward));
+//            if (y1 - y2 <= 180) {
+//                if (audioRecorderInstance.getRecordTime() >= 0.5) {
+//                    if (audioRecorderInstance.getRecordTime() < Constants.MAX_SOUND_RECORD_TIME) {
+//                        Message msg = uiHandler.obtainMessage();
+//                        msg.what = HandlerConstant.HANDLER_RECORD_FINISHED;
+//                        msg.obj = audioRecorderInstance.getRecordTime();
+//                        uiHandler.sendMessage(msg);
+//                    }
+//                } else {
+//                    soundVolumeImg.setVisibility(View.GONE);
+//                    soundVolumeLayout
+//                            .setBackgroundResource(R.mipmap.tt_sound_volume_short_tip_bk);
+//                    soundVolumeDialog.show();
+//                    Timer timer = new Timer();
+//                    timer.schedule(new TimerTask() {
+//                        public void run() {
+//                            if (soundVolumeDialog.isShowing())
+//                                soundVolumeDialog.dismiss();
+//                            this.cancel();
+//                        }
+//                    }, 700);
+//                }
+//            }
+//        }
+//        return false;
+//    }
 
 
 
@@ -478,13 +568,13 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
      * @Description 初始化音量对话框
      */
     private void initSoundVolumeDlg() {
-        soundVolumeDialog = new Dialog(this, R.style.SoundVolumeStyle);
-        soundVolumeDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        soundVolumeDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
-        soundVolumeDialog.setContentView(R.layout.tt_sound_volume_dialog);
-        soundVolumeDialog.setCanceledOnTouchOutside(true);
-        soundVolumeImg = (ImageView) soundVolumeDialog.findViewById(R.id.sound_volume_img);
-        soundVolumeLayout = (LinearLayout) soundVolumeDialog.findViewById(R.id.sound_volume_bk);
+//        soundVolumeDialog = new Dialog(this, R.style.SoundVolumeStyle);
+//        soundVolumeDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+//        soundVolumeDialog.getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        soundVolumeDialog.setContentView(R.layout.tt_sound_volume_dialog);
+//        soundVolumeDialog.setCanceledOnTouchOutside(true);
+//        soundVolumeImg = (ImageView) soundVolumeDialog.findViewById(R.id.sound_volume_img);
+//        soundVolumeLayout = (LinearLayout) soundVolumeDialog.findViewById(R.id.sound_volume_bk);
     }
 
 
@@ -537,6 +627,144 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        logger.d("onTouchonTouchonTouch-> event:%s", event.toString());
+        int id = v.getId();
+        scrollToBottomListItem();
+        if (id == R.id.record_voice_btn) {
+            if (event.getAction() == MotionEvent.ACTION_DOWN) {
+                if (AudioPlayerHandler.getInstance().isPlaying())
+                    AudioPlayerHandler.getInstance().stopPlayer();
+                y1 = event.getY();
+                recordAudioBtn.setBackgroundResource(R.drawable.tt_pannel_btn_voiceforward_pressed);
+                recordAudioBtn.setText(ChatActivity.this.getResources().getString(
+                        R.string.release_to_send_voice));
+
+//                soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_01);
+//                soundVolumeImg.setVisibility(View.VISIBLE);
+//                soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_default_bk);
+//                soundVolumeDialog.show();
+
+//                ChatActivity.this.showMsgDialog(R.string.join_group_send_failed);
+
+
+                soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_01);
+                soundVolumeImg.setVisibility(View.VISIBLE);
+                soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_default_bk);
+                soundVolumeLayout.setVisibility(View.VISIBLE);
+
+                audioSavePath = CommonUtil
+                        .getAudioSavePath(userInfoBean.getUserNo());
+
+                // 这个callback很蛋疼，发送消息从MotionEvent.ACTION_UP 判断
+                audioRecorderInstance = new AudioRecordHandler(audioSavePath);
+                logger.d("onTouch4RecordVoiceBtn -> audioSavePath:%s", audioSavePath);
+                audioRecorderThread = new Thread(audioRecorderInstance);
+                audioRecorderInstance.setRecording(true);
+                logger.d("message_activity#audio#audio record thread starts");
+                audioRecorderThread.start();
+            } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
+                y2 = event.getY();
+                if (y1 - y2 > 180) {
+                    soundVolumeImg.setVisibility(View.GONE);
+                    soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_cancel_bk);
+                } else {
+                    soundVolumeImg.setVisibility(View.VISIBLE);
+                    soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_default_bk);
+                }
+            } else if (event.getAction() == MotionEvent.ACTION_UP) {
+                y2 = event.getY();
+                if (audioRecorderInstance.isRecording()) {
+                    audioRecorderInstance.setRecording(false);
+                }
+
+//                if (soundVolumeDialog.isShowing()) {
+//                    soundVolumeDialog.dismiss();
+//                }
+
+                if(soundVolumeLayout.getVisibility() == View.VISIBLE) {
+                    soundVolumeLayout.setVisibility(View.GONE);
+                }
+
+                recordAudioBtn.setBackgroundResource(R.drawable.tt_pannel_btn_voiceforward_normal);
+                recordAudioBtn.setText(ChatActivity.this.getResources().getString(
+                        R.string.tip_for_voice_forward));
+                if (y1 - y2 <= 180) {
+                    if (audioRecorderInstance.getRecordTime() >= 0.5) {
+                        if (audioRecorderInstance.getRecordTime() < Constants.MAX_SOUND_RECORD_TIME) {
+                            Message msg = uiHandler.obtainMessage();
+                            msg.what = HandlerConstant.HANDLER_RECORD_FINISHED;
+                            msg.obj = audioRecorderInstance.getRecordTime();
+                            uiHandler.sendMessage(msg);
+                        }
+                    } else {
+                        soundVolumeImg.setVisibility(View.GONE);
+                        soundVolumeLayout
+                                .setBackgroundResource(R.mipmap.tt_sound_volume_short_tip_bk);
+//                        soundVolumeDialog.show();
+//                        if(soundVolumeLayout.getVisibility() == View.VISIBLE) {
+//
+//                        }
+                        soundVolumeLayout.setVisibility(View.VISIBLE);
+
+                        Timer timer = new Timer();
+                        timer.schedule(new TimerTask() {
+                            public void run() {
+//                                if (soundVolumeDialog.isShowing())
+//                                    soundVolumeDialog.dismiss();
+                                if(soundVolumeLayout.getVisibility() == View.VISIBLE) {
+                                    soundVolumeLayout.setVisibility(View.GONE);
+                                }
+                                this.cancel();
+                            }
+                        }, 700);
+                    }
+                }
+            } else if (event.getAction() == MotionEvent.ACTION_CANCEL) {
+                y2 = event.getY();
+                if (audioRecorderInstance.isRecording()) {
+                    audioRecorderInstance.setRecording(false);
+                }
+//                if (soundVolumeDialog.isShowing()) {
+//                    soundVolumeDialog.dismiss();
+//                }
+                if(soundVolumeLayout.getVisibility() == View.VISIBLE) {
+                    soundVolumeLayout.setVisibility(View.GONE);
+                }
+                recordAudioBtn.setBackgroundResource(R.drawable.tt_pannel_btn_voiceforward_normal);
+                recordAudioBtn.setText(ChatActivity.this.getResources().getString(
+                        R.string.tip_for_voice_forward));
+                if (y1 - y2 <= 180) {
+                    if (audioRecorderInstance.getRecordTime() >= 0.5) {
+                        if (audioRecorderInstance.getRecordTime() < Constants.MAX_SOUND_RECORD_TIME) {
+                            Message msg = uiHandler.obtainMessage();
+                            msg.what = HandlerConstant.HANDLER_RECORD_FINISHED;
+                            msg.obj = audioRecorderInstance.getRecordTime();
+                            uiHandler.sendMessage(msg);
+                        }
+                    } else {
+                        soundVolumeImg.setVisibility(View.GONE);
+                        soundVolumeLayout
+                                .setBackgroundResource(R.mipmap.tt_sound_volume_short_tip_bk);
+                        soundVolumeLayout.setVisibility(View.VISIBLE);
+                        Timer timer = new Timer();
+                        timer.schedule(new TimerTask() {
+                            public void run() {
+//                                if (soundVolumeDialog.isShowing())
+//                                    soundVolumeDialog.dismiss();
+                                if(soundVolumeLayout.getVisibility() == View.VISIBLE) {
+                                    soundVolumeLayout.setVisibility(View.GONE);
+                                }
+                                this.cancel();
+                            }
+                        }, 700);
+                    }
+                }
+            }
+        }
+        return false;
+    }
 
 
 
@@ -605,7 +833,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         lvPTR.getLoadingLayoutProxy().setLoadingDrawable(loadingDrawable);
         lvPTR.getRefreshableView().setCacheColorHint(Color.WHITE);
         lvPTR.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
-        lvPTR.getRefreshableView().setOnTouchListener(lvPTROnTouchListener);
+//        lvPTR.getRefreshableView().setOnTouchListener(lvPTROnTouchListener);
         adapter = new ChatAdapter(this);
         adapter.setImService(null, loginUser);
         lvPTR.setAdapter(adapter);
@@ -986,31 +1214,116 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                     GroupEntity groupEntity = imService.getGroupManager().findGroupById(inviteUserBean.groupId);
                     //需考虑批量邀请
                     String content = "你邀请"+inviteUserBean.nickName+"加入了群聊";
-                    TextMessage textMessage = TextMessage.buildForSend2Notify(content,
-                            fromUser.getPeerId(), groupEntity.getPeerId());
+                    TextMessage textMessage = TextMessage.buildForSend2Notify(inviteUserBean.replyId,
+                            inviteUserBean.replyTime, content, fromUser.getPeerId(), groupEntity.getPeerId());
                     onMsgRecv(textMessage);
+
+                    MessageEntity messageEntity = textMessage.clone();
+                    imService.getMessageManager().replaceInto(messageEntity);
+                }
+                break;
+        }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4InviteInGroup(InviteInGroupEvent event) {
+        switch (event.event) {
+            case RECV_INVITE_IN_GROUP_OK:
+                InviteInGroupEvent.InviteInGroupBean inviteInGroupBean  = event.bean;
+                if(currentSessionKey.indexOf(inviteInGroupBean.groupId) >= 0) {
+                    if(userInfoBean.getUserNo().equals(inviteInGroupBean.invitorNo)) {
+                        break;
+                    } else {
+                        User fromUser = imService.getContactManager().findContact(inviteInGroupBean.invitorNo);
+                        GroupEntity groupEntity = imService.getGroupManager().findGroupById(inviteInGroupBean.groupId);
+                        //需考虑批量邀请
+                        String content = fromUser.getNickName()+"邀请"+inviteInGroupBean.nickName+"加入了群聊";
+                        TextMessage textMessage = TextMessage.buildForSend2Notify(inviteInGroupBean.replyId,
+                                inviteInGroupBean.replyTime, content, fromUser.getPeerId(), groupEntity.getPeerId());
+                        onMsgRecv(textMessage);
+
+                        MessageEntity messageEntity = textMessage.clone();
+                        imService.getMessageManager().replaceInto(messageEntity);
+                    }
+                }
+                break;
+        }
+    }
+
+
+    //TODO 暂时这样处理
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4GroupEvent(GroupEvent event) {
+        switch (event.getChangeType()) {
+            case DBConstant.GROUP_MODIFY_TYPE_DEL:
+                String id = event.getChangeList().get(0);
+                if(currentSessionKey.indexOf(id) >= 0) {
+                    finish(ChatActivity.this);
                 }
                 break;
         }
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent4InviteUser(InviteInGroupEvent event) {
-        switch (event.event) {
-            case RECV_INVITE_IN_GROUP_OK:
-                InviteInGroupEvent.InviteInGroupBean inviteInGroupBean  = event.bean;
-                if(currentSessionKey.indexOf(inviteInGroupBean.groupId) >= 0) {
-                    GroupEntity groupEntity = imService.getGroupManager().findGroupById(inviteInGroupBean.groupId);
-                    User toUser = imService.getContactManager().findContact(userInfoBean.getUserNo());
-                    String targetName = inviteInGroupBean.nickName;
-                    if(inviteInGroupBean.userNo.equals(userInfoBean.getUserNo())) {
-                        targetName = "你";
-                    }
+    public void onEvent4ApplyInGroupEvent(ApplyInGroupEvent event){
+        logger.d("ChatActivity#ApplyInGroupEvent# -> %s", event);
+        switch (event.event){
+            case RECV_APPLY_IN_GROUP_OK:
+                ApplyInGroupEvent.ApplyInGroupBean applyInGroupBean  = event.bean;
+                if(userInfoBean.getUserNo().equals(applyInGroupBean.userNo)) {
+                    break;
+                } else {
+                    User fromUser = imService.getContactManager().findContact(applyInGroupBean.userNo);
+                    GroupEntity groupEntity = imService.getGroupManager().findGroupById(applyInGroupBean.groupId);
                     //需考虑批量邀请
-                    String content = inviteInGroupBean.invitorNickName+"邀请"+targetName+"加入了群聊";
-                    TextMessage textMessage = TextMessage.buildForSend2Notify(content,
-                            groupEntity.getPeerId(), toUser.getPeerId());
+                    String content = fromUser.getNickName()+"扫码加入了群聊";
+                    TextMessage textMessage = TextMessage.buildForSend2Notify(applyInGroupBean.replyId,
+                            applyInGroupBean.replyTime, content,fromUser.getPeerId(), groupEntity.getPeerId());
                     onMsgRecv(textMessage);
+
+                    MessageEntity messageEntity = textMessage.clone();
+                    imService.getMessageManager().replaceInto(messageEntity);
+                }
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4ExitGroupEvent(ExitGroupEvent event){
+        logger.d("ChatActivity#ExitGroupEvent# -> %s", event);
+        switch (event.event){
+            case RECV_EXIT_GROUP_OK:
+                ExitGroupEvent.ExitGroupBean exitGroupBean  = event.bean;
+                if(userInfoBean.getUserNo().equals(exitGroupBean.userNo)) {
+                    //是否需要提醒
+                    finish(ChatActivity.this);
+                    break;
+                } else {
+                    User fromUser = null;
+                    String content = null;
+                    //管理员移除
+                    if(exitGroupBean.flag == 0) {
+                        GroupEntity groupEntity = imService.getGroupManager().findGroupById(exitGroupBean.groupId);
+                        fromUser = imService.getContactManager().findContact(groupEntity.getMasterId());
+                        User targetUser = imService.getContactManager().findContact(exitGroupBean.userNo);
+                        content = targetUser.getNickName()+"被管理员移出群聊";
+                    }
+                    //用户主动退群
+                    else if (exitGroupBean.flag == 1) {
+                        fromUser = imService.getContactManager().findContact(exitGroupBean.userNo);
+                        content = fromUser.getNickName()+"退出群聊";
+                    }
+//                    GroupEntity groupEntity = imService.getGroupManager().findGroupById(exitGroupBean.groupId);
+                    String groupPeerId = exitGroupBean.groupId+"@"+userInfoBean.getmMucServiceName()
+                            +"."+userInfoBean.getmServiceName();
+                    //需考虑批量邀请
+                    TextMessage textMessage = TextMessage.buildForSend2Notify(exitGroupBean.replyId,
+                            exitGroupBean.replyTime, content, fromUser.getPeerId(), groupPeerId);
+                    onMsgRecv(textMessage);
+
+                    MessageEntity messageEntity = textMessage.clone();
+                    imService.getMessageManager().replaceInto(messageEntity);
                 }
                 break;
         }
@@ -1031,6 +1344,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 //        long localId = messageEntity.getId();
         adapter.notifyDataSetChanged();
     }
+
 
     // 肯定是在当前的session内
     private void onMsgRecv(MessageEntity entity) {
@@ -1060,23 +1374,23 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                         imService.getUnReadMsgManager().onNotifyRead(entity);
                         break;
 
-//                    case HandlerConstant.HANDLER_RECORD_FINISHED:
-//                        onRecordVoiceEnd((Float) msg.obj);
-//                        break;
-//
-//                    // 录音结束
-//                    case HandlerConstant.HANDLER_STOP_PLAY:
-//                        // 其他地方处理了
-//                        //adapter.stopVoicePlayAnim((String) msg.obj);
-//                        break;
-//
-//                    case HandlerConstant.RECEIVE_MAX_VOLUME:
-//                        onReceiveMaxVolume((Integer) msg.obj);
-//                        break;
-//
-//                    case HandlerConstant.RECORD_AUDIO_TOO_LONG:
-//                        doFinishRecordAudio();
-//                        break;
+                    case HandlerConstant.HANDLER_RECORD_FINISHED:
+                        onRecordVoiceEnd((Float) msg.obj);
+                        break;
+
+                    // 录音结束
+                    case HandlerConstant.HANDLER_STOP_PLAY:
+                        // 其他地方处理了
+                        //adapter.stopVoicePlayAnim((String) msg.obj);
+                        break;
+
+                    case HandlerConstant.RECEIVE_MAX_VOLUME:
+                        onReceiveMaxVolume((Integer) msg.obj);
+                        break;
+
+                    case HandlerConstant.RECORD_AUDIO_TOO_LONG:
+                        doFinishRecordAudio();
+                        break;
 
                     default:
                         break;
@@ -1162,5 +1476,68 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
         }
     };
+
+
+
+    /**
+     * @param audioLen
+     * @Description 录音结束后处理录音数据
+     */
+    private void onRecordVoiceEnd(float audioLen) {
+        logger.d("message_activity#chat#audio#onRecordVoiceEnd audioLen:%f", audioLen);
+        AudioMessage audioMessage = AudioMessage.buildForSend(audioLen, audioSavePath, loginUser, peerEntity);
+        imService.getMessageManager().sendMsgAudio(audioMessage);
+        pushList(audioMessage);
+    }
+
+    /**
+     * @param voiceValue
+     * @Description 根据分贝值设置录音时的音量动画
+     */
+    private void onReceiveMaxVolume(int voiceValue) {
+        if (voiceValue < 200.0) {
+            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_01);
+        } else if (voiceValue > 200.0 && voiceValue < 600) {
+            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_02);
+        } else if (voiceValue > 600.0 && voiceValue < 1200) {
+            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_03);
+        } else if (voiceValue > 1200.0 && voiceValue < 2400) {
+            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_04);
+        } else if (voiceValue > 2400.0 && voiceValue < 10000) {
+            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_05);
+        } else if (voiceValue > 10000.0 && voiceValue < 28000.0) {
+            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_06);
+        } else if (voiceValue > 28000.0) {
+            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_07);
+        }
+    }
+
+    /**
+     * @Description 录音超时(60s)，发消息调用该方法
+     */
+    public void doFinishRecordAudio() {
+        try {
+            if (audioRecorderInstance.isRecording()) {
+                audioRecorderInstance.setRecording(false);
+            }
+//            if (soundVolumeDialog.isShowing()) {
+//                soundVolumeDialog.dismiss();
+//            }
+            if(soundVolumeLayout.getVisibility() == View.VISIBLE) {
+                soundVolumeLayout.setVisibility(View.GONE);
+            }
+
+            recordAudioBtn.setBackgroundResource(R.drawable.tt_pannel_btn_voiceforward_normal);
+
+            audioRecorderInstance.setRecordTime(Constants.MAX_SOUND_RECORD_TIME);
+            onRecordVoiceEnd(Constants.MAX_SOUND_RECORD_TIME);
+        } catch (Exception e) {
+        }
+    }
+
+    public static Handler getUiHandler() {
+        return uiHandler;
+    }
+
 
 }

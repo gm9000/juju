@@ -21,8 +21,11 @@ public interface DBConstant {
     /**msgType*/
     public final int  MSG_TYPE_SINGLE_TEXT = 0x01;
     public final int  MSG_TYPE_SINGLE_AUDIO = 0x02;
+    public final int  MSG_TYPE_SINGLE_NOTIFY = 0x03;
     public final int  MSG_TYPE_GROUP_TEXT = 0x11;
     public final int  MSG_TYPE_GROUP_AUDIO = 0x12;
+    public final int  MSG_TYPE_GROUP_NOTIFY = 0x13;
+
 
     /**msgDisplayType
      * 保存在DB中，与服务端一致，图文混排也是一条

@@ -78,7 +78,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     private Handler uiHandler = new Handler();
 
     /**
-    *******************************************Activity组件***************************************
+     *******************************************Activity组件***************************************
      */
     @ViewInject(R.id.txt_loginId)
     private ClearEditText txt_loginId;
@@ -98,7 +98,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     @ViewInject(R.id.loginBtn)
     private Button btn_login;
 
-   @ViewInject(R.id.splash_main)
+    @ViewInject(R.id.splash_main)
     private View splash_main;
 
     @ViewInject(R.id.login_main)
@@ -160,7 +160,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
         if(StringUtils.isNotBlank(BaseApplication.getInstance().getUserInfoBean().getUserNo())){
             BitmapUtilFactory.getInstance(this).bind(portrait, HttpConstants.getUserUrl() +
-                    "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getUserNo(),
+                            "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getUserNo(),
                     BitmapUtilFactory.Option.imageOptions());
         }
 
@@ -496,58 +496,58 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         }
     }
 
-        /**
-         * IMServiceConnector
-         */
-        private IMServiceConnector imServiceConnector = new IMServiceConnector() {
-            @Override
-            public void onIMServiceConnected() {
-                logger.d("login_activity#onIMServiceConnected");
-                imService = imServiceConnector.getIMService();
-                try {
-                    do {
-                        if (imService == null) {
-                            //后台服务启动链接失败
-                            break;
-                        }
-                        IMLoginManager loginManager = imService.getLoginManager();
-                        if (loginManager == null) {
-                            // 无法获取登陆控制器
-                            break;
-                        }
+    /**
+     * IMServiceConnector
+     */
+    private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("login_activity#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+            try {
+                do {
+                    if (imService == null) {
+                        //后台服务启动链接失败
+                        break;
+                    }
+                    IMLoginManager loginManager = imService.getLoginManager();
+                    if (loginManager == null) {
+                        // 无法获取登陆控制器
+                        break;
+                    }
 
-                        if(StringUtils.isBlank(userNo)
-                                || StringUtils.isBlank(pwd)) {
-                            // 之前没有保存任何登陆相关的，跳转到登陆页面
-                            break;
-                        }
+                    if(StringUtils.isBlank(userNo)
+                            || StringUtils.isBlank(pwd)) {
+                        // 之前没有保存任何登陆相关的，跳转到登陆页面
+                        break;
+                    }
 
-                        if (!autoLogin) {
-                            break;
-                        }
+                    if (!autoLogin) {
+                        break;
+                    }
 //                        loadingCommon(R.string.login_progress_signing_in);
-                        imService.getLoginManager().setAutoLogin(autoLogin);
-                        loading(R.string.login_progress_signing_in);
-                        handleGotLoginIdentity(userNo, pwd);
-                        return;
-                    } while (false);
-                    // 异常分支都会执行这个
-                    imService.getLoginManager().setAutoLogin(false);
-                    handleNoLoginIdentity();
-                } catch (Exception e) {
-                    logger.error(e);
-                    imService.getLoginManager().setAutoLogin(false);
-                    handleNoLoginIdentity();
-                }
-
+                    imService.getLoginManager().setAutoLogin(autoLogin);
+                    loading(R.string.login_progress_signing_in);
+                    handleGotLoginIdentity(userNo, pwd);
+                    return;
+                } while (false);
+                // 异常分支都会执行这个
+                imService.getLoginManager().setAutoLogin(false);
+                handleNoLoginIdentity();
+            } catch (Exception e) {
+                logger.error(e);
+                imService.getLoginManager().setAutoLogin(false);
+                handleNoLoginIdentity();
             }
 
-            @Override
-            public void onServiceDisconnected() {
+        }
+
+        @Override
+        public void onServiceDisconnected() {
 //                showMsgDialog(R.string.system_service_error);
 //                ToastUtil.TextIntToast(getApplicationContext(), R.string.system_service_error, 0);
-            }
-        };
+        }
+    };
 
 
     /**

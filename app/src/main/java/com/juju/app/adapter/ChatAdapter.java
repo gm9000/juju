@@ -1,8 +1,12 @@
 package com.juju.app.adapter;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioManager;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -13,20 +17,27 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.juju.app.R;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.RenderType;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.MessageConstant;
 import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.audio.AudioPlayerHandler;
 import com.juju.app.tools.Emoparser;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.CommonUtil;
 import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ToastUtil;
+import com.juju.app.view.groupchat.AudioRenderView;
 import com.juju.app.view.groupchat.MessageOperatePopup;
 import com.juju.app.view.groupchat.NormalNotifyRenderView;
 import com.juju.app.view.groupchat.TextRenderView;
@@ -104,10 +115,10 @@ public class ChatAdapter extends BaseAdapter {
                     convertView = timeBubbleRender(position, convertView, parent);
                     break;
                 case MESSAGE_TYPE_MINE_AUDIO:
-//                    convertView = audioMsgRender(position, convertView, parent, true);
+                    convertView = audioMsgRender(position, convertView, parent, true);
                     break;
                 case MESSAGE_TYPE_OTHER_AUDIO:
-//                    convertView = audioMsgRender(position, convertView, parent, false);
+                    convertView = audioMsgRender(position, convertView, parent, false);
                     break;
                 case MESSAGE_TYPE_MINE_GIF_IMAGE:
 //                    convertView = GifImageMsgRender(position, convertView, parent, true);
@@ -344,6 +355,89 @@ public class ChatAdapter extends BaseAdapter {
 
 
     /**
+     * 语音的路径，判断收发的状态
+     * 展现的状态
+     * 播放动画相关
+     * 获取语音的读取状态/
+     * 语音长按事件
+     *
+     * @param position
+     * @param convertView
+     * @param viewGroup
+     * @param isMine
+     * @return
+     */
+    private View audioMsgRender(final int position, View convertView, final ViewGroup viewGroup, final boolean isMine) {
+        AudioRenderView audioRenderView;
+        final AudioMessage audioMessage = (AudioMessage) msgObjectList.get(position);
+        User entity = imService.getContactManager().findContactByFormId(audioMessage.getFromId());
+        if (null == convertView) {
+            audioRenderView = AudioRenderView.inflater(ctx, viewGroup, isMine); //new TextRenderView(ctx,viewGroup,isMine);
+        } else {
+            if(convertView instanceof AudioRenderView
+                    && (isMine == ((AudioRenderView) convertView).isMine())) {
+                audioRenderView = (AudioRenderView) convertView;
+            } else {
+                audioRenderView = AudioRenderView.inflater(ctx, viewGroup, isMine); //new TextRenderView(ctx,viewGroup,isMine);
+            }
+        }
+        final String audioPath = audioMessage.getAudioPath();
+        final View messageLayout = audioRenderView.getMessageLayout();
+        if (!TextUtils.isEmpty(audioPath)) {
+            // 播放的路径为空,这个消息应该如何展示
+            messageLayout.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+                    MessageOperatePopup popup = getPopMenu(viewGroup, new OperateItemClickListener(audioMessage, position));
+                    boolean bResend = audioMessage.getStatus() == MessageConstant.MSG_FAILURE;
+                    popup.show(messageLayout, DBConstant.SHOW_AUDIO_TYPE, bResend, isMine);
+                    return true;
+                }
+            });
+        }
+
+
+        audioRenderView.getMessageFailed().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                MessageOperatePopup popup = getPopMenu(viewGroup, new OperateItemClickListener(audioMessage, position));
+                popup.show(messageLayout, DBConstant.SHOW_AUDIO_TYPE, true, isMine);
+            }
+        });
+
+
+        audioRenderView.setBtnImageListener(new AudioRenderView.BtnImageListener() {
+            @Override
+            public void onClickUnread() {
+                logger.d("chat#audio#set audio meessage read status");
+                audioMessage.setReadStatus(MessageConstant.AUDIO_READED);
+//                imService.getDbInterface().insertOrUpdateMessage(audioMessage);
+                imService.getMessageManager().replaceInto(audioMessage);
+            }
+
+            @Override
+            public void onClickReaded() {
+            }
+        });
+        audioRenderView.render(audioMessage, entity, ctx);
+        return audioRenderView;
+    }
+
+
+    private MessageOperatePopup currentPop;
+
+    /**
+     * 点击事件的定义
+     */
+    private MessageOperatePopup getPopMenu(ViewGroup parent, MessageOperatePopup.OnItemClickListener listener) {
+        MessageOperatePopup popupView = MessageOperatePopup.instance(ctx, parent);
+        currentPop = popupView;
+        popupView.setOnItemClickListener(listener);
+        return popupView;
+    }
+
+
+    /**
      * 普通通知的渲染展示
      */
     private View normalNotifyRender(int position, View convertView, ViewGroup parent) {
@@ -430,6 +524,88 @@ public class ChatAdapter extends BaseAdapter {
             }
         }
         return null;
+    }
+
+
+    private class OperateItemClickListener
+            implements
+            MessageOperatePopup.OnItemClickListener {
+
+        private MessageEntity mMsgInfo;
+        private int mType;
+        private int mPosition;
+
+        public OperateItemClickListener(MessageEntity msgInfo, int position) {
+            mMsgInfo = msgInfo;
+            mType = msgInfo.getDisplayType();
+            mPosition = position;
+        }
+
+        @SuppressWarnings("deprecation")
+        @SuppressLint("NewApi")
+        @Override
+        public void onCopyClick() {
+            try {
+                ClipboardManager manager = (ClipboardManager) ctx.getSystemService(Context.CLIPBOARD_SERVICE);
+
+                logger.d("menu#onCopyClick content:%s", mMsgInfo.getContent());
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB) {
+                    ClipData data = ClipData.newPlainText("data", mMsgInfo.getContent());
+                    manager.setPrimaryClip(data);
+                } else {
+                    manager.setText(mMsgInfo.getContent());
+                }
+            } catch (Exception e) {
+                logger.e(e.getMessage());
+            }
+        }
+
+        @Override
+        public void onResendClick() {
+            try {
+                if (mType == DBConstant.SHOW_AUDIO_TYPE
+                        || mType == DBConstant.SHOW_ORIGIN_TEXT_TYPE) {
+
+                    if (mMsgInfo.getDisplayType() == DBConstant.SHOW_AUDIO_TYPE) {
+                        if (StringUtils.isBlank(mMsgInfo.getSendContent())) {
+                            return;
+                        }
+                    }
+                }
+
+//                else if (mType == DBConstant.SHOW_IMAGE_TYPE) {
+//                    logger.d("pic#resend");
+//                    // 之前的状态是什么 上传没有成功继续上传
+//                    // 上传成功，发送消息
+//                    ImageMessage imageMessage = (ImageMessage) mMsgInfo;
+//                    if (TextUtils.isEmpty(imageMessage.getPath())) {
+//                        Toast.makeText(ctx, ctx.getString(R.string.image_path_unavaluable), Toast.LENGTH_LONG).show();
+//                        return;
+//                    }
+//                }
+                mMsgInfo.setStatus(MessageConstant.MSG_SENDING);
+                msgObjectList.remove(mPosition);
+                addItem(mMsgInfo);
+                if (imService != null) {
+//                    imService.getMessageManager().resendMessage(mMsgInfo);
+                }
+
+            } catch (Exception e) {
+                logger.e("chat#exception:" + e.toString());
+            }
+        }
+
+        @Override
+        public void onSpeakerClick() {
+            AudioPlayerHandler audioPlayerHandler = AudioPlayerHandler.getInstance();
+            if (audioPlayerHandler.getAudioMode(ctx) == AudioManager.MODE_NORMAL) {
+                audioPlayerHandler.setAudioMode(AudioManager.MODE_IN_CALL, ctx);
+                ToastUtil.showSpeeker(ctx, ctx.getText(R.string.audio_in_call), Toast.LENGTH_SHORT);
+            } else {
+                audioPlayerHandler.setAudioMode(AudioManager.MODE_NORMAL, ctx);
+                ToastUtil.showSpeeker(ctx, ctx.getText(R.string.audio_in_speeker), Toast.LENGTH_SHORT);
+            }
+        }
     }
 
 }

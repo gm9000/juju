@@ -48,12 +48,12 @@ public class CommandActionConstant {
         },
 
         /**
-         * 获取群组详情
+         * 加入群组
          */
         JOININGROUP {
             @Override
             public int code() {
-                return Integer.parseInt("0018");
+                return Integer.parseInt("0012");
             }
 
             @Override
@@ -65,7 +65,7 @@ public class CommandActionConstant {
         GETEXISTUSERS {
             @Override
             public int code() {
-                return Integer.parseInt("0019");
+                return Integer.parseInt("0021");
             }
 
             @Override
@@ -73,10 +73,11 @@ public class CommandActionConstant {
                 return HttpConstants.getUserUrl()+"/getExistUsers";            }
         },
 
+        //APP内部邀请加群
         INVITEUSER {
             @Override
             public int code() {
-                return Integer.parseInt("0012");
+                return Integer.parseInt("0011");
             }
 
             @Override
@@ -133,6 +134,45 @@ public class CommandActionConstant {
             @Override
             public String url() {
                 return HttpConstants.getUserUrl()+"/deleteGroup";
+            }
+        },
+
+        //获取群组成员列表
+        GETGROUPUSERS {
+            @Override
+            public int code() {
+                return Integer.parseInt("0019");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/getGroupUsers";
+            }
+        },
+
+        //获取群组邀请码
+        GETGROUPINVITECODE {
+            @Override
+            public int code() {
+                return Integer.parseInt("0010");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/getGroupInviteCode";
+            }
+        },
+
+        //获取群组概况
+        GETGROUPOUTLINE {
+            @Override
+            public int code() {
+                return Integer.parseInt("0018");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/getGroupOutline";
             }
         };
 
