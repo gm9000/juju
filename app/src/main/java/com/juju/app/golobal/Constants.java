@@ -104,6 +104,15 @@ public class Constants {
     public static final String AVATAR_APPEND_32 ="_32x32.jpg";
 
 
+    // 读取磁盘上文件， 分支判断其类型
+    public static final int FILE_SAVE_TYPE_IMAGE = 0X00013;
+    public static final int FILE_SAVE_TYPE_AUDIO = 0X00014;
+
+
+    public static final float MAX_SOUND_RECORD_TIME = 60.0f;// 单位秒
+    public static final int MAX_SELECT_IMAGE_COUNT = 6;
+
+
 
     /**
      ******************************************* 注册设置信息******************************************

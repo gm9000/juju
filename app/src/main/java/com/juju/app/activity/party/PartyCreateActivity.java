@@ -598,8 +598,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
                                 PartyNotifyEvent.PartyNotifyBean partyNotifyBean = PartyNotifyEvent
                                         .PartyNotifyBean.valueOf(groupId,partyId,party.getName(),
-                                                BaseApplication.getInstance().getUserInfoBean().getJujuNo()
-                                                ,BaseApplication.getInstance().getUserInfoBean().getUserName());
+                                                BaseApplication.getInstance().getUserInfoBean().getUserNo()
+                                                ,BaseApplication.getInstance().getUserInfoBean().getNickName());
                                 PartyRecruitNotify.instance().executeCommand4Send(partyNotifyBean);
 
 

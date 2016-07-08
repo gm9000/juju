@@ -1,6 +1,7 @@
 package com.juju.app.entity.base;
 
 
+import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.chat.EntityChangeEngine;
 
@@ -8,9 +9,8 @@ import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
 
 
-@Table(name = "message", onCreated = "CREATE INDEX index_message_id ON message(id);")
+@Table(name = "message", onCreated = "CREATE UNIQUE INDEX index_message_id ON message(id);")
 public class MessageEntity extends BaseEntity implements java.io.Serializable {
-
 
 	/**
 	 * 消息ID　APP维护
@@ -200,9 +200,11 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 		switch (msgType) {
 			case  DBConstant.MSG_TYPE_SINGLE_TEXT:
 			case  DBConstant.MSG_TYPE_SINGLE_AUDIO:
+			case DBConstant.MSG_TYPE_SINGLE_NOTIFY:
 				return DBConstant.SESSION_TYPE_SINGLE;
 			case DBConstant.MSG_TYPE_GROUP_TEXT:
 			case DBConstant.MSG_TYPE_GROUP_AUDIO:
+			case DBConstant.MSG_TYPE_GROUP_NOTIFY:
 				return DBConstant.SESSION_TYPE_GROUP;
 			default:
 				return DBConstant.SESSION_TYPE_SINGLE;
@@ -304,7 +306,7 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 		}
 	}
 
-	public byte[] getSendContent(){
+	public String getSendContent(){
 		return null;
 	}
 
@@ -331,8 +333,14 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 
 
 	public MessageEntity clone() {
-		MessageEntity entry = new MessageEntity(localId, id, msgId, fromId, toId,  sessionKey,
-				content,  msgType,  displayType, status,  created,  updated);
+		MessageEntity entry;
+		if(this instanceof AudioMessage) {
+			entry = new MessageEntity(localId, id, msgId, fromId, toId,  sessionKey,
+					getContent(),  msgType,  displayType, status,  created,  updated);
+		} else {
+			entry = new MessageEntity(localId, id, msgId, fromId, toId,  sessionKey,
+					content,  msgType,  displayType, status,  created,  updated);
+		}
 		return entry;
 	}
 }

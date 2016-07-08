@@ -49,6 +49,7 @@ public class GroupEvent {
         SHIELD_GROUP_FAIL
 
 
+
     }
 
     public int getChangeType() {

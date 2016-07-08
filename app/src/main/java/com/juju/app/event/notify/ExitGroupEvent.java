@@ -37,7 +37,7 @@ public class ExitGroupEvent {
         public String groupId;
         public String userNo;
         public String nickname;
-        //防止不赋值，采用封装类型
+        //防止不赋值，采用封装类型 0:管理员移除 1：主动退出
         public Integer flag;
         //错误描述
         public String errorDesc;
@@ -83,6 +83,10 @@ public class ExitGroupEvent {
                 //退出群组（业务服务器）
                 SEND_QUIT_GROUP_BSERVER_OK,
                 SEND_QUIT_GROUP_BSERVER_FAILED,
+
+                //退出群聊（消息服务器）
+                SEND_EXIT_CHAT_ROOM_MSERVER_OK,
+                SEND_EXIT_CHAT_ROOM_MSERVER_FAILED,
 
                 //退出群组（消息服务器）
                 SEND_EXIT_GROUP_MSERVER_OK,

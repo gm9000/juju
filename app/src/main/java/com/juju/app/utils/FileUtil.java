@@ -7,12 +7,17 @@ import android.os.Environment;
 import android.text.TextUtils;
 import android.webkit.MimeTypeMap;
 
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.nio.charset.Charset;
 import java.util.Locale;
 
@@ -242,6 +247,97 @@ public class FileUtil {
         return content;
     }
 
+    public static byte[] getFileContent(String fileName) {
+        FileInputStream fin = null;
+        try {
+            fin = new FileInputStream(fileName);
+            int length = fin.available();
+            byte[] bytes = new byte[length];
+            fin.read(bytes);
+            return bytes;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        } finally {
+            try {
+                if (fin != null) {
+                    fin.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public static byte[] getContent(String filePath) throws IOException {
+        File file = new File(filePath);
+        long fileSize = file.length();
+        if (fileSize > Integer.MAX_VALUE) {
+            System.out.println("file too big...");
+            return null;
+        }
+        FileInputStream fi = new FileInputStream(file);
+        byte[] buffer = new byte[(int) fileSize];
+        int offset = 0;
+        int numRead = 0;
+        while (offset < buffer.length
+                && (numRead = fi.read(buffer, offset, buffer.length - offset)) >= 0) {
+            offset += numRead;
+        }
+        // 确保所有数据均被读取
+        if (offset != buffer.length) {
+            throw new IOException("Could not completely read file "
+                    + file.getName());
+        }
+        fi.close();
+        return buffer;
+    }
+
+    public static byte[] toByteArray(String filename) throws IOException {
+        File f = new File(filename);
+        if (!f.exists()) {
+            throw new FileNotFoundException(filename);
+        }
+        ByteArrayOutputStream bos = new ByteArrayOutputStream((int) f.length());
+        BufferedInputStream in = null;
+        try {
+            in = new BufferedInputStream(new FileInputStream(f));
+            int buf_size = 1024;
+            byte[] buffer = new byte[buf_size];
+            int len = 0;
+            while (-1 != (len = in.read(buffer, 0, buf_size))) {
+                bos.write(buffer, 0, len);
+            }
+            return bos.toByteArray();
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw e;
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            bos.close();
+        }
+    }
+
+
+    public static String saveAudioResourceToFile(byte[] content,String userNo) {
+        try {
+            String audioSavePath = CommonUtil.getAudioSavePath(userNo);
+            File file = new File(audioSavePath);
+            FileOutputStream fops = new FileOutputStream(file);
+            fops.write(content);
+            fops.flush();
+            fops.close();
+            return audioSavePath;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * 获取缓存目录
      *
@@ -374,4 +470,6 @@ public class FileUtil {
         InputStream is = new ByteArrayInputStream(baos.toByteArray());
         return is;
     }
+
+
 }

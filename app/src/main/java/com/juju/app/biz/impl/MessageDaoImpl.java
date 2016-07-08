@@ -6,10 +6,12 @@ import android.util.Log;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.MessageDao;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.MessageConstant;
+import com.juju.app.utils.StringUtils;
 
 
 import org.xutils.db.Selector;
@@ -36,7 +38,32 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
         super(context);
     }
 
+    @Override
+    public void replaceInto(MessageEntity entity) {
+        if(entity instanceof AudioMessage) {
+            MessageEntity messageEntity = entity.clone();
+            super.replaceInto(messageEntity);
+        } else {
+            super.replaceInto(entity);
+        }
+    }
+//
 //    @Override
+//    public void save(MessageEntity entity) {
+//        super.save(entity);
+//    }
+//
+//    @Override
+//    public void update(MessageEntity entity) {
+//        super.update(entity);
+//    }
+//
+//    @Override
+//    public void saveOrUpdate(MessageEntity entity) {
+//        super.saveOrUpdate(entity);
+//    }
+
+    //    @Override
 //    protected void execAfterTableCreated() throws DbException{
 //        super.execAfterTableCreated();
 //        //创建索引
@@ -46,6 +73,7 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
 //    }
 
     /**
+     *
      * 查询所有文本聊天记录 （重写）
      *
      * @return
@@ -141,28 +169,38 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
 //                        logger.e(e.toString());
 //                    }
 //                    break;
-//                case DBConstant.SHOW_AUDIO_TYPE:
-//                    newList.add(AudioMessage.parseFromDB(info));
-//                    break;
+                case DBConstant.SHOW_AUDIO_TYPE:
+                    if(StringUtils.isNotBlank(info.getContent())) {
+                        newList.add(AudioMessage.parseFromDB(info));
+                    }
+                    break;
 //                case DBConstant.SHOW_IMAGE_TYPE:
 //                    newList.add(ImageMessage.parseFromDB(info));
 //                    break;
                 case DBConstant.SHOW_ORIGIN_TEXT_TYPE:
                     newList.add(TextMessage.parseFromDB(info));
                     break;
+
+                case DBConstant.SHOW_NOTIFY_TYPE:
+                    newList.add(TextMessage.parseFromDB(info));
+                    break;
             }
         }
+
+
         return newList;
     }
 
     @Override
-    public long getSessionLastTime() {
-        long timeLine = 1l;
+    public long getSessionLastTime(String sessionKey) {
+        long timeLine = 0l;
         String successType = String.valueOf(MessageConstant.MSG_SUCCESS);
         Selector selector = null;
         try {
             selector = db.selector(MessageEntity.class);
-            selector.where("status", "=", successType).orderBy("created", true).offset(0).limit(1);
+            selector.where("status", "=", successType)
+                    .and("session_key", "=", sessionKey)
+                    .orderBy("created", true).offset(0).limit(1);
             List<MessageEntity> list = findAll(selector);
             if(list != null) {
                 for(MessageEntity entity : list) {

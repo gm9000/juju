@@ -11,6 +11,7 @@ import android.widget.TextView;
 
 
 import com.juju.app.R;
+import com.juju.app.activity.chat.GroupManagerActivity;
 import com.juju.app.activity.chat.GroupMemberSelectActivity;
 import com.juju.app.activity.chat.UserInfoActivity;
 import com.juju.app.bean.UserInfoBean;
@@ -289,9 +290,11 @@ public class GroupManagerAdapter extends BaseAdapter {
                 holder.imageView.setImageUrl(avatarUrl);
 			}
 
+
 			holder.contactEntity = contactEntity;
 			if (contactEntity != null) {
 				logger.d("debug#setHolderContact name:%s", contactEntity.getNickName());
+
 
 				holder.deleteImg.setOnClickListener(new OnClickListener() {
 
@@ -301,6 +304,8 @@ public class GroupManagerAdapter extends BaseAdapter {
                         String userId = holder.contactEntity.getUserNo();
 //                        removeById(userId);
                         //TODO 放在IMOtherManager处理更合理
+
+                        ((GroupManagerActivity)context).showProgressBar();
                         RemoveGroupEvent.RemoveGroupBean removeGroupBean = RemoveGroupEvent
                                 .RemoveGroupBean.valueOf(peerEntity.getId(), peerEntity.getMainName(), userId);
                         RemoveGroupNotify.instance().executeCommand4Send(removeGroupBean);
@@ -327,5 +332,13 @@ public class GroupManagerAdapter extends BaseAdapter {
         removeState = !removeState;
         notifyDataSetChanged();
     }
+
+
+
+//    public interface LoadInfo {
+//        void _loading(Object... objs);
+//        void _completeLoading(Integer objs);
+//    }
+
 
 }

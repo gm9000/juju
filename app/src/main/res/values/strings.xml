@@ -192,6 +192,21 @@
     <string name="exit_group_send_success">退出群组成功</string>
     <string name="exit_group_send_failed">退出群组失败</string>
 
+    <string name="join_group_send_success">加入群聊成功</string>
+    <string name="join_group_send_failed">加入群聊失败</string>
+
+    <!--扫一扫 -->
+    <string name="qr_code_error">二维码信息错误</string>
+    <string name="qr_desc">请将二维码置于取景框内，即可自动扫描</string>
+    <string name="join_in_group">加入该群聊</string>
+
+
+    <!--语音 -->
+    <string name="notfound_audio_file">该语音文件已丢失</string>
+    <string name="audio_in_call">已经为您切换到听筒模式</string>
+    <string name="audio_in_speeker">已经为您切换到扬声器模式</string>
+
+
     <!--聚会-->
     <string name="location">位置</string>
     <string name="live">直播</string>
@@ -292,13 +307,12 @@
 
     <!-- 自定义组件 -->
     <string name="menu_group">创建群聊</string>
-    <string name="menu_qrcode">扫一扫加群</string>
+    <string name="menu_qrcode">扫一扫</string>
     <string name="menu_invitecode">邀请码加群</string>
     <string name="menu_add_live">发起直播</string>
     <string name="menu_party_add">创建聚会</string>
     <string name="menu_party_my">我发起的聚会</string>
     <string name="menu_party_stock">归档的聚会</string>
-
 
 
     <item name="tag_follow_status" type="id"></item>

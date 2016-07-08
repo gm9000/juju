@@ -7,12 +7,17 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.MessageDao;
 import com.juju.app.biz.impl.MessageDaoImpl;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.entity.chat.SessionEntity;
+import com.juju.app.entity.chat.TextMessage;
+import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.MessageEvent;
+import com.juju.app.event.PriorityEvent;
 import com.juju.app.event.RefreshHistoryMsgEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.golobal.MessageConstant;
 import com.juju.app.helper.chat.SequenceNumberMaker;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
@@ -24,9 +29,11 @@ import com.juju.app.utils.StringUtils;
 import org.apache.commons.lang.math.NumberUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.jivesoftware.smack.SmackException;
+import org.jivesoftware.smack.packet.Message;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -110,7 +117,7 @@ public class IMMessageManager extends IMManager {
             messageDao.saveOrUpdate(dbMessage);
             try {
                 socketService.sendMessage(msgEntity.getFromId(), msgEntity.getToId(),
-                        msgEntity.getContent(), uuid, new XMPPServiceCallbackImpl() {
+                        msgEntity.getContent(), uuid, null, new XMPPServiceCallbackImpl() {
                             @Override
                             public void onSuccess(Object t) {
                                 //回复时间
@@ -164,6 +171,7 @@ public class IMMessageManager extends IMManager {
             }
         } else {
             //TODO ChatActivity提示未验证通过
+
         }
     }
 
@@ -175,9 +183,8 @@ public class IMMessageManager extends IMManager {
         int count = Constants.MSG_CNT_PER_PAGE;
         SessionEntity sessionEntity = IMSessionManager.instance().findSession(sessionKey);
         if (sessionEntity != null) {
-            // 以前已经聊过天，删除之后，sessionEntity不存在
-            logger.i("#loadHistoryMsg# sessionEntity is null");
             lastMsgId = sessionEntity.getLatestMsgId();
+            logger.i("#loadHistoryMsg# sessionEntity -> lastMsgId:%d", lastMsgId);
             // 这个地方设定有问题，先使用最大的时间,session的update设定存在问题
 //            lastCreateTime = sessionEntity.getUpdated();
         }
@@ -359,7 +366,7 @@ public class IMMessageManager extends IMManager {
     }
 
     public List<MessageEntity> findAll4Order(String orders) {
-        List<MessageEntity> list = new ArrayList<MessageEntity>();
+        List<MessageEntity> list = new ArrayList<>();
         list = messageDao.findAll4Order(orders);
         return list;
     }
@@ -418,6 +425,132 @@ public class IMMessageManager extends IMManager {
         if(publicMessageDao == null) {
             publicMessageDao = (MessageDaoImpl) messageDao;
         }
+    }
+
+
+    public void sendMsgAudio(final AudioMessage audioMessage) {
+        if (isAuthenticated()) {
+            String uuid = UUID.randomUUID().toString();
+            audioMessage.setStatus(MessageConstant.MSG_SENDING);
+            audioMessage.setId(uuid);
+            //插入本地数据库
+            final MessageEntity dbMessage = audioMessage.clone();
+            messageDao.saveOrUpdate(dbMessage);
+            try {
+                socketService.sendMessage(audioMessage.getFromId(), audioMessage.getToId(),
+                        audioMessage.getSendContent(), uuid, IMBaseDefine.MsgType.MSG_AUDIO,
+                        new XMPPServiceCallbackImpl() {
+                            @Override
+                            public void onSuccess(Object t) {
+                                //回复时间
+                                if (t instanceof XMPPServiceImpl.ReplayMessageTime) {
+                                    XMPPServiceImpl.ReplayMessageTime messageTime =
+                                            (XMPPServiceImpl.ReplayMessageTime) t;
+                                    String id = messageTime.getId();
+                                    String time = messageTime.getTime();
+                                    if (dbMessage != null) {
+                                        dbMessage.setStatus(MessageConstant.MSG_SUCCESS);
+                                        //通知消息
+                                        audioMessage.setStatus(MessageConstant.MSG_SUCCESS);
+                                        if (NumberUtils.isNumber(time)) {
+                                            int msgId = SequenceNumberMaker.getInstance()
+                                                    .makelocalUniqueMsgId(Long.parseLong(time));
+                                            //更新msgId
+                                            dbMessage.setMsgId(msgId);
+                                            dbMessage.setCreated(Long.parseLong(time));
+                                            dbMessage.setUpdated(Long.parseLong(time));
+                                        }
+                                        //更新会话
+                                        sessionManager.updateSession(dbMessage, true);
+                                        triggerEvent(new MessageEvent(MessageEvent.Event
+                                                .ACK_SEND_MESSAGE_OK, audioMessage));
+                                        messageDao.saveOrUpdate(dbMessage);
+                                    }
+                                }
+                            }
+
+                            @Override
+                            public void onFailed() {
+                                //消息发送失败
+                                dbMessage.setStatus(MessageConstant.MSG_FAILURE);
+                                messageDao.saveOrUpdate(dbMessage);
+                                audioMessage.setStatus(MessageConstant.MSG_FAILURE);
+                                triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, audioMessage));
+                            }
+
+                            @Override
+                            public void onTimeout() {
+                                //消息发送超时
+                                dbMessage.setStatus(MessageConstant.MSG_FAILURE);
+                                messageDao.saveOrUpdate(dbMessage);
+                                audioMessage.setStatus(MessageConstant.MSG_FAILURE);
+                                triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, audioMessage));
+                            }
+                        });
+            } catch (SmackException.NotConnectedException e) {
+                Log.e(TAG, "sendText:", e);
+                triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, audioMessage));
+            }
+        } else {
+            //TODO ChatActivity提示未验证通过
+
+        }
+    }
+
+    public void onRecvMsg(Message message, IMBaseDefine.MsgType msgType) {
+        if(msgType != null) {
+            switch (msgType) {
+                case MSG_AUDIO:
+                    executeMsgAudio(message);
+                    break;
+            }
+        }
+    }
+
+    public void executeMsgAudio(Message message) {
+        String[] fromArr = message.getFrom().split("/");
+        if(fromArr != null && fromArr.length >= 2) {
+            String toId = fromArr[0];
+            String fromId = fromArr[1];
+            if(fromId.indexOf("@") >= 0) {
+                fromId = fromId.substring(0, fromId.indexOf("@"));
+            }
+            try {
+                AudioMessage audioMessage = AudioMessage.buildForReceive(message, fromId, toId);
+                //将消息保存到本地数据库
+                MessageEntity dbMessage = audioMessage.clone();
+                messageDao.saveOrUpdate(dbMessage);
+                SessionEntity cacheSessionEntity = sessionManager.getSessionMap()
+                        .get(audioMessage.getSessionKey());
+                /**
+                 * 1:最新接收的消息时间不能小于缓存消息的创建时间
+                 * 2:时间由服务器生成
+                 */
+                if(cacheSessionEntity == null
+                        || cacheSessionEntity.getCreated() < audioMessage.getCreated()) {
+                    //更新缓存，触发通知（更新群组列表UI）
+                    sessionManager.updateSession(dbMessage, true);
+                }
+
+                /**
+                 *  发送已读确认由上层的activity处理 特殊处理
+                 *  1. 未读计数、 通知、session页面
+                 *  2. 当前会话
+                 * */
+                PriorityEvent notifyEvent = new PriorityEvent();
+                notifyEvent.event = PriorityEvent.Event.MSG_RECEIVED_MESSAGE;
+                notifyEvent.object = audioMessage;
+                triggerEvent(notifyEvent);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    public void replaceInto(MessageEntity messageEntity) {
+        messageDao.replaceInto(messageEntity);
     }
 
 }

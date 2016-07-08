@@ -11,6 +11,7 @@ import org.jivesoftware.smack.packet.Message;
 
 import java.io.Serializable;
 import java.io.UnsupportedEncodingException;
+import java.util.UUID;
 
 
 public class TextMessage extends MessageEntity implements Serializable {
@@ -43,7 +44,8 @@ public class TextMessage extends MessageEntity implements Serializable {
      }
 
     public static TextMessage parseFromDB(MessageEntity entity){
-        if(entity.getDisplayType()!=DBConstant.SHOW_ORIGIN_TEXT_TYPE){
+        if(entity.getDisplayType() != DBConstant.SHOW_ORIGIN_TEXT_TYPE
+                &&  entity.getDisplayType() != DBConstant.SHOW_NOTIFY_TYPE){
             throw new RuntimeException("#TextMessage# parseFromDB,not SHOW_ORIGIN_TEXT_TYPE");
         }
         TextMessage textMessage = new TextMessage(entity);
@@ -97,21 +99,23 @@ public class TextMessage extends MessageEntity implements Serializable {
     }
 
 
-    public static TextMessage buildForSend2Notify(String content, String fromPeerId, String toPeerId){
+    public static TextMessage buildForSend2Notify(String replyId, long replyTime, String content,
+                                                  String fromPeerId, String toPeerId){
         TextMessage textMessage = new TextMessage();
-        long nowTime = System.currentTimeMillis();
+        textMessage.setId(replyId);
         textMessage.setFromId(fromPeerId);
         textMessage.setToId(toPeerId);
-        textMessage.setUpdated(nowTime);
-        textMessage.setCreated(nowTime);
+        textMessage.setUpdated(replyTime);
+        textMessage.setCreated(replyTime);
         textMessage.setDisplayType(DBConstant.SHOW_NOTIFY_TYPE);
         textMessage.setGIfEmo(true);
-        int msgType = DBConstant.MSG_TYPE_GROUP_TEXT;
+        int msgType = DBConstant.MSG_TYPE_GROUP_NOTIFY;
         textMessage.setMsgType(msgType);
         //执行此方法时，消息已经发送成功
         textMessage.setStatus(MessageConstant.MSG_SUCCESS);
         // 内容的设定
         textMessage.setContent(content);
+        textMessage.setMsgId(SequenceNumberMaker.getInstance().makelocalUniqueMsgId(replyTime));
         textMessage.buildSessionKey(true);
         return textMessage;
     }
@@ -127,15 +131,10 @@ public class TextMessage extends MessageEntity implements Serializable {
     }
 
     @Override
-    public byte[] getSendContent() {
-        try {
-            /** 加密*/
-            String sendContent =new String(content);
-            return sendContent.getBytes("utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String getSendContent() {
+        //TODO 可以考虑加密
+        String sendContent =new String(content);
+        return sendContent;
     }
 
 

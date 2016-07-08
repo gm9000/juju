@@ -24,6 +24,7 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.fragment.GroupChatFragment;
@@ -314,11 +315,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                     showCreateGroupChatDialog(SelectType.ADD_GROUP);
 //                    startActivity(MainActivity.this, AddGroupChatActivity.class);
                     break;
-                case 1:// 扫一扫加群
+                case 1:// 扫一扫
+                    startActivityNew(MainActivity.this, QrCaptureActivity.class);
                     break;
-                case 2:// 邀请码加群
-                    showCreateGroupChatDialog(SelectType.INVITE_GROUP);
-                    break;
+//                case 2:// 邀请码加群
+//                    showCreateGroupChatDialog(SelectType.INVITE_GROUP);
+//                    break;
                 default:
                     break;
             }
@@ -355,8 +357,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 R.mipmap.icon_menu_group));
         titlePopup.addAction(new ActionItem(this, R.string.menu_qrcode,
                 R.mipmap.icon_menu_qrcode));
-        titlePopup.addAction(new ActionItem(this, R.string.menu_invitecode,
-                R.mipmap.icon_menu_invitecode));
+//        titlePopup.addAction(new ActionItem(this, R.string.menu_invitecode,
+//                R.mipmap.icon_menu_invitecode));
 
         // 实例化聚会菜单栏弹窗
         partyTitlePopup = new TitlePopup(this, ViewGroup.LayoutParams.WRAP_CONTENT,
@@ -431,7 +433,6 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     //显示未读消息总数
     public void setUnreadMessageCnt(int unreadNum) {
-
         logger.d("unread#setUreadNotify -> unreadNum:%d", unreadNum);
         if (0 == unreadNum) {
             tx_unread_msg_number.setVisibility(View.INVISIBLE);
@@ -613,6 +614,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEvent4Unread(UnreadEvent event) {
+        EventBus.getDefault().removeStickyEvent(event);
         switch (event.event){
             case UNREAD_MSG_LIST_OK:
                 uiHandler.postDelayed(new Runnable() {

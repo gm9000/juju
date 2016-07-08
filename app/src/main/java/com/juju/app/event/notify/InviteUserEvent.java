@@ -2,6 +2,7 @@ package com.juju.app.event.notify;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.juju.app.entity.Invite;
+import com.juju.app.event.notify.baseBean.ReplyBean;
 
 import java.util.Date;
 
@@ -41,16 +42,16 @@ public class InviteUserEvent {
 
     //封装消息通知对象，防止多处定义json串
     //加群邀请通知Bean
-    @JsonIgnoreProperties(value = {"replayId", "replayTime"})
-    public static class InviteUserBean {
+    @JsonIgnoreProperties(value = {"replyId", "replyTime"})
+    public static class InviteUserBean extends ReplyBean {
         public String groupId;
         public String groupName;
         public String userNo;
         //需要冗余此字段（系统通知使用）
         public String nickName;
 
-        public String replayId;
-        public long replayTime;
+//        //消息时间
+//        public long threadId;
 
 
         public static InviteUserBean valueOf(String groupId, String groupName,
@@ -175,6 +176,10 @@ public class InviteUserEvent {
                 //加入聊天室
                 JOIN_CHAT_ROOM_MSERVER_OK,
                 JOIN_CHAT_ROOM_MSERVER_FAILED,
+
+                //更新本地数据
+                UPDATE_LOCAL_CACHE_DATA_OK,
+                UPDATE_LOCAL_CACHE_DATA_FAILED,
 
                 //系统通知
                 NOTIFICATION_SYSTEM_OK,

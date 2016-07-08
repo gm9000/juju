@@ -10,6 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.GridView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -84,8 +85,8 @@ public class GroupManagerActivity extends BaseActivity {
     private View transfer_group;
 
 
-    @ViewInject(R.id.tv_invite_code)
-    private TextView tv_invite_code;
+//    @ViewInject(R.id.tv_invite_code)
+//    private TextView tv_invite_code;
 
 
     private GroupManagerAdapter adapter;
@@ -100,6 +101,11 @@ public class GroupManagerActivity extends BaseActivity {
 
     @ViewInject(R.id.group_manager_title)
     private TextView groupNameView;
+
+    @ViewInject(R.id.progress_bar)
+    private ProgressBar progressbar;
+
+
 
     /**需要的状态参数*/
     private IMService imService;
@@ -138,6 +144,7 @@ public class GroupManagerActivity extends BaseActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         if(!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
         }
@@ -150,6 +157,8 @@ public class GroupManagerActivity extends BaseActivity {
         EventBus.getDefault().unregister(this);
         super.onDestroy();
     }
+
+
 
     private void initViews() {
         showTopLeftAll(0, 0);
@@ -176,8 +185,8 @@ public class GroupManagerActivity extends BaseActivity {
                 setTopTitle(getString(R.string.chat_detail)+"("+groupEntity.getUserCnt()+")");
                 // 群组名称的展示
                 groupNameView.setText(groupEntity.getMainName());
-                tv_invite_code.setText(groupEntity.getInviteCode() == null ? ""
-                        : groupEntity.getInviteCode());
+//                tv_invite_code.setText(groupEntity.getInviteCode() == null ? ""
+//                        : groupEntity.getInviteCode());
             }break;
         }
 
@@ -196,19 +205,15 @@ public class GroupManagerActivity extends BaseActivity {
 
         adapter = new GroupManagerAdapter(GroupManagerActivity.this, imService, peerEntity);
         gridView.setAdapter(adapter);
+
+
     }
 
     //群组二维码
     @Event(value = R.id.re_qr)
     private void onClick4Qr(View view) {
-        String groupName = groupNameView.getText().toString();
-        List<BasicNameValuePair> valuePairs = new ArrayList<>();
-        BasicNameValuePair peerIdValue = new BasicNameValuePair(Constants.GROUP_ID_KEY,
-                peerEntity.getPeerId());
-        valuePairs.add(peerIdValue);
-        ActivityUtil.startActivity(GroupManagerActivity.this, GroupQrActivity.class,
-                valuePairs.toArray(new BasicNameValuePair[]{}));
-
+        startActivityNew(GroupManagerActivity.this, GroupQrActivity.class, Constants.GROUP_ID_KEY,
+                peerEntity.getId());
     }
 
     @Event(value = R.id.transfer_group)
@@ -230,7 +235,7 @@ public class GroupManagerActivity extends BaseActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 User user = imService.getContactManager().findContact(userInfoBean.getUserNo());
-                GroupEntity groupEntity = imService.getGroupManager().findGroupById(peerEntity.getId());
+                final GroupEntity groupEntity = imService.getGroupManager().findGroupById(peerEntity.getId());
                 if(groupEntity != null && groupEntity.getUserCnt() == 1) {
                     //删除群组
                     Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("groupId", groupEntity.getId());
@@ -244,21 +249,38 @@ public class GroupManagerActivity extends BaseActivity {
                                 int status = JSONUtils.getInt(jsonRoot, "status", -1);
                                 String desc = JSONUtils.getString(jsonRoot, "desc");
                                 if(status == 0) {
-                                    ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_success, 0);
+                                    imService.getGroupManager().changeGroup4Trigger(groupEntity.getId(), DBConstant.GROUP_MODIFY_TYPE_DEL);
+                                    GroupManagerActivity.this.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_success, 0);
+                                        }
+                                    });
                                     finish(GroupManagerActivity.this);
                                 } else {
-                                    ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_failed, 0);
+                                    GroupManagerActivity.this.runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_failed, 0);
+                                        }
+                                    });
                                 }
                             }
                         }
 
                         @Override
                         public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
-                            ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_failed, 0);
+                            GroupManagerActivity.this.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ToastUtil.TextIntToast(getApplicationContext(), R.string.exit_group_send_failed, 0);
+                                }
+                            });
                         }
                     }, valueMap, JSONObject.class);
+
                     try {
-                        client.sendGet4OK();
+                        client.sendPost4OK();
                     } catch (UnsupportedEncodingException e) {
                         logger.error(e);
                     } catch (JSONException e) {
@@ -310,6 +332,7 @@ public class GroupManagerActivity extends BaseActivity {
                 if(userEntity != null) {
                     adapter.remove(userEntity);
                 }
+                hideProgressBar();
                 break;
         }
     }
@@ -364,6 +387,16 @@ public class GroupManagerActivity extends BaseActivity {
             }
         }
         return itemListData;
+    }
+
+
+
+    public void showProgressBar() {
+        progressbar.setVisibility(View.VISIBLE);
+    }
+
+    public void hideProgressBar() {
+        progressbar.setVisibility(View.GONE);
     }
 
 }

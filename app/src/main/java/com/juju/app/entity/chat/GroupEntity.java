@@ -264,8 +264,7 @@ public class GroupEntity extends PeerEntity {
     public static GroupEntity buildForReceive(String id, String peerId, int groupType, String name,
                                               String userNos, String creatorId, String masterId, String desc,
                                               Date created, Date updated) {
-        if(StringUtils.isBlank(userNos)
-                || StringUtils.isBlank(id)
+        if(StringUtils.isBlank(id)
                 || StringUtils.isBlank(peerId))
             throw new IllegalArgumentException("groupEntity#buildForReceive is error");
 
@@ -274,18 +273,19 @@ public class GroupEntity extends PeerEntity {
         groupEntity.setPeerId(peerId);
         groupEntity.setGroupType(groupType);
         groupEntity.setMainName(name);
-        String[] userNoArr = userNos.split(",");
-        groupEntity.setUserCnt(userNoArr.length);
-
-        StringBuilder userNoSbf = new StringBuilder();
-        for (int i = 0; i <userNoArr.length ; i++) {
-            String userNo = userNoArr[i];
-            userNoSbf.append(userNo);
-            if(i < userNoArr.length - 1) {
-                userNoSbf.append(",");
+        if(StringUtils.isNotBlank(userNos)) {
+            String[] userNoArr = userNos.split(",");
+            groupEntity.setUserCnt(userNoArr.length);
+            StringBuilder userNoSbf = new StringBuilder();
+            for (int i = 0; i <userNoArr.length ; i++) {
+                String userNo = userNoArr[i];
+                userNoSbf.append(userNo);
+                if(i < userNoArr.length - 1) {
+                    userNoSbf.append(",");
+                }
             }
+            groupEntity.setUserList(userNoSbf.toString());
         }
-        groupEntity.setUserList(userNoSbf.toString());
         groupEntity.setCreatorId(creatorId);
         groupEntity.setMasterId(masterId);
         groupEntity.setDesc(desc);

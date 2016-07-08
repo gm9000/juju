@@ -10,6 +10,9 @@ import com.juju.app.entity.Invite;
 import com.juju.app.entity.chat.OtherMessageEntity;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
+import com.juju.app.event.notify.ApplyInGroupEvent;
+import com.juju.app.event.notify.ExitGroupEvent;
+import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.PartyNotifyEvent;
@@ -18,6 +21,7 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.im.service.XMPPServiceImpl;
+import com.juju.app.service.notify.ApplyInGroupNotify;
 import com.juju.app.service.notify.BaseNotify;
 import com.juju.app.service.notify.ExitGroupNotify;
 import com.juju.app.service.notify.InviteInGroupNotify;
@@ -28,7 +32,9 @@ import com.juju.app.service.notify.RemoveGroupNotify;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.StringUtils;
 
+import org.apache.commons.lang.math.NumberUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -85,10 +91,11 @@ public class IMOtherManager extends IMManager {
         inviteDao = null;
         EventBus.getDefault().unregister(inst);
         InviteUserNotify.instance().stop();
+        InviteInGroupNotify.instance().stop();
         RemoveGroupNotify.instance().stop();
         MasterTransferNotify.instance().stop();
         ExitGroupNotify.instance().stop();
-        InviteInGroupNotify.instance().stop();
+        ApplyInGroupNotify.instance().stop();
     }
 
     //网络登陆
@@ -133,31 +140,13 @@ public class IMOtherManager extends IMManager {
         if (inviteDao == null) {
             inviteDao = new InviteDaoImpl(ctx);
         }
-        InviteUserNotify.instance().start(this, IMGroupManager.instance());
-        InviteInGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance());
-        RemoveGroupNotify.instance().start(this, IMGroupManager.instance());
+        InviteUserNotify.instance().start(this, IMGroupManager.instance(), IMSessionManager.instance());
+        InviteInGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance(), IMSessionManager.instance());
+        RemoveGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance());
         MasterTransferNotify.instance().start(this, IMGroupManager.instance());
         PartyRecruitNotify.instance().start(this);
-
-
         ExitGroupNotify.instance().start(this, IMGroupManager.instance());
-
-//
-//        BaseNotify baseNotify = new BaseNotify() {
-//
-//            @Override
-//            public void executeCommand4Send(Object o) {
-//
-//            }
-//
-//            @Override
-//            public void executeCommand4Recv(Object o) {
-//
-//            }
-//        };
-//
-//        baseNotify.start(this);
-
+        ApplyInGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance());
     }
 
     /**
@@ -172,10 +161,10 @@ public class IMOtherManager extends IMManager {
         OtherMessageEntity otherMessageEntity = OtherMessageEntity
                 .buildMessage4Send(notifyType, message, uuid);
         switch (notifyType) {
-            case INVITE_USER:
-                Invite inviteReq = Invite.buildInviteReq4Send(otherMessageEntity);
-                inviteDao.save(inviteReq);
-                break;
+//            case INVITE_USER:
+//                Invite inviteReq = Invite.buildInviteReq4Send(otherMessageEntity);
+//                inviteDao.save(inviteReq);
+//                break;
             default:
                 otherMessageDao.save(otherMessageEntity);
                 break;
@@ -209,8 +198,9 @@ public class IMOtherManager extends IMManager {
      * 处理XMPP通知消息
      * @param event
      */
-    @Subscribe(threadMode = ThreadMode.POSTING,  priority = Constants.SERVICE_EVENTBUS_PRIORITY)
+    @Subscribe(threadMode = ThreadMode.POSTING,  priority = Constants.SERVICE_EVENTBUS_PRIORITY, sticky = true)
     public void onNotifyMessage4Event(NotifyMessageEvent event) {
+        EventBus.getDefault().removeStickyEvent(event);
         OtherMessageEntity otherMessageEntity = OtherMessageEntity.buildMessage4Recv(event.notifyType,
                 event.message, event.message.getStanzaId());
         NotificationMessageEvent notificationMessageEvent = new NotificationMessageEvent();
@@ -223,14 +213,19 @@ public class IMOtherManager extends IMManager {
                 //发送系统通知
                 notificationMessageEvent.event = NotificationMessageEvent.Event.INVITE_USER_RECEIVED;
                 triggerEvent4Sticky(notificationMessageEvent);
-
                 InviteUserEvent.InviteUserBean inviteUserBean = (InviteUserEvent.InviteUserBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(),
                                 IMBaseDefine.NotifyType.INVITE_USER.getCls());
+                if(NumberUtils.isNumber(event.message.getThread())) {
+                    inviteUserBean.replyId = event.message.getStanzaId();
+                    inviteUserBean.replyTime = Long.parseLong(event.message.getThread());
+                }
                 InviteUserNotify.instance().executeCommand4Recv(inviteUserBean);
                 break;
             case INVITE_IN_GROUP:
-
+                InviteInGroupEvent.InviteInGroupBean inviteInGroupBean = (InviteInGroupEvent.InviteInGroupBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.INVITE_IN_GROUP.getCls());
+                InviteInGroupNotify.instance().executeCommand4Recv(inviteInGroupBean);
                 break;
             case REMOVE_GROUP:
                 //发送系统通知
@@ -250,6 +245,25 @@ public class IMOtherManager extends IMManager {
                 PartyNotifyEvent.PartyNotifyBean partyNotify = (PartyNotifyEvent.PartyNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_RECRUIT.getCls());
                 PartyRecruitNotify.instance().executeCommand4Recv(partyNotify);
+                break;
+            case APPLY_IN_GROUP:
+                ApplyInGroupEvent.ApplyInGroupBean applyInGroupBean = (ApplyInGroupEvent.ApplyInGroupBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.APPLY_IN_GROUP.getCls());
+                if(NumberUtils.isNumber(event.message.getThread())) {
+                    applyInGroupBean.replyId = event.message.getStanzaId();
+                    applyInGroupBean.replyTime = Long.parseLong(event.message.getThread());
+                }
+                ApplyInGroupNotify.instance().executeCommand4Recv(applyInGroupBean);
+                break;
+            //退出群组通知
+            case EXIT_GROUP:
+                ExitGroupEvent.ExitGroupBean exitGroupBean = (ExitGroupEvent.ExitGroupBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.EXIT_GROUP.getCls());
+                if(NumberUtils.isNumber(event.message.getThread())) {
+                    exitGroupBean.replyId = event.message.getStanzaId();
+                    exitGroupBean.replyTime = Long.parseLong(event.message.getThread());
+                }
+                ExitGroupNotify.instance().executeCommand4Recv(exitGroupBean);
                 break;
             default:
                 otherMessageDao.replaceInto(otherMessageEntity);

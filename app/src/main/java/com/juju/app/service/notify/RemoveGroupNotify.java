@@ -5,7 +5,9 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.biz.impl.InviteDaoImpl;
 import com.juju.app.entity.Invite;
+import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.golobal.CommandActionConstant;
@@ -13,6 +15,7 @@ import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
+import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.im.manager.IMGroupManager;
 import com.juju.app.service.im.manager.IMOtherManager;
 import com.juju.app.service.im.service.XMPPServiceImpl;
@@ -34,7 +37,7 @@ import java.util.UUID;
 
 /**
  * 项目名称：juju
- * 类描述：移除群组
+ * 类描述：移除群组 (是否需要)
  * 创建人：gm
  * 日期：2016/6/30 10:12
  * 版本：V1.0.0
@@ -59,11 +62,14 @@ public class RemoveGroupNotify extends BaseNotify<RemoveGroupEvent.RemoveGroupBe
     }
 
     private IMGroupManager imGroupManager;
+    private IMContactManager imContactManager;
     private DaoSupport groupDao;
 
-    public void start(IMOtherManager imOtherManager, IMGroupManager imGroupManager) {
+    public void start(IMOtherManager imOtherManager, IMGroupManager imGroupManager,
+                      IMContactManager imContactManager) {
         super.start(imOtherManager);
         this.imGroupManager = imGroupManager;
+        this.imContactManager = imContactManager;
         groupDao = new GroupDaoImpl(context);
         if(!EventBus.getDefault().isRegistered(this)) {
             EventBus.getDefault().register(this);
@@ -84,6 +90,7 @@ public class RemoveGroupNotify extends BaseNotify<RemoveGroupEvent.RemoveGroupBe
     public void stop() {
         super.stop();
         imGroupManager = null;
+        imContactManager = null;
         groupDao = null;
         EventBus.getDefault().unregister(this);
     }
@@ -106,6 +113,12 @@ public class RemoveGroupNotify extends BaseNotify<RemoveGroupEvent.RemoveGroupBe
                 RemoveGroupEvent externalEvent = new RemoveGroupEvent(RemoveGroupEvent.Event
                         .SEND_REMOVE_GROUP_OK, sendParam.bean);
                 triggerEvent(externalEvent);
+
+                User user = imContactManager.findContact(sendParam.bean.userNo);
+                //发送退出群组通知（管理员）
+                ExitGroupEvent.ExitGroupBean exitGroupBean = ExitGroupEvent.ExitGroupBean
+                        .valueOf(sendParam.bean.groupId, sendParam.bean.userNo, user.getNickName(), 0);
+                ExitGroupNotify.instance().executeCommand4Send(exitGroupBean);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {

@@ -1,5 +1,8 @@
 package com.juju.app.golobal;
 
+import com.juju.app.event.notify.ApplyInGroupEvent;
+import com.juju.app.event.notify.ExitGroupEvent;
+import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
@@ -20,7 +23,6 @@ public final class IMBaseDefine {
         GROUP_MODIFY_TYPE_ADD,
         GROUP_MODIFY_TYPE_DEL;
     }
-
 
     /**
      * 消息枚举
@@ -168,6 +170,11 @@ public final class IMBaseDefine {
                 return InviteUserEvent.InviteUserBean.class;
             }
 
+            @Override
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_SINGLE_NOTIFY;
+            }
+
         },
         INVITE_PROCESS {
             @Override
@@ -185,6 +192,12 @@ public final class IMBaseDefine {
                 return InviteGroupNotifyResBean.class;
             }
 
+            @Override
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_SINGLE_NOTIFY;
+            }
+
+
         },
         APPLY_JOIN {
             @Override
@@ -201,6 +214,11 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_SINGLE_NOTIFY;
+            }
+
         },
         APPLY_PROCESS {
             @Override
@@ -217,6 +235,10 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_SINGLE_NOTIFY;
+            }
         },
         APPLY_IN_GROUP {
             @Override
@@ -231,7 +253,11 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return ApplyInGroupEvent.ApplyInGroupBean.class;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
         },
         INVITE_IN_GROUP {
@@ -247,7 +273,11 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return InviteInGroupEvent.InviteInGroupBean.class;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
         },
         REMOVE_GROUP {
@@ -265,6 +295,10 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return RemoveGroupEvent.RemoveGroupBean.class;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_SINGLE_NOTIFY;
+            }
         },
         EXIT_GROUP {
             @Override
@@ -279,7 +313,11 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return ExitGroupEvent.ExitGroupBean.class;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
         },
         MASTER_TRANSFER {
@@ -296,6 +334,10 @@ public final class IMBaseDefine {
             @Override
             public Class getCls() {
                 return MasterTransferEvent.MasterTransferBean.class;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
         },
 
@@ -315,6 +357,10 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
         },
 
         PARTY_CANCEL {
@@ -331,6 +377,10 @@ public final class IMBaseDefine {
             @Override
             public Class getCls() {
                 return null;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
         },
 
@@ -349,6 +399,10 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
         },
 
         PARTY_CONFIRM {
@@ -366,6 +420,10 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
         },
 
         PARTY_END {
@@ -382,6 +440,10 @@ public final class IMBaseDefine {
             @Override
             public Class getCls() {
                 return null;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
         },
 
@@ -401,6 +463,12 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
+
+
         },
 
         //直播相关消息通知
@@ -419,6 +487,10 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
         },
 
         LIVE_STOP {
@@ -435,6 +507,10 @@ public final class IMBaseDefine {
             @Override
             public Class getCls() {
                 return null;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
         },
 
@@ -453,6 +529,10 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
         },
 
         LIVE_DISCUSS {
@@ -469,6 +549,10 @@ public final class IMBaseDefine {
             @Override
             public Class getCls() {
                 return null;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
         },
 
@@ -487,6 +571,10 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
         },
 
         RELAY_COUNT {
@@ -503,6 +591,10 @@ public final class IMBaseDefine {
             @Override
             public Class getCls() {
                 return null;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_SINGLE_NOTIFY;
             }
         },
 
@@ -522,11 +614,16 @@ public final class IMBaseDefine {
             public Class getCls() {
                 return null;
             }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
         };
 
         public abstract String code();
         public abstract String desc();
         public abstract Class getCls();
+        public abstract int MsgType();
 
         public static NotifyType getInstanceByCode(String code) {
             for(NotifyType notifyType : NotifyType.values()) {

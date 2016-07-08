@@ -28,6 +28,7 @@ import com.juju.app.event.LoginEvent;
 import com.juju.app.event.SessionEvent;
 import com.juju.app.event.SmackSocketEvent;
 import com.juju.app.event.UnreadEvent;
+import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
@@ -260,6 +261,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
     //会话更新
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEventMainThread(SessionEvent sessionEvent){
+        EventBus.getDefault().removeStickyEvent(sessionEvent);
         logger.d("groupchat_fragment#SessionEvent# -> %s", sessionEvent);
         switch (sessionEvent){
             case RECENT_SESSION_LIST_UPDATE:
@@ -273,6 +275,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
     //群组事件回调(支持粘性通知，注册可以在通知之后进行)
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEvent4GroupEvent(GroupEvent event){
+        EventBus.getDefault().removeStickyEvent(event);
         logger.d("groupchat_fragment#GroupEvent# -> %s", event);
         switch (event.getEvent()){
             case GROUP_INFO_OK:
@@ -322,14 +325,31 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         logger.d("groupchat_fragment#ExitGroupEvent# -> %s", event);
         switch (event.event){
             case SEND_EXIT_GROUP_OK:
+            case RECV_EXIT_GROUP_OK:
                 onRecentContactDataReady();
                 break;
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4ApplyInGroupEvent(ApplyInGroupEvent event){
+        logger.d("groupchat_fragment#ApplyInGroupEvent# -> %s", event);
+        switch (event.event){
+            case SEND_APPLY_IN_GROUP_OK:
+            case RECV_APPLY_IN_GROUP_OK:
+                onRecentContactDataReady();
+                break;
+        }
+    }
+
+
+
+
+
     //登陆状态回调
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEvent4Login(LoginEvent loginEvent){
+        EventBus.getDefault().removeStickyEvent(loginEvent);
         logger.d("goupchatfragment#LoginEvent# -> %s", loginEvent);
         switch (loginEvent){
             case LOCAL_LOGIN_SUCCESS:
@@ -367,6 +387,7 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
 
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEventMain4SmackSocket(SmackSocketEvent socketEvent){
+        EventBus.getDefault().removeStickyEvent(socketEvent);
         switch (socketEvent){
             case MSG_SERVER_DISCONNECTED:
                 handleServerDisconnected();

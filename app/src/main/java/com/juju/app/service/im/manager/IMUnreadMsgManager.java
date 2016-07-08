@@ -302,6 +302,7 @@ public class IMUnreadMsgManager extends IMManager {
      */
     @Subscribe(threadMode = ThreadMode.MAIN, sticky = true)
     public void onEvent4JoinChatRoom(final JoinChatRoomEvent joinChatRoomEvent) {
+        EventBus.getDefault().removeStickyEvent(joinChatRoomEvent);
         switch (joinChatRoomEvent.event){
             case JOIN_OK_4_UNREAD_MSG_REQ:
                 ThreadPoolUtil.instance().executeImTask(new Runnable() {
@@ -371,10 +372,12 @@ public class IMUnreadMsgManager extends IMManager {
     private void reqUnreadMsgContact(final String chatRoomId, final CountDownLatch countDownLatch) {
         final String chatRoom = DBConstant.SESSION_TYPE_GROUP + "_" + chatRoomId;
         final UnreadEntity dbUnreadEntity = unreadMsgMap.get(chatRoom);
-        if(dbUnreadEntity == null) {
+        long time = 0l;
 
-        }
-        long time = 1l;
+//        if(chatRoom.indexOf("577a1df5e4b008c0394f11a1") >= 0) {
+//            System.out.println(chatRoom);
+//        }
+
 
         //未读消息
         if(dbUnreadEntity != null
@@ -384,11 +387,21 @@ public class IMUnreadMsgManager extends IMManager {
         }
         //消息已读，需要找APP退出前最后一条消息的时间
         else {
-            time = messageDao.getSessionLastTime();
+            time = messageDao.getSessionLastTime(chatRoom);
             time++;
         }
-        //没有查询条件，返回
-        if(time == 1 || time == 2) {
+        //没有查询条件，查询Session
+        if(time == 1) {
+            SessionEntity sessionEntity = IMSessionManager.instance().getSessionMap().get(chatRoom);
+            if(sessionEntity != null) {
+                time = sessionEntity.getUpdated();
+            }
+            time++;
+        }
+
+
+
+        if(time==1 || time == 2) {
             countDownLatch.countDown();
             return;
         }
@@ -492,7 +505,7 @@ public class IMUnreadMsgManager extends IMManager {
 
                 //更新session (IMMessageManager不需要重复查询)
                 SessionEntity sessionEntity = IMSessionManager.instance().getSessionEntity(bodyStr);
-                IMSessionManager.instance().saveSession(sessionEntity);
+                IMSessionManager.instance().updateSession4RedisQuery(sessionEntity);
             }
         }
         if(unreadEntity == null && dbUnreadEntity != null) {

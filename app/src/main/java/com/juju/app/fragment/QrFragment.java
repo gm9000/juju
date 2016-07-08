@@ -5,11 +5,13 @@ import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -28,8 +30,13 @@ import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.Logger;
+import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ThreadPoolUtil;
 import com.juju.app.view.groupchat.IMGroupAvatar;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.ViewInject;
 
@@ -42,13 +49,14 @@ import java.util.Set;
 @CreateFragmentUI(viewId = R.layout.fragment_qr)
 public class QrFragment extends BaseFragment implements CreateUIHelper {
 
+    private Logger logger = Logger.getLogger(QrFragment.class);
+
 
     private IMService imService;
 
-    private String peerIdValue;
+    private String groupId;
 
     private String groupName;
-//    private boolean isGroup;
 
     @ViewInject(R.id.tvname)
     private TextView tvname;
@@ -62,6 +70,12 @@ public class QrFragment extends BaseFragment implements CreateUIHelper {
     @ViewInject(R.id.lin_all)
     private LinearLayout lin_all;
 
+    @ViewInject(R.id.progress_bar)
+    private ProgressBar progressbar;
+
+    private Handler uiHandler = new Handler();
+
+    Bitmap bitmap;
 
 
     private IMServiceConnector imServiceConnector = new IMServiceConnector(){
@@ -93,14 +107,16 @@ public class QrFragment extends BaseFragment implements CreateUIHelper {
     @Override
     public void onDestroy() {
         imServiceConnector.disconnect(getContext());
+        bitmap = null;
         super.onDestroy();
     }
 
     @Override
     public void loadData() {
+        showProgressBar();
 //        groupName = getActivity().getIntent().getStringExtra(Constants.GROUP_NAME_KEY);
 //        isGroup = "0".equals( getActivity().getIntent().getStringExtra(Constants.QR_VIEW_TYPE));
-        peerIdValue = getActivity().getIntent().getStringExtra(Constants.GROUP_ID_KEY);
+        groupId = getActivity().getIntent().getStringExtra(Constants.GROUP_ID_KEY);
 
     }
 
@@ -110,7 +126,7 @@ public class QrFragment extends BaseFragment implements CreateUIHelper {
     }
 
     private void initViews() {
-        GroupEntity groupEntity = imService.getGroupManager().getGroupMap().get(peerIdValue);
+        final GroupEntity groupEntity = imService.getGroupManager().findGroupById(groupId);
         groupName = groupEntity.getMainName();
         Set<String> set = groupEntity.getlistGroupMemberIds();
         List<String> avatarUrlList = new ArrayList<>();
@@ -126,19 +142,43 @@ public class QrFragment extends BaseFragment implements CreateUIHelper {
         }
         //构造群组图像
         setGroupAvatar(avatarUrlList);
-        String qrCode = groupEntity.getQrCode() == null ? HttpConstants.getUserUrl()
-                : groupEntity.getQrCode();
-        Bitmap bitmap = generateQRCode(qrCode.trim());
         tvname.setText(groupName == null ? "" : groupName);
-        img_code.setImageBitmap(bitmap);
+
+        //使用hander.post 解决lin_all获取宽高问题
+        uiHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                final int width = lin_all.getWidth();
+                final int height = width;
+                //获取二维码
+                JSONObject jsonObject = new JSONObject();
+                String content = null;
+                if(StringUtils.isBlank(groupEntity.getQrCode())) {
+                    content = HttpConstants.getUserUrl();
+                } else {
+                    String token = "";
+                    try {
+                        jsonObject.put("code", groupEntity.getInviteCode());
+                        jsonObject.put("groupId", groupEntity.getId());
+                        token = jsonObject.toString();
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    content = groupEntity.getQrCode()+"?token="+token;
+                }
+                bitmap = generateQRCode(content, width, height);
+                hideProgressBar();
+                img_code.setImageBitmap(bitmap);
+            }
+        });
     }
 
-
-    private Bitmap generateQRCode(String content) {
+    private Bitmap generateQRCode(String content, int width, int height) {
         try {
             QRCodeWriter writer = new QRCodeWriter();
+            logger.d("generateQRCode -> width:%d,height:%d", lin_all.getWidth(), lin_all.getWidth());
             BitMatrix matrix = writer.encode(content, BarcodeFormat.QR_CODE,
-                    lin_all.getWidth(), lin_all.getWidth());
+                    width, height);
             return bitMatrix2Bitmap(matrix);
         } catch (WriterException e) {
             e.printStackTrace();
@@ -183,5 +223,15 @@ public class QrFragment extends BaseFragment implements CreateUIHelper {
         }
 
     }
+
+
+    public void showProgressBar() {
+        progressbar.setVisibility(View.VISIBLE);
+    }
+
+    public void hideProgressBar() {
+        progressbar.setVisibility(View.GONE);
+    }
+
 
 }

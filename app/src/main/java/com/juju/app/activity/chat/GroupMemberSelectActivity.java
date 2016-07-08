@@ -12,12 +12,14 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.ContextThemeWrapper;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -62,6 +64,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.view.annotation.ContentView;
+import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
@@ -103,11 +106,13 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
 
     private DaoSupport userDao;
 
+    @ViewInject(R.id.progress_bar)
+    private ProgressBar progressbar;
+
 
     IMServiceConnector imServiceConnector = new IMServiceConnector(){
         @Override
         public void onIMServiceConnected() {
-            loading();
             logger.d("groupselmgr#onIMServiceConnected");
             imService = imServiceConnector.getIMService();
             Intent intent = getIntent();
@@ -117,7 +122,6 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
             /**已经处于选中状态的list*/
             Set<String> alreadyList = getAlreadyCheckList();
             initContactList(alreadyList);
-            completeLoading(0);
         }
 
         @Override
@@ -239,7 +243,7 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
                     logger.d("tempgroup#memberList size:%d", checkListSet.size());
                     ShowDialogForTempGroupname(groupMgr, checkListSet);
                 } else if (sessionType == DBConstant.SESSION_TYPE_GROUP) {
-                    loading();
+                    showProgressBar();
                     imService.getGroupManager().reqAddGroupMember(peerEntity.getPeerId(),
                             peerEntity.getId(),  checkListSet);
                 }
@@ -419,13 +423,18 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
     public void onEvent4JoinGroup(InviteUserEvent event) {
         switch (event.event) {
             case INVITE_USER_OK:
-                completeLoading(0);
-                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_user_send_success, 3);
+//                completeLoading(0);
+                hideProgressBar();
+                ToastUtil.showShortToast(getApplicationContext(),
+                        getString(R.string.invite_user_send_success), Gravity.BOTTOM);
                 finish(GroupMemberSelectActivity.this);
                 break;
             case INVITE_USER_FAILED:
-                completeLoading(0);
-                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_user_send_failed, 3);
+//                completeLoading(0);
+                hideProgressBar();
+                ToastUtil.showShortToast(getApplicationContext(),
+                        getString(R.string.invite_user_send_failed), Gravity.BOTTOM);
+//                ToastUtil.TextIntToast(getApplicationContext(), R.string.invite_user_send_failed, 3);
                 break;
         }
     }
@@ -577,4 +586,13 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
             logger.e("GETEXISTUSERS is faild");
         }
     }
+
+    public void showProgressBar() {
+        progressbar.setVisibility(View.VISIBLE);
+    }
+
+    public void hideProgressBar() {
+        progressbar.setVisibility(View.GONE);
+    }
+
 }
