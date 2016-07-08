@@ -10,6 +10,8 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.entity.Party;
+import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.SwipeLayoutView;
 
@@ -75,6 +77,7 @@ public class MyPartyListAdapter extends BaseAdapter{
             layout_swipe.setSwipeEnabled(false);
         }
 
+        ImageView imgPlanType = (ImageView)view.findViewById(R.id.img_plan_type);
         TextView partyName = (TextView) view.findViewById(R.id.party_name);
         TextView time = (TextView) view.findViewById(R.id.time);
         TextView partyDesc = (TextView) view.findViewById(R.id.partyDesc);
@@ -84,6 +87,14 @@ public class MyPartyListAdapter extends BaseAdapter{
         TextView waitingProcess = (TextView) view.findViewById(R.id.waiting_process);
 
 
+        if(party.getCoverUrl()!=null) {
+            if (party.getCoverUrl().startsWith("http:")){
+                ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+            }else{
+                final int resId = ((BaseActivity) context).getResValue(party.getCoverUrl().toLowerCase(), "mipmap");
+                imgPlanType.setImageResource(resId);
+            }
+        }
         partyName.setText(party.getName());
         if(party.getTime()!=null) {
             time.setText(dateFormat.format(party.getTime()));

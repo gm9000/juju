@@ -98,7 +98,7 @@
             </RelativeLayout>
 
             <com.juju.app.view.scroll.NoScrollListView
-                android:id="@id/listview_plan"
+                android:id="@+id/listview_plan"
                 android:scrollbars="none"
                 android:layout_below="@id/layout_party_info"
                 android:layout_width="match_parent"

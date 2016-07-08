@@ -1,55 +1,38 @@
 package com.juju.app.activity.party;
 
 import android.annotation.SuppressLint;
-import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RadioButton;
-import android.widget.RadioGroup;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
-import com.juju.app.activity.user.SettingActivity;
-import com.juju.app.adapters.PlanVoteListAdapter;
-import com.juju.app.bean.UserInfoBean;
-import com.juju.app.bean.json.PlanVoteBean;
-import com.juju.app.bean.json.PlanVoteReqBean;
-import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Plan;
-import com.juju.app.entity.PlanVote;
-import com.juju.app.entity.User;
+import com.juju.app.fragment.party.PlanDetailFragment;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
-import com.juju.app.https.HttpCallBack;
-import com.juju.app.https.HttpCallBack4OK;
-import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.ToastUtil;
-import com.juju.app.view.scroll.NoScrollGridView;
+import com.juju.app.utils.ScreenUtil;
 
-import org.apache.http.message.BasicNameValuePair;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xutils.common.Callback;
-import org.xutils.db.sqlite.WhereBuilder;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
-import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @ContentView(R.layout.activity_plan_detail)
-public class PlanDetailActivity extends BaseActivity implements HttpCallBack, RadioGroup.OnCheckedChangeListener,AdapterView.OnItemClickListener {
+public class PlanDetailActivity extends BaseActivity implements ViewPager.OnPageChangeListener {
 
     private static final String TAG = "PlanDetailActivity";
 
@@ -64,50 +47,21 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
     @ViewInject(R.id.img_right)
     private ImageView img_right;
 
-    @ViewInject(R.id.plan_index_group)
-    private RadioGroup planIndexGroup;
-    @ViewInject(R.id.plan_first)
-    private RadioButton plan_first;
-    @ViewInject(R.id.plan_second)
-    private RadioButton plan_second;
-    @ViewInject(R.id.plan_third)
-    private RadioButton plan_third;
+    @ViewInject(R.id.container)
+    private ViewPager mPager;
+    @ViewInject(R.id.dotGroup)
+    private LinearLayout dotGroup;
+    private ImageView[] tips;
 
-    @ViewInject(R.id.txt_time)
-    private TextView txt_time;
-    @ViewInject(R.id.txt_description)
-    private TextView txt_description;
-    @ViewInject(R.id.txt_attend_num)
-    private TextView txt_attendNum;
-
-    @ViewInject(R.id.img_weather)
-    private ImageView img_weather;
-    @ViewInject(R.id.txt_weather)
-    private TextView txt_weather;
-
-    @ViewInject(R.id.img_location)
-    private ImageView img_location;
-    @ViewInject(R.id.img_mapped)
-    private ImageView img_mapped;
-    @ViewInject(R.id.txt_location)
-    private TextView txt_location;
-
-
-    @ViewInject(R.id.btn_operate)
-    private Button btn_operate;
-
-    @ViewInject(R.id.gridview_user)
-    private NoScrollGridView gridview_user;
 
     private String partyId;
     private String planId;
     private List<Plan> planList;
     private int planIndex;
 
-    private PlanVoteListAdapter planVoteListAdapter;
-    private List<PlanVote> planVoteList;
+    private PagePlanDetailAdapter planDetailAdapter;
+
     private boolean isOwner;
-    private boolean isSigned;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
@@ -120,9 +74,7 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
         initListeners();
     }
 
-    private void initListeners() {
-        planIndexGroup.setOnCheckedChangeListener(this);
-        gridview_user.setOnItemClickListener(this);
+    private void initListeners(){
     }
 
     private void initData() {
@@ -139,88 +91,16 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
             }
         }
 
-        switch(planIndex){
-            case 0:
-                planIndexGroup.check(R.id.plan_first);
-                break;
-            case 1:
-                planIndexGroup.check(R.id.plan_second);
-                break;
-            case 2:
-                planIndexGroup.check(R.id.plan_third);
-                break;
-        }
-
-        switch(planList.size()){
-            case 1:
-                plan_second.setVisibility(View.GONE);
-                plan_third.setVisibility(View.GONE);
-                break;
-            case 2:
-                plan_third.setVisibility(View.GONE);
-                break;
-            case 3:
-                break;
-        }
-
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        PlanVote planVote = null;
-
-        try {
-            planVoteList = JujuDbUtils.getInstance().selector(PlanVote.class).where("plan_id", "=", planId).findAll();
-            if(planVoteList != null) {
-                for(PlanVote planVote1 : planVoteList) {
-                    User dbUser = JujuDbUtils.getInstance().selector(User.class)
-                            .where("user_no", "=", planVote1.getAttenderNo()).findFirst();
-                    planVote1.setAttender(dbUser);
-                }
-            }
-            planVote = JujuDbUtils.getInstance().selector(PlanVote.class).where("plan_id", "=", planId).and("attender_no", "=", userInfoBean.getUserNo()).findFirst();
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
-
-        if(planVote == null){
-            isSigned = false;
-            btn_operate.setBackgroundColor(getResources().getColor(R.color.blue));
-            btn_operate.setText(R.string.signup);
-        }else{
-            isSigned = true;
-            btn_operate.setBackgroundColor(getResources().getColor(R.color.red));
-            btn_operate.setText(R.string.unsignup);
-        }
-
-
-
-        planVoteListAdapter = new PlanVoteListAdapter(this,planVoteList);
-        gridview_user.setAdapter(planVoteListAdapter);
-
-        txt_attendNum.setText(String.valueOf(planVoteList.size()));
-
-        Plan plan = planList.get(planIndex);
-        if(plan.getDesc()==null || plan.getDesc().equals("")){
-        }else{
-            txt_description.setTextColor(getResources().getColor(R.color.black));
-            txt_description.setText("\t\t"+plan.getDesc());
-        }
-
-        txt_time.setText(dateFormat.format(plan.getStartTime()));
-        txt_location.setText(plan.getAddress());
-
-        // TODO 根据地理位置对接天气
-        txt_weather.setText("晴间多云  2-15 ℃");
+        planDetailAdapter = new PagePlanDetailAdapter(getSupportFragmentManager(),this,planList,isOwner);
+        mPager.setAdapter(planDetailAdapter);
+        mPager.setCurrentItem(planIndex);
+        mPager.addOnPageChangeListener(this);
 
     }
 
     @SuppressLint("NewApi")
     private void initView() {
-
-        if(isOwner){
-            btn_operate.setVisibility(View.GONE);
-        }else{
-            btn_operate.setVisibility(View.VISIBLE);
-        }
-
+        img_back.setVisibility(View.VISIBLE);
         txt_left.setVisibility(View.VISIBLE);
         txt_left.setText(R.string.top_left_back);
 
@@ -231,14 +111,26 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
         txt_right.setVisibility(View.GONE);
         img_right.setVisibility(View.GONE);
 
-        if(planList.get(planIndex).getLatitude() == 0){
-            img_mapped.setVisibility(View.GONE);
+        if(planList.size()>1) {
+            tips = new ImageView[planList.size()];
+            for (int i = 0; i < tips.length; i++) {
+                ImageView imageView = new ImageView(this);
+                LinearLayout.LayoutParams dotLayoutParams = new LinearLayout.LayoutParams(ScreenUtil.dip2px(this,8),ScreenUtil.dip2px(this,8));
+                dotLayoutParams.leftMargin = ScreenUtil.dip2px(this,8);
+                dotLayoutParams.rightMargin = ScreenUtil.dip2px(this,8);
+                imageView.setLayoutParams(dotLayoutParams);
+                dotGroup.addView(imageView);
+
+                tips[i] = imageView;
+                if (i == planIndex) {
+                    tips[i].setBackgroundResource(R.mipmap.dot_red);
+                } else {
+                    tips[i].setBackgroundResource(R.mipmap.dot_white);
+                }
+            }
         }
 
-        img_mapped.setRotation(45);
-
     }
-
 
     public void initParam() {
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
@@ -246,246 +138,93 @@ public class PlanDetailActivity extends BaseActivity implements HttpCallBack, Ra
         planId = getIntent().getStringExtra(Constants.PLAN_ID);
     }
 
+    public void checkPlan(Plan plan){
+        switch (plan.getStatus()){
+            case 0:
+                for(int i=0; i<planList.size();i++){
+                    Plan curPlan = planList.get(i);
+                    if(curPlan.getStatus()==1){
+                        curPlan.setStatus(0);
+                        if(planDetailAdapter.getFragment(i)!=null) {
+                            planDetailAdapter.getFragment(i).setNeedRrefresh(true);
+                        }
+                        JujuDbUtils.saveOrUpdate(curPlan);
+                    }
+                }
+                plan.setStatus(1);
+                break;
+            case 1:
+                plan.setStatus(0);
+                break;
+        }
+        JujuDbUtils.saveOrUpdate(plan);
+    }
+
     @Event(R.id.txt_left)
     private void cancelOperation(View view){
         ActivityUtil.finish(this);
     }
 
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-    @Event(R.id.btn_operate)
-    private void changeSignFlag(View view){
-        votePlanToServer(planId, !isSigned);
     }
 
-    private void votePlanToServer(String planId,boolean voteFlag) {
-
-        //TODO 增加本地保存
-
-        UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        PlanVoteReqBean reqBean = new PlanVoteReqBean();
-        reqBean.setUserNo(userTokenInfoBean.getUserNo());
-        reqBean.setToken(userTokenInfoBean.getToken());
-
-        PlanVoteBean planVote = new PlanVoteBean();
-        planVote.setPlanId(planId);
-        planVote.setVote(voteFlag ? 1 : 0);
-        reqBean.setPlanVote(planVote);
-
-        JlmHttpClient<PlanVoteReqBean> client = new JlmHttpClient<PlanVoteReqBean>(R.id.txt_party, HttpConstants.getUserUrl() + "/votePlan", this, reqBean,JSONObject.class);
-        try {
-            loading(true, R.string.saving);
-            client.sendPost();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
+    @Override
+    public void onPageSelected(int position) {
+        if(tips==null){
+            return;
         }
-    }
-
-
-//    @Override
-//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-//        switch (accessId) {
-//            case R.id.txt_party:
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
-//                            if(isSigned){
-//
-//                                WhereBuilder whereBuilder = WhereBuilder.b("attenderNo", "=", userTokenInfoBean.getJujuNo());
-//                                whereBuilder.and("planId", "=", planId);
-//                                JujuDbUtils.getInstance(this).delete(PlanVote.class, whereBuilder);
-//                                Plan plan = JujuDbUtils.getInstance(this).findFirst(Selector.from(Plan.class).where("id","=",planId));
-//                                plan.setAddtendNum(plan.getAddtendNum()-1);
-//                                plan.setSigned(0);
-//                                JujuDbUtils.saveOrUpdate(plan);
-//
-//                            }else{
-//                                User user = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", userTokenInfoBean.getJujuNo()));
-//                                PlanVote planVote = new PlanVote();
-//                                planVote.setPlanId(planId);
-//                                planVote.setAttender(user);
-//                                JujuDbUtils.save(planVote);
-//
-//                                Plan plan = JujuDbUtils.getInstance(this).findFirst(Selector.from(Plan.class).where("id","=",planId));
-//                                plan.setAddtendNum(plan.getAddtendNum()+1);
-//                                plan.setSigned(1);
-//                                JujuDbUtils.saveOrUpdate(plan);
-//                            }
-//                            //  TOTO    通知 Plan投票发生变化
-//                            completeLoading();
-//                            ActivityUtil.finish(this);
-//                        } else {
-//                            completeLoading();
-//                            Log.e(TAG,"return status code:"+status);
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    } catch(DbException e){
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//        }
-//    }
-//
-//    @Override
-//    public void onFailure(HttpException error, String msg, int accessId) {
-//        completeLoading();
-//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-//                error.getExceptionCode());
-//    }
-
-    @Override
-    public void onSuccess(Object obj, int accessId, Object inputParameter) {
-        switch (accessId) {
-            case R.id.txt_party:
-                if(obj != null) {
-                    JSONObject jsonRoot = (JSONObject)obj;
-                    try {
-                        int status = jsonRoot.getInt("status");
-                        if(status == 0) {
-                            UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
-                            if(isSigned){
-
-                                WhereBuilder whereBuilder = WhereBuilder.b("attender_no", "=", userTokenInfoBean.getUserNo());
-                                whereBuilder.and("planId", "=", planId);
-                                JujuDbUtils.getInstance().delete(PlanVote.class, whereBuilder);
-                                Plan plan = JujuDbUtils.getInstance().selector(Plan.class).where("id", "=", planId).findFirst();
-                                plan.setAddtendNum(plan.getAddtendNum()-1);
-                                plan.setSigned(0);
-                                JujuDbUtils.saveOrUpdate(plan);
-
-                            }else{
-                                User user = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userTokenInfoBean.getUserNo()).findFirst();
-                                PlanVote planVote = new PlanVote();
-                                planVote.setPlanId(planId);
-                                planVote.setAttenderNo(userTokenInfoBean.getUserNo());
-                                planVote.setAttender(user);
-                                JujuDbUtils.save(planVote);
-
-                                Plan plan = JujuDbUtils.getInstance().selector(Plan.class).where("id", "=", planId).findFirst();
-                                plan.setAddtendNum(plan.getAddtendNum()+1);
-                                plan.setSigned(1);
-                                JujuDbUtils.saveOrUpdate(plan);
-                            }
-                            //  TOTO    通知 Plan投票发生变化
-                            completeLoading();
-                            ActivityUtil.finish(this);
-                        } else {
-                            completeLoading();
-                            Log.e(TAG,"return status code:"+status);
-                        }
-                    } catch (JSONException e) {
-                        Log.e(TAG, "回调解析失败", e);
-                        e.printStackTrace();
-                    } catch(DbException e){
-                        e.printStackTrace();
-                    }
-                }
-                break;
+        if(planDetailAdapter.getFragment(position)!=null && planDetailAdapter.getFragment(position).needRrefresh()){
+            planDetailAdapter.getFragment(position).refresh();
         }
-    }
-
-    @Override
-    public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
-        completeLoading();
-        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
-        Log.e(TAG, "onFailure", ex);
-    }
-
-    @Override
-    public void onCancelled(Callback.CancelledException cex) {
-
-    }
-
-    @Override
-    public void onFinished() {
-
-    }
-
-
-
-    @Override
-    public void onCheckedChanged(RadioGroup group, int checkedId) {
-        if (planIndexGroup.getId() == group.getId()) {
-
-            switch (checkedId){
-                case R.id.plan_first:
-                    planIndex = 0;
-                    break;
-                case R.id.plan_second:
-                    planIndex = 1;
-                    break;
-                case R.id.plan_third:
-                    planIndex = 2;
-                    break;
-            }
-
-            gridview_user.setAdapter(planVoteListAdapter);
-
-            Plan plan = planList.get(planIndex);
-            planId = plan.getId();
-            try {
-                planVoteList = JujuDbUtils.getInstance().selector(PlanVote.class).where("plan_id", "=", planId).findAll();
-                if(planVoteList != null) {
-                    for(PlanVote planVote : planVoteList) {
-                        User dbUser = JujuDbUtils.getInstance().selector(User.class)
-                                .where("user_no", "=", planVote.getAttenderNo()).findFirst();
-                        planVote.setAttender(dbUser);
-                    }
-                }
-            } catch (DbException e) {
-                e.printStackTrace();
-            }
-            if(plan.getLatitude() == 0 ){
-                img_mapped.setVisibility(View.GONE);
+        for(int i=0; i<tips.length; i++){
+            if(i==position){
+                tips[i].setImageResource(R.mipmap.dot_red);
             }else{
-                img_mapped.setVisibility(View.VISIBLE);
+                tips[i].setImageResource(R.mipmap.dot_white);
             }
-
-            planVoteListAdapter.setPlanVoteList(planVoteList);
-            planVoteListAdapter.notifyDataSetChanged();
-
-
-            txt_attendNum.setText(String.valueOf(planVoteList.size()));
-
-            if(plan.getDesc()==null){
-                txt_description.setTextColor(getResources().getColor(R.color.gray));
-                txt_description.setText("\t\t"+getResources().getString(R.string.nodescription));
-            }else{
-                txt_description.setTextColor(getResources().getColor(R.color.black));
-                txt_description.setText("\t\t"+plan.getDesc());
-            }
-
-            txt_time.setText(dateFormat.format(plan.getStartTime()));
-            txt_location.setText(plan.getAddress());
         }
 
-    }
-
-    @Event(R.id.layout_location)
-    private void showMap(View view){
-        Plan plan = planList.get(planIndex);
-        if(plan.getLatitude()!=0 && plan.getLongitude()!=0) {
-            Intent intent = new Intent(this, PlanLocationActivity.class);
-            intent.putExtra(Constants.LATITUDE, plan.getLatitude());
-            intent.putExtra(Constants.LONGITUDE, plan.getLongitude());
-            intent.putExtra(Constants.ADDRESS, plan.getAddress());
-            startActivity(intent);
-        }
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-        ActivityUtil.startActivity(this, SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,planVoteList.get(position).getAttender().getUserNo()));
+    public void onPageScrollStateChanged(int state) {
 
     }
 
+
+    private static final class PagePlanDetailAdapter extends FragmentStatePagerAdapter {
+
+        private PlanDetailActivity activity;
+        private List<Plan> planList;
+        private boolean isOwner;
+        private Map<Integer,PlanDetailFragment> fragmentMap = new HashMap<Integer,PlanDetailFragment>();
+
+        public PagePlanDetailAdapter(FragmentManager fragmentManager, PlanDetailActivity activity, List<Plan> planList, boolean isOwner) {
+            super(fragmentManager);
+            this.activity = activity;
+            this.planList = planList;
+            this.isOwner = isOwner;
+        }
+
+
+        @Override
+        public Fragment getItem(int position) {
+            final PlanDetailFragment fragment = new PlanDetailFragment(activity,planList.get(position),isOwner);
+            fragmentMap.put(position,fragment);
+            return fragment;
+        }
+
+        public PlanDetailFragment getFragment(int position){
+            return fragmentMap.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return planList.size();
+        }
+
+    }
 
 }

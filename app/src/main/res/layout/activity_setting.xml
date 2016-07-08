@@ -182,10 +182,11 @@
                     android:text="@string/remember_pwd" />
                 <ImageView
                     android:id="@+id/img_rememberPwd"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
+                    android:layout_centerVertical="true"
                     android:layout_alignParentRight="true"
-                    android:src="@mipmap/switch_on"/>
+                    android:src="@mipmap/check_box"/>
                 <View
                     android:id="@+id/line"
                     android:layout_below="@+id/txt_remember_pwd"
@@ -206,10 +207,11 @@
                 <ImageView
                     android:id="@+id/img_autoLogin"
                     android:layout_below="@id/line"
-                    android:layout_width="100dp"
-                    android:layout_height="50dp"
+                    android:layout_centerVertical="true"
+                    android:layout_width="80dp"
+                    android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
-                    android:src="@mipmap/switch_on"/>
+                    android:src="@mipmap/check_box"/>
             </RelativeLayout>
             <Button
                 android:id="@+id/logoutBtn"

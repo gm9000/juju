@@ -76,10 +76,11 @@
             android:screenOrientation="portrait"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
-            android:name=".activity.party.PartyActivity"
-            android:configChanges="keyboardHidden|orientation|screenSize"
-            android:label="@string/title_activity_party"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:name=".activity.party.PartyLiveActivity"
+            android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activity.party.PartyLocationActivity"
+            android:screenOrientation="portrait"/>
         <activity
             android:name=".activity.party.PlayVideoActivity"
             android:configChanges="keyboardHidden|orientation|screenSize"
@@ -145,6 +146,9 @@
             android:name=".activity.party.PartyDetailActivity"
             android:label="@string/title_activity_party_detail"
             android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".activity.party.PlanCreateActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.party.PlanDetailActivity"
             android:label="@string/title_activity_plan_detail"

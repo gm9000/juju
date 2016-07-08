@@ -13,6 +13,7 @@ import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
 import com.juju.app.helper.IMUIHelper;
+import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.view.RoundImageView;
 
@@ -103,10 +104,13 @@ public class PartyListAdapter extends BaseAdapter {
         ImageView partyImage = (ImageView) view.findViewById(R.id.party_preview);
         partyImage.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
 
-        if(position%2 == 0) {
-            partyImage.setImageResource(R.drawable.meishi);
+
+
+        if(party.getCoverUrl().startsWith("http:")){
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), partyImage, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }else{
-            partyImage.setImageResource(R.drawable.taiqiu);
+            final int resId = ((BaseActivity)inflater.getContext()).getResValue(party.getCoverUrl().toLowerCase(),"mipmap");
+            partyImage.setImageResource(resId);
         }
 
         RoundImageView imgCreatorHead = (RoundImageView) view.findViewById(R.id.creatorImage);

@@ -54,7 +54,10 @@ public class VideoProgramListAadpter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         layoutInflater = LayoutInflater.from(context);
-        if(convertView == null) {
+        if (position == 0) {
+            convertView = LayoutInflater.from(context).
+                    inflate(R.layout.top_party_live_item, parent, false);
+        } else {
             convertView = LayoutInflater.from(context).
                     inflate(R.layout.party_live_item, parent, false);
         }

@@ -140,6 +140,7 @@ public class BaseApplication extends Application {
                                         files.add(getDatabasePath("jlm_19400000005"));
                                         files.add(getDatabasePath("jlm_15800000024"));
                                         files.add(getDatabasePath("jlm_19600000018"));
+                                        files.add(getDatabasePath("jlm_19600000030"));
                                         return files;
                                     }
                                 })

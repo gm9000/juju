@@ -1,22 +1,21 @@
 package com.juju.app.activity.party;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.AdapterView;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
-import com.juju.app.adapters.PlanListAdapter;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.bean.json.PartyBean;
 import com.juju.app.bean.json.PartyReqBean;
@@ -28,27 +27,24 @@ import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
-import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.golobal.Constants;
-import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
-import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
-import com.juju.app.service.im.manager.IMOtherManager;
-import com.juju.app.service.notify.BaseNotify;
-import com.juju.app.service.notify.MasterTransferNotify;
+import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.notify.PartyRecruitNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.SpfUtil;
+import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
-import com.juju.app.view.scroll.NoScrollListView;
-import com.juju.app.view.wheel.dialog.SelectDateTimeDialog;
+import com.juju.app.view.dialog.WarnTipDialog;
+import com.juju.app.view.groupchat.IMGroupAvatar;
+import com.rey.material.app.BottomSheetDialog;
 
+import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
@@ -58,18 +54,18 @@ import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 @ContentView(R.layout.activity_party_create)
-public class PartyCreateActivity extends BaseActivity implements HttpCallBack, AdapterView.OnItemClickListener {
+public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
     private static final String TAG = "PartyCreateActivity";
 
-    private static final int CMD_REQ_LOCATION = 1;
+    private static final int ADD_PLAN = 0x0001;
+    private static final int EDIT_PLAN = 0x0002;
 
     @ViewInject(R.id.txt_title)
     private TextView txt_title;
@@ -77,66 +73,84 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     private ImageView img_back;
     @ViewInject(R.id.txt_left)
     private TextView txt_left;
-    @ViewInject(R.id.txt_right)
-    private TextView txt_right;
     @ViewInject(R.id.img_right)
     private ImageView img_right;
+    @ViewInject(R.id.txt_right)
+    private TextView txt_right;
 
+    @ViewInject(R.id.iv_head)
+    private IMGroupAvatar groupHead;
+    @ViewInject(R.id.txt_group_name)
+    private TextView txtGroupName;
     @ViewInject(R.id.txt_party_title)
     private EditText txt_partyTitle;
     @ViewInject(R.id.txt_description)
     private EditText txt_description;
 
 
-    @ViewInject(R.id.layout_plan)
-    private RelativeLayout layout_plan;
-    @ViewInject(R.id.txt_time)
-    private TextView txt_time;
-    @ViewInject(R.id.txt_location)
-    private EditText txt_location;
-    @ViewInject(R.id.txt_plan_description)
-    private EditText txt_planDescription;
-
-    @ViewInject(R.id.layout_plan_info)
-    private LinearLayout layout_planInfo;
-    @ViewInject(R.id.txt_plan_time)
-    private TextView txt_planTime;
-    @ViewInject(R.id.txt_plan_address)
-    private TextView txt_planAddress;
-    @ViewInject(R.id.txt_plan_desc)
-    private TextView txt_planDesc;
+    @ViewInject(R.id.layout_plan1)
+    private RelativeLayout layoutPlan1;
+    @ViewInject(R.id.img_plan1)
+    private ImageView imgPlan1;
+    @ViewInject(R.id.txt_plan_type1)
+    private TextView txtPlanType1;
+    @ViewInject(R.id.txt_plan_desc1)
+    private TextView txtPlanDesc1;
+    @ViewInject(R.id.txt_plan_location1)
+    private TextView txtPlanLocation1;
+    @ViewInject(R.id.txt_plan_time1)
+    private TextView txtPlanTime1;
+    @ViewInject(R.id.img_plan_delete1)
+    private ImageView imgPlanDelete1;
 
 
-    private double latitude = 0;
-    private double longitude = 0;
 
-    @ViewInject(R.id.img_select_location)
-    private ImageView img_selectLocation;
+    @ViewInject(R.id.layout_plan2)
+    private RelativeLayout layoutPlan2;
+    @ViewInject(R.id.img_plan2)
+    private ImageView imgPlan2;
+    @ViewInject(R.id.txt_plan_type2)
+    private TextView txtPlanType2;
+    @ViewInject(R.id.txt_plan_desc2)
+    private TextView txtPlanDesc2;
+    @ViewInject(R.id.txt_plan_location2)
+    private TextView txtPlanLocation2;
+    @ViewInject(R.id.txt_plan_time2)
+    private TextView txtPlanTime2;
+    @ViewInject(R.id.img_plan_delete2)
+    private ImageView imgPlanDelete2;
 
-    @ViewInject(R.id.layout_plan_list)
-    private LinearLayout layout_planList;
-//    @ViewInject(R.id.txt_no_plan)
-//    private TextView txt_noPlan;
 
-    @ViewInject(R.id.img_add_plan)
-    private ImageView img_addPlan;
-    @ViewInject(R.id.btn_publish)
-    private Button btn_publish;
+    @ViewInject(R.id.layout_plan3)
+    private RelativeLayout layoutPlan3;
+    @ViewInject(R.id.img_plan3)
+    private ImageView imgPlan3;
+    @ViewInject(R.id.txt_plan_type3)
+    private TextView txtPlanType3;
+    @ViewInject(R.id.txt_plan_desc3)
+    private TextView txtPlanDesc3;
+    @ViewInject(R.id.txt_plan_location3)
+    private TextView txtPlanLocation3;
+    @ViewInject(R.id.txt_plan_time3)
+    private TextView txtPlanTime3;
+    @ViewInject(R.id.img_plan_delete3)
+    private ImageView imgPlanDelete3;
 
-    @ViewInject(R.id.listview_plan)
-    private NoScrollListView listview_plan;
+
+    @ViewInject(R.id.layout_plan_add)
+    private RelativeLayout layoutPlanAdd;
 
     private String groupId;
     private String partyId;
     private Party party;
-    private PlanListAdapter planListAdapter;
+    private List<Plan> planList;
 
     private GroupDaoImpl groupDao;
-
 
     private InputMethodManager inputManager = null;
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    private BottomSheetDialog msgDialog;
 
 
     @Override
@@ -152,13 +166,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     }
 
     private void initListeners() {
-        listview_plan.setOnItemClickListener(this);
-        layout_planInfo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                layout_planInfo.setVisibility(View.GONE);
-            }
-        });
     }
 
     private void initData() {
@@ -170,7 +177,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                 groupId = party.getGroupId();
                 wrapParty(party);
 
-                List<Plan> planList = JujuDbUtils.getInstance().selector(Plan.class).where("party_id", "=", partyId).findAll();
+                planList = JujuDbUtils.getInstance().selector(Plan.class).where("party_id", "=", partyId).findAll();
                 if(planList!=null){
                     wrapPlanList(planList);
                 }else{
@@ -190,34 +197,44 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     }
 
     private void wrapPlanList(List<Plan> planList) {
-        planListAdapter = new PlanListAdapter(this,planList);
-        listview_plan.setAdapter(planListAdapter);
-        listview_plan.setCacheColorHint(0);
-
-//        if(planList.size()>0) {
-//            txt_noPlan.setVisibility(View.GONE);
-//        }
-        if(planListAdapter.getCount()>=3){
-            layout_plan.setVisibility(View.GONE);
+        this.planList = planList;
+        for(int i=0; i<planList.size(); i++){
+            refreshPlanInfo(i);
         }
     }
 
 
     private void initView() {
+        img_back.setVisibility(View.VISIBLE);
         txt_left.setVisibility(View.VISIBLE);
-        txt_left.setText(R.string.cancel);
-
-        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txt_left.getLayoutParams();
-        layoutParams.leftMargin = 15;
+        txt_left.setText(R.string.top_left_back);
 
         txt_title.getRootView().setBackgroundColor(getResources().getColor(R.color.background));
-
         txt_title.setText(R.string.add_party);
-        txt_left.setLayoutParams(layoutParams);
-        txt_right.setText(R.string.save);
-        txt_right.setTextColor(getResources().getColor(R.color.orange));
-        txt_right.setVisibility(View.VISIBLE);
         img_right.setVisibility(View.GONE);
+        txt_right.setText(R.string.publish);
+        txt_right.setVisibility(View.VISIBLE);
+
+
+        GroupEntity group = groupDao.findUniByProperty("id",groupId);
+        txtGroupName.setText(group.getMainName());
+        Set<String> userNos = group.getlistGroupMemberIds();
+        List<String> avatarUrlList = new ArrayList<>();
+        for(String userNo : userNos){
+            User entity = IMContactManager.instance().findContact(userNo);
+            if(entity != null){
+                avatarUrlList.add(entity.getAvatar());
+
+            }
+            if(avatarUrlList.size() >= 9){
+                break;
+            }
+        }
+        groupHead.setAvatarUrls((ArrayList<String>)avatarUrlList);
+
+        imgPlan1.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+        imgPlan2.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+        imgPlan3.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
 
     }
 
@@ -227,70 +244,59 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
     }
 
-    @Event(R.id.layout_plan_list)
-    private void hiddenSoftKey(View view){
-        inputManager.hideSoftInputFromWindow(layout_planList.getWindowToken(), 0);
-    }
-
     @Event(R.id.txt_left)
-    private void cancelOperation(View view){
-        ActivityUtil.finish(this);
+    private void goCancel(View view){
+        cancelOperation();
     }
-
-
-    @Event(R.id.txt_time)
-    private void showSelectTimeDialog(View view) {
-        SelectDateTimeDialog mSelectDateTimeDialog = new SelectDateTimeDialog(this);
-        mSelectDateTimeDialog.setOnClickListener(new SelectDateTimeDialog.OnClickListener() {
+    @Event(value=R.id.img_back)
+    private void goBack(View view){
+        cancelOperation();
+    }
+    private void cancelOperation(){
+        WarnTipDialog tipdialog = new WarnTipDialog(context,"是否保存草稿？");
+        tipdialog.setOkLable(getResources().getString(R.string.save));
+        tipdialog.setBtnOkLinstener( new DialogInterface.OnClickListener() {
             @Override
-            public boolean onSure(int mYear, int mMonth, int mDay, int hour, int minute) {
-                Date date = new Date();
-                date.setYear(mYear - 1900);
-                date.setMonth(mMonth);
-                date.setDate(mDay);
-                date.setHours(hour);
-                date.setMinutes(minute);
-                SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-                txt_time.setText(dateFormat.format(date));
-                return false;
-            }
-
-            @Override
-            public boolean onCancel() {
-                return false;
+            public void onClick(DialogInterface dialog, int which) {
+                if(StringUtils.empty(txt_partyTitle.getText().toString())){
+                    ToastUtil.showShortToast(PartyCreateActivity.this, "请设置聚会主题", 1);
+                    return;
+                }else {
+                    savePartyToServer(false);
+                }
             }
         });
-        if(txt_time.getText()!=null && !txt_time.getText().toString().equals("")) {
-
-            mSelectDateTimeDialog.showTimeStr(txt_time.getText().toString());
-        }else{
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd 09:00");
-            String dateString = dateFormat.format(new Date());
-            mSelectDateTimeDialog.showTimeStr(dateString);
-        }
+        tipdialog.setBtnCancelLinstener(new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                ActivityUtil.finish(PartyCreateActivity.this);
+            }
+        });
+        tipdialog.show();
     }
 
 
-    @Event(R.id.img_select_location)
-    private void selectLocation(View view){
-        Intent intent=new Intent(this,PlanLocationActivity.class);
-        startActivityForResult(intent, CMD_REQ_LOCATION);
-    }
 
-    @Event(R.id.txt_right)
-    private void save(View view){
-        savePartyToServer(false);
-    }
-
-    @Event(R.id.btn_publish)
+    @Event(value=R.id.txt_right)
     private void publishParty(View view){
         savePartyToServer(true);
     }
 
     private void savePartyToServer(boolean isPublish) {
 
+        if(StringUtils.empty(txt_partyTitle.getText().toString())){
+            ToastUtil.showShortToast(this, "请设置聚会主题", 1);
+            return;
+        }
+
         //  正式发布聚会
         if (isPublish){
+
+            if(planList.size()==0){
+                ToastUtil.showShortToast(this, "请添加聚会方案", 1);
+                return;
+            }
+
             UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
             PartyReqBean reqBean = new PartyReqBean();
             reqBean.setUserNo(userTokenInfoBean.getUserNo());
@@ -303,7 +309,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             reqBean.setParty(partyBean);
 
             List<PlanBean> plans = new ArrayList<PlanBean>();
-            List<Plan> planList = planListAdapter.getPlanList();
             for (Plan plan : planList) {
                 PlanBean planBean = new PlanBean();
                 planBean.setAddress(plan.getAddress());
@@ -311,6 +316,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                 planBean.setDesc(plan.getDesc());
                 planBean.setLatitude(plan.getLatitude());
                 planBean.setLongitude(plan.getLongitude());
+                planBean.setType(plan.getType());
+                planBean.setCoverUrl(plan.getCoverUrl());
                 plans.add(planBean);
             }
             reqBean.setPlans(plans);
@@ -339,23 +346,9 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
             party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getUserNo());
             party.setGroupId(groupId);
 
-            if(!StringUtils.isEmpty(party.getGroupId())){
-                GroupEntity group = groupDao.findUniByProperty("id", party.getGroupId());
-                // TODO 组信息正常保存后需要删除下面的代码
-                if(group == null) {
-                    group = new GroupEntity();
-                    group.setId(groupId);
-                    group.setMainName("聚龙小组");
-                    group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
-                    group.setCreatorId(party.getUserNo());
-                    groupDao.save(group);
-                }
-                party.setGroupId(party.getGroupId());
-            }
             JujuDbUtils.saveOrUpdate(party);
 
             party.setId(String.valueOf(party.getLocalId()));
-            List<Plan> planList = planListAdapter.getPlanList();
             if(planList==null || planList.size() ==0){
                 JujuDbUtils.saveOrUpdate(party);
             }
@@ -376,156 +369,111 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     }
 
 
-    @Event(R.id.img_add_plan)
+    @Event(value=R.id.layout_plan_add)
     private void addPlan(View view){
-
-        if(txt_time.getText().toString().equals("") || txt_location.getText().toString().equals("")) {
-            ToastUtil.showShortToast(this, "时间和地址必须设定", 1);
-            return;
-        }
-
-        Plan plan = new Plan();
-        try {
-            plan.setStartTime(dateFormat.parse(txt_time.getText().toString()));
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        plan.setAddress(txt_location.getText().toString());
-        plan.setDesc(txt_planDescription.getText().toString());
-        plan.setLatitude(latitude);
-        plan.setLongitude(longitude);
-        planListAdapter.getPlanList().add(plan);
-
-        planListAdapter.notifyDataSetChanged();
-
-//        txt_noPlan.setVisibility(View.GONE);
-        if(planListAdapter.getCount()>=3){
-            layout_plan.setVisibility(View.GONE);
-        }
-        clearPlanTxt();
-
+        ActivityUtil.startActivityForResult(this,PlanCreateActivity.class,ADD_PLAN);
     }
 
-    private void clearPlanTxt() {
-        txt_time.setText("");
-        txt_location.setText("");
-        txt_planDescription.setText("");
-        latitude = 0;
-        longitude = 0;
+    @Event(value = {R.id.layout_plan1,R.id.layout_plan2,R.id.layout_plan3})
+    private void editPlan(View view){
+        int index = -1;
+        switch(view.getId()){
+            case R.id.layout_plan1:
+                index = 0;
+                imgPlanDelete1.setVisibility(View.GONE);
+                break;
+            case R.id.layout_plan2:
+                index = 1;
+                imgPlanDelete2.setVisibility(View.GONE);
+                break;
+            case R.id.layout_plan3:
+                index = 2;
+                imgPlanDelete3.setVisibility(View.GONE);
+                break;
+        }
+        if(index > -1) {
+            Plan plan = planList.get(index);
+            BasicNameValuePair indexParam = new BasicNameValuePair("index",String.valueOf(index));
+            BasicNameValuePair planParam = new BasicNameValuePair("planStr",JacksonUtil.turnObj2String(plan));
+            ActivityUtil.startActivityForResult(this, PlanCreateActivity.class,EDIT_PLAN,indexParam,planParam);
+        }
     }
 
-//    @Override
-//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-//        switch (accessId) {
-//            case R.id.txt_party:
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            completeLoading();
-//                            partyId = jsonRoot.getString("partyId");
-//
-//
-//                            if(party == null) {
-//                                party = new Party();
-//                            }
-//                            party.setName(txt_partyTitle.getText().toString());
-//                            party.setDesc(txt_description.getText().toString());
-//                            party.setId(partyId);
-//                            User creator = JujuDbUtils.getInstance(getContext()).findFirst(Selector.from(User.class).where("userNo", "=", BaseApplication.getInstance().getUserInfoBean().getJujuNo()));
-//                            party.setCreator(creator);
-//
-//                            if(party.getGroup()==null){
-//                                GroupEntity group = groupDao.findById(groupId);
-//                                // TODO 组信息正常保存后需要删除下面的代码
-//                                if(group == null) {
-//                                    group = new GroupEntity();
-//                                    group.setId(groupId);
-//                                    group.setMainName("聚龙小组");
-//                                    group.setGroupType(DBConstant.GROUP_TYPE_NORMAL);
-//                                    group.setCreatorId(creator.getUserNo());
-//                                    groupDao.save(group);
-//                                }
-//                                party.setGroup(group);
-//                            }
-//                            party.setStatus(0); //  召集中
-//
-//                            String planIds = jsonRoot.getString("planIds");
-//                            if(planIds==null || planIds.equals("")){
-//                                JujuDbUtils.saveOrUpdate(party);
-//                            }
-//                            String[] planIdArray = planIds.split(",");
-//                            List<Plan> planList = planListAdapter.getPlanList();
-//                            if(planList.size() == planIdArray.length){
-//                                for(int i=0; i<planList.size(); i++){
-//                                    Plan plan = planList.get(i);
-//                                    plan.setPartyId(partyId);
-//                                    plan.setId(planIdArray[i]);
-//                                    plan.setSigned(1);
-//
-//                                    if(i==0){
-//                                        party.setTime(plan.getStartTime());
-//                                        JujuDbUtils.save(party);
-//                                    }
-//
-//                                    PlanVote planVote = new PlanVote();
-//                                    planVote.setPlanId(plan.getId());
-//                                    planVote.setAttender(creator);
-//                                    JujuDbUtils.save(planVote);
-//
-//                                    plan.setAddtendNum(1);
-//                                    JujuDbUtils.save(plan);
-//                                }
-//                            }else{
-//                                Log.e(TAG,"planId return length error:"+planIdArray.length);
-//                            }
-//
-//                            ActivityUtil.finish(this);
-//                        } else {
-//                            completeLoading();
-//                            Log.e(TAG,"return status code:"+status);
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    } catch(DbException e){
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//        }
-//    }
-//
-//    @Override
-//    public void onFailure(HttpException error, String msg, int accessId) {
-//        completeLoading();
-//        System.out.println("accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-//                error.getExceptionCode());
-//    }
-
-    @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Plan curPlan = (Plan)listview_plan.getItemAtPosition(position);
-        txt_planTime.setText(dateFormat.format(curPlan.getStartTime()));
-        txt_planAddress.setText(curPlan.getAddress());
-        txt_planDesc.setText((curPlan.getDesc()==null||curPlan.getDesc().equals(""))?getResources().getString(R.string.nodescription):"\t\t"+curPlan.getDesc());
-        layout_planInfo.setVisibility(View.VISIBLE);
-
+    @Event(value = {R.id.layout_plan1,R.id.layout_plan2,R.id.layout_plan3},type=View.OnLongClickListener.class)
+    private boolean longClickPlan(View view){
+        switch(view.getId()){
+            case R.id.layout_plan1:
+                imgPlanDelete1.setVisibility(View.VISIBLE);
+                imgPlanDelete2.setVisibility(View.GONE);
+                imgPlanDelete3.setVisibility(View.GONE);
+                break;
+            case R.id.layout_plan2:
+                imgPlanDelete1.setVisibility(View.GONE);
+                imgPlanDelete2.setVisibility(View.VISIBLE);
+                imgPlanDelete3.setVisibility(View.GONE);
+                break;
+            case R.id.layout_plan3:
+                imgPlanDelete1.setVisibility(View.GONE);
+                imgPlanDelete2.setVisibility(View.GONE);
+                imgPlanDelete3.setVisibility(View.VISIBLE);
+                break;
+        }
+        return true;
     }
 
+    @Event(value = {R.id.img_plan_delete1,R.id.img_plan_delete2,R.id.img_plan_delete3})
+    private void deletePlan(View view){
+        int deleteIndex = -1;
+        switch(view.getId()){
+            case R.id.img_plan_delete1:
+                deleteIndex = 0;
+                break;
+            case R.id.img_plan_delete2:
+                deleteIndex = 1;
+                break;
+            case R.id.img_plan_delete3:
+                deleteIndex = 2;
+                break;
+        }
+        if(deleteIndex > -1){
+            final int index = deleteIndex;
+            WarnTipDialog tipdialog = new WarnTipDialog(this,"确定要删除该方案吗？");
+            tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    Plan curPlan = planList.get(index);
+                    if(curPlan.getPartyId()!=null){
+                        JujuDbUtils.delete(curPlan);
+                    }
+                    planList.remove(index);
+                    removePlanLayout(index);
+                }
+            });
+            tipdialog.show();
+        }
+        view.setVisibility(View.GONE);
+    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (resultCode == RESULT_OK) {
             switch (requestCode) {
-                case CMD_REQ_LOCATION:
-                    latitude = data.getDoubleExtra(Constants.LATITUDE,0f);
-                    longitude = data.getDoubleExtra(Constants.LONGITUDE, 0f);
-                    String address = data.getStringExtra(Constants.ADDRESS);
-                    txt_location.setText(address);
+                case ADD_PLAN:
+                    String planJson = data.getStringExtra("planJson");
+                    Plan plan = JacksonUtil.turnString2Obj(planJson,Plan.class);
+                    planList.add(plan);
+                    refreshPlanInfo(planList.size()-1);
+                    System.out.println("planJson:"+planJson);
                     break;
 
+                case EDIT_PLAN:
+                    int index = data.getIntExtra("index",-1);
+                    if(index > -1) {
+                        planList.remove(index);
+                        planList.add(index,JacksonUtil.turnString2Obj(data.getStringExtra("planJson"), Plan.class));
+                        refreshPlanInfo(index);
+                    }
+                    break;
             }
             super.onActivityResult(requestCode, resultCode, data);
 
@@ -533,18 +481,93 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
         }
     }
 
-    public void deletePlan(int deleteIndex) {
-        List<Plan> planList = planListAdapter.getPlanList();
-        Plan curPlan = planList.get(deleteIndex);
-        if(curPlan.getPartyId()!=null){
-            JujuDbUtils.delete(curPlan);
+    private void refreshPlanInfo(int index) {
+        Plan plan = planList.get(index);
+        switch(index){
+            case 0:
+                layoutPlan1.setVisibility(View.VISIBLE);
+                txtPlanType1.setText(getResValue(plan.getType()));
+                imgPlan1.setImageResource(getResValue(plan.getType().toLowerCase(),"mipmap"));
+                txtPlanDesc1.setText(plan.getDesc());
+                txtPlanLocation1.setText(plan.getAddress());
+                txtPlanTime1.setText(dateFormat.format(plan.getStartTime()));
+                break;
+            case 1:
+                layoutPlan2.setVisibility(View.VISIBLE);
+                txtPlanType2.setText(getResValue(plan.getType()));
+                imgPlan2.setImageResource(getResValue(plan.getType().toLowerCase(),"mipmap"));
+                txtPlanDesc2.setText(plan.getDesc());
+                txtPlanLocation2.setText(plan.getAddress());
+                txtPlanTime2.setText(dateFormat.format(plan.getStartTime()));
+                break;
+            case 2:
+                layoutPlan3.setVisibility(View.VISIBLE);
+                layoutPlanAdd.setVisibility(View.GONE);
+                txtPlanType3.setText(getResValue(plan.getType()));
+                imgPlan3.setImageResource(getResValue(plan.getType().toLowerCase(),"mipmap"));
+                txtPlanDesc3.setText(plan.getDesc());
+                txtPlanLocation3.setText(plan.getAddress());
+                txtPlanTime3.setText(dateFormat.format(plan.getStartTime()));
+                break;
         }
-        planList.remove(deleteIndex);
-        planListAdapter.notifyDataSetChanged();
-//        if(planListAdapter.getCount()==0) {
-//            txt_noPlan.setVisibility(View.VISIBLE);
-//        }
-        layout_plan.setVisibility(View.VISIBLE);
+    }
+
+
+    private void removePlanLayout(int index) {
+        switch(index){
+            case 0:
+                switch(planList.size()){
+                    case 0:
+                        layoutPlan1.setVisibility(View.GONE);
+                        break;
+                    case 1:
+                        layoutPlan2.setVisibility(View.GONE);
+                        moveUpPlanLayout(1);
+                        break;
+                    case 2:
+                        layoutPlan3.setVisibility(View.GONE);
+                        layoutPlanAdd.setVisibility(View.VISIBLE);
+                        moveUpPlanLayout(1);
+                        moveUpPlanLayout(2);
+                        break;
+                }
+                break;
+            case 1:
+                switch(planList.size()){
+                    case 1:
+                        layoutPlan2.setVisibility(View.GONE);
+                        break;
+                    case 2:
+                        layoutPlan3.setVisibility(View.GONE);
+                        layoutPlanAdd.setVisibility(View.VISIBLE);
+                        moveUpPlanLayout(2);
+                        break;
+                }
+                break;
+            case 2:
+                layoutPlan3.setVisibility(View.GONE);
+                layoutPlanAdd.setVisibility(View.VISIBLE);
+                break;
+        }
+    }
+
+    private void moveUpPlanLayout(int index) {
+        switch (index){
+            case 1:
+                txtPlanType1.setText(txtPlanType2.getText());
+                imgPlan1.setImageDrawable(imgPlan2.getDrawable());
+                txtPlanDesc1.setText(txtPlanDesc2.getText());
+                txtPlanLocation1.setText(txtPlanLocation2.getText());
+                txtPlanTime1.setText(txtPlanTime2.getText());
+                break;
+            case 2:
+                txtPlanType2.setText(txtPlanType3.getText());
+                imgPlan2.setImageDrawable(imgPlan3.getDrawable());
+                txtPlanDesc2.setText(txtPlanDesc3.getText());
+                txtPlanLocation2.setText(txtPlanLocation3.getText());
+                txtPlanTime2.setText(txtPlanTime3.getText());
+                break;
+        }
     }
 
     @Override
@@ -574,7 +597,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
                                 JujuDbUtils.saveOrUpdate(party);
                             }
                             String[] planIdArray = planIds.split(",");
-                            List<Plan> planList = planListAdapter.getPlanList();
                             if(planList.size() == planIdArray.length){
                                 for(int i=0; i<planList.size(); i++){
                                     Plan plan = planList.get(i);
@@ -584,6 +606,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
                                     if(i==0){
                                         party.setTime(plan.getStartTime());
+                                        party.setCoverUrl(plan.getCoverUrl());
                                         JujuDbUtils.save(party);
                                     }
 
@@ -598,8 +621,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
 
                                 PartyNotifyEvent.PartyNotifyBean partyNotifyBean = PartyNotifyEvent
                                         .PartyNotifyBean.valueOf(groupId,partyId,party.getName(),
-                                                BaseApplication.getInstance().getUserInfoBean().getJujuNo()
-                                                ,BaseApplication.getInstance().getUserInfoBean().getUserName());
+                                                BaseApplication.getInstance().getUserInfoBean().getUserNo()
+                                                ,BaseApplication.getInstance().getUserInfoBean().getNickName());
                                 PartyRecruitNotify.instance().executeCommand4Send(partyNotifyBean);
 
 
@@ -639,6 +662,5 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack, A
     public void onFinished() {
 
     }
-
 
 }

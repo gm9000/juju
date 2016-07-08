@@ -1,5 +1,6 @@
 package com.juju.app.fragment;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
@@ -14,6 +15,7 @@ import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -26,17 +28,19 @@ import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.juju.app.R;
 import com.juju.app.activity.MainActivity;
-import com.juju.app.activity.party.PartyActivity;
 import com.juju.app.activity.party.PartyDetailActivity;
+import com.juju.app.activity.party.PartyLiveActivity;
 import com.juju.app.adapters.PartyListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.entity.Party;
+import com.juju.app.enums.DisplayAnimation;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.SpfUtil;
+import com.juju.app.view.MenuDisplayProcess;
 import com.juju.app.view.SearchEditText;
 import com.rey.material.app.BottomSheetDialog;
 
@@ -79,8 +83,23 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
 
     private ImageView topLeftBtn;
 
+    private int lastVisibleItemPosition = 0;
+
     LocationClient mLocClient;
     public MyLocationListenner myListener = new MyLocationListenner();
+
+    private MenuDisplayProcess mdProdess;
+    private boolean menuIsShow = true;
+
+    @SuppressLint("ValidFragment")
+    public GroupPartyFragment(MenuDisplayProcess mdProdess){
+        super();
+        this.mdProdess = mdProdess;
+    }
+
+    public GroupPartyFragment(){
+        super();
+    }
 
     @Override
     public void onStop() {
@@ -149,6 +168,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                 String key = s.toString();
                 if(TextUtils.isEmpty(key)){
                     partyListAdapter.recover();
+                    searchEditText.startAnimation(DisplayAnimation.UP_HIDDEN);
                     searchEditText.setVisibility(View.GONE);
                 }else{
                     partyListAdapter.onSearch(key);
@@ -176,6 +196,49 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
         listView.getRefreshableView().setCacheColorHint(Color.WHITE);
         listView.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
         listView.setOnRefreshListener(this);
+
+
+        if(mdProdess!=null) {
+            listView.setOnScrollListener(new AbsListView.OnScrollListener() {
+
+                @Override
+                public void onScrollStateChanged(AbsListView view, int scrollState) {
+                    // TODO Auto-generated method stub
+                    switch (scrollState) {
+                        // 当不滚动时
+                        case AbsListView.OnScrollListener.SCROLL_STATE_IDLE:// 当屏幕停止滚动时
+                            break;
+                        case AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL:// 当屏幕滚动时
+                            break;
+                        case AbsListView.OnScrollListener.SCROLL_STATE_FLING:// 当用户由于之前划动屏幕并抬起手指，屏幕产生惯性滑动时
+                            break;
+                    }
+                }
+
+                /**
+                 * firstVisibleItem：当前能看见的第一个列表项ID（从0开始）
+                 * visibleItemCount：当前能看见的列表项个数（小半个也算） totalItemCount：列表项共数
+                 */
+                @Override
+                public void onScroll(AbsListView view, int firstVisibleItem,
+                                     int visibleItemCount, int totalItemCount) {
+                    if (firstVisibleItem > lastVisibleItemPosition) {// 上滑
+                        if (menuIsShow) {
+                            mdProdess.hiddenMenu();
+                            menuIsShow = false;
+                        }
+                    } else if (firstVisibleItem < lastVisibleItemPosition) {// 下滑
+                        if (!menuIsShow) {
+                            mdProdess.showMenu();
+                            menuIsShow = true;
+                        }
+                    } else {
+                        return;
+                    }
+                    lastVisibleItemPosition = firstVisibleItem;
+                }
+            });
+        }
 
         loadPartyData();
     }
@@ -209,7 +272,13 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
         topLeftBtn.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                searchEditText.setVisibility((searchEditText.getVisibility()==View.VISIBLE && TextUtils.isEmpty(searchEditText.getText().toString()))?View.GONE:View.VISIBLE);
+                if((searchEditText.getVisibility()==View.VISIBLE && TextUtils.isEmpty(searchEditText.getText().toString()))) {
+                    searchEditText.startAnimation(DisplayAnimation.UP_HIDDEN);
+                    searchEditText.setVisibility(View.GONE);
+                }else{
+                    searchEditText.startAnimation(DisplayAnimation.DOWN_SHOW);
+                    searchEditText.setVisibility(View.VISIBLE);
+                }
             }
         });
     }
@@ -304,10 +373,10 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                 ActivityUtil.startActivityNew(getActivity(), PartyDetailActivity.class,Constants.PARTY_ID,party.getId());
                 break;
             case 1: //  进行中
-                ActivityUtil.startActivityNew(getActivity(), PartyActivity.class,Constants.PARTY_ID,party.getId());
+                ActivityUtil.startActivityNew(getActivity(), PartyLiveActivity.class,Constants.PARTY_ID,party.getId());
                 break;
             case 2: //  已结束
-                ActivityUtil.startActivityNew(getActivity(), PartyActivity.class,Constants.PARTY_ID,party.getId());
+                ActivityUtil.startActivityNew(getActivity(), PartyLiveActivity.class,Constants.PARTY_ID,party.getId());
                 break;
         }
     }
@@ -365,4 +434,5 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
             mLocClient = null;
         }
     }
+
 }

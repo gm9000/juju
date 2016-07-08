@@ -9,7 +9,9 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -24,6 +26,7 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.enums.DisplayAnimation;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.fragment.GroupChatFragment;
@@ -45,6 +48,7 @@ import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
+import com.juju.app.view.MenuDisplayProcess;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
@@ -66,7 +70,7 @@ import java.util.Map;
 
 @ContentView(R.layout.activity_main)
 @CreateUI(showTopView = true)
-public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
+public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK, MenuDisplayProcess {
 
     private final String TAG = getClass().getSimpleName();
 
@@ -97,6 +101,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 //
     @ViewInject(R.id.layout_bar)
     private RelativeLayout layout_bar;
+
+    @ViewInject(R.id.fragment_container)
+    private FrameLayout layoutContent;
+
+    @ViewInject(R.id.bottem_menu)
+    private LinearLayout bottemMenu;
 
     @ViewInject(R.id.unread_msg_number)
     private TextView tx_unread_msg_number;
@@ -143,7 +153,6 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     protected void onCreate(Bundle savedInstanceState) {
         EventBus.getDefault().register(this);
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -272,7 +281,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 break;
             case R.id.re_group_party:
                 index = 1;
-                setTopLeftButton(R.mipmap.tt_search);
+                setTopLeftButton(R.mipmap.search_white);
                 setTopTitle(R.string.group_party);
                 setTopRightButton(R.mipmap.top_menu);
                 break;
@@ -811,6 +820,23 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         } else {
             showMsgDialog4Main(R.string.invite_group_no_pass);
         }
+    }
+
+    @Override
+    public void showMenu() {
+//        layout_bar.startAnimation(DisplayAnimation.DOWN_SHOW);
+        bottemMenu.startAnimation(DisplayAnimation.UP_SHOW);
+//        layout_bar.setVisibility(View.VISIBLE);
+        bottemMenu.setVisibility(View.VISIBLE);
+
+    }
+
+    @Override
+    public void hiddenMenu() {
+//        layout_bar.startAnimation(DisplayAnimation.UP_HIDDEN);
+        bottemMenu.startAnimation(DisplayAnimation.DOWN_HIDDEN);
+//        layout_bar.setVisibility(View.GONE);
+        bottemMenu.setVisibility(View.GONE);
     }
 
     public enum SelectType {

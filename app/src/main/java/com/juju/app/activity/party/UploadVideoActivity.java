@@ -17,13 +17,13 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.annotation.SystemColor;
-import com.juju.app.bean.json.LiveAddressResBean;
 import com.juju.app.bean.json.LoginResBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.CameraUtil;
 import com.juju.app.utils.ToastUtil;
 import com.pili.pldroid.streaming.CameraStreamingManager;
@@ -233,9 +233,9 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     @Event(R.id.img_close)
     private void closeVideo(View view){
-        mCameraStreamingManager.stopStreaming();
 
-//        ActivityUtil.finish(this);
+        mCameraStreamingManager.stopStreaming();
+        ActivityUtil.finish(this);
     }
 
     @Event(R.id.img_upload)
