@@ -207,7 +207,8 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.txt_setting:
-                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class);
+//                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class);
+                startActivityNew(this.getActivity(), SettingActivity.class);
                 break;
         }
     }
