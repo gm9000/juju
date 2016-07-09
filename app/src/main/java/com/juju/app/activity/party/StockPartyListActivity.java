@@ -39,7 +39,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ContentView(R.layout.layout_stock_group_list)
-public class StockPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, PullToRefreshBase.OnRefreshListener, PartyListBackupAdapter.Callback {
+public class StockPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, PullToRefreshBase.OnRefreshListener2, PartyListBackupAdapter.Callback {
 
     private static final String TAG = "StockPartyListActivity";
 
@@ -222,40 +222,6 @@ public class StockPartyListActivity extends BaseActivity implements AdapterView.
     }
 
     @Override
-    public void onRefresh(PullToRefreshBase refreshView) {
-        if(partyList.size()>=totalSize){
-            listView.onRefreshComplete();
-            return;
-        }
-        // 获取下一页数据
-        ListView partyListView = listView.getRefreshableView();
-        int preSum = partyListAdapter.getCount();
-        try {
-            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", ">", -1);
-            selector.and("follow_flag","=",-1);
-            totalSize = selector.count();
-            selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
-            List<Party> pagePartyList = selector.findAll();
-            partyList.addAll(pagePartyList);
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
-
-        if(partyList.size()>=totalSize){
-            listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
-        }
-        partyListAdapter.setPartyList(partyList);
-        if(partyListAdapter.isSearchMode()) {
-            partyListAdapter.onSearch(searchEditText.getText().toString());
-        }
-        int afterSum = partyListAdapter.getCount();
-        partyListView.setSelection(afterSum-preSum);
-        partyListAdapter.notifyDataSetChanged();
-        listView.onRefreshComplete();
-
-    }
-
-    @Override
     public void follow(Party party, int follow) {
         party.setFollowFlag(follow);
         JujuDbUtils.saveOrUpdate(party);
@@ -267,5 +233,47 @@ public class StockPartyListActivity extends BaseActivity implements AdapterView.
                 break;
         }
         partyListAdapter.notifyDataSetChanged();
+    }
+
+    @Override
+    public void onPullDownToRefresh(PullToRefreshBase refreshView) {
+    }
+
+    @Override
+    public void onPullUpToRefresh(PullToRefreshBase refreshView) {
+        refreshView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(partyList.size()>=totalSize){
+                    listView.onRefreshComplete();
+                    return;
+                }
+                // 获取下一页数据
+                ListView partyListView = listView.getRefreshableView();
+                int preSum = partyListAdapter.getCount();
+                try {
+                    Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", ">", -1);
+                    selector.and("follow_flag","=",-1);
+                    totalSize = selector.count();
+                    selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
+                    List<Party> pagePartyList = selector.findAll();
+                    partyList.addAll(pagePartyList);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+
+                if(partyList.size()>=totalSize){
+                    listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
+                }
+                partyListAdapter.setPartyList(partyList);
+                if(partyListAdapter.isSearchMode()) {
+                    partyListAdapter.onSearch(searchEditText.getText().toString());
+                }
+                int afterSum = partyListAdapter.getCount();
+                partyListView.setSelection(afterSum-preSum);
+                partyListAdapter.notifyDataSetChanged();
+                listView.onRefreshComplete();
+            }
+        },200);
     }
 }

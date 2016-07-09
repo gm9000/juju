@@ -60,7 +60,7 @@ import java.util.List;
  */
 @ContentView(R.layout.layout_group_list)
 @CreateFragmentUI(viewId = R.layout.layout_group_list)
-public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,PartyListAdapter.Callback, PullToRefreshBase.OnRefreshListener {
+public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,PartyListAdapter.Callback, PullToRefreshBase.OnRefreshListener2 {
 
     private static final String TAG = "GroupPartyFragment";
     private PullToRefreshListView listView;
@@ -381,41 +381,50 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
         }
     }
 
-    @Override
-    public void onRefresh(PullToRefreshBase refreshView) {
-        if(partyList.size()>=totalSize){
-            listView.onRefreshComplete();
-            return;
-        }
-        // 获取下一页数据
-        ListView partyListView = listView.getRefreshableView();
-        int preSum = partyListAdapter.getCount();
-        try {
-            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", ">", -1);
-            selector.and("follow_flag",">",-1);
-            totalSize = selector.count();
-            selector.orderBy("follow_flag",true).orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
-            List<Party> pagePartyList = selector.findAll();
-            partyList.addAll(pagePartyList);
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
 
-        if(partyList.size()>=totalSize){
-            listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
-        }
-        partyListAdapter.setPartyList(partyList);
-        if(partyListAdapter.isSearchMode()) {
-            partyListAdapter.onSearch(searchEditText.getText().toString());
-        }
-        int afterSum = partyListAdapter.getCount();
-        partyListView.setSelection(afterSum-preSum);
-        partyListAdapter.notifyDataSetChanged();
-        listView.onRefreshComplete();
+    @Override
+    public void onPullDownToRefresh(PullToRefreshBase refreshView) {
 
     }
 
+    @Override
+    public void onPullUpToRefresh(PullToRefreshBase refreshView) {
 
+        refreshView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(partyList.size()>=totalSize){
+                    listView.onRefreshComplete();
+                    return;
+                }
+                // 获取下一页数据
+                ListView partyListView = listView.getRefreshableView();
+                int preSum = partyListAdapter.getCount();
+                try {
+                    Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", ">", -1);
+                    selector.and("follow_flag",">",-1);
+                    totalSize = selector.count();
+                    selector.orderBy("follow_flag",true).orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
+                    List<Party> pagePartyList = selector.findAll();
+                    partyList.addAll(pagePartyList);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+
+                if(partyList.size()>=totalSize){
+                    listView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
+                }
+                partyListAdapter.setPartyList(partyList);
+                if(partyListAdapter.isSearchMode()) {
+                    partyListAdapter.onSearch(searchEditText.getText().toString());
+                }
+                int afterSum = partyListAdapter.getCount();
+                partyListView.setSelection(afterSum-preSum);
+                partyListAdapter.notifyDataSetChanged();
+                listView.onRefreshComplete();
+            }
+        }, 200);
+    }
 
 
     /**

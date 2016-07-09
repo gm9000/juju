@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ContentView(R.layout.layout_my_party_list)
-public class MyPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener {
+public class MyPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener2 {
 
     private static final String TAG = "MyPartyListActivity";
 
@@ -184,36 +184,6 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
         }
     }
 
-    @Override
-    public void onRefresh(PullToRefreshBase refreshView) {
-        if(partyList.size()>=totalSize){
-            listPartyView.onRefreshComplete();
-            return;
-        }
-        // 获取下一页数据
-        ListView partyListView = listPartyView.getRefreshableView();
-        int preSum = partyList.size();
-
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        try {
-            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status",">",-1).and("user_no", "=", userInfoBean.getUserNo());
-            totalSize = selector.count();
-            selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
-            List<Party> pagePartyList = selector.findAll();
-            partyList.addAll(pagePartyList);
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
-
-        if(partyList.size()>=totalSize){
-            listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
-        }
-        partyListAdapter.setPartyList(partyList);
-        int afterSum = partyList.size();
-        partyListView.setSelection(afterSum-preSum);
-        partyListAdapter.notifyDataSetChanged();
-        listPartyView.onRefreshComplete();
-    }
 
     @Override
     public void deleteParty(final int position) {
@@ -238,5 +208,46 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
         });
         tipdialog.show();
 
+    }
+
+    @Override
+    public void onPullDownToRefresh(PullToRefreshBase refreshView) {
+
+    }
+
+    @Override
+    public void onPullUpToRefresh(PullToRefreshBase refreshView) {
+        refreshView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(partyList.size()>=totalSize){
+                    listPartyView.onRefreshComplete();
+                    return;
+                }
+                // 获取下一页数据
+                ListView partyListView = listPartyView.getRefreshableView();
+                int preSum = partyList.size();
+
+                UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                try {
+                    Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status",">",-1).and("user_no", "=", userInfoBean.getUserNo());
+                    totalSize = selector.count();
+                    selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
+                    List<Party> pagePartyList = selector.findAll();
+                    partyList.addAll(pagePartyList);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+
+                if(partyList.size()>=totalSize){
+                    listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
+                }
+                partyListAdapter.setPartyList(partyList);
+                int afterSum = partyList.size();
+                partyListView.setSelection(afterSum-preSum);
+                partyListAdapter.notifyDataSetChanged();
+                listPartyView.onRefreshComplete();
+            }
+        },200);
     }
 }

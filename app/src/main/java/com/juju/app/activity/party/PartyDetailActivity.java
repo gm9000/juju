@@ -9,7 +9,6 @@ import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.baidu.mapapi.model.LatLng;
@@ -166,10 +165,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         txt_left.setVisibility(View.VISIBLE);
         txt_left.setText(R.string.top_left_back);
 
-        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txt_left.getLayoutParams();
-        layoutParams.leftMargin = 15;
         txt_title.setText(R.string.group_party);
-        txt_left.setLayoutParams(layoutParams);
         txt_right.setVisibility(View.GONE);
         img_right.setVisibility(View.GONE);
 
@@ -235,7 +231,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         reqBean.put("partyId", partyId);
         reqBean.put("planId", planId);
 
-        JlmHttpClient<Map<String,Object>> client = new JlmHttpClient<Map<String,Object>>(R.id.txt_party, HttpConstants.getUserUrl() + "/confirmParty", this, reqBean,JSONObject.class);
+        JlmHttpClient<Map<String,Object>> client = new JlmHttpClient<Map<String,Object>>(R.id.party_name, HttpConstants.getUserUrl() + "/confirmParty", this, reqBean,JSONObject.class);
         try {
             loading(true, R.string.starting);
             client.sendPost();
@@ -335,7 +331,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
     @Override
     public void onSuccess(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
-            case R.id.txt_party:
+            case R.id.party_name:
                 if(obj != null) {
                     JSONObject jsonRoot = (JSONObject)obj;
                     try {
@@ -374,10 +370,11 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
                             completeLoading();
                             Party party = JujuDbUtils.getInstance().selector(Party.class).where("id", "=", partyId).findFirst();
                             party.setStatus(-1);
+                            party.setId(String.valueOf(party.getLocalId()));
                             party.setFollowFlag(0);
                             party.setAttendFlag(1);
                             JujuDbUtils.saveOrUpdate(party);
-                            //  TOTO    通知 Party已经取消
+                            //  TOTO    通知 Party已经取消,其他用户删除本地记录
                             ActivityUtil.finish(this);
                         } else {
                             completeLoading();

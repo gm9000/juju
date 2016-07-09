@@ -87,7 +87,6 @@ public class MyPartyListAdapter extends BaseAdapter{
         TextView operate = (TextView) view.findViewById(R.id.txt_operate);
         TextView waitingProcess = (TextView) view.findViewById(R.id.waiting_process);
 
-
         if(!StringUtils.empty(party.getCoverUrl())) {
             if (party.getCoverUrl().startsWith("http:")){
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
@@ -95,6 +94,8 @@ public class MyPartyListAdapter extends BaseAdapter{
                 final int resId = ((BaseActivity) context).getResValue(party.getCoverUrl().toLowerCase(), "mipmap");
                 imgPlanType.setImageResource(resId);
             }
+        }else{
+            imgPlanType.setImageResource(R.mipmap.plan_no);
         }
         partyName.setText(party.getName());
         if(party.getTime()!=null) {

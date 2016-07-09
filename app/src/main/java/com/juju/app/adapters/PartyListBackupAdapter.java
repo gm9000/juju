@@ -1,5 +1,7 @@
 package com.juju.app.adapters;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +13,9 @@ import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
 import com.juju.app.helper.IMUIHelper;
+import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ImageLoaderUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.SwipeLayoutView;
 
@@ -112,6 +116,9 @@ public class PartyListBackupAdapter extends BaseSwipeAdapter {
         if (view == null) {
             view = inflater.inflate(R.layout.party_item_backup, parent, false);
         }
+        ImageView imgPlanType = (ImageView)view.findViewById(R.id.img_plan_type);
+        imgPlanType.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+
         RoundImageView imgCreatorHead = (RoundImageView) view.findViewById(R.id.creatorImage);
         TextView txtCreatorName = (TextView) view.findViewById(R.id.creator_name);
         TextView txtPartyName = (TextView) view.findViewById(R.id.party_name);
@@ -149,6 +156,14 @@ public class PartyListBackupAdapter extends BaseSwipeAdapter {
         });
 
 
+        if(!StringUtils.empty(party.getCoverUrl())) {
+            if (party.getCoverUrl().startsWith("http:")){
+                ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+            }else{
+                final int resId = ((BaseActivity) inflater.getContext()).getResValue(party.getCoverUrl().toLowerCase(), "mipmap");
+                imgPlanType.setImageResource(resId);
+            }
+        }
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
                 + party.getUserNo(), imgCreatorHead, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
 
