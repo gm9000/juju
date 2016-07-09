@@ -29,12 +29,71 @@
             android:singleLine="true" />
     </LinearLayout>
     <RelativeLayout
-        android:paddingTop="1dp"
-        android:paddingBottom="1dp"
-        android:layout_marginTop="1dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:background="@drawable/setting_item_selector">
+        <RelativeLayout
+            android:id="@+id/left_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="80dp">
+            <ImageView
+                android:id="@+id/img_plan_type"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="2dp"
+                android:layout_width="76dp"
+                android:layout_height="76dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:cropToPadding="true"
+                android:src="@mipmap/plan_add"/>
+            <TextView
+                android:id="@+id/waiting_process"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:visibility="gone"
+                android:layout_alignParentLeft="true"
+                android:background="@color/red"
+                android:rotation="325"
+                android:textSize="10sp"
+                android:layout_marginTop="10dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
+                android:textColor="@color/white"
+                android:text="@string/un_publish"/>
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="80dp"
+            android:layout_toRightOf="@+id/left_layout"
+            android:layout_marginLeft="5dp">
+            <TextView
+                android:id="@+id/party_name"
+                style="@style/BlackStrongTxt16"
+                android:layout_width="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="80dp"
+                android:layout_height="wrap_content"
+                android:text="郊区小聚"
+                android:singleLine="true"
+                android:gravity="center"
+                />
+
+            <TextView
+                android:id="@+id/partyDesc"
+                style="@style/BlackTxt14"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:layout_marginLeft="15dp"
+                android:layout_marginRight="30dp"
+                android:text="好久没见大家了，一起坐坐！"
+                android:singleLine="true"
+                android:gravity="center"
+                />
+        </LinearLayout>
         <RelativeLayout
             android:id="@+id/right_layout"
             android:layout_alignParentRight="true"
@@ -86,63 +145,6 @@
                 android:singleLine="true"
                 />
         </RelativeLayout>
-
-        <RelativeLayout
-            android:id="@+id/left_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="80dp">
-            <ImageView
-                android:layout_width="50dp"
-                android:layout_height="50dp"
-                android:padding="10dp"
-                android:layout_marginTop="10dp"
-                android:src="@mipmap/recruit"/>
-            <TextView
-                android:id="@+id/waiting_process"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:layout_alignParentLeft="true"
-                android:background="@color/red"
-                android:rotation="325"
-                android:textSize="10sp"
-                android:layout_marginTop="10dp"
-                android:paddingLeft="5dp"
-                android:paddingRight="5dp"
-                android:textColor="@color/white"
-                android:text="@string/un_publish"/>
-
-        </RelativeLayout>
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="wrap_content"
-            android:layout_height="80dp"
-            android:layout_toRightOf="@+id/left_layout"
-            android:layout_toLeftOf="@id/right_layout">
-            <TextView
-                android:id="@+id/party_name"
-                style="@style/BlackStrongTxt16"
-                android:layout_width="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_height="wrap_content"
-                android:text="郊区小聚"
-                android:singleLine="true"
-                android:gravity="center"
-                />
-
-            <TextView
-                android:id="@+id/partyDesc"
-                style="@style/BlackTxt14"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:layout_marginLeft="10dp"
-                android:text="好久没见大家了，一起坐坐！"
-                android:singleLine="true"
-                android:gravity="center"
-                />
-        </LinearLayout>
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"

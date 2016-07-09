@@ -80,6 +80,7 @@ dependencies {
     compile files('libs/pldroid-camera-streaming-1.6.2.jar')
     compile 'com.qiniu:happy-dns:0.2.7'
     compile 'tv.danmaku.ijk.media:ijkplayer-java:0.5.1'
+    compile 'com.panxw.imageindicator:library:1.0.2'
 }
 
 repositories {

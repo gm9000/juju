@@ -14,6 +14,7 @@ public class WarnTipDialog extends BaseDialog implements
 	private  TextView mHtvText;
 	private String mText;
 	private static DialogInterface.OnClickListener mOnClickListener;
+	private static DialogInterface.OnClickListener mOnCancleClickListener;
 	private static BaseDialog mBaseDialog;// 当前的对话框
 
 	public WarnTipDialog(Context context, String text) {
@@ -42,8 +43,20 @@ public class WarnTipDialog extends BaseDialog implements
 		}
 	}
 
+	public void setOkLable(String okLable){
+		btn_ok.setText(okLable);
+	}
+
+	public void setCancleLable(String cancleLable){
+		btn_cancel.setText(cancleLable);
+	}
+
 	public void setBtnOkLinstener(DialogInterface.OnClickListener listener) {
 		mOnClickListener = listener;
+	}
+
+	public void setBtnCancelLinstener(DialogInterface.OnClickListener listener){
+		mOnCancleClickListener = listener;
 	}
 
 	@Override
@@ -59,6 +72,9 @@ public class WarnTipDialog extends BaseDialog implements
 		case R.id.btn_cancel:
 			if (isShowing()) {
 				super.dismiss();
+			}
+			if (mOnCancleClickListener != null) {
+				mOnCancleClickListener.onClick(mBaseDialog, 0);
 			}
 			break;
 

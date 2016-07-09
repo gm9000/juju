@@ -21,7 +21,7 @@ import android.widget.TextView;
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.juju.app.R;
-import com.juju.app.adapters.PartyListAdapter;
+import com.juju.app.adapters.PartyListBackupAdapter;
 import com.juju.app.entity.Party;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
@@ -40,7 +40,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ContentView(R.layout.layout_stock_group_list)
-public class StockPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, PullToRefreshBase.OnRefreshListener, PartyListAdapter.Callback {
+public class StockPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, PullToRefreshBase.OnRefreshListener, PartyListBackupAdapter.Callback {
 
     private static final String TAG = "StockPartyListActivity";
 
@@ -58,7 +58,7 @@ public class StockPartyListActivity extends BaseActivity implements AdapterView.
     @ViewInject(R.id.img_right)
     private ImageView img_right;
 
-    private PartyListAdapter partyListAdapter;
+    private PartyListBackupAdapter partyListAdapter;
 
     @ViewInject(R.id.filter_edit)
     private SearchEditText searchEditText;
@@ -160,7 +160,7 @@ public class StockPartyListActivity extends BaseActivity implements AdapterView.
     }
 
     private void wrapPartyList(List<Party> planList) {
-        partyListAdapter = new PartyListAdapter(LayoutInflater.from(this),this);
+        partyListAdapter = new PartyListBackupAdapter(LayoutInflater.from(this),this);
         partyListAdapter.setStockMode(true);
         partyListAdapter.setPartyList(partyList);
         listView.getRefreshableView().setAdapter(partyListAdapter);

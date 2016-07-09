@@ -1,7 +1,5 @@
 package com.juju.app.entity;
 
-import android.content.Context;
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
@@ -11,10 +9,8 @@ import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
 import com.juju.app.utils.pinyin.PinYinUtil;
 
-import org.xutils.db.Selector;
 import org.xutils.db.annotation.Column;
 import org.xutils.db.annotation.Table;
-import org.xutils.db.sqlite.SqlInfo;
 import org.xutils.ex.DbException;
 
 import java.util.Date;
@@ -40,6 +36,9 @@ public class Party extends BaseEntity {
 
     @Column(name = "attend_flag")
     private int attendFlag;
+
+    @Column(name = "coverUrl")
+    private String coverUrl;
 
     private boolean descMatch;
 
@@ -185,6 +184,14 @@ public class Party extends BaseEntity {
             }
         }
         return creator;
+    }
+
+    public void setCoverUrl(String coverUrl){
+        this.coverUrl = coverUrl;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
     }
 
 }

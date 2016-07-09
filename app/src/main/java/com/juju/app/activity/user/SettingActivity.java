@@ -203,15 +203,15 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
             boolean autoLogin = (boolean) SpfUtil.get(getApplicationContext(),Constants.AUTO_LOGIN,true);
 
             if(rememberPwd){
-                img_rememberPwd.setImageResource(R.mipmap.switch_on);
+                img_rememberPwd.setImageResource(R.mipmap.check_box);
             }else{
-                img_rememberPwd.setImageResource(R.mipmap.switch_off);
+                img_rememberPwd.setImageResource(R.mipmap.uncheck_box);
             }
 
             if(autoLogin){
-                img_autoLogin.setImageResource(R.mipmap.switch_on);
+                img_autoLogin.setImageResource(R.mipmap.check_box);
             }else{
-                img_autoLogin.setImageResource(R.mipmap.switch_off);
+                img_autoLogin.setImageResource(R.mipmap.uncheck_box);
             }
 
         }else{
@@ -269,11 +269,11 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         boolean rememberPwd = (boolean) SpfUtil.get(getApplicationContext(),Constants.REMEMBER_PWD,true);
         SpfUtil.put(getApplicationContext(), Constants.REMEMBER_PWD, !rememberPwd);
         if(rememberPwd){
-            img_rememberPwd.setImageResource(R.mipmap.switch_off);
+            img_rememberPwd.setImageResource(R.mipmap.uncheck_box);
             SpfUtil.put(getApplicationContext(), Constants.AUTO_LOGIN, false);
-            img_autoLogin.setImageResource(R.mipmap.switch_off);
+            img_autoLogin.setImageResource(R.mipmap.uncheck_box);
         }else{
-            img_rememberPwd.setImageResource(R.mipmap.switch_on);
+            img_rememberPwd.setImageResource(R.mipmap.check_box);
         }
     }
 
@@ -282,11 +282,11 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         boolean autoLogin = (boolean) SpfUtil.get(getApplicationContext(),Constants.AUTO_LOGIN,true);
         SpfUtil.put(getApplicationContext(), Constants.AUTO_LOGIN, !autoLogin);
         if(autoLogin){
-            img_autoLogin.setImageResource(R.mipmap.switch_off);
+            img_autoLogin.setImageResource(R.mipmap.uncheck_box);
         }else{
             SpfUtil.put(getApplicationContext(), Constants.REMEMBER_PWD, true);
-            img_autoLogin.setImageResource(R.mipmap.switch_on);
-            img_rememberPwd.setImageResource(R.mipmap.switch_on);
+            img_autoLogin.setImageResource(R.mipmap.check_box);
+            img_rememberPwd.setImageResource(R.mipmap.check_box);
         }
     }
 

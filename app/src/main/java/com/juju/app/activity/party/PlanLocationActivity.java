@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
-import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.Button;
@@ -32,8 +31,6 @@ import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
 import com.baidu.mapapi.map.MarkerOptions;
-import com.baidu.mapapi.map.MyLocationConfiguration;
-import com.baidu.mapapi.map.MyLocationData;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.search.core.SearchResult;
@@ -47,6 +44,7 @@ import com.juju.app.R;
 import com.juju.app.golobal.Constants;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 
 import org.xutils.view.annotation.ContentView;
@@ -92,6 +90,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetGeoCoderR
     private BaiduMap mBaiduMap;
     GeoCoder mSearch = null; // 搜索模块，也可去掉地图模块独立使用
 
+    private boolean editMode = false;
     private double latitude;
     private double longitude;
     private String address;
@@ -114,7 +113,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetGeoCoderR
 
     private void initListener() {
 
-        if(address == null) {
+        if(editMode) {
 
             mBaiduMap.setOnMapStatusChangeListener(new BaiduMap.OnMapStatusChangeListener() {
                 @Override
@@ -176,32 +175,42 @@ public class PlanLocationActivity extends BaseActivity implements OnGetGeoCoderR
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
 
         MapStatus mMapStatus;
-        if (address != null) {
-            LatLng p = new LatLng(latitude, longitude);
-
-            layout_search.setVisibility(View.GONE);
-            layout_button.setVisibility(View.GONE);
-            RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) txt_address.getLayoutParams();
-            lp.bottomMargin = 0;
-            txt_address.setLayoutParams(lp);
-            txt_address.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    MapStatus mMapStatus = new MapStatus.Builder().target(new LatLng(latitude,longitude)).build();
-                    MapStatusUpdate mMapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mMapStatus);
-                    mBaiduMap.setMapStatus(mMapStatusUpdate);
-                }
-            });
-
-            BitmapDescriptor bd = BitmapDescriptorFactory.fromResource(R.mipmap.party_location);
-            OverlayOptions oo = new MarkerOptions().icon(bd).position(p);
-            mBaiduMap.addOverlay(oo);
-
-            img_address.setVisibility(View.GONE);
+        if (!StringUtils.empty(address)) {
+            LatLng p = null;
             txt_address.setText(address);
+            if(latitude>0) {
+                p = new LatLng(latitude, longitude);
+                mMapStatus = new MapStatus.Builder().target(p).zoom(zoom).build();
+            }else{
+                mMapStatus = new MapStatus.Builder().zoom(zoom).build();
+            }
 
-            mMapStatus = new MapStatus.Builder().target(p).zoom(zoom).build();
+            if(!editMode){
+                txt_title.setText(R.string.location);
+                layout_search.setVisibility(View.GONE);
+                layout_button.setVisibility(View.GONE);
+                RelativeLayout.LayoutParams lp = (RelativeLayout.LayoutParams) txt_address.getLayoutParams();
+                lp.bottomMargin = 0;
+                txt_address.setLayoutParams(lp);
+                txt_address.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        MapStatus mMapStatus = new MapStatus.Builder().target(new LatLng(latitude,longitude)).build();
+                        MapStatusUpdate mMapStatusUpdate = MapStatusUpdateFactory.newMapStatus(mMapStatus);
+                        mBaiduMap.setMapStatus(mMapStatusUpdate);
+                    }
+                });
+                if(p!=null) {
+                    BitmapDescriptor bd = BitmapDescriptorFactory.fromResource(R.mipmap.party_location);
+                    OverlayOptions oo = new MarkerOptions().icon(bd).position(p);
+                    mBaiduMap.addOverlay(oo);
+                }
+
+                img_address.setVisibility(View.GONE);
+            }
+
         } else {
+
             mMapStatus = new MapStatus.Builder().zoom(zoom).build();
 
             // 开启定位图层
@@ -224,6 +233,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetGeoCoderR
 
     public void initParam() {
         Intent intent = getIntent();
+        editMode = intent.getBooleanExtra(Constants.EDIT_MODE,false);
         latitude = intent.getDoubleExtra(Constants.LATITUDE,0);
         longitude = intent.getDoubleExtra(Constants.LONGITUDE, 0);
         address = intent.getStringExtra(Constants.ADDRESS);

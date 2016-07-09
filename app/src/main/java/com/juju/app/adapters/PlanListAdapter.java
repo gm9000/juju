@@ -9,7 +9,6 @@ import android.widget.TextView;
 
 import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
-import com.juju.app.activity.party.PartyCreateActivity;
 import com.juju.app.entity.Plan;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.dialog.WarnTipDialog;
@@ -46,7 +45,6 @@ public class PlanListAdapter extends BaseSwipeAdapter {
         onDeleteClick = new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                ((PartyCreateActivity)context).deletePlan(deleteIndex);
             }
         };
     }

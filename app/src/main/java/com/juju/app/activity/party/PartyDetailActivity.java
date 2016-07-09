@@ -20,7 +20,6 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.User;
-import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -88,6 +87,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
     private TextView txt_fullDesc;
 
     private String partyId;
+    private String selectedPlanId;
     private PlanInfoListAdapter planListAdapter;
     private List<Plan> planList;
     private boolean isOwner;
@@ -161,6 +161,8 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
             btn_cancel.setVisibility(View.GONE);
         }
 
+
+        img_back.setVisibility(View.VISIBLE);
         txt_left.setVisibility(View.VISIBLE);
         txt_left.setText(R.string.top_left_back);
 
@@ -194,7 +196,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
             }
         }
 
-        final String  selectedPlanId = planId;
+        selectedPlanId = planId;
 
         if(selectedPlanId == null){
             ToastUtil.showShortToast(this,"请选择确定的方案",1);
@@ -345,6 +347,9 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
                             party.setStatus(1);
                             party.setFollowFlag(1);
                             party.setAttendFlag(1);
+                            Plan plan = JujuDbUtils.getInstance().selector(Plan.class).where("id","=",selectedPlanId).findFirst();
+                            party.setCoverUrl(plan.getCoverUrl());
+                            party.setTime(plan.getStartTime());
                             JujuDbUtils.saveOrUpdate(party);
                             //  TOTO    通知 Party已经启动
                             ActivityUtil.finish(this);

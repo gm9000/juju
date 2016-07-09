@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    android:orientation="vertical">
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
     <!--&lt;!&ndash;标题 &ndash;&gt;-->
     <!--<include  android:id="@+id/layout_bar" layout="@layout/layout_title"/>-->
@@ -11,13 +10,13 @@
     <!--内容 -->
     <FrameLayout
         android:id="@+id/fragment_container"
-        android:layout_width="fill_parent"
-        android:layout_height="0dip"
-        android:layout_weight="1" >
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="54dp">
     </FrameLayout>
 
 
 
     <!--目录 -->
-    <include layout="@layout/layout_bottom"/>
-</LinearLayout>
+    <include android:id="@+id/bottem_menu" layout="@layout/layout_bottom"/>
+</RelativeLayout>

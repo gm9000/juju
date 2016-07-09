@@ -9,11 +9,14 @@ import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.party.DraftPartyListActivity;
 import com.juju.app.activity.party.GroupSelectActivity;
 import com.juju.app.activity.party.MyPartyListActivity;
 import com.juju.app.activity.party.PartyCreateActivity;
@@ -24,6 +27,7 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.enums.DisplayAnimation;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.UnreadEvent;
@@ -46,6 +50,7 @@ import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
+import com.juju.app.view.MenuDisplayProcess;
 import com.juju.app.view.dialog.titlemenu.ActionItem;
 import com.juju.app.view.dialog.titlemenu.TitlePopup;
 import com.juju.app.view.dialog.titlemenu.TitlePopup.OnItemOnClickListener;
@@ -67,7 +72,7 @@ import java.util.Map;
 
 @ContentView(R.layout.activity_main)
 @CreateUI(showTopView = true)
-public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK {
+public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK, MenuDisplayProcess {
 
     private final String TAG = getClass().getSimpleName();
 
@@ -98,6 +103,12 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 //
     @ViewInject(R.id.layout_bar)
     private RelativeLayout layout_bar;
+
+    @ViewInject(R.id.fragment_container)
+    private FrameLayout layoutContent;
+
+    @ViewInject(R.id.bottem_menu)
+    private LinearLayout bottemMenu;
 
     @ViewInject(R.id.unread_msg_number)
     private TextView tx_unread_msg_number;
@@ -144,7 +155,6 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     protected void onCreate(Bundle savedInstanceState) {
         EventBus.getDefault().register(this);
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
@@ -256,6 +266,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         switch (view.getId()) {
             case R.id.re_group_chat:
 //                img_right.setVisibility(View.VISIBLE);
+                hideTopLeftButton();
                 setTopRightButton(0);
                 index = 0;
                 if (groupChatFragment != null) {
@@ -272,14 +283,13 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 break;
             case R.id.re_group_party:
                 index = 1;
-//                txt_title.setText(R.string.group_party);
-//                img_right.setVisibility(View.VISIBLE);
-//                img_right.setImageResource(R.mipmap.icon_add);
+                setTopLeftButton(R.mipmap.search_white);
                 setTopTitle(R.string.group_party);
                 setTopRightButton(R.mipmap.top_menu);
                 break;
             case R.id.re_profile:
                 index = 2;
+                hideTopLeftButton();
 //                txt_title.setText(R.string.me);
                 setTopTitle(R.string.me);
                 break;
@@ -335,10 +345,13 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 case 0:// 创建聚会
                     ActivityUtil.startActivityForResult(MainActivity.this, GroupSelectActivity.class,CHOOSE_GROUP);
                     break;
-                case 1:// 发起的聚会
+                case 1:// 草稿箱
+                    ActivityUtil.startActivity4UP(MainActivity.this, DraftPartyListActivity.class);
+                    break;
+                case 2:// 发起的聚会
                     ActivityUtil.startActivity4UP(MainActivity.this, MyPartyListActivity.class);
                     break;
-                case 2:// 归档的聚会
+                case 3:// 归档的聚会
                     ActivityUtil.startActivity4UP(MainActivity.this, StockPartyListActivity.class);
                     break;
                 default:
@@ -366,11 +379,13 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         partyTitlePopup.setItemOnClickListener(onPartyItemClick);
         // 给标题栏弹窗添加子类
         partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_add,
-                R.mipmap.icon_menu_group));
+                R.mipmap.icon_new));
+        partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_draft,
+                R.mipmap.draft));
         partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_my,
-                R.mipmap.icon_menu_qrcode));
+                R.mipmap.me));
         partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_stock,
-                R.mipmap.icon_menu_invitecode));
+                R.mipmap.stock));
 
 
     }
@@ -815,6 +830,23 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         }
     }
 
+    @Override
+    public void showMenu() {
+//        layout_bar.startAnimation(DisplayAnimation.DOWN_SHOW);
+        bottemMenu.startAnimation(DisplayAnimation.UP_SHOW);
+//        layout_bar.setVisibility(View.VISIBLE);
+        bottemMenu.setVisibility(View.VISIBLE);
+
+    }
+
+    @Override
+    public void hiddenMenu() {
+//        layout_bar.startAnimation(DisplayAnimation.UP_HIDDEN);
+        bottemMenu.startAnimation(DisplayAnimation.DOWN_HIDDEN);
+//        layout_bar.setVisibility(View.GONE);
+        bottemMenu.setVisibility(View.GONE);
+    }
+
     public enum SelectType {
         ADD_GROUP, INVITE_GROUP
     }
@@ -835,4 +867,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 //                break;
 //        }
 //    }
+
+
+    public ImageView getTopLeftBtn(){
+        return topLeftBtn;
+    }
 }

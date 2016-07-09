@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@color/black1">
+
+    <TextView
+        android:id="@+id/btn_menu1"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:text="@string/cancel"
+        android:background="@color/lightGray"/>
+
+    <TextView
+        android:id="@+id/btn_menu2"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="1px"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:text="@string/cancel"
+        android:background="@color/lightGray"/>
+
+    <TextView
+        android:id="@+id/btn_menu3"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:layout_marginTop="1px"
+        android:textSize="18sp"
+        android:text="@string/cancel"
+        android:visibility="gone"
+        android:background="@color/lightGray"/>
+    <TextView
+        android:id="@+id/btn_menu4"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:layout_marginTop="1px"
+        android:textSize="18sp"
+        android:text="@string/cancel"
+        android:visibility="gone"
+        android:background="@color/lightGray"/>
+    <TextView
+        android:id="@+id/btn_menu5"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center"
+        android:layout_marginTop="1px"
+        android:textSize="18sp"
+        android:text="@string/cancel"
+        android:visibility="gone"
+        android:background="@color/lightGray"/>
+
+    <TextView
+        android:id="@+id/txt_cancel"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_marginTop="5dp"
+        android:gravity="center"
+        android:textSize="18sp"
+        android:text="@string/close"
+        android:background="@color/lightGray"/>
+</LinearLayout>

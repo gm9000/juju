@@ -259,7 +259,7 @@ public abstract class BaseActivity extends AppCompatActivity {
      * @param objs  第一个参数：是否显示文本（boolean）
      *              第二个参数：文本内容
      */
-    protected void loading(Object... objs){
+    public void loading(Object... objs){
         if(loading_layout != null) {
             if(objs == null) {
                 _loading();
@@ -279,7 +279,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     /**
      * 完成加载
      */
-    protected void completeLoading(Integer... objs){
+    public void completeLoading(Integer... objs){
         if(objs != null && objs.length >0) {
             if(objs[0] > 0) {
                 txt_status_message.setText(objs[0]);
@@ -437,7 +437,7 @@ public abstract class BaseActivity extends AppCompatActivity {
 
     }
 
-    protected int getResValue(String name, String... type) {
+    public int getResValue(String name, String... type) {
         int resId = 0;
         if(type == null || type.length == 0) {
             resId = getResources().getIdentifier(name, "string", "com.juju.app");

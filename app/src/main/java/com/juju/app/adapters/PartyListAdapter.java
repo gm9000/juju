@@ -1,20 +1,21 @@
 package com.juju.app.adapters;
 
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
 import com.juju.app.helper.IMUIHelper;
+import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.view.RoundImageView;
-import com.juju.app.view.SwipeLayoutView;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -23,7 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 
 
-public class PartyListAdapter extends BaseSwipeAdapter {
+public class PartyListAdapter extends BaseAdapter {
     private LayoutInflater inflater;
 
     private boolean isSearchMode = false;
@@ -67,7 +68,8 @@ public class PartyListAdapter extends BaseSwipeAdapter {
 
 
     public interface Callback {
-        public void follow(Party party, int follow);
+        public void follow(Party party);
+        public void showParty(Party party);
     }
 
     public PartyListAdapter(LayoutInflater inflater,Callback callback) {
@@ -93,26 +95,24 @@ public class PartyListAdapter extends BaseSwipeAdapter {
     }
 
     @Override
-    public int getSwipeLayoutResourceId(int position) {
-        return R.id.swipe;
-    }
-
-    @Override
-    public View generateView(int position, ViewGroup parent) {
-        View convertView = renderParty(position, null, parent);
-        return convertView;
-    }
-
-    @Override
-    public void fillValues(int position, View convertView) {
-        renderParty(position, convertView, null);
-    }
-
-    public View renderParty(int position, View view, ViewGroup parent) {
+    public View getView(int position, View view, ViewGroup parent) {
         final Party party = matchPartyList.get(position);
         if (view == null) {
             view = inflater.inflate(R.layout.party_item, parent, false);
         }
+
+        ImageView partyImage = (ImageView) view.findViewById(R.id.party_preview);
+        partyImage.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
+
+
+
+        if(party.getCoverUrl().startsWith("http:")){
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), partyImage, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+        }else{
+            final int resId = ((BaseActivity)inflater.getContext()).getResValue(party.getCoverUrl().toLowerCase(),"mipmap");
+            partyImage.setImageResource(resId);
+        }
+
         RoundImageView imgCreatorHead = (RoundImageView) view.findViewById(R.id.creatorImage);
         TextView txtCreatorName = (TextView) view.findViewById(R.id.creator_name);
         TextView txtPartyName = (TextView) view.findViewById(R.id.party_name);
@@ -120,35 +120,23 @@ public class PartyListAdapter extends BaseSwipeAdapter {
         TextView txtPartyDesc = (TextView) view.findViewById(R.id.partyDesc);
         TextView txtStatus = (TextView) view.findViewById(R.id.txt_status);
         TextView txtViewFollow = (TextView) view.findViewById(R.id.flag_follow);
-        TextView txtOperate = (TextView) view.findViewById(R.id.txt_follow);
-        TextView txtStock = (TextView) view.findViewById(R.id.txt_stock);
         ImageView imgFlag = (ImageView) view.findViewById(R.id.img_flag);
 
-        if(isStockMode){
-            txtOperate.setVisibility(View.GONE);
-            txtStock.setText("恢复");
-        }
-
-        txtOperate.setOnClickListener(new View.OnClickListener() {
+        partyImage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((SwipeLayoutView)v.getParent().getParent()).close();
-                if (party.getFollowFlag() == 0) {
-                    mCallback.follow(party, 1);
-                } else {
-                    mCallback.follow(party, 0);
-                }
+                mCallback.showParty(party);
             }
         });
 
-        txtStock.setOnClickListener(new View.OnClickListener() {
+        partyImage.setOnLongClickListener(new View.OnLongClickListener(){
+
             @Override
-            public void onClick(View v) {
-                ((SwipeLayoutView)v.getParent().getParent()).close();
-                mCallback.follow(party, isStockMode?0:-1);
+            public boolean onLongClick(View v) {
+                mCallback.follow(party);
+                return true;
             }
         });
-
 
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
                 + party.getUserNo(), imgCreatorHead, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
@@ -180,13 +168,9 @@ public class PartyListAdapter extends BaseSwipeAdapter {
         switch (party.getFollowFlag()) {
             case 0:
                 txtViewFollow.setVisibility(View.GONE);
-                txtOperate.setText(R.string.top_location);
-                txtOperate.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.red));
                 break;
             case 1:
                 txtViewFollow.setVisibility(View.VISIBLE);
-                txtOperate.setText(R.string.cancel_top_message);
-                txtOperate.setBackgroundColor(inflater.getContext().getResources().getColor(R.color.blue1));
                 break;
         }
 

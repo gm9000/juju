@@ -13,6 +13,8 @@ public class PlanBean {
     private double latitude;
     private double longitude;
     private Date startTime;
+    private String type;
+    private String coverUrl;
     private String desc;
 
     public String getAddress() {
@@ -54,5 +56,20 @@ public class PlanBean {
 
     public void setDesc(String desc) {
         this.desc = desc;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getCoverUrl() {
+        return coverUrl;
+    }
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
     }
 }

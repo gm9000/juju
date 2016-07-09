@@ -3,6 +3,7 @@ package com.juju.app.entity;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.juju.app.entity.base.BaseEntity;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.json.JsonDateDeserializer;
 import com.juju.app.utils.json.JsonDateSerializer;
 
@@ -43,6 +44,12 @@ public class Plan extends BaseEntity {
     private int signed;
 
     private String distance;
+
+    @Column(name = "type")
+    private String type;
+
+    @Column(name = "coverUrl")
+    private String coverUrl;
 
     public String getAddress() {
         return address;
@@ -124,5 +131,40 @@ public class Plan extends BaseEntity {
 
     public void setDistance(String distance) {
         this.distance = distance;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public String getCoverUrl() {
+        if(StringUtils.empty(coverUrl)){
+            return this.type;
+        }else{
+            return coverUrl;
+        }
+    }
+
+    public void setCoverUrl(String coverUrl) {
+        this.coverUrl = coverUrl;
+    }
+
+    public enum Type{
+        MEISHI,
+        PASHAN,
+        JIAOYOU,
+        YOUYONG,
+        KTV,
+        DAPAI,
+        QIXING,
+        PAOBU,
+        YECHUI,
+        ZIJIAYOU,
+        TUOZHAN,
+        TAIQIU
     }
 }

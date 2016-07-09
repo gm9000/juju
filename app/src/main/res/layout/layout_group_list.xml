@@ -8,9 +8,9 @@
 
     <com.juju.app.view.SearchEditText
         android:id="@+id/filter_edit"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="32dp"
-        android:layout_margin="10dp"
+        android:layout_margin="5dp"
         android:background="@drawable/tt_search_edt_bk"
         android:drawableLeft="@mipmap/tt_search"
         android:drawablePadding="10dp"
@@ -20,7 +20,8 @@
         android:singleLine="true"
         android:textColor="@android:color/black"
         android:textColorHint="@color/default_key_color"
-        android:textSize="14sp" />
+        android:textSize="14sp"
+        android:visibility="gone"/>
 
     <com.handmark.pulltorefresh.library.PullToRefreshListView
         android:id="@+id/listPartyView"
@@ -33,5 +34,6 @@
         android:background="@color/white"
         android:layout_marginTop="2dp"
         ptr:ptrMode="pullFromEnd"
-        ptr:ptrOverScroll="false" />
+        ptr:ptrOverScroll="false"
+        />
 </LinearLayout>

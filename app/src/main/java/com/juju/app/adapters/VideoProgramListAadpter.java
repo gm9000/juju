@@ -15,24 +15,26 @@ import com.juju.app.view.RoundImageView;
 
 import java.util.List;
 
-/**
- * 项目名称：juju
- * 类描述：群聊列表数据源
- * 创建人：gm
- * 日期：2016/2/21 17:09
- * 版本：V1.0.0
- */
-public class VideoProgramListAdpter extends BaseAdapter {
+public class VideoProgramListAadpter extends BaseAdapter {
 
     private Context context;
     private List<VideoProgram> videoProgramList;
     private LayoutInflater layoutInflater;
 
-    public VideoProgramListAdpter(Context context, List<VideoProgram> videoProgramList) {
+    public void setCallback(Callback callback) {
+        this.callback = callback;
+    }
+
+    private Callback callback;
+
+    public VideoProgramListAadpter(Context context, List<VideoProgram> videoProgramList) {
         this.context = context;
         this.videoProgramList = videoProgramList;
     }
 
+    public interface Callback{
+        public void playVideo(VideoProgram videoProgram);
+    }
 
     @Override
     public int getCount() {
@@ -52,37 +54,40 @@ public class VideoProgramListAdpter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
         layoutInflater = LayoutInflater.from(context);
-        if(convertView == null) {
+        if (position == 0) {
+            convertView = LayoutInflater.from(context).
+                    inflate(R.layout.top_party_live_item, parent, false);
+        } else {
             convertView = LayoutInflater.from(context).
                     inflate(R.layout.party_live_item, parent, false);
         }
         RoundImageView imgHead = ViewHolderUtil.get(convertView,
                 R.id.img_head);
         TextView creatorName = ViewHolderUtil.get(convertView, R.id.live_user_name);
-        TextView liveTypeTxt = ViewHolderUtil.get(convertView, R.id.live_type_txt);
         TextView liveTimeTxt = ViewHolderUtil.get(convertView, R.id.live_time_txt);
+
+        ImageView imgCaputure = ViewHolderUtil.get(convertView, R.id.img_capture);
+        ImageView imgPlay = ViewHolderUtil.get(convertView, R.id.img_play);
 
 
         final VideoProgram videoProgram = videoProgramList.get(position);
         creatorName.setText(videoProgram.getCreatorName());
         if(videoProgram.getStatus() == 0){
-            liveTimeTxt.setText("正在直播...");
+            liveTimeTxt.setText("直播中...");
             liveTimeTxt.setTextColor(0xFFFF0000);
         }else{
-            liveTypeTxt.setText("直播节目");
             liveTimeTxt.setText(videoProgram.getEndTime());
             liveTimeTxt.setTextColor(0xFF000000);
         }
-//        txt_del.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                deleteID = position;
-//                Tipdialog = new WarnTipDialog((Activity) context,
-//                        "您确定要删除该聊天吗？");
-//                Tipdialog.setBtnOkLinstener(onclick);
-//                Tipdialog.show();
-//            }
-//        });
+
+
+        imgPlay.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                callback.playVideo(videoProgram);
+            }
+        });
+
         return convertView;
 
     }
