@@ -41,7 +41,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ContentView(R.layout.layout_my_party_list)
-public class DraftPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener {
+public class DraftPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener2 {
 
     private static final String TAG = "DraftPartyListActivity";
 
@@ -115,10 +115,10 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
             listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_to_refresh_release_label));
         }
 
-        wrapPartyList(partyList);
+        wrapPartyList();
     }
 
-    private void wrapPartyList(List<Party> planList) {
+    private void wrapPartyList() {
         partyListAdapter = new MyPartyListAdapter(this,partyList,this);
         listPartyView.getRefreshableView().setAdapter(partyListAdapter);
         listPartyView.getRefreshableView().setCacheColorHint(0);
@@ -132,7 +132,7 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
 
         RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txt_left.getLayoutParams();
         layoutParams.leftMargin = 15;
-        txt_title.setText(R.string.my_party);
+        txt_title.setText(R.string.drafts);
         txt_left.setLayoutParams(layoutParams);
         txt_right.setVisibility(View.GONE);
         img_right.setVisibility(View.GONE);
@@ -181,36 +181,6 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
         }
     }
 
-    @Override
-    public void onRefresh(PullToRefreshBase refreshView) {
-        if(partyList.size()>=totalSize){
-            listPartyView.onRefreshComplete();
-            return;
-        }
-        // 获取下一页数据
-        ListView partyListView = listPartyView.getRefreshableView();
-        int preSum = partyList.size();
-
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-        try {
-            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("user_no", "=", userInfoBean.getUserNo());
-            totalSize = selector.count();
-            selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
-            List<Party> pagePartyList = selector.findAll();
-            partyList.addAll(pagePartyList);
-        } catch (DbException e) {
-            e.printStackTrace();
-        }
-
-        if(partyList.size()>=totalSize){
-            listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
-        }
-        partyListAdapter.setPartyList(partyList);
-        int afterSum = partyList.size();
-        partyListView.setSelection(afterSum-preSum);
-        partyListAdapter.notifyDataSetChanged();
-        listPartyView.onRefreshComplete();
-    }
 
     @Override
     public void deleteParty(final int position) {
@@ -235,5 +205,46 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
         });
         tipdialog.show();
 
+    }
+
+    @Override
+    public void onPullDownToRefresh(PullToRefreshBase refreshView) {
+
+    }
+
+    @Override
+    public void onPullUpToRefresh(PullToRefreshBase refreshView) {
+        refreshView.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if(partyList.size()>=totalSize){
+                    listPartyView.onRefreshComplete();
+                    return;
+                }
+                // 获取下一页数据
+                ListView partyListView = listPartyView.getRefreshableView();
+                int preSum = partyList.size();
+
+                UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                try {
+                    Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("user_no", "=", userInfoBean.getUserNo());
+                    totalSize = selector.count();
+                    selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
+                    List<Party> pagePartyList = selector.findAll();
+                    partyList.addAll(pagePartyList);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+
+                if(partyList.size()>=totalSize){
+                    listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
+                }
+                partyListAdapter.setPartyList(partyList);
+                int afterSum = partyList.size();
+                partyListView.setSelection(afterSum-preSum);
+                partyListAdapter.notifyDataSetChanged();
+                listPartyView.onRefreshComplete();
+            }
+        },200);
     }
 }

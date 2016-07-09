@@ -12,71 +12,124 @@
         android:scrollbars="none">
         <LinearLayout
             android:orientation="vertical"
-            android:layout_width="fill_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content">
             <RelativeLayout
-                android:layout_width="fill_parent"
-                android:layout_height="wrap_content"
-                android:paddingTop="5dp"
-                android:paddingBottom="5dp"
-                android:id="@+id/view_user"
-                android:layout_marginTop="15dp"
-                android:background="@drawable/setting_item_selector">
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
                 <com.juju.app.view.RoundImageView
                     android:id="@+id/head"
-                    android:layout_marginRight="10dp"
-                    android:layout_marginLeft="10dp"
-                    android:layout_width="85.0dip"
-                    android:layout_height="85.0dip"
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_centerHorizontal="true"
                     android:scaleType="centerInside"
                     android:src="@mipmap/head" />
                 <TextView
-                    android:textSize="20.0dip"
-                    android:id="@+id/nick_name"
-                    android:layout_marginTop="20dp"
-                    android:layout_toRightOf="@+id/head"
+                    android:id="@+id/txt_nick_name"
+                    android:layout_marginTop="5dp"
+                    style="@style/BlackTxt16"
+                    android:layout_below="@+id/head"
+                    android:layout_centerHorizontal="true"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:textStyle="bold"
                     android:text="@string/nickName" />
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_below="@+id/nick_name"
-                    android:layout_toRightOf="@+id/head"
-                    android:layout_marginTop="10dp">
-                    <TextView
-                        android:textSize="14.0dip"
-                        style="@style/txt_ContextStyle1"
-                        android:textStyle="bold"
-                        android:text="聚聚号：" />
-                    <TextView
-                        android:id="@+id/txt_jujuNo"
-                        android:textSize="14.0dip"
-                        style="@style/txt_ContextStyle1"
-                        android:text="" />
-                </LinearLayout>
 
-                <ImageView
-                    android:layout_marginRight="15dp"
-                    android:layout_alignParentRight="true"
-                    android:layout_centerVertical="true"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:src="@mipmap/right" />
-
-                <ImageView
-                    android:id="@+id/iv_sex"
-                    android:layout_toRightOf="@+id/nick_name"
-                    android:layout_width="20dp"
-                    android:layout_height="20dp"
-                    android:layout_marginTop="22dp"
-                    android:layout_marginLeft="5dp"
-                    android:src="@mipmap/ic_sex_female" />
             </RelativeLayout>
+            <LinearLayout
+                android:id="@+id/layout_phone"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/setting_item_selector"
+                android:orientation="horizontal">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="100dp"
+                    android:paddingLeft="16dp"
+                    android:drawablePadding="10dp"
+                    android:text="@string/phoneNo" />
+                <TextView
+                    android:id="@+id/txt_phone"
+                    style="@style/TxtContent"
+                    android:textSize="14sp"
+                    android:gravity="center_vertical|right"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:text="13811000001" />
 
+            </LinearLayout>
+            <View
+                android:background="@color/black2"
+                android:layout_width="match_parent"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_height="1.0dip" />
 
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:orientation="horizontal">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="100dp"
+                    android:paddingLeft="16dp"
+                    android:drawablePadding="10dp"
+                    android:text="@string/jujuNo" />
+                <TextView
+                    android:id="@+id/txt_jujuNo"
+                    style="@style/TxtContent"
+                    android:textSize="14sp"
+                    android:gravity="center_vertical|right"
+                    android:background="@drawable/setting_item_selector"
+                    android:drawablePadding="10dp"
+                    android:drawableRight="@null"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:text="100000001" />
+            </LinearLayout>
+
+            <View
+                android:background="@color/black2"
+                android:layout_width="match_parent"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="5dp"
+                android:layout_height="1.0dip" />
+
+            <LinearLayout
+                android:id="@+id/layout_gender"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:background="@drawable/setting_item_selector"
+                android:orientation="horizontal">
+                <TextView
+                    style="@style/TxtTitle"
+                    android:textSize="16sp"
+                    android:gravity="center_vertical"
+                    android:background="@drawable/setting_item_selector"
+                    android:layout_height="match_parent"
+                    android:layout_width="100dp"
+                    android:paddingLeft="16dp"
+                    android:text="@string/gender" />
+                <TextView
+                    android:id="@+id/txt_gender"
+                    style="@style/TxtContent"
+                    android:textSize="14sp"
+                    android:gravity="center_vertical|right"
+                    android:layout_height="match_parent"
+                    android:layout_width="match_parent"
+                    android:text="男" />
+            </LinearLayout>
+
+<!--
             <LinearLayout
                 android:id="@+id/lin_party"
                 android:layout_width="match_parent"
@@ -162,7 +215,7 @@
 
         </LinearLayout>
 
-
+-->
 
             <TextView
                 android:id="@+id/txt_setting"

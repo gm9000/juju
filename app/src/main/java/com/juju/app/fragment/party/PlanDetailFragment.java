@@ -28,7 +28,6 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
-import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
@@ -273,7 +272,7 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
         planVote.setVote(voteFlag ? 1 : 0);
         reqBean.setPlanVote(planVote);
 
-        JlmHttpClient<PlanVoteReqBean> client = new JlmHttpClient<PlanVoteReqBean>(R.id.txt_party, HttpConstants.getUserUrl() + "/votePlan", this, reqBean,JSONObject.class);
+        JlmHttpClient<PlanVoteReqBean> client = new JlmHttpClient<PlanVoteReqBean>(R.id.party_name, HttpConstants.getUserUrl() + "/votePlan", this, reqBean,JSONObject.class);
         try {
             activity.loading(true, R.string.saving);
             client.sendPost();
@@ -287,7 +286,7 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
     @Override
     public void onSuccess(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
-            case R.id.txt_party:
+            case R.id.party_name:
                 if(obj != null) {
                     JSONObject jsonRoot = (JSONObject)obj;
                     try {

@@ -12,15 +12,15 @@
         android:id="@+id/layout_back"
         android:gravity="center"
         android:layout_width="wrap_content"
-        android:layout_height="80dp">
+        android:layout_height="85dp">
         <TextView
             android:id="@+id/txt_stock"
             style="@style/MMFontTitleInList"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="归档"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
             android:textColor="@color/white"
             android:background="@color/gray"
             android:textSize="18sp"
@@ -31,8 +31,8 @@
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:text="置顶"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
             android:textColor="@color/white"
             android:textSize="18sp"
             android:singleLine="true" />
@@ -44,27 +44,34 @@
         <RelativeLayout
             android:id="@+id/left_layout"
             android:layout_width="wrap_content"
-            android:layout_height="80dp"
+            android:layout_height="85dp"
             android:layout_alignParentLeft="true">
+            <ImageView
+                android:id="@+id/img_plan_type"
+                android:layout_margin="1dp"
+                android:layout_width="83dp"
+                android:layout_height="83dp"
+                android:adjustViewBounds="true"
+                android:scaleType="centerCrop"
+                android:cropToPadding="true"
+                android:src="@mipmap/plan_add"/>
             <com.juju.app.view.RoundImageView
                 android:id="@+id/creatorImage"
-                android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:layout_marginLeft="5dp"
-                android:layout_marginRight="2dp"
-                android:layout_marginTop="2dp"
-                android:src="@mipmap/head"
-                android:scaleType="fitCenter"/>
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:layout_marginLeft="3dp"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="2dp"
+                android:src="@mipmap/head"/>
             <TextView
                 android:id="@+id/creator_name"
+                style="@style/WhiteTxt10"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_centerHorizontal="true"
+                android:layout_toRightOf="@+id/creatorImage"
                 android:layout_alignParentBottom="true"
-                android:layout_marginTop="2dp"
-                android:layout_marginBottom="2dp"
-                android:textSize="12dp"
-                android:textColor="@color/black"
+                android:layout_marginLeft="2dp"
+                android:layout_marginBottom="5dp"
                 android:text="聚龙小子"/>
         </RelativeLayout>
 
@@ -72,7 +79,7 @@
             android:id="@+id/right_layout"
             android:layout_alignParentRight="true"
             android:layout_width="120dp"
-            android:layout_height="80dp"
+            android:layout_height="85dp"
             android:orientation="vertical">
             <LinearLayout
                 android:layout_width="wrap_content"
@@ -138,7 +145,7 @@
             android:orientation="vertical"
             android:paddingLeft="6dp"
             android:layout_width="wrap_content"
-            android:layout_height="80dp"
+            android:layout_height="60dp"
             android:layout_toRightOf="@+id/left_layout"
             android:layout_toLeftOf="@+id/right_layout">
             <TextView
@@ -148,7 +155,6 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:text="郊区小聚"
-                android:padding="2dp"
                 android:textSize="16dp"
                 android:textColor="@color/black"
                 android:textStyle="bold"
@@ -164,7 +170,6 @@
                 android:layout_marginLeft="10dp"
                 android:textSize="12dp"
                 android:textColor="@color/black"
-                android:layout_weight="1"
                 android:singleLine="true"
                 android:gravity="center"
                 />
@@ -172,7 +177,7 @@
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_below="@+id/content_layout"
+            android:layout_below="@+id/left_layout"
             android:background="@color/black2" />
     </RelativeLayout>
 

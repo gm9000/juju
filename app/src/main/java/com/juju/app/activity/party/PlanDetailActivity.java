@@ -104,10 +104,7 @@ public class PlanDetailActivity extends BaseActivity implements ViewPager.OnPage
         txt_left.setVisibility(View.VISIBLE);
         txt_left.setText(R.string.top_left_back);
 
-        RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txt_left.getLayoutParams();
-        layoutParams.leftMargin = 15;
         txt_title.setText(R.string.party_plan);
-        txt_left.setLayoutParams(layoutParams);
         txt_right.setVisibility(View.GONE);
         img_right.setVisibility(View.GONE);
 

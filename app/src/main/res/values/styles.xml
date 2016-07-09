@@ -160,6 +160,10 @@
         <item name="android:textSize">16sp</item>
         <item name="android:focusable">false</item>
     </style>
+    <style name="BlackStrongTxt18" parent="@style/TxtStrongBlack">
+        <item name="android:textSize">18sp</item>
+        <item name="android:focusable">false</item>
+    </style>
     <style name="BlackStrongTxt20" parent="@style/TxtStrongBlack">
         <item name="android:textSize">20sp</item>
         <item name="android:focusable">false</item>

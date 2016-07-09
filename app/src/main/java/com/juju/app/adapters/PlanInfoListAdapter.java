@@ -14,6 +14,9 @@ import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.entity.Plan;
+import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.utils.ImageLoaderUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.SwipeLayoutView;
 
@@ -90,9 +93,10 @@ public class PlanInfoListAdapter extends BaseSwipeAdapter {
             SwipeLayoutView layout_swipe = ViewHolderUtil.get(convertView, R.id.swipe);
             layout_swipe.setSwipeEnabled(canSwipe);
         }
+        ImageView imgPlanType = ViewHolderUtil.get(convertView,R.id.img_plan_type);
         TextView txt_time = ViewHolderUtil.get(convertView, R.id.txt_time);
         TextView txt_address = ViewHolderUtil.get(convertView, R.id.txt_address);
-//        TextView txt_content = ViewHolderUtil.get(convertView, R.id.txt_fullDesc);
+        TextView txt_desc = ViewHolderUtil.get(convertView, R.id.txt_plan_description);
         TextView txt_attendNum = ViewHolderUtil.get(convertView, R.id.txt_attend_num);
         TextView txt_operate = ViewHolderUtil.get(convertView, R.id.txt_operate);
         LinearLayout layout_back = ViewHolderUtil.get(convertView, R.id.layout_back);
@@ -106,10 +110,20 @@ public class PlanInfoListAdapter extends BaseSwipeAdapter {
         txt_address.setText(plan.getAddress());
         txt_attendNum.setText(String.valueOf(plan.getAddtendNum()));
 
-//        if(plan.getDesc()!=null && !plan.getDesc().equals("")) {
-//            txt_content.setTextColor(context.getResources().getColor(R.color.black));
-//            txt_content.setText("\t\t" + plan.getDesc());
-//        }
+
+        if(!StringUtils.empty(plan.getCoverUrl())) {
+            if (plan.getCoverUrl().startsWith("http:")){
+                ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+            }else{
+                final int resId = ((BaseActivity) context).getResValue(plan.getCoverUrl().toLowerCase(), "mipmap");
+                imgPlanType.setImageResource(resId);
+            }
+        }
+
+        if(plan.getDesc()!=null && !plan.getDesc().equals("")) {
+            txt_desc.setText(plan.getDesc());
+        }
+
         switch(plan.getStatus()){
             case 0: //  未选中
                 layout_back.setBackgroundColor(context.getResources().getColor(R.color.red));

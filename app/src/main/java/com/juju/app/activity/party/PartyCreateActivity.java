@@ -217,20 +217,32 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
 
         GroupEntity group = groupDao.findUniByProperty("id",groupId);
-        txtGroupName.setText(group.getMainName());
-        Set<String> userNos = group.getlistGroupMemberIds();
-        List<String> avatarUrlList = new ArrayList<>();
-        for(String userNo : userNos){
-            User entity = IMContactManager.instance().findContact(userNo);
-            if(entity != null){
-                avatarUrlList.add(entity.getAvatar());
+        if(group != null) {
+            txtGroupName.setText(group.getMainName());
+            Set<String> userNos = group.getlistGroupMemberIds();
+            List<String> avatarUrlList = new ArrayList<>();
+            for (String userNo : userNos) {
+                User entity = IMContactManager.instance().findContact(userNo);
+                if (entity != null) {
+                    avatarUrlList.add(entity.getAvatar());
 
+                }
+                if (avatarUrlList.size() >= 9) {
+                    break;
+                }
             }
-            if(avatarUrlList.size() >= 9){
-                break;
-            }
+            groupHead.setAvatarUrls((ArrayList<String>) avatarUrlList);
+        }else{
+            WarnTipDialog tipdialog = new WarnTipDialog(context,"已退出相应群组，及时删除记录！");
+            tipdialog.setBtnOkLinstener( new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    ActivityUtil.finish(PartyCreateActivity.this);
+                }
+            });
+            tipdialog.hiddenBtnCancel();
+            tipdialog.show();
         }
-        groupHead.setAvatarUrls((ArrayList<String>)avatarUrlList);
 
         imgPlan1.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
         imgPlan2.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
@@ -323,7 +335,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
             reqBean.setPlans(plans);
 
             JlmHttpClient<PartyReqBean> client = new JlmHttpClient<PartyReqBean>(
-                    R.id.txt_party, HttpConstants.getUserUrl() + "/addPartyAndPlan", this, reqBean,
+                    R.id.party_name, HttpConstants.getUserUrl() + "/addPartyAndPlan", this, reqBean,
                     JSONObject.class);
             try {
                 loading(true, R.string.saving);
@@ -573,7 +585,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
     @Override
     public void onSuccess(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
-            case R.id.txt_party:
+            case R.id.party_name:
                 if(obj != null) {
                     JSONObject jsonRoot = (JSONObject)obj;
                     try {

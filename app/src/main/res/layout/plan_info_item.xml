@@ -12,15 +12,15 @@
         android:id="@+id/layout_back"
         android:gravity="center"
         android:layout_width="wrap_content"
-        android:layout_height="65.0dip">
+        android:layout_height="80dp">
         <TextView
             android:id="@+id/txt_operate"
             style="@style/MMFontTitleInList"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="选择"
-            android:paddingLeft="20dp"
-            android:paddingRight="20dp"
+            android:paddingLeft="25dp"
+            android:paddingRight="25dp"
             android:paddingTop="10dp"
             android:paddingBottom="10dp"
             android:textColor="@color/white"
@@ -29,97 +29,111 @@
     </LinearLayout>
     <RelativeLayout
         android:id="@+id/plan_info_layout"
-        style="@style/MMListItem"
-        android:layout_height="80dp"
-        android:background="@drawable/setting_item_selector"
-        android:paddingLeft="5dip">
-        <TextView
-            android:id="@+id/txt_time"
-            style="@style/BlackTxt14"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginLeft="15dp"
-            android:text="2015-12-12 09:00"
-            android:textSize="14sp"
-            android:singleLine="true" />
+        android:layout_width="match_parent"
+        android:layout_height="90dp"
+        android:background="@drawable/setting_item_selector">
+        <ImageView
+            android:id="@+id/img_plan_type"
+            android:layout_width="88dp"
+            android:layout_height="88dp"
+            android:layout_margin="1dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerCrop"
+            android:cropToPadding="true"
+            android:src="@mipmap/plan_add"/>
+        <ImageView
+            android:id="@+id/img_selected"
+            android:layout_marginLeft="2dp"
+            android:layout_marginTop="2dp"
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:gravity="center"
+            android:visibility="gone"
+            android:src="@mipmap/selected" />
+
+        <ImageView
+            android:id="@+id/img_location"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:layout_toRightOf="@+id/img_plan_type"
+            android:layout_marginLeft="3dp"
+            android:layout_marginTop="3dp"
+            android:src="@mipmap/location"/>
         <TextView
             android:id="@+id/txt_address"
-            style="@style/BlackTxt14"
-            android:layout_below="@+id/txt_time"
+            style="@style/GrayTxt12"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginLeft="20dp"
+            android:layout_toRightOf="@+id/img_location"
+            android:layout_marginTop="5dp"
             android:text="百里山水画廊"
-            android:layout_marginRight="10dp"
             android:padding="2dp"
             android:textSize="14sp"
             android:singleLine="true" />
-        <ImageView
-            android:id="@+id/img_selected"
-            android:layout_below="@+id/txt_address"
+        <TextView
+            android:id="@+id/txt_time"
+            style="@style/GrayTxt12"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/img_plan_type"
             android:layout_marginLeft="5dp"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="5dp"
+            android:text="2015-12-12 09:00"
+            android:textSize="14sp"
+            android:singleLine="true" />
+
+        <TextView
+            android:id="@+id/txt_plan_description"
+            style="@style/BlackTxt14"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_toRightOf="@+id/img_plan_type"
             android:layout_centerVertical="true"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:gravity="center"
-            android:src="@mipmap/selected"
-            android:visibility="gone" />
-        <!--<TextView-->
-            <!--android:id="@+id/txt_tag_selected"-->
-            <!--style="@style/TagTxt"-->
-            <!--android:layout_below="@+id/txt_address"-->
-            <!--android:layout_marginLeft="5dp"-->
-            <!--android:layout_centerVertical="true"-->
-            <!--android:layout_width="wrap_content"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:gravity="center"-->
-            <!--android:text="@string/selected"-->
-            <!--android:visibility="visible"-->
-            <!--android:singleLine="true" />-->
+            android:layout_marginLeft="20dp"
+            android:layout_toLeftOf="@+id/layout_plan_right"
+            android:text="描述"
+            android:textSize="14sp"
+            android:singleLine="true" />
         <LinearLayout
             android:id="@+id/layout_plan_right"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="90dp"
             android:layout_alignParentRight="true"
-            android:layout_marginRight="3dp"
             android:gravity="right"
+            android:layout_marginRight="3dp"
             android:orientation="vertical">
-            <LinearLayout
+            <TextView
+                android:id="@+id/txt_distance"
+                style="@style/GrayTxt12"
+                android:layout_weight="1"
+                android:layout_alignParentRight="true"
+                android:layout_marginTop="5dp"
+                android:layout_marginRight="3dp"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
-                android:gravity="center_vertical">
-                <ImageView
-                    android:layout_width="25dp"
-                    android:layout_height="25dp"
-                    android:src="@mipmap/location"/>
-                <TextView
-                    android:id="@+id/txt_distance"
-                    style="@style/GrayTxt12"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="@string/un_tag"/>
-            </LinearLayout>
+                android:text="@string/un_tag"/>
             <ImageView
                 android:layout_width="10dp"
                 android:layout_height="10dp"
-                android:layout_marginTop="6dp"
-                android:layout_marginRight="2dp"
-                android:layout_marginBottom="6dp"
+                android:layout_weight="1"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
                 android:src="@drawable/right"/>
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginRight="10dp"
-                android:gravity="center_vertical">
+                android:layout_weight="1"
+                android:gravity="bottom"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginRight="3dp"
+                android:layout_marginBottom="5dp">
                 <TextView
                     android:id="@+id/txt_tag_signed"
                     style="@style/TagTxt"
-                    android:layout_below="@+id/txt_address"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:gravity="center"
                     android:text="@string/signed"
                     android:visibility="gone"
                     android:singleLine="true" />
@@ -136,14 +150,12 @@
                     android:layout_height="wrap_content"
                     android:layout_marginLeft="2dp"
                     android:text="@string/attended"/>
-
             </LinearLayout>
         </LinearLayout>
         <View
             android:layout_width="match_parent"
-            android:layout_height="1dp"
+            android:layout_height="0.1dp"
             android:layout_alignParentBottom="true"
             android:background="@color/black2" />
     </RelativeLayout>
-
 </com.juju.app.view.SwipeLayoutView>

@@ -43,6 +43,9 @@ public class WarnTipDialog extends BaseDialog implements
 		}
 	}
 
+	public  void hiddenBtnCancel(){
+		btn_cancel.setVisibility(View.GONE);
+	}
 	public void setOkLable(String okLable){
 		btn_ok.setText(okLable);
 	}
