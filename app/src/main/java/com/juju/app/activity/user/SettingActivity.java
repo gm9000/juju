@@ -33,7 +33,6 @@ import com.juju.app.view.dialog.WarnTipDialog;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
@@ -239,28 +238,42 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     @Event(R.id.head)
     private void showHeadImg(View view){
-        ActivityUtil.startActivityForResult(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY, new BasicNameValuePair(Constants.USER_NO, userNo));
+//        ActivityUtil.startActivityForResult(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY, new BasicNameValuePair(Constants.USER_NO, userNo));
+        startActivityForResultNew(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY,
+                Constants.USER_NO, userNo);
     }
 
     @Event(R.id.layout_nick_name)
     private void modifyNickName(View view){
-        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
-        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
-        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
+//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
+//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_nick_name));
+        valueMap.put(Constants.PROPERTY_VALUE, txt_nickName.getText().toString());
+        startActivityNew(this, PropertiesSettingActivity.class, valueMap);
     }
 
     @Event(R.id.layout_gender)
     private void modifyGender(View view){
-        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_gender));
-        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_gender.getText().toString());
-        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_gender));
+//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_gender.getText().toString());
+//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_gender));
+        valueMap.put(Constants.PROPERTY_VALUE, txt_gender.getText().toString());
+        startActivityNew(this, PropertiesSettingActivity.class, valueMap);
     }
 
     @Event(R.id.layout_phone)
     private void modifyPhone(View view){
-        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_phoneNo));
-        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_phoneNo.getText().toString());
-        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_phoneNo));
+//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_phoneNo.getText().toString());
+//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_phoneNo));
+        valueMap.put(Constants.PROPERTY_VALUE, txt_phoneNo.getText().toString());
+        startActivityNew(this, PropertiesSettingActivity.class, valueMap);
     }
 
 

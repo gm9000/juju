@@ -17,7 +17,6 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ScreenUtil;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -219,13 +218,14 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
     @Event(value = R.id.img_live_start, type = View.OnClickListener.class)
     private void startLive(View view){
-        ActivityUtil.startActivity4UP(this,UploadVideoActivity.class);
+        ActivityUtil.startActivity4UPAndNew(this,UploadVideoActivity.class);
     }
 
     @Override
     public void playVideo(VideoProgram videoProgram) {
         //  TODO 获取视频请求的URL参数，传入播放界面
-        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
-        ActivityUtil.startActivity4UP(this, PlayVideoActivity.class,nvPair);
+//        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
+        ActivityUtil.startActivity4UPAndNew(this, PlayVideoActivity.class, "videoUrl",
+                videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
     }
 }

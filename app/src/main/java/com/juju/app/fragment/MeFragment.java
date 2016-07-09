@@ -37,7 +37,6 @@ import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.view.RoundImageView;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -225,19 +224,21 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.lin_party:
-                ActivityUtil.startActivity(getActivity(), MyPartyListActivity.class);
+                startActivityNew(getActivity(), MyPartyListActivity.class);
                 break;
             case R.id.lin_invite:
                 tab_invite_notify.setVisibility(View.GONE);
-                ActivityUtil.startActivity(getActivity(), MyInviteListActivity.class);
+                startActivityNew(getActivity(), MyInviteListActivity.class);
                 break;
             case R.id.txt_setting:
-                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class);
+                startActivityNew(this.getActivity(), SettingActivity.class);
                 break;
             case R.id.view_user:
                 UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class,
-                        new BasicNameValuePair(Constants.USER_NO,userInfoBean.getUserNo()));
+//                ActivityUtil.startActivity(this.getActivity(), SettingActivity.class,
+//                        new BasicNameValuePair(Constants.USER_NO,userInfoBean.getUserNo()));
+                startActivityNew(this.getActivity(), SettingActivity.class, Constants.USER_NO,
+                        userInfoBean.getUserNo());
                 break;
         }
     }

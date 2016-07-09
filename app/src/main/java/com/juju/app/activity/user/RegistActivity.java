@@ -34,7 +34,6 @@ import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CustomDialog;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -43,7 +42,9 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import cn.smssdk.EventHandler;
 import cn.smssdk.SMSSDK;
@@ -358,18 +359,21 @@ public class RegistActivity extends BaseActivity implements CreateUIHelper {
     //跳转到下一步（短信认证）
     private void jumpNext() {
         //封装数据，发送给下一步
-        List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
-        BasicNameValuePair phoneValue = new BasicNameValuePair(Constants.PHONE,
-                phone);
-        BasicNameValuePair nickNameValue = new BasicNameValuePair(Constants.NICKNAME,
-                nickName);
-        BasicNameValuePair passwordValue = new BasicNameValuePair(Constants.PASSWORD,
-                password);
-        valuePairs.add(phoneValue);
-        valuePairs.add(nickNameValue);
-        valuePairs.add(passwordValue);
-        startActivity(RegistActivity.this, RegistNext1Activity.class,
-                valuePairs.toArray(new BasicNameValuePair[]{}));
+//        List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
+//        BasicNameValuePair phoneValue = new BasicNameValuePair(Constants.PHONE,
+//                phone);
+//        BasicNameValuePair nickNameValue = new BasicNameValuePair(Constants.NICKNAME,
+//                nickName);
+//        BasicNameValuePair passwordValue = new BasicNameValuePair(Constants.PASSWORD,
+//                password);
+//        valuePairs.add(phoneValue);
+//        valuePairs.add(nickNameValue);
+//        valuePairs.add(passwordValue);
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put(Constants.PHONE, phone);
+        valueMap.put(Constants.NICKNAME, nickName);
+        valueMap.put(Constants.PASSWORD, password);
+        startActivityNew(RegistActivity.this, RegistNext1Activity.class, valueMap);
     }
 
     /**

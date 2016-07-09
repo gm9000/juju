@@ -27,8 +27,6 @@ import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.wheel.dialog.SelectDateTimeDialog;
 import com.rey.material.app.BottomSheetDialog;
 
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;

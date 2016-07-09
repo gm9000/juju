@@ -84,7 +84,8 @@ public class WelcomeActivity extends BaseActivity implements Runnable  {
         aa.setAnimationListener(new Animation.AnimationListener() {
             @Override
             public void onAnimationEnd(Animation arg0) {
-                ActivityUtil.startActivity(WelcomeActivity.this, LoginActivity.class);
+//                ActivityUtil.startActivity(WelcomeActivity.this, LoginActivity.class);
+                startActivityNew(WelcomeActivity.this, LoginActivity.class);
                 finish();
             }
 

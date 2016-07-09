@@ -337,7 +337,7 @@ public abstract class TitleBaseFragment extends BaseFragment {
 
     public void showSearchView() {
 //        startActivity(new Intent(getActivity(), SearchActivity.class));
-        ActivityUtil.startActivity4UP(getActivity(), SearchActivity.class);
+        ActivityUtil.startActivity4UPAndNew(getActivity(), SearchActivity.class);
     }
 
     protected void onSearchDataReady() {

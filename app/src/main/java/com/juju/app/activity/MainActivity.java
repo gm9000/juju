@@ -343,16 +343,17 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         public void onItemClick(ActionItem item, int position) {
             switch (position) {
                 case 0:// 创建聚会
-                    ActivityUtil.startActivityForResult(MainActivity.this, GroupSelectActivity.class,CHOOSE_GROUP);
+//                    ActivityUtil.startActivityForResult(MainActivity.this, GroupSelectActivity.class,CHOOSE_GROUP);
+                    startActivityForResultNew(MainActivity.this, GroupSelectActivity.class, CHOOSE_GROUP);
                     break;
                 case 1:// 草稿箱
-                    ActivityUtil.startActivity4UP(MainActivity.this, DraftPartyListActivity.class);
+                    ActivityUtil.startActivity4UPAndNew(MainActivity.this, DraftPartyListActivity.class);
                     break;
                 case 2:// 发起的聚会
-                    ActivityUtil.startActivity4UP(MainActivity.this, MyPartyListActivity.class);
+                    ActivityUtil.startActivity4UPAndNew(MainActivity.this, MyPartyListActivity.class);
                     break;
                 case 3:// 归档的聚会
-                    ActivityUtil.startActivity4UP(MainActivity.this, StockPartyListActivity.class);
+                    ActivityUtil.startActivity4UPAndNew(MainActivity.this, StockPartyListActivity.class);
                     break;
                 default:
                     break;

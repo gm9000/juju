@@ -50,7 +50,6 @@ import com.juju.app.utils.NetWorkUtil;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -189,14 +188,14 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         //点击群聊列表，跳转到群聊面板
         if(contactAdapter.getGroupChats().size() > 0) {
             RecentInfo bean = contactAdapter.getGroupChats().get(position);
-            List<BasicNameValuePair> valuePairs = new ArrayList<>();
-            BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
+//            List<BasicNameValuePair> valuePairs = new ArrayList<>();
+//            BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
+//                    bean.getSessionKey());
+//            valuePairs.add(markerIdValue);
+//            ActivityUtil.startActivity(getActivity(), ChatActivity.class,
+//                    valuePairs.toArray(new BasicNameValuePair[]{}));
+            startActivityNew(getActivity(), ChatActivity.class, Constants.SESSION_ID_KEY,
                     bean.getSessionKey());
-
-
-            valuePairs.add(markerIdValue);
-            ActivityUtil.startActivity(getActivity(), ChatActivity.class,
-                    valuePairs.toArray(new BasicNameValuePair[]{}));
         }
     }
 
@@ -622,4 +621,6 @@ public class GroupChatFragment extends TitleBaseFragment implements CreateUIHelp
         logger.d("unread#total cnt %d", totalUnreadMsgCnt);
         ((MainActivity) getActivity()).setUnreadMessageCnt(totalUnreadMsgCnt);
     }
+
+
 }

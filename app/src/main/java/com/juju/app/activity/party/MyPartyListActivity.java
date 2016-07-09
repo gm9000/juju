@@ -29,7 +29,6 @@ import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.dialog.WarnTipDialog;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.xutils.db.Selector;
 import org.xutils.db.sqlite.WhereBuilder;
 import org.xutils.ex.DbException;
@@ -166,17 +165,21 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
         Party curParty = (Party)listPartyView.getRefreshableView().getItemAtPosition(position);
         switch(curParty.getStatus()){
             case -1: // 草稿箱
-                ActivityUtil.startActivity(this, PartyCreateActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+//                ActivityUtil.startActivity(this, PartyCreateActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+                startActivityNew(this, PartyCreateActivity.class, Constants.PARTY_ID,curParty.getId());
                 break;
             case 0: // 召集中
-                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
-                ActivityUtil.startActivity(this, PartyDetailActivity.class,param);
+//                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
+//                ActivityUtil.startActivity(this, PartyDetailActivity.class,param);
+                startActivityNew(this, PartyDetailActivity.class, Constants.PARTY_ID,curParty.getId());
                 break;
             case 1: //  进行中
-                ActivityUtil.startActivity(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+//                ActivityUtil.startActivity(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+                startActivityNew(this, PartyActivity.class, Constants.PARTY_ID,curParty.getId());
                 break;
             case 2: //  已结束
-                ActivityUtil.startActivity(this, PartyActivity.class);
+//                ActivityUtil.startActivity(this, PartyActivity.class);
+                startActivityNew(this, PartyActivity.class);
                 break;
         }
     }

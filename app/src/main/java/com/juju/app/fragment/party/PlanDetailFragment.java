@@ -37,7 +37,6 @@ import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.scroll.NoScrollGridView;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
@@ -363,7 +362,9 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        ActivityUtil.startActivity(activity, SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,planVoteList.get(position).getAttender().getUserNo()));
+//        ActivityUtil.startActivity(activity, SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,planVoteList.get(position).getAttender().getUserNo()));
+        startActivityNew(activity, SettingActivity.class, Constants.USER_NO,planVoteList
+                .get(position).getAttender().getUserNo());
     }
 
 }

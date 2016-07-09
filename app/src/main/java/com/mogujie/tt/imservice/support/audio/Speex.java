@@ -12,7 +12,7 @@ public class Speex {
      * (noticeable artifacts sometimes) 6 : 11kpbs (artifacts usually only
      * noticeable with headphones) 8 : 15kbps (artifacts not usually noticeable)
      */
-    private static final int DEFAULT_COMPRESSION = 4;
+    private static final int DEFAULT_COMPRESSION = 8;
     private Logger log = Logger.getLogger(Speex.class);
 
     public Speex() {

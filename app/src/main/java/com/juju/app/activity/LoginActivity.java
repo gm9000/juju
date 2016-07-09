@@ -233,7 +233,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
     @Event(value = R.id.txt_regist_newuser, type = View.OnClickListener.class)
     private void onClick4RegistNewUser(View view) {
-        startActivity(LoginActivity.this, RegistActivity.class);
+        startActivityNew(LoginActivity.this, RegistActivity.class);
     }
 
 

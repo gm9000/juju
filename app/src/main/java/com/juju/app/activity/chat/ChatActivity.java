@@ -91,7 +91,6 @@ import com.juju.app.view.groupchat.YayaEmoGridView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -607,12 +606,8 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         topRightBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
-                BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
-                        currentSessionKey);
-                valuePairs.add(markerIdValue);
-                ActivityUtil.startActivity(ChatActivity.this, GroupManagerActivity.class,
-                        valuePairs.toArray(new BasicNameValuePair[]{}));
+                startActivityNew(ChatActivity.this, GroupManagerActivity.class,
+                        Constants.SESSION_ID_KEY, currentSessionKey);
             }
         });
 

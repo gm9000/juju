@@ -11,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.juju.app.annotation.CreateFragmentUI;
+import com.juju.app.utils.ActivityUtil;
 
 import org.xutils.x;
 
@@ -103,6 +104,18 @@ public abstract class BaseFragment extends Fragment {
         if (rootView == null)
             return null;
         return rootView.findViewById(viewId);
+    }
+
+    /**
+     * parameter参数长度不能大于2，支持两种格式
+     * 例子：1: key,value 2: Map (参数个数超过两个使用map)
+     * @param context
+     * @param cls
+     * @param parameter
+     */
+    protected void startActivityNew(Context context, Class<?> cls,
+                                    Object... parameter) {
+        ActivityUtil.startActivityNew(context, cls, parameter);
     }
 
 }

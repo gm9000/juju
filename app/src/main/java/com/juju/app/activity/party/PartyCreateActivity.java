@@ -44,7 +44,6 @@ import com.juju.app.view.dialog.WarnTipDialog;
 import com.juju.app.view.groupchat.IMGroupAvatar;
 import com.rey.material.app.BottomSheetDialog;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
@@ -56,7 +55,9 @@ import org.xutils.view.annotation.ViewInject;
 import java.io.UnsupportedEncodingException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 @ContentView(R.layout.activity_party_create)
@@ -371,7 +372,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
     @Event(value=R.id.layout_plan_add)
     private void addPlan(View view){
-        ActivityUtil.startActivityForResult(this,PlanCreateActivity.class,ADD_PLAN);
+//        ActivityUtil.startActivityForResult(this,PlanCreateActivity.class,ADD_PLAN);
+        startActivityForResultNew(this, PlanCreateActivity.class, ADD_PLAN);
     }
 
     @Event(value = {R.id.layout_plan1,R.id.layout_plan2,R.id.layout_plan3})
@@ -393,9 +395,13 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
         }
         if(index > -1) {
             Plan plan = planList.get(index);
-            BasicNameValuePair indexParam = new BasicNameValuePair("index",String.valueOf(index));
-            BasicNameValuePair planParam = new BasicNameValuePair("planStr",JacksonUtil.turnObj2String(plan));
-            ActivityUtil.startActivityForResult(this, PlanCreateActivity.class,EDIT_PLAN,indexParam,planParam);
+//            BasicNameValuePair indexParam = new BasicNameValuePair("index",String.valueOf(index));
+//            BasicNameValuePair planParam = new BasicNameValuePair("planStr",JacksonUtil.turnObj2String(plan));
+//            ActivityUtil.startActivityForResult(this, PlanCreateActivity.class,EDIT_PLAN,indexParam,planParam);
+            Map<String, Object> valueMap = new HashMap<>();
+            valueMap.put("index", String.valueOf(index));
+            valueMap.put("planStr", JacksonUtil.turnObj2String(plan));
+            startActivityForResultNew(this, PlanCreateActivity.class,EDIT_PLAN, valueMap);
         }
     }
 
