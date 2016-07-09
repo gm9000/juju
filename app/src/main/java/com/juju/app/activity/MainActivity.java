@@ -16,6 +16,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.party.DraftPartyListActivity;
 import com.juju.app.activity.party.GroupSelectActivity;
 import com.juju.app.activity.party.MyPartyListActivity;
 import com.juju.app.activity.party.PartyCreateActivity;
@@ -344,10 +345,13 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 case 0:// 创建聚会
                     ActivityUtil.startActivityForResult(MainActivity.this, GroupSelectActivity.class,CHOOSE_GROUP);
                     break;
-                case 1:// 发起的聚会
+                case 1:// 草稿箱
+                    ActivityUtil.startActivity4UP(MainActivity.this, DraftPartyListActivity.class);
+                    break;
+                case 2:// 发起的聚会
                     ActivityUtil.startActivity4UP(MainActivity.this, MyPartyListActivity.class);
                     break;
-                case 2:// 归档的聚会
+                case 3:// 归档的聚会
                     ActivityUtil.startActivity4UP(MainActivity.this, StockPartyListActivity.class);
                     break;
                 default:
@@ -375,11 +379,13 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         partyTitlePopup.setItemOnClickListener(onPartyItemClick);
         // 给标题栏弹窗添加子类
         partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_add,
-                R.mipmap.icon_menu_group));
+                R.mipmap.icon_new));
+        partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_draft,
+                R.mipmap.draft));
         partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_my,
-                R.mipmap.icon_menu_qrcode));
+                R.mipmap.me));
         partyTitlePopup.addAction(new ActionItem(this, R.string.menu_party_stock,
-                R.mipmap.icon_menu_invitecode));
+                R.mipmap.stock));
 
 
     }

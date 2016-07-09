@@ -45,7 +45,7 @@
                 android:adjustViewBounds="true"
                 android:scaleType="centerCrop"
                 android:cropToPadding="true"
-                android:src="@mipmap/meishi"/>
+                android:src="@mipmap/plan_add"/>
             <TextView
                 android:id="@+id/waiting_process"
                 android:layout_width="wrap_content"

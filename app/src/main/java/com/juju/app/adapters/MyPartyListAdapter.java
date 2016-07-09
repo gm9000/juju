@@ -12,6 +12,7 @@ import com.juju.app.R;
 import com.juju.app.entity.Party;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ImageLoaderUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.SwipeLayoutView;
 
@@ -87,7 +88,7 @@ public class MyPartyListAdapter extends BaseAdapter{
         TextView waitingProcess = (TextView) view.findViewById(R.id.waiting_process);
 
 
-        if(party.getCoverUrl()!=null) {
+        if(!StringUtils.empty(party.getCoverUrl())) {
             if (party.getCoverUrl().startsWith("http:")){
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             }else{

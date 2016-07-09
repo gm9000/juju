@@ -163,6 +163,9 @@
             android:label="@string/title_activity_plan_detail"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
+            android:name=".activity.party.DraftPartyListActivity"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".activity.party.PlanLocationActivity"
             android:label="@string/title_activity_plan_location"
             android:theme="@style/AppTheme.NoActionBar" />

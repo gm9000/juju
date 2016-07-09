@@ -321,7 +321,8 @@
     <string name="menu_invitecode">邀请码加群</string>
     <string name="menu_add_live">发起直播</string>
     <string name="menu_party_add">创建聚会</string>
-    <string name="menu_party_my">我发起的聚会</string>
+    <string name="menu_party_my">发起的聚会</string>
+    <string name="menu_party_draft">草稿箱</string>
     <string name="menu_party_stock">归档的聚会</string>
 
 

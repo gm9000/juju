@@ -41,9 +41,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @ContentView(R.layout.layout_my_party_list)
-public class MyPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener {
+public class DraftPartyListActivity extends BaseActivity implements AdapterView.OnItemClickListener, MyPartyListAdapter.Callback,PullToRefreshBase.OnRefreshListener {
 
-    private static final String TAG = "MyPartyListActivity";
+    private static final String TAG = "DraftPartyListActivity";
 
     @ViewInject(R.id.txt_title)
     private TextView txt_title;
@@ -97,7 +97,7 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
 
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         try {
-            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status",">",-1).and("user_no", "=", userInfoBean.getUserNo());
+            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", "=",-1);
             totalSize = selector.count();
             selector.orderBy("status").orderBy("local_id", true).offset(pageIndex*pageSize).limit(pageSize);;
             partyList = selector.findAll();
@@ -193,7 +193,7 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
 
         UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
         try {
-            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status",">",-1).and("user_no", "=", userInfoBean.getUserNo());
+            Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("user_no", "=", userInfoBean.getUserNo());
             totalSize = selector.count();
             selector.orderBy("local_id", true).offset(++pageIndex*pageSize).limit(pageSize);
             List<Party> pagePartyList = selector.findAll();
