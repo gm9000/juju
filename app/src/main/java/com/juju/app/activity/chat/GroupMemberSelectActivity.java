@@ -35,6 +35,7 @@ import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.event.UserInfoEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
@@ -133,7 +134,7 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
     @Override
     public void loadData() {
         userDao = new UserDaoImpl(getApplicationContext());
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
 //        logger.d("phones -> %s", phones);
     }
 

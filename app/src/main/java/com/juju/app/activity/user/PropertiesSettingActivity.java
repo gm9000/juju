@@ -19,6 +19,7 @@ import com.juju.app.R;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -275,7 +276,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
     private void save(View view){
 
         Map<String, Object> valueMap = new HashMap<String, Object>();
-        UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
         valueMap.put("userNo", userTokenInfoBean.getUserNo());
         valueMap.put("token", userTokenInfoBean.getToken());
 
@@ -408,7 +409,7 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
 
     private void updateUserPhone() {
         Map<String, Object> valueMap = new HashMap<String, Object>();
-        UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
         valueMap.put("userNo", userTokenInfoBean.getUserNo());
         valueMap.put("token", userTokenInfoBean.getToken());
         valueMap.put("phone",newPhone);

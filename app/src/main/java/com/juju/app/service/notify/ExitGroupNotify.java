@@ -237,26 +237,35 @@ public class ExitGroupNotify extends BaseNotify<ExitGroupEvent.ExitGroupBean> {
                             exitGroupBean.replyId = id;
                             exitGroupBean.replyTime = replyTime;
                             imOtherManager.updateOtherMessage(id, replyTime);
-                            buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
-                                    .Send.SEND_EXIT_GROUP_MSERVER_OK, exitGroupBean);
+                            if(exitGroupBean.flag == 1) {
+                                buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
+                                        .Send.SEND_EXIT_GROUP_MSERVER_OK, exitGroupBean);
+                            }
                         } else {
-                            buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
-                                    .Send.SEND_EXIT_GROUP_MSERVER_FAILED, exitGroupBean);
+                            if(exitGroupBean.flag == 1) {
+                                buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
+                                        .Send.SEND_EXIT_GROUP_MSERVER_FAILED, exitGroupBean);
+                            }
+
                         }
                     }
 
                     @Override
                     public void onFailed() {
                         logger.d("ExitGroupNotify#sendExitGroupToMServer failed");
-                        buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
-                                .Send.SEND_EXIT_GROUP_MSERVER_FAILED, exitGroupBean);
+                        if(exitGroupBean.flag == 1) {
+                            buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
+                                    .Send.SEND_EXIT_GROUP_MSERVER_FAILED, exitGroupBean);
+                        }
                     }
 
                     @Override
                     public void onTimeout() {
                         logger.d("ExitGroupNotify#sendExitGroupToMServer timeout");
-                        buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
-                                .Send.SEND_EXIT_GROUP_MSERVER_FAILED, exitGroupBean);
+                        if(exitGroupBean.flag == 1) {
+                            buildAndTriggerBusinessFlow4Send(ExitGroupEvent.BusinessFlow.SendParam
+                                    .Send.SEND_EXIT_GROUP_MSERVER_FAILED, exitGroupBean);
+                        }
                     }
                 });
     }

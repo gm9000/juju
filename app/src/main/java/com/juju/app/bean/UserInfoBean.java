@@ -156,7 +156,8 @@ public class UserInfoBean {
         this.birthday = birthday;
     }
 
-    private void initTest() {
+    private void
+    initTest() {
         this.mHost = "219.143.237.230";
         this.mPort = 5222;
 //        this.mPassword = "123456";

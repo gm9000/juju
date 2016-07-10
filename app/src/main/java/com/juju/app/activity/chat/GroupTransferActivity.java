@@ -13,6 +13,7 @@ import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.fragment.SingleCheckFragment;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
@@ -64,7 +65,7 @@ public class GroupTransferActivity extends BaseActivity implements CreateUIHelpe
     @Override
     public void loadData() {
         imServiceConnector.connect(GroupTransferActivity.this);
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
         groupId = getIntent().getStringExtra(Constants.SINGLE_CHECK_TARGET_ID);
     }
 

@@ -19,6 +19,7 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.User;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -124,7 +125,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,img_head,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         txt_nickName.setText(creator.getNickName());
 
-        isOwner = creator.getUserNo().equals(BaseApplication.getInstance().getUserInfoBean().getUserNo());
+        isOwner = creator.getUserNo().equals(AppContext.getUserInfoBean().getUserNo());
 
         try {
             planList = JujuDbUtils.getInstance().selector(Plan.class).where("party_id", "=", partyId).findAll();
@@ -224,7 +225,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
         //TODO 增加本地保存
 
-        UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
         Map<String,Object> reqBean = new HashMap<String,Object>();
         reqBean.put("userNo",userTokenInfoBean.getUserNo());
         reqBean.put("token", userTokenInfoBean.getToken());
@@ -244,7 +245,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
     private void deletePartyFromServer() {
 
-        UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
         Map<String,Object> reqBean = new HashMap<String,Object>();
         reqBean.put("userNo",userTokenInfoBean.getUserNo());
         reqBean.put("token", userTokenInfoBean.getToken());

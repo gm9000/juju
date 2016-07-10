@@ -19,6 +19,7 @@ import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.IMUIHelper;
@@ -58,7 +59,7 @@ public class GroupManagerAdapter extends BaseAdapter {
         this.context = c;
 		this.imService = imService;
         this.peerEntity = peerEntity;
-        this.userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        this.userInfoBean = AppContext.getUserInfoBean();
         setData();
 	}
 
@@ -173,6 +174,9 @@ public class GroupManagerAdapter extends BaseAdapter {
     }
 
     public void refreshGroupData(GroupEntity groupData) {
+        removeState = false;
+        showMinusTag = false;
+        showPlusTag = false;
         memberList.clear();
         setGroupData(groupData);
         notifyDataSetChanged();

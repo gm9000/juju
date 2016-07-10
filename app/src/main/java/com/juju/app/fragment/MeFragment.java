@@ -21,6 +21,7 @@ import com.juju.app.entity.Invite;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.User;
 import com.juju.app.event.NotificationMessageEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -161,7 +162,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     }
 
     public void loadUserInfo() {
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl()+"/getPortraitSmall?targetNo="+userInfoBean.getUserNo(),imgHead,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         userNo = userInfoBean.getUserNo();
 
@@ -239,7 +240,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
                             txtPhone.setText(userInfo.getUserPhone());
 
 
-                            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                            UserInfoBean userInfoBean = AppContext.getUserInfoBean();
                             userInfoBean.setNickName(userInfo.getNickName());
                         } else {
                         }

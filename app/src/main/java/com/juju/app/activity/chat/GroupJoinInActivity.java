@@ -17,6 +17,7 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.event.notify.ApplyInGroupEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.https.HttpCallBack4OK;
@@ -109,7 +110,7 @@ public class GroupJoinInActivity extends BaseActivity implements CreateUIHelper 
         }
         code = getIntent().getStringExtra("code");
         groupId = getIntent().getStringExtra("groupId");
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
     }
 
     @Override

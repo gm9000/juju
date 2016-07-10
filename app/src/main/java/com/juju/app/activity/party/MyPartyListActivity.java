@@ -22,6 +22,7 @@ import com.juju.app.adapters.MyPartyListAdapter;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.Plan;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
@@ -94,7 +95,7 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
 
     private void initData() {
 
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         try {
             Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status",">",-1).and("user_no", "=", userInfoBean.getUserNo());
             totalSize = selector.count();
@@ -228,7 +229,7 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
                 ListView partyListView = listPartyView.getRefreshableView();
                 int preSum = partyList.size();
 
-                UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                UserInfoBean userInfoBean = AppContext.getUserInfoBean();
                 try {
                     Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status",">",-1).and("user_no", "=", userInfoBean.getUserNo());
                     totalSize = selector.count();

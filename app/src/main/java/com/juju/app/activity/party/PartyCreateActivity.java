@@ -28,6 +28,7 @@ import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.event.notify.PartyNotifyEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -310,7 +311,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                 return;
             }
 
-            UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+            UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
             PartyReqBean reqBean = new PartyReqBean();
             reqBean.setUserNo(userTokenInfoBean.getUserNo());
             reqBean.setToken(userTokenInfoBean.getToken());
@@ -356,7 +357,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
             party.setName(txt_partyTitle.getText().toString());
             party.setDesc(txt_description.getText().toString());
             party.setStatus(-1);
-            party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getUserNo());
+            party.setUserNo(AppContext.getUserInfoBean().getUserNo());
             party.setGroupId(groupId);
 
             JujuDbUtils.saveOrUpdate(party);
@@ -606,7 +607,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                             party.setName(txt_partyTitle.getText().toString());
                             party.setDesc(txt_description.getText().toString());
                             party.setId(partyId);
-                            party.setUserNo(BaseApplication.getInstance().getUserInfoBean().getUserNo());
+                            party.setUserNo(AppContext.getUserInfoBean().getUserNo());
 
                             party.setStatus(0); //  召集中
 
@@ -639,8 +640,8 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
                                 PartyNotifyEvent.PartyNotifyBean partyNotifyBean = PartyNotifyEvent
                                         .PartyNotifyBean.valueOf(groupId,partyId,party.getName(),
-                                                BaseApplication.getInstance().getUserInfoBean().getUserNo()
-                                                ,BaseApplication.getInstance().getUserInfoBean().getNickName());
+                                                AppContext.getUserInfoBean().getUserNo()
+                                                ,AppContext.getUserInfoBean().getNickName());
                                 PartyRecruitNotify.instance().executeCommand4Send(partyNotifyBean);
 
 

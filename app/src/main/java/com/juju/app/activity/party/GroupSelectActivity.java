@@ -21,6 +21,7 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
@@ -54,7 +55,7 @@ public class GroupSelectActivity extends BaseActivity implements CreateUIHelper{
     @Override
     public void loadData() {
         groupDao = new GroupDaoImpl(getApplicationContext());
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
     }
 
     @Override

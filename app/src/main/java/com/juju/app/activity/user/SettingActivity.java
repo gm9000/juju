@@ -17,6 +17,7 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -128,7 +129,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         }
         if(userInfo != null && userInfo.isUpdate()){
             Map<String, Object> valueMap = new HashMap<String, Object>();
-            UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+            UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
             valueMap.put("userNo", userTokenInfoBean.getUserNo());
             valueMap.put("token", userTokenInfoBean.getToken());
             valueMap.put("nickName", userInfo.getNickName());
@@ -149,7 +150,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
 
     private void loadUserInfo() {
-        String targetNo = userNo==null?BaseApplication.getInstance().getUserInfoBean().getUserNo():userNo;
+        String targetNo = userNo==null?AppContext.getUserInfoBean().getUserNo():userNo;
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         User userInfo = null;
         if(StringUtils.isBlank(userNo)) {
@@ -168,7 +169,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
             }
         }
         if(userInfo == null){
-            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+            UserInfoBean userInfoBean = AppContext.getUserInfoBean();
             Map<String, Object> valueMap = new HashMap<String, Object>();
             valueMap.put("userNo", userInfoBean.getUserNo());
             valueMap.put("token", userInfoBean.getToken());
@@ -329,7 +330,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
     }
 
     private void logout(){
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         Map<String, Object> valueMap = new HashMap<String, Object>();
         valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());

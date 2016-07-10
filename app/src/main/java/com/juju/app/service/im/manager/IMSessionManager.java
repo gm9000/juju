@@ -18,6 +18,7 @@ import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.UnreadEntity;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.SessionEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.chat.EntityChangeEngine;
@@ -67,7 +68,7 @@ public class IMSessionManager extends IMManager {
 
     private DaoSupport messageDao;
 
-    private UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+    private UserInfoBean userInfoBean = AppContext.getUserInfoBean();
 
     //双重判断+volatile（禁止JMM重排序）保证线程安全
     public static IMSessionManager instance() {
@@ -138,7 +139,7 @@ public class IMSessionManager extends IMManager {
             ;
             return;
         }
-        String userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
+        String userNo = AppContext.getUserInfoBean().getUserNo();
         boolean isSend = msg.isSend(userNo);
         String peerId = msg.getPeerId(isSend);
 

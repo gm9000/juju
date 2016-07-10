@@ -17,6 +17,7 @@ import com.juju.app.entity.chat.UnreadEntity;
 import com.juju.app.event.JoinChatRoomEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.helper.chat.SequenceNumberMaker;
@@ -85,7 +86,7 @@ public class IMUnreadMsgManager extends IMManager {
     private boolean unreadListReady = false;
 
 
-    private UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+    private UserInfoBean userInfoBean = AppContext.getUserInfoBean();
 
     private MessageDao messageDao;
 
@@ -103,7 +104,7 @@ public class IMUnreadMsgManager extends IMManager {
     public void doOnStart() {
 //        messageDao = new MessageDaoImpl(ctx);
 //        unReadDao = new UnreadDaoImpl(ctx);
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         chatRoomIds.add(userInfoBean.getmRoomName() +
                 "@" + userInfoBean.getmMucServiceName() + "." + userInfoBean.getmServiceName());
     }
@@ -261,7 +262,7 @@ public class IMUnreadMsgManager extends IMManager {
         // 不做复杂判断了，简单处理
         int msgId = msg.getMsgId();
         int sessionType = msg.getSessionType();
-        String userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
+        String userNo = AppContext.getUserInfoBean().getUserNo();
         boolean isSend = msg.isSend(userNo);
         String peerId = msg.getPeerId(isSend);
 

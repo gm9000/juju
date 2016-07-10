@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.annotation.SystemColor;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.TipsToastUtil;
 import com.juju.app.view.CustomDialog;
@@ -105,7 +106,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
         setOnListener();
         initPublicViews();
-        BaseApplication.getInstance().addActivity(this);
+        AppContext.getActivities().add(this);
     }
 
     @Override

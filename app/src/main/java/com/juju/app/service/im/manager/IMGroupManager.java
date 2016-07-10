@@ -25,6 +25,7 @@ import com.juju.app.event.LoginEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.user.InviteGroupEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
@@ -131,7 +132,7 @@ public class IMGroupManager extends IMManager {
 
     @Override
     public void doOnStart() {
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
     }
 
     /**
