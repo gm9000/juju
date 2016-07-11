@@ -16,11 +16,13 @@ import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.CacheManager;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.SpfUtil;
 import com.rey.material.app.ThemeManager;
+import com.squareup.leakcanary.LeakCanary;
 
 import org.xutils.DbManager;
 import org.xutils.db.table.TableEntity;
@@ -40,23 +42,24 @@ import java.util.List;
  */
 public class BaseApplication extends Application {
 
-    private static BaseApplication mInstance;
+//    private static BaseApplication mInstance;
 
-    private UserInfoBean userInfoBean = new UserInfoBean();
+//    private UserInfoBean userInfoBean = new UserInfoBean();
 
-    private List<Activity> mActivities = new ArrayList<>();
+//    private List<Activity> mActivities = new ArrayList<>();
 
 
-    public static BaseApplication getInstance() {
-        if (null == mInstance) {
-            mInstance = new BaseApplication();
-        }
-        return mInstance;
-    }
+//    public static BaseApplication getInstance() {
+//        if (null == mInstance) {
+//            mInstance = new BaseApplication();
+//        }
+//        return mInstance;
+//    }
 
     @Override
     public void onCreate() {
         super.onCreate();
+//        LeakCanary.install(this);
         long begin = System.currentTimeMillis();
         initFramework();
         initConfig();
@@ -92,30 +95,7 @@ public class BaseApplication extends Application {
 
     //初始化系统配置
     private void initConfig() {
-//        File file = null;
-//        String dbDir =  CacheManager.getAppDatabasePath(getApplicationContext());
-//        file = new File(dbDir);
-//        if(!file.isDirectory()) {
-//            file.mkdirs();
-//        }
-//        DbManager.DaoConfig daoConfig = new DbManager.DaoConfig()
-//                .setDbDir(file)
-//                .setDbName(DBConstant.DB_NAME)
-//                .setTableCreateListener(new DbManager.TableCreateListener() {
-//                    @Override
-//                    public void onTableCreated(DbManager db, TableEntity<?> table) {
-//                        if("message".equalsIgnoreCase(table.getName())) {
-//                            try {
-//                                db.execNonQuery("CREATE INDEX index_message_created ON message(created)");
-//                                db.execNonQuery("CREATE UNIQUE INDEX index_message_session_key_msg_id " +
-//                                        "on message(session_key, msg_id)");
-//                            } catch (DbException e) {
-//                                e.printStackTrace();
-//                            }
-//                        }
-//                    }
-//                });
-//        BaseApplication.getInstance().setDaoConfig(daoConfig);
+
     }
 
     //初始化DEBUG模式
@@ -151,9 +131,7 @@ public class BaseApplication extends Application {
                 }).build());
 
 //        Stetho.initializeWithDefaults(this);
-
         //监测内存泄漏
-//        LeakCanary.install(this);
 //        x.Ext.setDebug(BuildConfig.DEBUG);
     }
 
@@ -182,7 +160,7 @@ public class BaseApplication extends Application {
      * @param activity
      */
     public void addActivity(Activity activity) {
-        mActivities.add(activity);
+        AppContext.getActivities().add(activity);
     }
 
     /**
@@ -190,7 +168,7 @@ public class BaseApplication extends Application {
      */
     @Override
     public void onTerminate() {
-        for (Activity activity : mActivities) {
+        for (Activity activity : AppContext.getActivities()) {
             activity.finish();
         }
         stopIMService();
@@ -202,10 +180,10 @@ public class BaseApplication extends Application {
      * 此方法调用有问题，需要调整
      * @return
      */
-    @Deprecated
-    public UserInfoBean getUserInfoBean() {
-        return userInfoBean;
-    }
+//    @Deprecated
+//    public UserInfoBean getUserInfoBean() {
+//        return userInfoBean;
+//    }
 
     //启动IM服务
     private void startIMService() {
@@ -221,11 +199,7 @@ public class BaseApplication extends Application {
         stopService(intent);
     }
 
-    boolean isFirst = true;
 
-    private boolean isFirstLaunch() {
-        return isFirst;
-    }
 
 
 }

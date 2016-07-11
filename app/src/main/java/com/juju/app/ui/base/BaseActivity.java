@@ -21,6 +21,7 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.annotation.SystemColor;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.TipsToastUtil;
 import com.juju.app.view.CustomDialog;
@@ -28,7 +29,6 @@ import com.juju.app.view.SearchEditText;
 import com.kaopiz.kprogresshud.KProgressHUD;
 import com.readystatesoftware.systembartint.SystemBarTintManager;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.x;
@@ -106,7 +106,7 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
         setOnListener();
         initPublicViews();
-        BaseApplication.getInstance().addActivity(this);
+        AppContext.getActivities().add(this);
     }
 
     @Override
@@ -206,18 +206,18 @@ public abstract class BaseActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * 打开Activity
-     *
-     * @param activity
-     * @param cls
-     * @param name
-     */
-    @Deprecated
-    protected void startActivity(Activity activity, Class<?> cls,
-                                 BasicNameValuePair... name) {
-        ActivityUtil.startActivity(activity, cls, name);
-    }
+//    /**
+//     * 打开Activity
+//     *
+//     * @param activity
+//     * @param cls
+//     * @param name
+//     */
+//    @Deprecated
+//    protected void startActivity(Activity activity, Class<?> cls,
+//                                 BasicNameValuePair... name) {
+//        ActivityUtil.startActivity(activity, cls, name);
+//    }
 
     /**
      * parameter参数长度不能大于2，支持两种格式
@@ -232,16 +232,28 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
 
+//    /**
+//     * 打开Activity，带返回值
+//     * @param activity
+//     * @param cls
+//     * @param requestCode
+//     * @param name
+//     */
+//    protected void startActivityForResult(Activity activity, Class<?> cls, int requestCode,
+//                                          BasicNameValuePair... name) {
+//        ActivityUtil.startActivityForResult(activity, cls, requestCode, name);
+//    }
+
     /**
      * 打开Activity，带返回值
      * @param activity
      * @param cls
      * @param requestCode
-     * @param name
+     * @param obj
      */
-    protected void startActivityForResult(Activity activity, Class<?> cls, int requestCode,
-                                          BasicNameValuePair... name) {
-        ActivityUtil.startActivityForResult(activity, cls, requestCode, name);
+    protected void startActivityForResultNew(Activity activity, Class<?> cls, int requestCode,
+                                          Object... obj) {
+        ActivityUtil.startActivityForResultNew(activity, cls, requestCode, obj);
     }
 
     /**

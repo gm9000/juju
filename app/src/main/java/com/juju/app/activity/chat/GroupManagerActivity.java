@@ -26,6 +26,7 @@ import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
@@ -52,7 +53,6 @@ import com.juju.app.view.dialog.WarnTipDialog;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -134,7 +134,7 @@ public class GroupManagerActivity extends BaseActivity {
                 return;
             }
             checkBoxConfiger.init(imService.getConfigSp());
-            userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+            userInfoBean = AppContext.getUserInfoBean();
             initViews();
             initAdapter();
         }
@@ -341,6 +341,7 @@ public class GroupManagerActivity extends BaseActivity {
     public void onEvent4MasterTransfer(MasterTransferEvent masterTransferEvent) {
         switch (masterTransferEvent.event) {
             case SEND_MASTER_TRANSFER_OK:
+            case RECV_MASTER_TRANSFER_OK:
                 GroupEntity groupEntity = imService.getGroupManager()
                         .findGroupById(masterTransferEvent.bean.groupId);
                 if(groupEntity != null) {

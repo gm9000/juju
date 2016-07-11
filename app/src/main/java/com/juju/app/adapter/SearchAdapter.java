@@ -24,7 +24,6 @@ import com.juju.app.utils.ScreenUtil;
 import com.juju.app.view.groupchat.IMBaseImageView;
 import com.juju.app.view.groupchat.IMGroupAvatar;
 
-import org.apache.http.message.BasicNameValuePair;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -82,14 +81,8 @@ public class SearchAdapter extends BaseAdapter implements
 //            IMUIHelper.openChatActivity(ctx, userEntity.getSessionKey());
         }else if(object instanceof GroupEntity){
             GroupEntity groupEntity = (GroupEntity) object;
-            List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
-            BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
+            ActivityUtil.startActivityNew(ctx, ChatActivity.class, Constants.SESSION_ID_KEY,
                     groupEntity.getSessionKey());
-            valuePairs.add(markerIdValue);
-            ActivityUtil.startActivity(ctx, ChatActivity.class,
-                    valuePairs.toArray(new BasicNameValuePair[]{}));
-
-//            IMUIHelper.openChatActivity(ctx, groupEntity.getSessionKey());
         }
     }
 

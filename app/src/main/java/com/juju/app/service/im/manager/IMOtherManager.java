@@ -17,6 +17,7 @@ import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.service.im.service.SocketService;
@@ -76,7 +77,7 @@ public class IMOtherManager extends IMManager {
 
     @Override
     public void doOnStart() {
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
     }
 
     /**

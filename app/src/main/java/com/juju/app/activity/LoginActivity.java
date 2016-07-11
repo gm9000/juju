@@ -25,6 +25,7 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
 import com.juju.app.event.UnreadEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
@@ -138,7 +139,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     @Override
     public void loadData() {
         HttpConstants.initURL();
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
         loginId = (String)SpfUtil.get(LoginActivity.this, "loginId", "");
         userNo = (String)SpfUtil.get(LoginActivity.this, "userNo", "");
         pwd = (String)SpfUtil.get(LoginActivity.this, "pwd", "");
@@ -158,13 +159,13 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         setLoginBtnBackgroud();
         layout_login_main.setFocusableInTouchMode(true);
 
-        if(StringUtils.isNotBlank(BaseApplication.getInstance().getUserInfoBean().getUserNo())){
+        if(StringUtils.isNotBlank(AppContext.getUserInfoBean().getUserNo())){
             BitmapUtilFactory.getInstance(this).bind(portrait, HttpConstants.getUserUrl() +
-                            "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getUserNo(),
+                            "/getPortraitSmall?targetNo=" + AppContext.getUserInfoBean().getUserNo(),
                     BitmapUtilFactory.Option.imageOptions());
         }
 
-        if(BaseApplication.getInstance().getUserInfoBean().getNickName() != null){
+        if(AppContext.getUserInfoBean().getNickName() != null){
             tv_nickName.setText(nickName);
         }
 
@@ -233,7 +234,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
 
     @Event(value = R.id.txt_regist_newuser, type = View.OnClickListener.class)
     private void onClick4RegistNewUser(View view) {
-        startActivity(LoginActivity.this, RegistActivity.class);
+        startActivityNew(LoginActivity.this, RegistActivity.class);
     }
 
 
@@ -328,7 +329,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                 logger.d("####################LOGIN_BSERVER_OK################");
                 loginSuccess = true;
                 saveUserInfo();
-//                imService.getLoginManager().setUserNo(userNo);
                 startActivityNew(LoginActivity.this, MainActivity.class);
                 //登陆聊天服务
                 if(imService != null) {

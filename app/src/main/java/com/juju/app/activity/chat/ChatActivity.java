@@ -64,6 +64,9 @@ import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.HandlerConstant;
@@ -91,7 +94,6 @@ import com.juju.app.view.groupchat.YayaEmoGridView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -233,12 +235,12 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     @Override
     public void loadData() {
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
         EventBus.getDefault().register(this);
         initHandler();
         imServiceConnector.connect(this);
         currentSessionKey =  ChatActivity.this.getIntent().getStringExtra(Constants.SESSION_ID_KEY);
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
 
         loginUser = new UserEntity();
         loginUser.setGender(1);
@@ -607,12 +609,8 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         topRightBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                List<BasicNameValuePair> valuePairs = new ArrayList<BasicNameValuePair>();
-                BasicNameValuePair markerIdValue = new BasicNameValuePair(Constants.SESSION_ID_KEY,
-                        currentSessionKey);
-                valuePairs.add(markerIdValue);
-                ActivityUtil.startActivity(ChatActivity.this, GroupManagerActivity.class,
-                        valuePairs.toArray(new BasicNameValuePair[]{}));
+                startActivityNew(ChatActivity.this, GroupManagerActivity.class,
+                        Constants.SESSION_ID_KEY, currentSessionKey);
             }
         });
 
@@ -1268,66 +1266,143 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4ApplyInGroupEvent(ApplyInGroupEvent event){
         logger.d("ChatActivity#ApplyInGroupEvent# -> %s", event);
-        switch (event.event){
-            case RECV_APPLY_IN_GROUP_OK:
-                ApplyInGroupEvent.ApplyInGroupBean applyInGroupBean  = event.bean;
-                if(userInfoBean.getUserNo().equals(applyInGroupBean.userNo)) {
-                    break;
-                } else {
-                    User fromUser = imService.getContactManager().findContact(applyInGroupBean.userNo);
-                    GroupEntity groupEntity = imService.getGroupManager().findGroupById(applyInGroupBean.groupId);
-                    //需考虑批量邀请
-                    String content = fromUser.getNickName()+"扫码加入了群聊";
-                    TextMessage textMessage = TextMessage.buildForSend2Notify(applyInGroupBean.replyId,
-                            applyInGroupBean.replyTime, content,fromUser.getPeerId(), groupEntity.getPeerId());
-                    onMsgRecv(textMessage);
+        ApplyInGroupEvent.ApplyInGroupBean applyInGroupBean  = event.bean;
+        if(currentSessionKey.indexOf(applyInGroupBean.groupId) >= 0) {
+            switch (event.event){
+                case RECV_APPLY_IN_GROUP_OK:
+                    if(userInfoBean.getUserNo().equals(applyInGroupBean.userNo)) {
+                        break;
+                    } else {
+                        User fromUser = imService.getContactManager().findContact(applyInGroupBean.userNo);
+                        GroupEntity groupEntity = imService.getGroupManager().findGroupById(applyInGroupBean.groupId);
+                        //需考虑批量邀请
+                        String content = fromUser.getNickName()+"扫码加入了群聊";
+                        TextMessage textMessage = TextMessage.buildForSend2Notify(applyInGroupBean.replyId,
+                                applyInGroupBean.replyTime, content,fromUser.getPeerId(), groupEntity.getPeerId());
+                        onMsgRecv(textMessage);
 
-                    MessageEntity messageEntity = textMessage.clone();
-                    imService.getMessageManager().replaceInto(messageEntity);
-                }
-                break;
+                        MessageEntity messageEntity = textMessage.clone();
+                        imService.getMessageManager().replaceInto(messageEntity);
+                    }
+                    break;
+            }
         }
     }
+
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4ExitGroupEvent(ExitGroupEvent event){
         logger.d("ChatActivity#ExitGroupEvent# -> %s", event);
-        switch (event.event){
-            case RECV_EXIT_GROUP_OK:
-                ExitGroupEvent.ExitGroupBean exitGroupBean  = event.bean;
-                if(userInfoBean.getUserNo().equals(exitGroupBean.userNo)) {
-                    //是否需要提醒
-                    finish(ChatActivity.this);
-                    break;
-                } else {
-                    User fromUser = null;
-                    String content = null;
-                    //管理员移除
-                    if(exitGroupBean.flag == 0) {
-                        GroupEntity groupEntity = imService.getGroupManager().findGroupById(exitGroupBean.groupId);
-                        fromUser = imService.getContactManager().findContact(groupEntity.getMasterId());
-                        User targetUser = imService.getContactManager().findContact(exitGroupBean.userNo);
-                        content = targetUser.getNickName()+"被管理员移出群聊";
-                    }
-                    //用户主动退群
-                    else if (exitGroupBean.flag == 1) {
-                        fromUser = imService.getContactManager().findContact(exitGroupBean.userNo);
-                        content = fromUser.getNickName()+"退出群聊";
-                    }
+        ExitGroupEvent.ExitGroupBean exitGroupBean  = event.bean;
+        if(currentSessionKey.indexOf(exitGroupBean.groupId) >= 0) {
+            GroupEntity groupEntity = imService.getGroupManager().findGroupById(exitGroupBean.groupId);
+            String groupPeerId = exitGroupBean.groupId+"@"+userInfoBean.getmMucServiceName()
+                    +"."+userInfoBean.getmServiceName();
+            User fromUser = null;
+            String content = null;
+            switch (event.event){
+//                case SEND_EXIT_GROUP_OK:
+//                    fromUser = imService.getContactManager().findContact(groupEntity.getMasterId());
+//                    content = "你将"+exitGroupBean.nickname+"移除群聊";
+//                    TextMessage textMessage4Send = TextMessage.buildForSend2Notify(exitGroupBean.replyId,
+//                            exitGroupBean.replyTime, content, fromUser.getPeerId(), groupPeerId);
+//                    onMsgRecv(textMessage4Send);
+//                    MessageEntity messageEntity4Send = textMessage4Send.clone();
+//                    imService.getMessageManager().replaceInto(messageEntity4Send);
+//                    break;
+                case RECV_EXIT_GROUP_OK:
+                    if(userInfoBean.getUserNo().equals(exitGroupBean.userNo)) {
+                        //是否需要提醒
+                        finish(ChatActivity.this);
+                        break;
+                    } else {
+                        //管理员移除
+                        if(exitGroupBean.flag == 0) {
+                            fromUser = imService.getContactManager().findContact(groupEntity.getMasterId());
+                            User targetUser = imService.getContactManager().findContact(exitGroupBean.userNo);
+                            content = targetUser.getNickName()+"被管理员移出群聊";
+                        }
+                        //用户主动退群
+                        else if (exitGroupBean.flag == 1) {
+                            fromUser = imService.getContactManager().findContact(exitGroupBean.userNo);
+                            content = fromUser.getNickName()+"退出群聊";
+                        }
 //                    GroupEntity groupEntity = imService.getGroupManager().findGroupById(exitGroupBean.groupId);
-                    String groupPeerId = exitGroupBean.groupId+"@"+userInfoBean.getmMucServiceName()
-                            +"."+userInfoBean.getmServiceName();
-                    //需考虑批量邀请
-                    TextMessage textMessage = TextMessage.buildForSend2Notify(exitGroupBean.replyId,
-                            exitGroupBean.replyTime, content, fromUser.getPeerId(), groupPeerId);
-                    onMsgRecv(textMessage);
 
-                    MessageEntity messageEntity = textMessage.clone();
-                    imService.getMessageManager().replaceInto(messageEntity);
-                }
-                break;
+                        //需考虑批量邀请
+                        TextMessage textMessage = TextMessage.buildForSend2Notify(exitGroupBean.replyId,
+                                exitGroupBean.replyTime, content, fromUser.getPeerId(), groupPeerId);
+                        onMsgRecv(textMessage);
+
+                        MessageEntity messageEntity = textMessage.clone();
+                        imService.getMessageManager().replaceInto(messageEntity);
+                    }
+                    break;
+            }
         }
     }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4RemoveGroupEvent(RemoveGroupEvent event){
+        logger.d("ChatActivity#RemoveGroupEvent# -> %s", event);
+        RemoveGroupEvent.RemoveGroupBean removeGroupBean  = event.bean;
+        if(currentSessionKey.indexOf(removeGroupBean.groupId) >= 0) {
+            String toPeerId = removeGroupBean.userNo+"@"+userInfoBean.getmServiceName();
+            User fromUser = null;
+            User toUser = null;
+            String content = null;
+            switch (event.event){
+                case SEND_REMOVE_GROUP_OK:
+                    fromUser = imService.getContactManager().findContact(userInfoBean.getUserNo());
+                    toUser = imService.getContactManager().findContact(removeGroupBean.userNo);
+                    content = "你将"+toUser.getNickName()+"移除群聊";
+                    TextMessage textMessage4Send = TextMessage.buildForSend2Notify(removeGroupBean.replyId,
+                            removeGroupBean.replyTime, content, fromUser.getPeerId(), toPeerId);
+                    onMsgRecv(textMessage4Send);
+                    MessageEntity messageEntity4Send = textMessage4Send.clone();
+                    imService.getMessageManager().replaceInto(messageEntity4Send);
+                    break;
+            }
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4RemoveGroupEvent(MasterTransferEvent event){
+        logger.d("ChatActivity#RemoveGroupEvent# -> %s", event);
+        MasterTransferEvent.MasterTransferBean masterTransferBean  = event.bean;
+        if(currentSessionKey.indexOf(masterTransferBean.groupId) >= 0) {
+            String toPeerId = masterTransferBean.groupId+"@"+userInfoBean.getmMucServiceName()+"."
+                    +userInfoBean.getmServiceName();
+            User fromUser = null;
+            String content = null;
+            switch (event.event){
+                case SEND_MASTER_TRANSFER_OK:
+                    fromUser = imService.getContactManager().findContact(userInfoBean.getUserNo());
+                    content = "你将管理员转让给"+masterTransferBean.masterNickName;
+                    TextMessage textMessage4Send = TextMessage.buildForSend2Notify(masterTransferBean.replyId,
+                            masterTransferBean.replyTime, content, fromUser.getPeerId(), toPeerId);
+                    onMsgRecv(textMessage4Send);
+                    MessageEntity messageEntity4Send = textMessage4Send.clone();
+                    imService.getMessageManager().replaceInto(messageEntity4Send);
+                    break;
+                case RECV_MASTER_TRANSFER_OK:
+                    fromUser = imService.getContactManager().findContact(masterTransferBean.userNo);
+                    if(masterTransferBean.masterNo.equals(userInfoBean.getUserNo())) {
+                        content = masterTransferBean.nickname+"将管理员转让给你";
+                    } else {
+                        content = masterTransferBean.nickname+"将管理员转让给"+masterTransferBean.masterNickName;
+                    }
+                    TextMessage textMessage4Recv = TextMessage.buildForSend2Notify(masterTransferBean.replyId,
+                            masterTransferBean.replyTime, content, fromUser.getPeerId(), toPeerId);
+                    onMsgRecv(textMessage4Recv);
+                    MessageEntity messageEntity4Recv = textMessage4Recv.clone();
+                    imService.getMessageManager().replaceInto(messageEntity4Recv);
+                    break;
+            }
+        }
+    }
+
 
 
     /**

@@ -17,6 +17,7 @@ import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.PriorityEvent;
 import com.juju.app.event.SmackSocketEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
@@ -115,8 +116,8 @@ public class XMPPServiceImpl implements
 //        resource = "XMPP";
 //        saslEnabled = false;
 //        tlsMode = TLSMode.legacy;
-        serverName = BaseApplication.getInstance().getUserInfoBean().getmServiceName();
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        serverName = AppContext.getUserInfoBean().getmServiceName();
+        userInfoBean = AppContext.getUserInfoBean();
         this.messageDao = messageDao;
     }
 
@@ -125,8 +126,8 @@ public class XMPPServiceImpl implements
         if (useSRVLookup) {
             builder.setServiceName(serverName);
         } else {
-            String host = BaseApplication.getInstance().getUserInfoBean().getmHost();
-            int port = BaseApplication.getInstance().getUserInfoBean().getmPort();
+            String host = AppContext.getUserInfoBean().getmHost();
+            int port = AppContext.getUserInfoBean().getmPort();
             builder.setHost(host);
             builder.setPort(port);
             builder.setServiceName(serverName);
@@ -137,7 +138,7 @@ public class XMPPServiceImpl implements
 
     private void onReady(XMPPTCPConnectionConfiguration.Builder builder)
             throws IOException, XMPPException, SmackException {
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         // 不加这行会报错，因为没有证书
         builder.setSecurityMode(ConnectionConfiguration.SecurityMode.disabled);
         if(Constants.IS_APP_MODEL) {
@@ -207,7 +208,7 @@ public class XMPPServiceImpl implements
             xmppConnection.connect();
         }
 
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         String userNo = userInfoBean.getUserNo();
         String password = userInfoBean.getmPassword();
         String serviceName = userInfoBean.getmServiceName();
@@ -681,7 +682,7 @@ public class XMPPServiceImpl implements
     static class AcceptAll implements StanzaFilter {
         @Override
         public boolean accept(Stanza packet) {
-            UserInfoBean bean = BaseApplication.getInstance().getUserInfoBean();
+            UserInfoBean bean = AppContext.getUserInfoBean();
             //针对自己发出消息的回复 需要放过
 //            if(packet instanceof Message && ((Message)packet).
 //                    getExtension(ReplayMessageTime.NAME, ReplayMessageTime.NAME_SPACE) != null) {

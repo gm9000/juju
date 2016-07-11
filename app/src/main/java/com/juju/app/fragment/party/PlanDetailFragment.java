@@ -24,6 +24,7 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.User;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -36,7 +37,6 @@ import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.scroll.NoScrollGridView;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
@@ -133,7 +133,7 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
     @Override
     public void loadData() {
 
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         PlanVote planVote = null;
         try {
             planVoteList = JujuDbUtils.getInstance().selector(PlanVote.class).where("plan_id", "=", plan.getId()).findAll();
@@ -262,7 +262,7 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
 
         //TODO 增加本地保存
 
-        UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
         PlanVoteReqBean reqBean = new PlanVoteReqBean();
         reqBean.setUserNo(userTokenInfoBean.getUserNo());
         reqBean.setToken(userTokenInfoBean.getToken());
@@ -292,7 +292,7 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
                     try {
                         int status = jsonRoot.getInt("status");
                         if(status == 0) {
-                            UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                            UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
                             if(isSigned){
 
                                 WhereBuilder whereBuilder = WhereBuilder.b("attender_no", "=", userTokenInfoBean.getUserNo());
@@ -362,7 +362,9 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        ActivityUtil.startActivity(activity, SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,planVoteList.get(position).getAttender().getUserNo()));
+//        ActivityUtil.startActivity(activity, SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,planVoteList.get(position).getAttender().getUserNo()));
+        startActivityNew(activity, SettingActivity.class, Constants.USER_NO,planVoteList
+                .get(position).getAttender().getUserNo());
     }
 
 }

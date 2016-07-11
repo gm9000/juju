@@ -25,6 +25,7 @@ import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
@@ -84,7 +85,7 @@ public class IMNotificationManager extends IMManager {
     }
 
     public void onLoginSuccess(){
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
         String loginId = userInfoBean.getUserNo();
         configurationSp = ConfigurationSp.instance(ctx, loginId);
         if(!EventBus.getDefault().isRegistered(inst)){

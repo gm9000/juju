@@ -324,7 +324,7 @@ public class RegistNext1Activity extends BaseActivity implements CreateUIHelper,
                                 imService.getLoginManager().createAccount(SessionConstants.userNo, password);
                             }
                             ToastUtil.TextIntToast(getApplicationContext(), R.string.register_success, 2);
-                            startActivity(RegistNext1Activity.this, LoginActivity.class);
+                            startActivityNew(RegistNext1Activity.this, LoginActivity.class);
                         } else {
                             showMsgDialog(R.string.regist_user_error);
                         }

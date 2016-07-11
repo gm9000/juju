@@ -17,6 +17,7 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
@@ -33,7 +34,6 @@ import com.juju.app.view.dialog.WarnTipDialog;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
@@ -129,7 +129,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         }
         if(userInfo != null && userInfo.isUpdate()){
             Map<String, Object> valueMap = new HashMap<String, Object>();
-            UserInfoBean userTokenInfoBean = BaseApplication.getInstance().getUserInfoBean();
+            UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
             valueMap.put("userNo", userTokenInfoBean.getUserNo());
             valueMap.put("token", userTokenInfoBean.getToken());
             valueMap.put("nickName", userInfo.getNickName());
@@ -150,7 +150,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
 
     private void loadUserInfo() {
-        String targetNo = userNo==null?BaseApplication.getInstance().getUserInfoBean().getUserNo():userNo;
+        String targetNo = userNo==null?AppContext.getUserInfoBean().getUserNo():userNo;
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         User userInfo = null;
         if(StringUtils.isBlank(userNo)) {
@@ -169,7 +169,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
             }
         }
         if(userInfo == null){
-            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+            UserInfoBean userInfoBean = AppContext.getUserInfoBean();
             Map<String, Object> valueMap = new HashMap<String, Object>();
             valueMap.put("userNo", userInfoBean.getUserNo());
             valueMap.put("token", userInfoBean.getToken());
@@ -239,28 +239,42 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     @Event(R.id.head)
     private void showHeadImg(View view){
-        ActivityUtil.startActivityForResult(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY, new BasicNameValuePair(Constants.USER_NO, userNo));
+//        ActivityUtil.startActivityForResult(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY, new BasicNameValuePair(Constants.USER_NO, userNo));
+        startActivityForResultNew(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY,
+                Constants.USER_NO, userNo);
     }
 
     @Event(R.id.layout_nick_name)
     private void modifyNickName(View view){
-        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
-        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
-        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
+//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
+//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_nick_name));
+        valueMap.put(Constants.PROPERTY_VALUE, txt_nickName.getText().toString());
+        startActivityNew(this, PropertiesSettingActivity.class, valueMap);
     }
 
     @Event(R.id.layout_gender)
     private void modifyGender(View view){
-        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_gender));
-        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_gender.getText().toString());
-        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_gender));
+//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_gender.getText().toString());
+//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_gender));
+        valueMap.put(Constants.PROPERTY_VALUE, txt_gender.getText().toString());
+        startActivityNew(this, PropertiesSettingActivity.class, valueMap);
     }
 
     @Event(R.id.layout_phone)
     private void modifyPhone(View view){
-        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_phoneNo));
-        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_phoneNo.getText().toString());
-        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_phoneNo));
+//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_phoneNo.getText().toString());
+//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
+        Map<String, Object> valueMap = new HashMap<>();
+        valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_phoneNo));
+        valueMap.put(Constants.PROPERTY_VALUE, txt_phoneNo.getText().toString());
+        startActivityNew(this, PropertiesSettingActivity.class, valueMap);
     }
 
 
@@ -316,7 +330,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
     }
 
     private void logout(){
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         Map<String, Object> valueMap = new HashMap<String, Object>();
         valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());

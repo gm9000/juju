@@ -23,6 +23,7 @@ import com.juju.app.event.GroupEvent;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.user.InviteGroupEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
@@ -233,7 +234,7 @@ public class MyInviteListActivity extends BaseActivity implements MyInviteListAd
     public void initParam() {
 //        inviteMap = new HashMap<>();
         inviteDao = new InviteDaoImpl(getApplicationContext());
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
     }
 
     @Event(R.id.txt_left)

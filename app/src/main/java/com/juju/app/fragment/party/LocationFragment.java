@@ -34,6 +34,7 @@ import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.User;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseApplication;
@@ -155,7 +156,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
         latitude = plan.getLatitude();
         longitude = plan.getLongitude();
 
-        userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
+        userNo = AppContext.getUserInfoBean().getUserNo();
 
         userMarkerMap = new HashMap<String,Marker>();
         userLocationInfoList = new ArrayList<UserLocationInfo>();

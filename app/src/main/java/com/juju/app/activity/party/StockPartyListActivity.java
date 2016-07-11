@@ -29,7 +29,6 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.SearchEditText;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.xutils.db.Selector;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
@@ -210,14 +209,14 @@ public class StockPartyListActivity extends BaseActivity implements AdapterView.
         Party curParty = (Party)listView.getRefreshableView().getItemAtPosition(position);
         switch(curParty.getStatus()){
             case 0: // 召集中
-                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
-                ActivityUtil.startActivity4UP(this, PartyDetailActivity.class,param);
+//                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
+                ActivityUtil.startActivity4UPAndNew(this, PartyDetailActivity.class, Constants.PARTY_ID, curParty.getId());
                 break;
             case 1: //  进行中
-                ActivityUtil.startActivity4UP(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+                ActivityUtil.startActivity4UPAndNew(this, PartyActivity.class, Constants.PARTY_ID, curParty.getId());
                 break;
             case 2: //  已结束
-                ActivityUtil.startActivity4UP(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+                ActivityUtil.startActivity4UPAndNew(this, PartyActivity.class, Constants.PARTY_ID, curParty.getId());
                 break;
         }
     }

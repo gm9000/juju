@@ -17,7 +17,6 @@ import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.json.JSONException;
 import org.xutils.common.Callback;
 import org.xutils.view.annotation.ContentView;
@@ -173,7 +172,8 @@ public class LiveFragment extends BaseFragment implements CreateUIHelper,HttpCal
     @Override
     public void playVideo(VideoProgram videoProgram) {
         //  TODO 获取视频请求的URL参数，传入播放界面
-        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
-        ActivityUtil.startActivity4UP(getActivity(), PlayVideoActivity.class,nvPair);
+//        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
+        ActivityUtil.startActivity4UPAndNew(getActivity(), PlayVideoActivity.class, "videoUrl",
+                videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
     }
 }

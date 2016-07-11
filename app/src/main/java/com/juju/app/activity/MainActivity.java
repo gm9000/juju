@@ -34,6 +34,7 @@ import com.juju.app.event.UnreadEvent;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.GlobalVariable;
@@ -73,26 +74,15 @@ import java.util.Map;
 @ContentView(R.layout.activity_main)
 @CreateUI(showTopView = true)
 public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK, MenuDisplayProcess {
-
-    private final String TAG = getClass().getSimpleName();
-
+    private Logger logger = Logger.getLogger(MainActivity.class);
 
     private final int CREATE_GROUP = 0x01;
-
     private final int DELETE_GROUP = 0x02;
-
-//    private final int GET_GROUP_INVITE_CODE = 0x03;
-
     private final int JOIN_IN_GROUP = 0x03;
-
-
     private final int CHOOSE_GROUP = 0x04;
 
     private Handler uiHandler = new Handler();
 
-
-
-    private Logger logger = Logger.getLogger(MainActivity.class);
 
 
 //    @ViewInject(R.id.img_right)
@@ -177,7 +167,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             return;
         }
         groupDao = new GroupDaoImpl(getApplicationContext());
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
     }
 
     @Override
@@ -187,7 +177,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         initTabView();
         initPopWindow();
         long end = System.currentTimeMillis();
-        Log.d(TAG, "init MainActivity cost time:" + (end - begin) + "毫秒");
+//        Log.d(TAG, "init MainActivity cost time:" + (end - begin) + "毫秒");
     }
 
 //    @Override
@@ -343,16 +333,17 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         public void onItemClick(ActionItem item, int position) {
             switch (position) {
                 case 0:// 创建聚会
-                    ActivityUtil.startActivityForResult(MainActivity.this, GroupSelectActivity.class,CHOOSE_GROUP);
+//                    ActivityUtil.startActivityForResult(MainActivity.this, GroupSelectActivity.class,CHOOSE_GROUP);
+                    startActivityForResultNew(MainActivity.this, GroupSelectActivity.class, CHOOSE_GROUP);
                     break;
                 case 1:// 草稿箱
-                    ActivityUtil.startActivity4UP(MainActivity.this, DraftPartyListActivity.class);
+                    ActivityUtil.startActivity4UPAndNew(MainActivity.this, DraftPartyListActivity.class);
                     break;
                 case 2:// 发起的聚会
-                    ActivityUtil.startActivity4UP(MainActivity.this, MyPartyListActivity.class);
+                    ActivityUtil.startActivity4UPAndNew(MainActivity.this, MyPartyListActivity.class);
                     break;
                 case 3:// 归档的聚会
-                    ActivityUtil.startActivity4UP(MainActivity.this, StockPartyListActivity.class);
+                    ActivityUtil.startActivity4UPAndNew(MainActivity.this, StockPartyListActivity.class);
                     break;
                 default:
                     break;
@@ -501,7 +492,6 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
         if(mDialog == null) {
             mDialog = new Dialog(context, R.style.SimpleDialog);
-            mDialog.setCanceledOnTouchOutside(false);
             mDialog
                     .positiveAction(R.string.confirm)
                     .negativeAction(R.string.negative)
@@ -548,6 +538,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 }
             });
         }
+        mDialog.setCanceledOnTouchOutside(true);
         mDialog.layoutParams(width, height);
         mDialog.setTitle(title);
         mDialog.show();
@@ -569,30 +560,6 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 handlerHttpRsp4JoinInGroup(result, inputParameter);
             }
         }
-//        //获取群组邀请码
-//        else if (accessId == GET_GROUP_INVITE_CODE) {
-//            if(obj instanceof  JSONObject) {
-//                JSONObject result = (JSONObject)obj;
-//                int status = JSONUtils.getInt(result, "status");
-//                if(status == 0) {
-//                    Map<String, Object> parameter = (Map<String, Object>)inputParameter;
-//                    String groupId = (String)parameter.get("groupId");
-//                    String inviteCode = JSONUtils.getString(result, "inviteCode");
-//                    String peerId = groupId+"@"+userInfoBean.getmMucServiceName()
-//                            +"."+userInfoBean.getmServiceName();
-//                    GroupEntity groupEntity = imService.getGroupManager().findGroup(peerId);
-//                    if(groupEntity != null) {
-//                        //保存二维码
-//                        String qrCode =
-//                                HttpConstants.getUserUrl() + "/joinInGroup?inviteCode="+inviteCode;
-//                        groupEntity.setQrCode(qrCode);
-//                        //保存邀请码
-//                        groupEntity.setInviteCode(inviteCode);
-//                        groupDao.replaceInto(groupEntity);
-//                    }
-//                }
-//            }
-//        }
     }
 
     @Override
@@ -666,7 +633,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             groupMap.put("desc", description);
         }
         valueMap.put("group", groupMap);
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
                 CREATE_GROUP, HttpConstants.getUserUrl() + "/addGroup",
                 MainActivity.this, valueMap, JSONObject.class);
         try {
@@ -725,7 +692,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             //创建成功
             if(bool) {
                 //刷新群组，待实现
-                Log.d(TAG, "创建群聊成功，groupId："+groupId);
+                logger.d("创建群聊成功! -> groupId:%s", groupId);
                 //刷新群组列表
                 imService.getGroupManager();
                 String peerId = groupId+"@"+userInfoBean.getmMucServiceName()

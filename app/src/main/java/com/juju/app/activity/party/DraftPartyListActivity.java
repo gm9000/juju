@@ -22,6 +22,7 @@ import com.juju.app.adapters.MyPartyListAdapter;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.Plan;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
@@ -29,7 +30,6 @@ import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.dialog.WarnTipDialog;
 
-import org.apache.http.message.BasicNameValuePair;
 import org.xutils.db.Selector;
 import org.xutils.db.sqlite.WhereBuilder;
 import org.xutils.ex.DbException;
@@ -95,7 +95,7 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
 
     private void initData() {
 
-        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
         try {
             Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("status", "=",-1);
             totalSize = selector.count();
@@ -166,17 +166,22 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
         Party curParty = (Party)listPartyView.getRefreshableView().getItemAtPosition(position);
         switch(curParty.getStatus()){
             case -1: // 草稿箱
-                ActivityUtil.startActivity(this, PartyCreateActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+//                ActivityUtil.startActivity(this, PartyCreateActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+                startActivityNew(this, PartyCreateActivity.class,
+                        Constants.PARTY_ID, curParty.getId());
                 break;
             case 0: // 召集中
-                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
-                ActivityUtil.startActivity(this, PartyDetailActivity.class,param);
+//                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
+//                ActivityUtil.startActivity(this, PartyDetailActivity.class,param);
+                startActivityNew(this, PartyDetailActivity.class, Constants.PARTY_ID, curParty.getId());
                 break;
             case 1: //  进行中
-                ActivityUtil.startActivity(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+//                ActivityUtil.startActivity(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
+                startActivityNew(this, PartyActivity.class, Constants.PARTY_ID, curParty.getId());
                 break;
             case 2: //  已结束
-                ActivityUtil.startActivity(this, PartyActivity.class);
+//                ActivityUtil.startActivity(this, PartyActivity.class);
+                startActivityNew(this, PartyActivity.class);
                 break;
         }
     }
@@ -225,7 +230,7 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
                 ListView partyListView = listPartyView.getRefreshableView();
                 int preSum = partyList.size();
 
-                UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+                UserInfoBean userInfoBean = AppContext.getUserInfoBean();
                 try {
                     Selector selector = JujuDbUtils.getInstance().selector(Party.class).where("user_no", "=", userInfoBean.getUserNo());
                     totalSize = selector.count();

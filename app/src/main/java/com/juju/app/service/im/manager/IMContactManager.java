@@ -7,6 +7,7 @@ import com.juju.app.biz.impl.UserDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.event.UserInfoEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
@@ -75,7 +76,7 @@ public class IMContactManager extends IMManager implements HttpCallBack4OK {
 
     @Override
     public void doOnStart() {
-        userInfoBean = BaseApplication.getInstance().getUserInfoBean();
+        userInfoBean = AppContext.getUserInfoBean();
 //        userDao = new UserDaoImpl(ctx);
 //        groupDao = new GroupDaoImpl(ctx);
     }

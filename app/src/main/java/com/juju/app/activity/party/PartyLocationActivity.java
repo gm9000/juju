@@ -32,6 +32,7 @@ import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.User;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
@@ -186,7 +187,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
         latitude = plan.getLatitude();
         longitude = plan.getLongitude();
 
-        userNo = BaseApplication.getInstance().getUserInfoBean().getUserNo();
+        userNo = AppContext.getUserInfoBean().getUserNo();
 
         userMarkerMap = new HashMap<String,Marker>();
         userLocationInfoList = new ArrayList<UserLocationInfo>();
