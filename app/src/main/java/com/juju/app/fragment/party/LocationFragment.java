@@ -37,9 +37,9 @@ import com.juju.app.entity.User;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.JujuDbUtils;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.view.LocationImageView;
 import com.juju.app.view.RoundImageView;
 import com.rey.material.app.BottomSheetDialog;
@@ -318,7 +318,8 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
             txtCall = (TextView)msgDialog.findViewById(R.id.txt_call);
             txtSms = (TextView)msgDialog.findViewById(R.id.txt_sms);
             txtCancel = (TextView)msgDialog.findViewById(R.id.txt_cancel);
-            BitmapUtilFactory.getInstance(getContext()).bind(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + clickUserNo);
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                    + clickUserNo, headImg, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             txtCall.setOnClickListener(LocationFragment.this);
             txtSms.setOnClickListener(LocationFragment.this);
             txtCancel.setOnClickListener(LocationFragment.this);

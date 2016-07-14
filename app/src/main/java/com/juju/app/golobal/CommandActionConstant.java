@@ -174,6 +174,21 @@ public class CommandActionConstant {
             public String url() {
                 return HttpConstants.getUserUrl()+"/getGroupOutline";
             }
+        },
+
+        /**
+         * 获取聚会详情
+         */
+        GETPARTYINFO {
+            @Override
+            public int code() {
+                return Integer.parseInt("0030");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/getPartyInfo";
+            }
         };
 
 

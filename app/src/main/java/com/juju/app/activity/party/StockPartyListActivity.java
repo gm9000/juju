@@ -210,13 +210,13 @@ public class StockPartyListActivity extends BaseActivity implements AdapterView.
         switch(curParty.getStatus()){
             case 0: // 召集中
 //                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
-                ActivityUtil.startActivity4UPAndNew(this, PartyDetailActivity.class, Constants.PARTY_ID, curParty.getId());
+                ActivityUtil.startActivityNew(this, PartyDetailActivity.class, Constants.PARTY_ID, curParty.getId());
                 break;
             case 1: //  进行中
-                ActivityUtil.startActivity4UPAndNew(this, PartyActivity.class, Constants.PARTY_ID, curParty.getId());
+                ActivityUtil.startActivityNew(this, PartyLiveActivity.class, Constants.PARTY_ID, curParty.getId());
                 break;
             case 2: //  已结束
-                ActivityUtil.startActivity4UPAndNew(this, PartyActivity.class, Constants.PARTY_ID, curParty.getId());
+                ActivityUtil.startActivityNew(this, PartyLiveActivity.class, Constants.PARTY_ID, curParty.getId());
                 break;
         }
     }
@@ -268,6 +268,7 @@ public class StockPartyListActivity extends BaseActivity implements AdapterView.
                 partyListAdapter.setPartyList(partyList);
                 if(partyListAdapter.isSearchMode()) {
                     partyListAdapter.onSearch(searchEditText.getText().toString());
+                    listView.setShowViewWhileRefreshing(false);
                 }
                 int afterSum = partyListAdapter.getCount();
                 partyListView.setSelection(afterSum-preSum);

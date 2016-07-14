@@ -4,15 +4,14 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.daimajia.swipe.adapters.BaseSwipeAdapter;
 import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Invite;
-import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.utils.DateUtil;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.RoundImageView;
 import com.juju.app.view.SwipeLayoutView;
@@ -185,10 +184,9 @@ public class MyInviteListAdapter extends BaseSwipeAdapter {
             txtInviteInfo.setText("邀请您加入 " + invite.getGroupName());
         }
 
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                + invite.getUserNo(), imgHead, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
 
-
-        BitmapUtilFactory.getInstance(context).bind(imgHead, HttpConstants.getUserUrl() +
-                "/getPortraitSmall?targetNo=" + invite.getUserNo(), BitmapUtilFactory.Option.imageOptions());
         txtNickName.setText(invite.getNickName());
         txtTime.setText(DateUtil.getPastTimeDisplay(invite.getTime()));
 

@@ -22,13 +22,10 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.UserDaoImpl;
 import com.juju.app.config.HttpConstants;
-import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.AppContext;
-import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
-import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.helper.IMUIHelper;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
@@ -36,12 +33,10 @@ import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
-import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.DBUtil;
 import com.juju.app.utils.HttpReqParamUtil;
-import com.juju.app.utils.JacksonUtil;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
@@ -51,13 +46,11 @@ import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.ClearEditText;
 import com.juju.app.view.RoundImageView;
 
-
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -160,9 +153,8 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         layout_login_main.setFocusableInTouchMode(true);
 
         if(StringUtils.isNotBlank(AppContext.getUserInfoBean().getUserNo())){
-            BitmapUtilFactory.getInstance(this).bind(portrait, HttpConstants.getUserUrl() +
-                            "/getPortraitSmall?targetNo=" + AppContext.getUserInfoBean().getUserNo(),
-                    BitmapUtilFactory.Option.imageOptions());
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                    + AppContext.getUserInfoBean().getUserNo(), portrait, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }
 
         if(AppContext.getUserInfoBean().getNickName() != null){

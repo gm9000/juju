@@ -123,6 +123,7 @@ public class BaseApplication extends Application {
                                         files.add(getDatabasePath("jlm_15800000024"));
                                         files.add(getDatabasePath("jlm_19600000018"));
                                         files.add(getDatabasePath("jlm_19600000030"));
+                                        files.add(getDatabasePath("jlm_19500000003"));
                                         return files;
                                     }
                                 })

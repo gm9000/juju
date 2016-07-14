@@ -59,6 +59,8 @@
     <string name="delete">删除</string>
     <string name="common_loading">正在加载...</string>
     <string name="no_network">网络连接不可用，请检查你的网络设置</string>
+    <string name="operation_success">操作成功</string>
+    <string name="operation_fail">操作失败</string>
 
 
     <!-- 群聊 -->
@@ -193,6 +195,18 @@
     <string name="exit_group_send_success">退出群组成功</string>
     <string name="exit_group_send_failed">退出群组失败</string>
 
+
+    <!--聚会通知相关 -->
+    <string name="party_recruit_send_success">聚会发布成功</string>
+    <string name="party_recruit_send_failed">聚会发布失败</string>
+    <string name="party_cancel_send_success">聚会取消成功</string>
+    <string name="party_cancel_send_failed">聚会取消失败</string>
+    <string name="party_confirm_send_success">聚会启动成功</string>
+    <string name="party_confirm_send_failed">聚会取消失败</string>
+    <string name="party_finish_send_success">聚会结束成功</string>
+    <string name="party_finish_send_failed">聚会结束失败</string>
+
+
     <string name="join_group_send_success">加入群聊成功</string>
     <string name="join_group_send_failed">加入群聊失败</string>
 
@@ -220,6 +234,7 @@
     <string name="plan1">方案一</string>
     <string name="plan2">方案二</string>
     <string name="plan3">方案三</string>
+    <string name="un_read">未阅</string>
     <string name="plan_new">新方案</string>
     <string name="time">时间</string>
     <string name="address">地点</string>

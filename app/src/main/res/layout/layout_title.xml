@@ -29,6 +29,9 @@
         android:id="@+id/txt_title"
         style="@style/txt_titleStyle1"
         android:text="@string/app_name"
+        android:layout_marginLeft="80dp"
+        android:layout_marginRight="80dp"
+        android:singleLine="true"
         android:layout_centerInParent="true"  />
 
     <ImageView

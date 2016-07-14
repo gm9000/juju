@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.juju.app.view.SwipeLayoutView
-        xmlns:swipe="com.juju.app.view.SwipeLayoutView"
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/swipe"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        swipe:leftEdgeSwipeOffset="0dp"
-        swipe:rightEdgeSwipeOffset="0dp">
+    xmlns:swipe="com.juju.app.view.SwipeLayoutView"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/swipe"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    swipe:leftEdgeSwipeOffset="0dp"
+    swipe:rightEdgeSwipeOffset="0dp">
 
     <LinearLayout
         android:id="@+id/layout_back"
@@ -59,19 +59,19 @@
                 android:id="@+id/creatorImage"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
-                android:layout_marginLeft="3dp"
+                android:layout_marginLeft="2dp"
                 android:layout_alignParentBottom="true"
-                android:layout_marginBottom="2dp"
+                android:layout_marginBottom="20dp"
                 android:src="@mipmap/head"/>
             <TextView
                 android:id="@+id/creator_name"
                 style="@style/WhiteTxt10"
-                android:layout_width="wrap_content"
+                android:layout_width="80dp"
                 android:layout_height="wrap_content"
-                android:layout_toRightOf="@+id/creatorImage"
                 android:layout_alignParentBottom="true"
-                android:layout_marginLeft="2dp"
+                android:layout_marginLeft="5dp"
                 android:layout_marginBottom="5dp"
+                android:singleLine="true"
                 android:text="聚龙小子"/>
         </RelativeLayout>
 

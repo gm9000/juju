@@ -176,11 +176,11 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
                 break;
             case 1: //  进行中
 //                ActivityUtil.startActivity(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
-                startActivityNew(this, PartyActivity.class, Constants.PARTY_ID,curParty.getId());
+                startActivityNew(this, PartyLiveActivity.class, Constants.PARTY_ID,curParty.getId());
                 break;
             case 2: //  已结束
 //                ActivityUtil.startActivity(this, PartyActivity.class);
-                startActivityNew(this, PartyActivity.class);
+                startActivityNew(this, PartyLiveActivity.class);
                 break;
         }
     }

@@ -113,6 +113,7 @@ public class PartyListAdapter extends BaseAdapter {
             partyImage.setImageResource(resId);
         }
 
+        TextView txtUnRead = (TextView)view.findViewById(R.id.un_read);
         RoundImageView imgCreatorHead = (RoundImageView) view.findViewById(R.id.creatorImage);
         TextView txtCreatorName = (TextView) view.findViewById(R.id.creator_name);
         TextView txtPartyName = (TextView) view.findViewById(R.id.party_name);
@@ -121,6 +122,13 @@ public class PartyListAdapter extends BaseAdapter {
         TextView txtStatus = (TextView) view.findViewById(R.id.txt_status);
         TextView txtViewFollow = (TextView) view.findViewById(R.id.flag_follow);
         ImageView imgFlag = (ImageView) view.findViewById(R.id.img_flag);
+
+        if(party.isNew()){
+            txtUnRead.setVisibility(View.VISIBLE);
+        }else{
+            txtUnRead.setVisibility(View.GONE);
+        }
+
 
         partyImage.setOnClickListener(new View.OnClickListener() {
             @Override

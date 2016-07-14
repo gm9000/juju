@@ -14,26 +14,28 @@ import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.LocationReportEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.PartyNotifyEvent;
+import com.juju.app.event.notify.PlanVoteEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.service.im.service.SocketService;
-import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.service.notify.ApplyInGroupNotify;
-import com.juju.app.service.notify.BaseNotify;
 import com.juju.app.service.notify.ExitGroupNotify;
 import com.juju.app.service.notify.InviteInGroupNotify;
 import com.juju.app.service.notify.InviteUserNotify;
+import com.juju.app.service.notify.LocationReportNotify;
 import com.juju.app.service.notify.MasterTransferNotify;
+import com.juju.app.service.notify.PartyCancelNotify;
+import com.juju.app.service.notify.PartyConfirmNotify;
 import com.juju.app.service.notify.PartyRecruitNotify;
+import com.juju.app.service.notify.PlanVoteNotify;
 import com.juju.app.service.notify.RemoveGroupNotify;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
-import com.juju.app.utils.StringUtils;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.greenrobot.eventbus.EventBus;
@@ -97,6 +99,11 @@ public class IMOtherManager extends IMManager {
         MasterTransferNotify.instance().stop();
         ExitGroupNotify.instance().stop();
         ApplyInGroupNotify.instance().stop();
+        PartyRecruitNotify.instance().stop();
+        PartyCancelNotify.instance().stop();
+        PartyConfirmNotify.instance().stop();
+        PlanVoteNotify.instance().stop();
+        LocationReportNotify.instance().stop();
     }
 
     //网络登陆
@@ -146,6 +153,10 @@ public class IMOtherManager extends IMManager {
         RemoveGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance());
         MasterTransferNotify.instance().start(this, IMGroupManager.instance());
         PartyRecruitNotify.instance().start(this);
+        PartyCancelNotify.instance().start(this);
+        PartyConfirmNotify.instance().start(this);
+        PlanVoteNotify.instance().start(this);
+        LocationReportNotify.instance().start(this);
         ExitGroupNotify.instance().start(this, IMGroupManager.instance());
         ApplyInGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance());
     }
@@ -242,11 +253,6 @@ public class IMOtherManager extends IMManager {
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.MASTER_TRANSFER.getCls());
                 MasterTransferNotify.instance().executeCommand4Recv(masterTransferBean);
                 break;
-            case PARTY_RECRUIT:
-                PartyNotifyEvent.PartyNotifyBean partyNotify = (PartyNotifyEvent.PartyNotifyBean)
-                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_RECRUIT.getCls());
-                PartyRecruitNotify.instance().executeCommand4Recv(partyNotify);
-                break;
             case APPLY_IN_GROUP:
                 ApplyInGroupEvent.ApplyInGroupBean applyInGroupBean = (ApplyInGroupEvent.ApplyInGroupBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.APPLY_IN_GROUP.getCls());
@@ -265,6 +271,31 @@ public class IMOtherManager extends IMManager {
                     exitGroupBean.replyTime = Long.parseLong(event.message.getThread());
                 }
                 ExitGroupNotify.instance().executeCommand4Recv(exitGroupBean);
+                break;
+            case PARTY_RECRUIT:
+                PartyNotifyEvent.PartyNotifyBean partyRecruitBean = (PartyNotifyEvent.PartyNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_RECRUIT.getCls());
+                PartyRecruitNotify.instance().executeCommand4Recv(partyRecruitBean);
+                break;
+            case PARTY_CANCEL:
+                PartyNotifyEvent.PartyNotifyBean partyCancelBean = (PartyNotifyEvent.PartyNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_CANCEL.getCls());
+                PartyCancelNotify.instance().executeCommand4Recv(partyCancelBean);
+                break;
+            case PARTY_CONFIRM:
+                PartyNotifyEvent.PartyNotifyBean partyConfirmBean = (PartyNotifyEvent.PartyNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_CONFIRM.getCls());
+                PartyConfirmNotify.instance().executeCommand4Recv(partyConfirmBean);
+                break;
+            case PLAN_VOTE:
+                PlanVoteEvent.PlanVoteBean planVoteBean = (PlanVoteEvent.PlanVoteBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PLAN_VOTE.getCls());
+                PlanVoteNotify.instance().executeCommand4Recv(planVoteBean);
+                break;
+            case LOCATION_REPORT:
+                LocationReportEvent.LocationReportBean locationReportBean = (LocationReportEvent.LocationReportBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LOCATION_REPORT.getCls());
+                LocationReportNotify.instance().executeCommand4Recv(locationReportBean);
                 break;
             default:
                 otherMessageDao.replaceInto(otherMessageEntity);

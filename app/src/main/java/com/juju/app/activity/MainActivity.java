@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +27,6 @@ import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.enums.DisplayAnimation;
-import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.fragment.GroupChatFragment;
@@ -43,7 +41,6 @@ import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
@@ -393,7 +390,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 partyTitlePopup.show(layout_bar);
                 //TODO 需要修改为从群聊中发起聚会
 //                String groupId = "570dbc6fe4b092891a647e32";
-//                BasicNameValuePair groupIdValue = new BasicNameValuePair(Constants.GROURP_ID,groupId);
+//                BasicNameValuePair groupIdValue = new BasicNameValuePair(Constants.GROUP_ID,groupId);
 //                ActivityUtil.startActivity(this,PartyCreateActivity.class,groupIdValue);
                 break;
         }
@@ -580,7 +577,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             switch (requestCode) {
                 case CHOOSE_GROUP:
                     String groupId = data.getStringExtra("selectedGroupId");
-                    ActivityUtil.startActivityNew(MainActivity.this,PartyCreateActivity.class,Constants.GROURP_ID,groupId);
+                    ActivityUtil.startActivityNew(MainActivity.this,PartyCreateActivity.class,Constants.GROUP_ID,groupId);
                     break;
             }
         }

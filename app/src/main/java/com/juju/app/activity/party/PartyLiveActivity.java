@@ -10,19 +10,24 @@ import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.adapters.VideoProgramListAadpter;
+import com.juju.app.entity.Party;
 import com.juju.app.entity.VideoProgram;
 import com.juju.app.enums.DisplayAnimation;
 import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ScreenUtil;
 
+import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @ContentView(R.layout.activity_party_live)
@@ -54,6 +59,7 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
     private List<VideoProgram> videoProgramList;
     private  VideoProgramListAadpter programListAadpter;
 
+    private Party party;
     private String partyId;
 
     private int lastVisibleItemPosition=0;
@@ -71,6 +77,17 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
     private void initParam() {
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
+
+        try {
+            party = JujuDbUtils.getInstance().selector(Party.class).where("id", "=", partyId).findFirst();
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+
+        if(party.isNew()){
+            party.setNew(false);
+            JujuDbUtils.saveOrUpdate(party);
+        }
     }
 
     private void addClickListener() {
@@ -204,7 +221,10 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.img_right:
-                ActivityUtil.startActivityNew(this,PartyLocationActivity.class,Constants.PARTY_ID,partyId);
+                Map<String,String> param = new HashMap<String,String>();
+                param.put(Constants.GROUP_ID,party.getGroupId());
+                param.put(Constants.PARTY_ID,partyId);
+                ActivityUtil.startActivityNew(this,PartyLocationActivity.class,param);
                 break;
             case R.id.img_back:
                 ActivityUtil.finish(this);

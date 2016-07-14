@@ -24,15 +24,18 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.PlanVote;
 import com.juju.app.entity.User;
+import com.juju.app.event.notify.PartyNotifyEvent;
+import com.juju.app.event.notify.PlanVoteEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.golobal.StatusCode;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
-import com.juju.app.ui.base.BaseApplication;
+import com.juju.app.service.notify.PartyRecruitNotify;
+import com.juju.app.service.notify.PlanVoteNotify;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
-import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.scroll.NoScrollGridView;
@@ -109,16 +112,19 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
 
     private boolean needRrefresh = false;
 
+    private String groupId;
     private Plan plan;
+
 
     private PlanVoteListAdapter planVoteListAdapter;
     private List<PlanVote> planVoteList;
     private boolean isOwner;
     private boolean isSigned;
 
-    public PlanDetailFragment(PlanDetailActivity activity,Plan plan, boolean isOwner){
+    public PlanDetailFragment(PlanDetailActivity activity,String groupId,Plan plan, boolean isOwner){
         super();
         this.activity = activity;
+        this.groupId = groupId;
         this.plan = plan;
         this.isOwner = isOwner;
     }
@@ -133,30 +139,29 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
     @Override
     public void loadData() {
 
+        isSigned = false;
         UserInfoBean userInfoBean = AppContext.getUserInfoBean();
-        PlanVote planVote = null;
         try {
             planVoteList = JujuDbUtils.getInstance().selector(PlanVote.class).where("plan_id", "=", plan.getId()).findAll();
             if(planVoteList != null) {
-                for(PlanVote planVote1 : planVoteList) {
-                    User dbUser = JujuDbUtils.getInstance().selector(User.class)
-                            .where("user_no", "=", planVote1.getAttenderNo()).findFirst();
-                    planVote1.setAttender(dbUser);
+                for(PlanVote planVote : planVoteList) {
+                    if(planVote.getAttenderNo().equals(userInfoBean.getUserNo())){
+                        isSigned = true;
+                        break;
+                    }
                 }
             }
-            planVote = JujuDbUtils.getInstance().selector(PlanVote.class).where("plan_id", "=", plan.getId()).and("attender_no", "=", userInfoBean.getUserNo()).findFirst();
         } catch (DbException e) {
             e.printStackTrace();
         }
 
-        if(planVote == null){
-            isSigned = false;
-            btn_operate.setBackgroundColor(getResources().getColor(R.color.blue));
-            btn_operate.setText(R.string.signup);
-        }else{
-            isSigned = true;
+        if(isSigned){
             btn_operate.setBackgroundColor(getResources().getColor(R.color.red));
             btn_operate.setText(R.string.unsignup);
+
+        }else{
+            btn_operate.setBackgroundColor(getResources().getColor(R.color.blue));
+            btn_operate.setText(R.string.signup);
         }
 
         planVoteListAdapter = new PlanVoteListAdapter(activity,planVoteList);
@@ -260,8 +265,6 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
 
     private void votePlanToServer(boolean voteFlag) {
 
-        //TODO 增加本地保存
-
         UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
         PlanVoteReqBean reqBean = new PlanVoteReqBean();
         reqBean.setUserNo(userTokenInfoBean.getUserNo());
@@ -291,33 +294,51 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
                     JSONObject jsonRoot = (JSONObject)obj;
                     try {
                         int status = jsonRoot.getInt("status");
-                        if(status == 0) {
+                        if(status==StatusCode.SUCCESS || status==StatusCode.VOTE_HAS_EXIST || status==StatusCode.VOTE_NOT_EXIST) {
                             UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
                             if(isSigned){
 
                                 WhereBuilder whereBuilder = WhereBuilder.b("attender_no", "=", userTokenInfoBean.getUserNo());
-                                whereBuilder.and("planId", "=", plan.getId());
+                                whereBuilder.and("plan_id", "=", plan.getId());
                                 JujuDbUtils.getInstance().delete(PlanVote.class, whereBuilder);
                                 plan.setAddtendNum(plan.getAddtendNum()-1);
                                 plan.setSigned(0);
                                 JujuDbUtils.saveOrUpdate(plan);
+
+                                for(PlanVote planVote:planVoteList){
+                                    if(planVote.getAttenderNo().equals(userTokenInfoBean.getUserNo())){
+                                        planVoteList.remove(planVote);
+                                        planVoteListAdapter.notifyDataSetChanged();
+                                        txt_attendNum.setText(String.valueOf(planVoteList.size()));
+                                        break;
+                                    }
+                                }
 
                             }else{
                                 User user = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userTokenInfoBean.getUserNo()).findFirst();
                                 PlanVote planVote = new PlanVote();
                                 planVote.setPlanId(plan.getId());
                                 planVote.setAttenderNo(userTokenInfoBean.getUserNo());
-                                planVote.setAttender(user);
                                 JujuDbUtils.save(planVote);
 
                                 plan.setAddtendNum(plan.getAddtendNum()+1);
                                 plan.setSigned(1);
                                 JujuDbUtils.saveOrUpdate(plan);
-                            }
-                            //  TOTO    通知 Plan投票发生变化
-                            activity.completeLoading();
-                            ToastUtil.showShortToast(activity,"操作成功",1);
 
+                                planVoteList.add(planVote);
+                                planVoteListAdapter.notifyDataSetChanged();
+                                txt_attendNum.setText(String.valueOf(planVoteList.size()));
+                            }
+
+                            //  通知 Plan投票发生变化
+                            PlanVoteEvent.PlanVoteBean planVoteBean = PlanVoteEvent
+                                    .PlanVoteBean.valueOf(groupId,plan.getId(),isSigned?0:1,
+                                            AppContext.getUserInfoBean().getUserNo()
+                                            ,AppContext.getUserInfoBean().getNickName());
+                            planVoteBean.setPartyId(plan.getPartyId());
+                            PlanVoteNotify.instance().executeCommand4Send(planVoteBean);
+
+                            activity.completeLoading();
                             if(isSigned){
                                 isSigned = false;
                                 btn_operate.setBackgroundColor(getResources().getColor(R.color.blue));
@@ -364,7 +385,7 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 //        ActivityUtil.startActivity(activity, SettingActivity.class,new BasicNameValuePair(Constants.USER_NO,planVoteList.get(position).getAttender().getUserNo()));
         startActivityNew(activity, SettingActivity.class, Constants.USER_NO,planVoteList
-                .get(position).getAttender().getUserNo());
+                .get(position).getAttenderNo());
     }
 
 }

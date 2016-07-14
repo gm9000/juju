@@ -4,7 +4,10 @@ import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.LocationReportEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.PartyNotifyEvent;
+import com.juju.app.event.notify.PlanVoteEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
 
 /**
@@ -355,7 +358,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -376,7 +379,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -397,7 +400,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return PlanVoteEvent.PlanVoteBean.class;
             }
 
             public int MsgType() {
@@ -418,7 +421,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return  PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -439,7 +442,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return  PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -461,7 +464,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return LocationReportEvent.LocationReportBean.class;
             }
 
             public int MsgType() {

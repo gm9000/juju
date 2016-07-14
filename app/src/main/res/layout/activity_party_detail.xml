@@ -40,7 +40,8 @@
                     <TextView
                         android:id="@+id/txt_nick_name"
                         style="@style/BlackTxt12"
-                        android:layout_width="wrap_content"
+                        android:layout_width="120dp"
+                        android:gravity="center_horizontal"
                         android:layout_height="wrap_content"
                         android:layout_below="@+id/img_head"
                         android:layout_marginTop="2dp"
@@ -52,23 +53,23 @@
                     android:layout_toRightOf="@+id/layout_head"
                     android:background="@color/white"
                     android:layout_marginLeft="20dp"
+                    android:layout_toLeftOf="@+id/layout_status"
+                    android:layout_marginRight="5dp"
                     style="@style/TxtTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:padding="10dp"
                     android:text="聚会主题"
-                    android:layout_marginTop="5dp"/>
-                <RelativeLayout
+                    android:layout_marginTop="10dp"/>
+                <LinearLayout
                     android:id="@+id/layout_status"
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_toRightOf="@+id/layout_head"
-                    android:layout_below="@+id/txt_party_title"
-                    android:layout_marginLeft="10dp">
+                    android:layout_alignParentRight="true"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginRight="5dp">
                     <TextView
                         android:id="@+id/txt_status"
                         style="@style/BlackTxt12"
-                        android:layout_toLeftOf="@+id/img_status"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="召集中"/>
@@ -76,20 +77,18 @@
                         android:id="@+id/img_status"
                         android:layout_width="20dp"
                         android:layout_height="20dp"
-                        android:layout_alignParentRight="true"
-                        android:layout_marginRight="20dp"
                         android:src="@mipmap/flag_red"/>
-                </RelativeLayout>
+                </LinearLayout>
                 <TextView
                     android:id="@+id/txt_description"
                     style="@style/BlackTxt14"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_toRightOf="@+id/layout_head"
-                    android:layout_below="@+id/layout_status"
-                    android:layout_marginTop="5dp"
+                    android:layout_below="@+id/txt_party_title"
+                    android:layout_marginTop="10dp"
                     android:layout_marginLeft="10dp"
-                    android:layout_marginRight="20dp"
+                    android:layout_marginRight="10dp"
                     android:layout_marginBottom="5dp"
                     android:lineSpacingMultiplier="1.2"
                     android:minLines="3"

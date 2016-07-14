@@ -72,9 +72,7 @@ public class MyPartyListAdapter extends BaseAdapter{
         }
         SwipeLayoutView layout_swipe = ViewHolderUtil.get(view, R.id.swipe);
 
-        if(party.getStatus() == -1) {
-            layout_swipe.setSwipeEnabled(true);
-        }else{
+        if(party.getStatus() != -1) {
             layout_swipe.setSwipeEnabled(false);
         }
 

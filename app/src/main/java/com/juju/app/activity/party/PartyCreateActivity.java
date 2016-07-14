@@ -36,7 +36,6 @@ import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.notify.PartyRecruitNotify;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.StringUtils;
@@ -254,7 +253,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
 
     public void initParam() {
-        groupId = getIntent().getStringExtra(Constants.GROURP_ID);
+        groupId = getIntent().getStringExtra(Constants.GROUP_ID);
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
     }
 
@@ -359,6 +358,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
             party.setStatus(-1);
             party.setUserNo(AppContext.getUserInfoBean().getUserNo());
             party.setGroupId(groupId);
+            party.setNew(false);
 
             JujuDbUtils.saveOrUpdate(party);
 
@@ -607,9 +607,11 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                             party.setName(txt_partyTitle.getText().toString());
                             party.setDesc(txt_description.getText().toString());
                             party.setId(partyId);
+                            party.setGroupId(groupId);
                             party.setUserNo(AppContext.getUserInfoBean().getUserNo());
 
                             party.setStatus(0); //  召集中
+                            party.setNew(false);
 
                             String planIds = jsonRoot.getString("planIds");
                             if(planIds==null || planIds.equals("")){

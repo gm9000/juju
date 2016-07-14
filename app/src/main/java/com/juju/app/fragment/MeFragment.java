@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
@@ -26,7 +25,6 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
@@ -42,6 +40,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
+import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -171,6 +170,16 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
         User userInfo = null;
         if(userInfoStr != null){
             userInfo = JacksonUtil.turnString2Obj(userInfoStr,User.class);
+        }
+        if(userInfo == null){
+            try {
+                userInfo = JujuDbUtils.getInstance().selector(User.class).where("user_no","=",userNo).findFirst();
+                if(userInfo != null){
+                    SpfUtil.put(getActivity().getApplicationContext(),Constants.USER_INFO,JacksonUtil.turnObj2String(userInfo));
+                }
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
         }
         if(userInfo == null){
 
