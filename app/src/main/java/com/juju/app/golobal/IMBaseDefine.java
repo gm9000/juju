@@ -4,11 +4,13 @@ import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.LiveNotifyEvent;
 import com.juju.app.event.notify.LocationReportEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.event.notify.PlanVoteEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.event.notify.SeizeNotifyEvent;
 
 /**
  * 项目名称：juju
@@ -19,7 +21,8 @@ import com.juju.app.event.notify.RemoveGroupEvent;
  */
 public final class IMBaseDefine {
 
-    private IMBaseDefine() {}
+    private IMBaseDefine() {
+    }
 
     //群组变更类型
     public enum GroupModifyType {
@@ -136,15 +139,16 @@ public final class IMBaseDefine {
         };
 
 
-
         public abstract String code();
+
         public abstract String desc();
+
         public abstract Class getCls();
 
 
         public static MsgType getInstanceByCode(String code) {
-            for(MsgType msgType : MsgType.values()) {
-                if(msgType.code().equals(code)) {
+            for (MsgType msgType : MsgType.values()) {
+                if (msgType.code().equals(code)) {
                     return msgType;
                 }
             }
@@ -421,7 +425,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return  PartyNotifyEvent.PartyNotifyBean.class;
+                return PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -442,7 +446,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return  PartyNotifyEvent.PartyNotifyBean.class;
+                return PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -488,7 +492,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return LiveNotifyEvent.LiveNotifyBean.class;
             }
 
             public int MsgType() {
@@ -509,7 +513,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return LiveNotifyEvent.LiveNotifyBean.class;
             }
 
             public int MsgType() {
@@ -572,7 +576,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return SeizeNotifyEvent.SeizeNotifyBean.class;
             }
 
             public int MsgType() {
@@ -593,7 +597,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return SeizeNotifyEvent.SeizeNotifyBean.class;
             }
 
             public int MsgType() {
@@ -615,7 +619,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return SeizeNotifyEvent.SeizeNotifyBean.class;
             }
 
             public int MsgType() {
@@ -624,13 +628,16 @@ public final class IMBaseDefine {
         };
 
         public abstract String code();
+
         public abstract String desc();
+
         public abstract Class getCls();
+
         public abstract int MsgType();
 
         public static NotifyType getInstanceByCode(String code) {
-            for(NotifyType notifyType : NotifyType.values()) {
-                if(notifyType.code().equals(code)) {
+            for (NotifyType notifyType : NotifyType.values()) {
+                if (notifyType.code().equals(code)) {
                     return notifyType;
                 }
             }
@@ -658,9 +665,6 @@ public final class IMBaseDefine {
     }
 
 
-
-
-
     //加群邀请回复Bean
     public static class InviteGroupNotifyResBean {
         public String code;
@@ -686,8 +690,6 @@ public final class IMBaseDefine {
             return bean;
         }
     }
-
-
 
 
 }

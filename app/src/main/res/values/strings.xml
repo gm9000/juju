@@ -207,6 +207,18 @@
     <string name="party_finish_send_failed">聚会结束失败</string>
 
 
+    <!--直播通知相关 -->
+    <string name="live_limit">一个聚会同时只允许一个直播</string>
+    <string name="live_start_send_success">直播发布成功</string>
+    <string name="live_start_send_failed">直播发布失败</string>
+    <string name="live_stop_send_success">直播停止成功</string>
+    <string name="live_stop_send_failed">直播停止失败</string>
+    <string name="live_seize_start_send_success">抢播启动成功</string>
+    <string name="live_seize_start_send_failed">抢播启动失败</string>
+    <string name="live_seize_stop_send_success">抢播结束成功</string>
+    <string name="live_seize_stop_send_failed">抢播结束失败</string>
+
+
     <string name="join_group_send_success">加入群聊成功</string>
     <string name="join_group_send_failed">加入群聊失败</string>
 

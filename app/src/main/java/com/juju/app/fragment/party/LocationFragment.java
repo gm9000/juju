@@ -41,7 +41,6 @@ import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.view.LocationImageView;
-import com.juju.app.view.RoundImageView;
 import com.rey.material.app.BottomSheetDialog;
 import com.skyfishjy.library.RippleBackground;
 
@@ -55,6 +54,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 @SuppressLint("ValidFragment")
 @ContentView(R.layout.fragment_location)
@@ -314,7 +315,7 @@ public class LocationFragment extends BaseFragment implements CreateUIHelper, Ba
             msgDialog = new BottomSheetDialog(getActivity());
             msgDialog.contentView(R.layout.layout_friend_contact)
                     .inDuration(300);
-            RoundImageView headImg = (RoundImageView)msgDialog.findViewById(R.id.img_head);
+            CircleImageView headImg = (CircleImageView)msgDialog.findViewById(R.id.img_head);
             txtCall = (TextView)msgDialog.findViewById(R.id.txt_call);
             txtSms = (TextView)msgDialog.findViewById(R.id.txt_sms);
             txtCancel = (TextView)msgDialog.findViewById(R.id.txt_cancel);

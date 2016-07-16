@@ -646,8 +646,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                                                 ,AppContext.getUserInfoBean().getNickName());
                                 PartyRecruitNotify.instance().executeCommand4Send(partyNotifyBean);
 
-
-
                             }else{
                                 Log.e(TAG,"planId return length error:"+planIdArray.length);
                             }

@@ -108,4 +108,24 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:src="@mipmap/power"/>
+    <TextView
+        android:id="@+id/txt_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_centerHorizontal="true"
+        style="@style/WhiteTxt18"
+        android:visibility="gone"/>
+    <TextView
+        android:id="@+id/txt_relay_count"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:gravity="center"
+        android:textSize="50dp"
+        android:textColor="@color/white"
+        android:layout_centerInParent="true"
+        android:background="@color/black_translucent"
+        android:visibility="gone"
+        />
 </RelativeLayout>

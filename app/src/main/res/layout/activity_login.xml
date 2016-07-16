@@ -1,5 +1,4 @@
-<merge xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<merge xmlns:android="http://schemas.android.com/apk/res/android">
 
     <LinearLayout
         android:id="@+id/splash_main"
@@ -31,7 +30,6 @@
         android:visibility="gone">
 
         <LinearLayout
-            xmlns:imagecontrol="http://schemas.android.com/apk/res-auto"
             android:id="@+id/lay_person_info"
             android:layout_width="match_parent"
             android:layout_marginTop="@dimen/login_round_margin_top"
@@ -43,13 +41,11 @@
             android:orientation="vertical"
             android:weightSum="1">
 
-            <com.juju.app.view.RoundImageView
+            <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/portrait"
                 android:layout_width="@dimen/login_round_image_size"
                 android:layout_height="@dimen/login_round_image_size"
-                android:src="@mipmap/head"
-                imagecontrol:border_outside_color="#000000"
-                imagecontrol:border_thickness="1dp" />
+                android:src="@mipmap/head" />
 
             <TextView
                 android:id="@+id/nickName"

@@ -14,11 +14,13 @@ import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.LiveNotifyEvent;
 import com.juju.app.event.notify.LocationReportEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
 import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.event.notify.PlanVoteEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.event.notify.SeizeNotifyEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.IMBaseDefine;
@@ -27,6 +29,11 @@ import com.juju.app.service.notify.ApplyInGroupNotify;
 import com.juju.app.service.notify.ExitGroupNotify;
 import com.juju.app.service.notify.InviteInGroupNotify;
 import com.juju.app.service.notify.InviteUserNotify;
+import com.juju.app.service.notify.LiveSeizeReportNotify;
+import com.juju.app.service.notify.LiveSeizeStartNotify;
+import com.juju.app.service.notify.LiveSeizeStopNotify;
+import com.juju.app.service.notify.LiveStartNotify;
+import com.juju.app.service.notify.LiveStopNotify;
 import com.juju.app.service.notify.LocationReportNotify;
 import com.juju.app.service.notify.MasterTransferNotify;
 import com.juju.app.service.notify.PartyCancelNotify;
@@ -104,6 +111,11 @@ public class IMOtherManager extends IMManager {
         PartyConfirmNotify.instance().stop();
         PlanVoteNotify.instance().stop();
         LocationReportNotify.instance().stop();
+        LiveStartNotify.instance().stop();
+        LiveStopNotify.instance().stop();
+        LiveSeizeStartNotify.instance().stop();
+        LiveSeizeStopNotify.instance().stop();
+        LiveSeizeReportNotify.instance().stop();
     }
 
     //网络登陆
@@ -159,6 +171,11 @@ public class IMOtherManager extends IMManager {
         LocationReportNotify.instance().start(this);
         ExitGroupNotify.instance().start(this, IMGroupManager.instance());
         ApplyInGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance());
+        LiveStartNotify.instance().start(this);
+        LiveStopNotify.instance().start(this);
+        LiveSeizeStartNotify.instance().start(this);
+        LiveSeizeStopNotify.instance().start(this);
+        LiveSeizeReportNotify.instance().start(this);
     }
 
     /**
@@ -296,6 +313,31 @@ public class IMOtherManager extends IMManager {
                 LocationReportEvent.LocationReportBean locationReportBean = (LocationReportEvent.LocationReportBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LOCATION_REPORT.getCls());
                 LocationReportNotify.instance().executeCommand4Recv(locationReportBean);
+                break;
+            case LIVE_START:
+                LiveNotifyEvent.LiveNotifyBean liveNotifyBean = (LiveNotifyEvent.LiveNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_START.getCls());
+                LiveStartNotify.instance().executeCommand4Recv(liveNotifyBean);
+                break;
+            case LIVE_STOP:
+                LiveNotifyEvent.LiveNotifyBean liveStopNotifyBean = (LiveNotifyEvent.LiveNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_STOP.getCls());
+                LiveStopNotify.instance().executeCommand4Recv(liveStopNotifyBean);
+                break;
+            case LIVE_RELAY_START:
+                SeizeNotifyEvent.SeizeNotifyBean seizeStartNotifyBean = (SeizeNotifyEvent.SeizeNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_RELAY_START.getCls());
+                LiveSeizeStartNotify.instance().executeCommand4Recv(seizeStartNotifyBean);
+                break;
+            case LIVE_RELAY:
+                SeizeNotifyEvent.SeizeNotifyBean seizeStopNotifyBean = (SeizeNotifyEvent.SeizeNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_RELAY.getCls());
+                LiveSeizeStopNotify.instance().executeCommand4Recv(seizeStopNotifyBean);
+                break;
+            case RELAY_COUNT:
+                SeizeNotifyEvent.SeizeNotifyBean seizeReportNotifyBean = (SeizeNotifyEvent.SeizeNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.RELAY_COUNT.getCls());
+                LiveSeizeReportNotify.instance().executeCommand4Recv(seizeReportNotifyBean);
                 break;
             default:
                 otherMessageDao.replaceInto(otherMessageEntity);

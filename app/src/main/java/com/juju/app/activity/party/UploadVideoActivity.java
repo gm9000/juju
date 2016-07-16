@@ -1,11 +1,14 @@
 package com.juju.app.activity.party;
 
 import android.content.ClipboardManager;
+import android.content.DialogInterface;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.support.v4.widget.SlidingPaneLayout;
+import android.util.Log;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -19,13 +22,30 @@ import com.juju.app.R;
 import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.json.LoginResBean;
 import com.juju.app.config.HttpConstants;
+import com.juju.app.entity.VideoProgram;
+import com.juju.app.event.notify.LiveNotifyEvent;
+import com.juju.app.event.notify.SeizeNotifyEvent;
+import com.juju.app.golobal.AppContext;
+import com.juju.app.golobal.CommandActionConstant;
+import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.GlobalVariable;
+import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.golobal.StatusCode;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.service.notify.LiveSeizeStartNotify;
+import com.juju.app.service.notify.LiveSeizeStopNotify;
+import com.juju.app.service.notify.LiveStartNotify;
+import com.juju.app.service.notify.LiveStopNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.CameraUtil;
+import com.juju.app.utils.HttpReqParamUtil;
 import com.juju.app.utils.ToastUtil;
+import com.juju.app.utils.json.JSONUtils;
+import com.juju.app.view.dialog.WarnTipDialog;
 import com.pili.pldroid.streaming.CameraStreamingManager;
 import com.pili.pldroid.streaming.CameraStreamingSetting;
 import com.pili.pldroid.streaming.StreamStatusCallback;
@@ -34,14 +54,19 @@ import com.pili.pldroid.streaming.StreamingProfile;
 import com.pili.pldroid.streaming.widget.AspectFrameLayout;
 import com.rey.material.app.BottomSheetDialog;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -60,6 +85,11 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     @ViewInject(R.id.img_upload)
     private ImageView imgUpload;
+
+    @ViewInject(R.id.img_seize)
+    private ImageView imgSeize;
+    @ViewInject(R.id.txt_count)
+    private TextView txtCount;
 
     @ViewInject(R.id.layout_sliding)
     private SlidingPaneLayout layoutSliding;
@@ -90,35 +120,73 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     private CameraStreamingManager mCameraStreamingManager;
 
     private String mediaId;
+    private String groupId;
+    private String partyId;
+    private String liveToken;
+    private String liveId;
 
+    private IMService imService;
+
+    private String relayUserNo;
+    private int relayCount;
+
+    /**
+     * IMServiceConnector
+     */
+    private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("UploadVieoActivity#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+            initParam();
+            initView();
+            initListener();
+            previewCameraVideo();
+            mCameraStreamingManager.resume();
+        }
+
+        @Override
+        public void onServiceDisconnected() {
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG,"onCreate");
         super.onCreate(savedInstanceState);
+        imServiceConnector.connect(this);
+        EventBus.getDefault().register(this);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // 防止锁屏
-        initParam();
-        initView();
-        initListener();
-        previewCameraVideo();
     }
 
     @Override
     protected void onStop(){
+        Log.d(TAG,"onStop");
         super.onStop();
-        mCameraStreamingManager.destroy();
+        mCameraStreamingManager.pause();
     }
 
     @Override
     protected void onDestroy() {
+        Log.d(TAG,"onDestory");
         super.onDestroy();
-        mCameraStreamingManager.destroy();
+        imServiceConnector.disconnect(this);
+        EventBus.getDefault().unregister(this);
+        if(liveId!=null){
+            releaseLive(true);
+        }
+
+
     }
 
     @Override
     protected void onResume(){
+        Log.d(TAG,"onResume");
         super.onResume();
-        mCameraStreamingManager.resume();
+        if(mCameraStreamingManager!=null) {
+            mCameraStreamingManager.resume();
+        }
     }
 
     @Override
@@ -137,8 +205,8 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         try {
             mJSONObject.put("id",new String("123456"));
             mJSONObject.put("hub",new String("juju"));
-            mJSONObject.put("title","12345");
-//            mJSONObject.put("title",mediaId);
+//            mJSONObject.put("title","12345");
+            mJSONObject.put("title",mediaId);
             mJSONObject.put("publishKey",new String("123456"));
             mJSONObject.put("publishSecurity",new String("static"));
         } catch (JSONException e) {
@@ -185,11 +253,11 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         }
 
         StreamingEnv.init(context);
-//        if(isSupportHWEncode()) {
-//            mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.HW_VIDEO_WITH_HW_AUDIO_CODEC);
-//        }else{
+        if(isSupportHWEncode()) {
+            mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.HW_VIDEO_WITH_HW_AUDIO_CODEC);
+        }else{
             mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.SW_VIDEO_WITH_SW_AUDIO_CODEC);
-//        }
+        }
         mCameraStreamingManager.prepare(mCameraStreamingSetting, mProfile);
         mCameraStreamingManager.setStreamingStateListener(this);
         mCameraStreamingManager.setStreamStatusCallback(this);
@@ -201,6 +269,8 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     }
 
     private void initParam() {
+        groupId = getIntent().getStringExtra(Constants.GROUP_ID);
+        partyId = getIntent().getStringExtra(Constants.PARTY_ID);
     }
 
     private void initView() {
@@ -233,14 +303,232 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     @Event(R.id.img_close)
     private void closeVideo(View view){
+        releaseLive(false);
+    }
 
-        mCameraStreamingManager.stopStreaming();
-        ActivityUtil.finish(this);
+    @Event(R.id.img_seize)
+    private void notifySeize(View view){
+
+        WarnTipDialog tipdialog = new WarnTipDialog(this,"确定要发起续播竞赛吗？");
+        tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                imgSeize.setClickable(false);
+                SeizeNotifyEvent.SeizeNotifyBean seizeStartBean = new SeizeNotifyEvent.SeizeNotifyBean();
+                seizeStartBean.setGroupId(groupId);
+                seizeStartBean.setLiveId(liveId);
+                seizeStartBean.setType(0);
+                seizeStartBean.setSeconds(25);
+                LiveSeizeStartNotify.instance().executeCommand4Send(seizeStartBean);
+            }
+        });
+        tipdialog.show();
+
+    }
+
+    private void notifySeize() {
+    }
+
+    private void releaseLive(final boolean onDestoryCall){
+
+        if(liveId == null){
+            ActivityUtil.finish(this);
+            return;
+        }
+
+        CommandActionConstant.HttpReqParam INVITEUSER = CommandActionConstant.HttpReqParam.END_LIVE;
+        Map<String, Object> paramMap = HttpReqParamUtil.instance().buildMap();
+        Map<String,Object> liveMap = new HashMap<String,Object>();
+        liveMap.put("id",liveId);
+        liveMap.put("videoUrl","rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
+        liveMap.put("captureUrl","http://219.143.237.229:8080/capture.jpg");
+        liveMap.put("width",320);
+        liveMap.put("height",180);
+        paramMap.put("live",liveMap);
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
+                INVITEUSER.code(), INVITEUSER.url(),
+                new HttpCallBack4OK() {
+                    @Override
+                    public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+                        if(obj != null && obj instanceof JSONObject) {
+                            JSONObject jsonRoot = (JSONObject)obj;
+                            int status = JSONUtils.getInt(jsonRoot, "status", -1);
+                            if(status == 0) {
+                                mCameraStreamingManager.stopStreaming();
+                                mCameraStreamingManager.destroy();
+
+                                VideoProgram videoProgram = null;
+                                try {
+                                    videoProgram = JujuDbUtils.getInstance().selector(VideoProgram.class).where("id","=",liveId).findFirst();
+                                    videoProgram.setEndTime(new Date());
+                                    videoProgram.setStatus(1);
+                                    videoProgram.setVideoUrl("rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
+                                    JujuDbUtils.saveOrUpdate(videoProgram);
+
+                                } catch (DbException e) {
+                                    e.printStackTrace();
+                                    runOnUiThread(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ToastUtil.showShortToast(UploadVideoActivity.this,getString(R.string.operation_fail),1);
+                                        }
+                                    });
+                                }
+
+                                LiveNotifyEvent.LiveNotifyBean liveStopBean = new LiveNotifyEvent.LiveNotifyBean();
+                                liveStopBean.setGroupId(groupId);
+                                liveStopBean.setLiveId(liveId);
+                                liveStopBean.setVideoUrl("rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
+                                liveStopBean.setPartyId(partyId);
+                                liveStopBean.setCaptureUrl("http://219.143.237.229:8080/capture.jpg");
+                                liveStopBean.setWidth(320);
+                                liveStopBean.setHeight(180);
+                                LiveStopNotify.instance().executeCommand4Send(liveStopBean);
+                                liveId = null;
+                                if(!onDestoryCall) {
+                                    ActivityUtil.finish(UploadVideoActivity.this);
+                                }
+                                EventBus.getDefault().post(new LiveNotifyEvent(LiveNotifyEvent.Event.LIVE_STOP_OK));
+
+                            } else {
+                                String desc = JSONUtils.getString(jsonRoot,"desc");
+                                ToastUtil.showShortToast(UploadVideoActivity.this,getString(getResValue(desc)),1);
+                            }
+                        }
+                    }
+                    @Override
+                    public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                    }
+                }, paramMap, JSONObject.class);
+        try {
+            client.sendPost4OK();
+        } catch (UnsupportedEncodingException e) {
+        } catch (JSONException e) {
+        }
+
     }
 
     @Event(R.id.img_upload)
-    private void uploadVideo(View view){
-        mCameraStreamingManager.startStreaming();
+    private void applyLiveToken(View view){
+        Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("partyId", partyId);
+        CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GET_LIVE_TOKEN;
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
+                httpReqParam.url(), new HttpCallBack4OK() {
+            @Override
+            public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+                if(obj instanceof JSONObject) {
+                    JSONObject jsonRoot = (JSONObject)obj;
+                    int status = JSONUtils.getInt(jsonRoot, "status", -1);
+                    if(status == 0) {
+                        liveToken = JSONUtils.getString(jsonRoot,"liveToken");
+                        publishLive();
+                    }else if(status == StatusCode.LIVE_HAS_EXIST){
+                        String preUserNo = JSONUtils.getString(jsonRoot,"userNo");
+                        final String preUserNickName = imService.getContactManager().findContact(preUserNo).getNickName();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ToastUtil.showLongToast(UploadVideoActivity.this,preUserNickName + " 抢先了一步,下次不让TA了");
+                            }
+                        });
+                        ActivityUtil.finish(UploadVideoActivity.this);
+                    }else{
+                        final String desc = JSONUtils.getString(jsonRoot,"desc");
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ToastUtil.showShortToast(UploadVideoActivity.this,getString(getResValue(desc)),1);
+                            }
+                        });
+                    }
+                }
+            }
+            @Override
+            public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ToastUtil.showShortToast(UploadVideoActivity.this,getString(R.string.operation_fail),1);
+                    }
+                });
+            }
+        }, valueMap, JSONObject.class);
+        try {
+            client.sendGet4OK();
+        } catch (UnsupportedEncodingException e) {
+
+        } catch (JSONException e) {
+
+        }
+    }
+
+    private void publishLive(){
+
+        CommandActionConstant.HttpReqParam INVITEUSER = CommandActionConstant.HttpReqParam.ADD_LIVE;
+        Map<String, Object> paramMap = HttpReqParamUtil.instance()
+                .buildMap("partyId,liveToken", partyId, liveToken);
+        Map<String,Object> liveMap = new HashMap<String,Object>();
+        liveMap.put("liveUrl","rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
+        liveMap.put("captureUrl","http://219.143.237.229:8080/capture.jpg");
+        liveMap.put("width",320);
+        liveMap.put("height",180);
+        paramMap.put("live",liveMap);
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
+                INVITEUSER.code(), INVITEUSER.url(),
+                new HttpCallBack4OK() {
+                    @Override
+                    public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+                        if(obj != null && obj instanceof JSONObject) {
+                            JSONObject jsonRoot = (JSONObject)obj;
+                            int status = JSONUtils.getInt(jsonRoot, "status", -1);
+                            if(status == 0) {
+                                liveId = JSONUtils.getString(jsonRoot,"liveId");
+                                mCameraStreamingManager.startStreaming();
+
+                                VideoProgram videoProgram = new VideoProgram();
+                                videoProgram.setId(liveId);
+                                videoProgram.setPartyId(partyId);
+                                videoProgram.setCaptureUrl("http://219.143.237.229:8080/capture.jpg");
+                                videoProgram.setStartTime(new Date());
+                                videoProgram.setCreatorNo(AppContext.getUserInfoBean().getUserNo());
+                                videoProgram.setStatus(0);
+                                JujuDbUtils.save(videoProgram);
+
+                                LiveNotifyEvent.LiveNotifyBean liveStartBean = new LiveNotifyEvent.LiveNotifyBean();
+                                liveStartBean.setGroupId(groupId);
+                                liveStartBean.setLiveId(liveId);
+                                liveStartBean.setLiveUrl("rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
+                                liveStartBean.setPartyId(partyId);
+                                liveStartBean.setCaptureUrl("http://219.143.237.229:8080/capture.jpg");
+                                liveStartBean.setWidth(320);
+                                liveStartBean.setHeight(180);
+                                liveStartBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+                                liveStartBean.setNickName(AppContext.getUserInfoBean().getNickName());
+
+                                LiveStartNotify.instance().executeCommand4Send(liveStartBean);
+
+
+                            } else {
+                                final String desc = JSONUtils.getString(jsonRoot,"desc");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ToastUtil.showShortToast(UploadVideoActivity.this,getString(getResValue(desc)),1);
+                                    }
+                                });
+
+                            }
+                        }
+                    }
+                    @Override
+                    public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                    }
+                }, paramMap, JSONObject.class);
+        try {
+            client.sendPost4OK();
+        } catch (UnsupportedEncodingException e) {
+        } catch (JSONException e) {
+        }
     }
 
     @Event(R.id.img_share)
@@ -302,6 +590,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                     case CameraStreamingManager.STATE.STREAMING:
                         statusText.setText("开始直播");
                         imgUpload.setVisibility(View.GONE);
+                        imgSeize.setVisibility(View.VISIBLE);
                         layoutSliding.setVisibility(View.VISIBLE);
                         publishHlsVideo();
                         break;
@@ -311,6 +600,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                     case CameraStreamingManager.STATE.CONNECTION_TIMEOUT:
                         statusText.setText("连接超时");
                         imgUpload.setVisibility(View.VISIBLE);
+                        imgSeize.setVisibility(View.GONE);
                         layoutSliding.setVisibility(View.GONE);
                         mCameraStreamingManager.stopStreaming();
                         break;
@@ -323,6 +613,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                     case CameraStreamingManager.STATE.DISCONNECTED:
                         statusText.setText("连接中断");
                         imgUpload.setVisibility(View.VISIBLE);
+                        imgSeize.setVisibility(View.GONE);
                         layoutSliding.setVisibility(View.GONE);
                         mCameraStreamingManager.startStreaming();
                         break;
@@ -433,6 +724,72 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     private static boolean isSupportHWEncode() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4SeizeNotifyEvent(SeizeNotifyEvent event) {
+        SeizeNotifyEvent.SeizeNotifyBean bean = event.bean;
+        if(!bean.getLiveId().equals(liveId)){
+            return;
+        }
+        switch (event.event) {
+            case LIVE_SEIZE_START_OK:
+                ToastUtil.showLongToast(this, "已发布抢播通知");
+                //  渲染倒计时数据，清除当前胜出者。
+                imgSeize.setClickable(true);
+                imgSeize.setVisibility(View.GONE);
+                txtCount.setVisibility(View.VISIBLE);
+                txtCount.setText(String.valueOf(30));
+                new TimeCount(30000,1000).start();
+                relayUserNo = null;
+                relayCount = 0;
+                break;
+            case LIVE_SEIZE_REPORT_OK:
+                // 决出抢播胜出者
+                if (bean.getCount() > relayCount) {
+                    relayCount = bean.getCount();
+                    relayUserNo = bean.getUserNo();
+                }
+                break;
+            case LIVE_SEIZE_STOP_OK:
+                ToastUtil.showLongToast(this,"已决出续播者("+imService.getContactManager().findContact(relayUserNo).getNickName()+")，并发出通知！");
+                imgSeize.setVisibility(View.VISIBLE);
+                //TODO  关闭播放界面开启播放界面，需要过场控制
+
+                break;
+        }
+    }
+
+
+    /**
+     *******************************************内部类******************************************
+     */
+    //计时器
+    class TimeCount extends CountDownTimer {
+        public TimeCount(long millisInFuture, long countDownInterval) {
+            super(millisInFuture, countDownInterval);//参数依次为总时长,和计时的时间间隔
+        }
+        @Override
+        public void onFinish() {
+
+            //计数统计完毕，通知续播
+            txtCount.setVisibility(View.GONE);
+            SeizeNotifyEvent.SeizeNotifyBean seizeStartBean = new SeizeNotifyEvent.SeizeNotifyBean();
+            seizeStartBean.setGroupId(groupId);
+            seizeStartBean.setLiveId(liveId);
+            seizeStartBean.setCount(relayCount);
+            if(relayUserNo==null) {
+                relayUserNo = "19400000005";
+            }
+            seizeStartBean.setUserNo(relayUserNo);
+            LiveSeizeStopNotify.instance().executeCommand4Send(seizeStartBean);
+        }
+        @Override
+        public void onTick(long millisUntilFinished){//计时过程显示
+            long leftTime = millisUntilFinished / 1000;
+            txtCount.setText(String.valueOf(leftTime));
+        }
     }
 
 }

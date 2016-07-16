@@ -32,7 +32,6 @@ import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.SpfUtil;
-import com.juju.app.view.RoundImageView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -44,10 +43,13 @@ import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
+import org.xutils.x;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * 项目名称：juju
@@ -63,7 +65,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     private static final String TAG = "MeFragment";
 
     @ViewInject(R.id.head)
-    private RoundImageView imgHead;
+    private CircleImageView imgHead;
     @ViewInject(R.id.txt_nick_name)
     private TextView txtNickName;
     @ViewInject(R.id.txt_phone)

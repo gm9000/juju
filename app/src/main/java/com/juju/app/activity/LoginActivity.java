@@ -44,7 +44,6 @@ import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.ClearEditText;
-import com.juju.app.view.RoundImageView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -58,6 +57,8 @@ import org.xutils.view.annotation.ViewInject;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 
 @ContentView(R.layout.activity_login)
@@ -81,7 +82,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     private ClearEditText txt_password;
 
     @ViewInject(R.id.portrait)
-    private RoundImageView portrait;
+    private CircleImageView portrait;
 
     @ViewInject(R.id.nickName)
     private TextView tv_nickName;

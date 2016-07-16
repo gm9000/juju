@@ -17,13 +17,12 @@
             <RelativeLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
-                <com.juju.app.view.RoundImageView
+                <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/head"
                     android:layout_width="100dp"
                     android:layout_height="100dp"
                     android:layout_marginTop="10dp"
                     android:layout_centerHorizontal="true"
-                    android:scaleType="centerInside"
                     android:src="@mipmap/head" />
                 <TextView
                     android:id="@+id/txt_nick_name"

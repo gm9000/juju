@@ -12,10 +12,11 @@ import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.PlanVote;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ViewHolderUtil;
-import com.juju.app.view.RoundImageView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * 项目名称：juju
@@ -71,7 +72,7 @@ public class PlanVoteListAdapter extends BaseAdapter {
             convertView = LayoutInflater.from(context).
                     inflate(R.layout.user_icon_item, parent, false);
         }
-        RoundImageView img_head = ViewHolderUtil.get(convertView, R.id.img_head);
+        CircleImageView img_head = ViewHolderUtil.get(convertView, R.id.img_head);
         TextView txt_nickName = ViewHolderUtil.get(convertView, R.id.txt_nick_name);
 
         final PlanVote planVote = planVoteList.get(position);

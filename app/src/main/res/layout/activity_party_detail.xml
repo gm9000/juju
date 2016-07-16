@@ -32,7 +32,7 @@
                     android:layout_centerVertical="true"
                     android:gravity="center"
                     android:orientation="vertical">
-                    <com.juju.app.view.RoundImageView
+                    <de.hdodenhof.circleimageview.CircleImageView
                         android:id="@+id/img_head"
                         android:layout_width="80dp"
                         android:layout_height="80dp"

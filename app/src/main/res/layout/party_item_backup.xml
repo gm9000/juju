@@ -55,7 +55,7 @@
                 android:scaleType="centerCrop"
                 android:cropToPadding="true"
                 android:src="@mipmap/plan_add"/>
-            <com.juju.app.view.RoundImageView
+            <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/creatorImage"
                 android:layout_width="25dp"
                 android:layout_height="25dp"

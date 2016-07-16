@@ -90,22 +90,20 @@
                     android:text="@string/group_party"
                     android:textColor="@color/gray"
                     android:textSize="20sp" />
-
                 <TextView
-                    android:id="@+id/unread_address_number"
+                    android:id="@+id/unread_party_number"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
-                    android:background="@mipmap/aii"
+                    android:background="@drawable/tt_message_notify"
                     android:gravity="center"
-                    android:layout_marginRight="8dp"
-                    android:text="7"
+                    android:layout_marginRight="22dp"
+                    android:layout_marginTop="8dp"
                     android:visibility="gone"
                     android:textColor="@android:color/white"
                     android:textSize="12sp" />
             </RelativeLayout>
         </RelativeLayout>
-
 
         <RelativeLayout
             android:id="@+id/re_profile"

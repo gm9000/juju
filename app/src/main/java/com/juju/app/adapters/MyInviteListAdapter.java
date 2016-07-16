@@ -13,11 +13,12 @@ import com.juju.app.entity.Invite;
 import com.juju.app.utils.DateUtil;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ViewHolderUtil;
-import com.juju.app.view.RoundImageView;
 import com.juju.app.view.SwipeLayoutView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class MyInviteListAdapter extends BaseSwipeAdapter {
@@ -82,7 +83,7 @@ public class MyInviteListAdapter extends BaseSwipeAdapter {
         }
         SwipeLayoutView layout_swipe = ViewHolderUtil.get(convertView, R.id.swipe);
         TextView waitingProcess = ViewHolderUtil.get(convertView, R.id.waiting_process);
-        RoundImageView imgHead = ViewHolderUtil.get(convertView, R.id.img_head);
+        CircleImageView imgHead = ViewHolderUtil.get(convertView, R.id.img_head);
         TextView txtNickName = ViewHolderUtil.get(convertView, R.id.txt_nick_name);
         TextView txtTime = ViewHolderUtil.get(convertView, R.id.txt_time);
         TextView txtInviteInfo = ViewHolderUtil.get(convertView, R.id.txt_invite_info);

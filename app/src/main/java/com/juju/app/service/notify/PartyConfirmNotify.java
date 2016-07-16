@@ -210,6 +210,9 @@ public class PartyConfirmNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
                 party.setCoverUrl(plan.getCoverUrl());
                 party.setTime(plan.getStartTime());
                 JujuDbUtils.saveOrUpdate(party);
+
+                buildAndTriggerBusinessFlow4Recv(PartyNotifyEvent.BusinessFlow.RecvParam
+                        .Recv.UPDATE_LOCAL_CACHE_DATA_OK, partyNotifyBean);
             }
 
         } catch (DbException e) {

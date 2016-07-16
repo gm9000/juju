@@ -33,7 +33,6 @@ import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.ToastUtil;
-import com.juju.app.view.RoundImageView;
 import com.juju.app.view.dialog.WarnTipDialog;
 import com.juju.app.view.scroll.NoScrollListView;
 
@@ -54,6 +53,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 @ContentView(R.layout.activity_party_detail)
 public class PartyDetailActivity extends BaseActivity implements HttpCallBack, AdapterView.OnItemClickListener, AdapterView.OnItemLongClickListener {
 
@@ -72,7 +73,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
 
 
     @ViewInject(R.id.img_head)
-    private RoundImageView img_head;
+    private CircleImageView img_head;
     @ViewInject(R.id.txt_nick_name)
     private TextView txt_nickName;
     @ViewInject(R.id.txt_party_title)

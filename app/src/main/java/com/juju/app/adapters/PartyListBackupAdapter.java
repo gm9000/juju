@@ -16,7 +16,6 @@ import com.juju.app.helper.IMUIHelper;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.StringUtils;
-import com.juju.app.view.RoundImageView;
 import com.juju.app.view.SwipeLayoutView;
 
 import java.text.SimpleDateFormat;
@@ -24,6 +23,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 
 public class PartyListBackupAdapter extends BaseSwipeAdapter {
@@ -119,7 +120,7 @@ public class PartyListBackupAdapter extends BaseSwipeAdapter {
         ImageView imgPlanType = (ImageView)view.findViewById(R.id.img_plan_type);
         imgPlanType.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
 
-        RoundImageView imgCreatorHead = (RoundImageView) view.findViewById(R.id.creatorImage);
+        CircleImageView imgCreatorHead = (CircleImageView) view.findViewById(R.id.creatorImage);
         TextView txtCreatorName = (TextView) view.findViewById(R.id.creator_name);
         TextView txtPartyName = (TextView) view.findViewById(R.id.party_name);
         TextView txtTime = (TextView) view.findViewById(R.id.time);

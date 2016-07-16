@@ -42,7 +42,6 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.view.LocationImageView;
-import com.juju.app.view.RoundImageView;
 import com.rey.material.app.BottomSheetDialog;
 import com.skyfishjy.library.RippleBackground;
 
@@ -56,6 +55,8 @@ import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.ViewInject;
 
 import java.util.HashMap;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 @ContentView(R.layout.activity_party_location)
 public class PartyLocationActivity extends BaseActivity implements View.OnClickListener, BaiduMap.OnMarkerClickListener, View.OnTouchListener{
@@ -320,7 +321,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
             msgDialog = new BottomSheetDialog(this);
             msgDialog.contentView(R.layout.layout_friend_contact)
                     .inDuration(300);
-            RoundImageView headImg = (RoundImageView)msgDialog.findViewById(R.id.img_head);
+            CircleImageView headImg = (CircleImageView)msgDialog.findViewById(R.id.img_head);
             txtCall = (TextView)msgDialog.findViewById(R.id.txt_call);
             txtSms = (TextView)msgDialog.findViewById(R.id.txt_sms);
             txtCancel = (TextView)msgDialog.findViewById(R.id.txt_cancel);

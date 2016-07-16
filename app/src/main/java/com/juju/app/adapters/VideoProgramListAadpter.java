@@ -1,6 +1,5 @@
 package com.juju.app.adapters;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,15 +8,25 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.party.PartyLiveActivity;
+import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.VideoProgram;
+import com.juju.app.utils.DateUtil;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ViewHolderUtil;
-import com.juju.app.view.RoundImageView;
 
 import java.util.List;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 public class VideoProgramListAadpter extends BaseAdapter {
 
-    private Context context;
+    private PartyLiveActivity context;
+
+    public void setVideoProgramList(List<VideoProgram> videoProgramList) {
+        this.videoProgramList = videoProgramList;
+    }
+
     private List<VideoProgram> videoProgramList;
     private LayoutInflater layoutInflater;
 
@@ -27,12 +36,12 @@ public class VideoProgramListAadpter extends BaseAdapter {
 
     private Callback callback;
 
-    public VideoProgramListAadpter(Context context, List<VideoProgram> videoProgramList) {
+    public VideoProgramListAadpter(PartyLiveActivity context, List<VideoProgram> videoProgramList) {
         this.context = context;
         this.videoProgramList = videoProgramList;
     }
 
-    public interface Callback{
+    public interface Callback {
         public void playVideo(VideoProgram videoProgram);
     }
 
@@ -61,7 +70,7 @@ public class VideoProgramListAadpter extends BaseAdapter {
             convertView = LayoutInflater.from(context).
                     inflate(R.layout.party_live_item, parent, false);
         }
-        RoundImageView imgHead = ViewHolderUtil.get(convertView,
+        CircleImageView imgHead = ViewHolderUtil.get(convertView,
                 R.id.img_head);
         TextView creatorName = ViewHolderUtil.get(convertView, R.id.live_user_name);
         TextView liveTimeTxt = ViewHolderUtil.get(convertView, R.id.live_time_txt);
@@ -71,12 +80,17 @@ public class VideoProgramListAadpter extends BaseAdapter {
 
 
         final VideoProgram videoProgram = videoProgramList.get(position);
-        creatorName.setText(videoProgram.getCreatorName());
-        if(videoProgram.getStatus() == 0){
+        creatorName.setText(context.getIMContactManager().findContact(videoProgram.getCreatorNo()).getNickName());
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                + videoProgram.getCreatorNo(), imgHead, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(videoProgram.getCaptureUrl(), imgCaputure, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+
+        if (videoProgram.getStatus() == 0) {
             liveTimeTxt.setText("直播中...");
             liveTimeTxt.setTextColor(0xFFFF0000);
-        }else{
-            liveTimeTxt.setText(videoProgram.getEndTime());
+        } else {
+            liveTimeTxt.setText(DateUtil.format(videoProgram.getEndTime()));
             liveTimeTxt.setTextColor(0xFF000000);
         }
 

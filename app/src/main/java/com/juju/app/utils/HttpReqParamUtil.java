@@ -60,4 +60,13 @@ public class HttpReqParamUtil {
         return map;
     }
 
+    public Map<String, Object> buildMap() {
+        Map<String, Object> map = new HashMap<>();
+        if(userInfoBean != null) {
+            map.put("userNo", userInfoBean.getUserNo());
+            map.put("token", userInfoBean.getToken());
+        }
+        return map;
+    }
+
 }

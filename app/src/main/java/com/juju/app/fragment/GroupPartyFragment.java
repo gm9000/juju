@@ -242,13 +242,13 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                                      int visibleItemCount, int totalItemCount) {
                     if (firstVisibleItem > lastVisibleItemPosition) {// 上滑
                         if (menuIsShow) {
-                            mdProdess.hiddenMenu();
-                            menuIsShow = false;
+//                            mdProdess.hiddenMenu();
+//                            menuIsShow = false;
                         }
                     } else if (firstVisibleItem < lastVisibleItemPosition) {// 下滑
                         if (!menuIsShow) {
-                            mdProdess.showMenu();
-                            menuIsShow = true;
+//                            mdProdess.showMenu();
+//                            menuIsShow = true;
                         }
                     } else {
                         return;

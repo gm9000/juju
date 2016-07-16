@@ -13,12 +13,20 @@ import com.juju.app.adapters.VideoProgramListAadpter;
 import com.juju.app.entity.Party;
 import com.juju.app.entity.VideoProgram;
 import com.juju.app.enums.DisplayAnimation;
+import com.juju.app.event.notify.LiveNotifyEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.ScreenUtil;
+import com.juju.app.utils.ToastUtil;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+import org.xutils.db.Selector;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
@@ -33,12 +41,12 @@ import java.util.UUID;
 @ContentView(R.layout.activity_party_live)
 public class PartyLiveActivity extends BaseActivity implements View.OnClickListener, VideoProgramListAadpter.Callback {
 
-
     @ViewInject(R.id.layout_party_bar)
     private RelativeLayout topLayout;
 
     @ViewInject(R.id.img_right)
     private ImageView img_right;
+
 
     @ViewInject(R.id.txt_title)
     private TextView txt_title;
@@ -63,16 +71,71 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
     private String partyId;
 
     private int lastVisibleItemPosition=0;
+    private boolean hasLive = false;
+
+    private IMService imService;
+    /**
+     * IMServiceConnector
+     */
+    private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("UploadVieoActivity#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+            initParam();
+            initView();
+            loadLiveProgram();
+            wrapProgramList();
+            addClickListener();
+        }
+
+        @Override
+        public void onServiceDisconnected() {
+        }
+    };
+
+    public IMContactManager getIMContactManager(){
+        return imService.getContactManager();
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initParam();
-        initView();
-        loadLiveProgram();
-        wrapProgramList();
-        addClickListener();
+        EventBus.getDefault().register(this);
+        imServiceConnector.connect(this);
+    }
 
+    @Override
+    protected  void onResume(){
+        super.onResume();
+        //  TODO 这里处理处理上有问题， 需要针对特定聚会进行局部刷新
+        if(videoProgramList!=null && JujuDbUtils.needRefresh(VideoProgram.class)){
+            Selector selector = null;
+            try {
+                selector = JujuDbUtils.getInstance().selector(VideoProgram.class).where("party_id","=",partyId);
+                selector.orderBy("status").orderBy("local_id", true);
+                videoProgramList = selector.findAll();
+                if(videoProgramList==null){
+                    videoProgramList = new ArrayList<VideoProgram>();
+                }
+                if(videoProgramList.size()>0){
+                    hasLive = (videoProgramList.get(0).getStatus()==0);
+                }
+                programListAadpter.setVideoProgramList(videoProgramList);
+                programListAadpter.notifyDataSetChanged();
+                JujuDbUtils.closeRefresh(VideoProgram.class);
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        imServiceConnector.disconnect(this);
+        EventBus.getDefault().unregister(this);
+        super.onDestroy();
     }
 
     private void initParam() {
@@ -156,58 +219,20 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
 
     private void loadLiveProgram(){
-        videoProgramList = new ArrayList<VideoProgram>();
-        VideoProgram v1 = new VideoProgram();
-        v1.setCreatorName("聚龙小子");
-        v1.setStatus(0);
-        v1.setStartTime("2015-12-12 09:00:00");
-        v1.setEndTime("2015-12-12 12:00:00");
-        v1.setVideoUrl("rtmp://219.143.237.232:1935/juju/12345");
-
-        VideoProgram v2 = new VideoProgram();
-        v2.setCreatorName("金牛之女");
-        v2.setStatus(1);
-        v2.setStartTime("2015-12-12 09:20:00");
-        v2.setEndTime("2015-12-12 10:00:00");
-        v2.setVideoUrl("http://devimages.apple.com/iphone/samples/bipbop/gear1/prog_index.m3u8");
-
-
-        VideoProgram v3 = new VideoProgram();
-        v3.setCreatorName("摩羯之子");
-        v3.setStatus(1);
-        v3.setStartTime("2015-12-12 15:00:00");
-        v3.setEndTime("2015-12-12 15:10:00");
-        v3.setVideoUrl("rtmp://219.143.237.232:1935/juju/123456");
-
-        VideoProgram v4 = new VideoProgram();
-        v4.setCreatorName("摩羯之子4");
-        v4.setStatus(1);
-        v4.setStartTime("2015-12-12 15:00:00");
-        v4.setEndTime("2015-12-12 15:10:00");
-        v4.setVideoUrl("rtmp://219.143.237.232:1935/juju/123456");
-
-
-        VideoProgram v5 = new VideoProgram();
-        v5.setCreatorName("摩羯之子5");
-        v5.setStatus(1);
-        v5.setStartTime("2015-12-12 15:00:00");
-        v5.setEndTime("2015-12-12 15:10:00");
-        v5.setVideoUrl("rtmp://219.143.237.232:1935/juju/123456");
-
-
-        VideoProgram v6 = new VideoProgram();
-        v6.setCreatorName("摩羯之子6");
-        v6.setStatus(1);
-        v6.setStartTime("2015-12-12 15:00:00");
-        v6.setEndTime("2015-12-12 15:10:00");
-        v6.setVideoUrl("rtmp://219.143.237.232:1935/juju/123456");
-        videoProgramList.add(v1);
-        videoProgramList.add(v2);
-        videoProgramList.add(v3);
-        videoProgramList.add(v4);
-        videoProgramList.add(v5);
-        videoProgramList.add(v6);
-
+        Selector selector = null;
+        try {
+            selector = JujuDbUtils.getInstance().selector(VideoProgram.class).where("party_id","=",partyId);
+            selector.orderBy("status").orderBy("local_id", true);
+            videoProgramList = selector.findAll();
+            if(videoProgramList==null){
+                videoProgramList = new ArrayList<VideoProgram>();
+            }
+            if(videoProgramList.size()>0){
+                hasLive = (videoProgramList.get(0).getStatus()==0);
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
     }
 
     private void wrapProgramList(){
@@ -238,14 +263,37 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
     @Event(value = R.id.img_live_start, type = View.OnClickListener.class)
     private void startLive(View view){
-        ActivityUtil.startActivity4UPAndNew(this,UploadVideoActivity.class);
+        if(hasLive){
+            ToastUtil.showLongToast(this,getString(R.string.live_limit));
+            return;
+        }
+        Map<String,String> param = new HashMap<String,String>();
+        param.put(Constants.GROUP_ID,party.getGroupId());
+        param.put(Constants.PARTY_ID,partyId);
+        ActivityUtil.startActivity4UPAndNew(this,UploadVideoActivity.class,param);
     }
 
     @Override
     public void playVideo(VideoProgram videoProgram) {
         //  TODO 获取视频请求的URL参数，传入播放界面
-//        BasicNameValuePair nvPair = new BasicNameValuePair("videoUrl", videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
-        ActivityUtil.startActivity4UPAndNew(this, PlayVideoActivity.class, "videoUrl",
-                videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
+
+        Map<String,Object> paramMap = new HashMap<String,Object>();
+        paramMap.put(Constants.GROUP_ID,party.getGroupId());
+        paramMap.put(Constants.LIVE_ID,videoProgram.getId());
+        paramMap.put(Constants.VIDEO_URL,videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
+
+        ActivityUtil.startActivity4UPAndNew(this, PlayVideoActivity.class, paramMap);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4LiveNotifyEvent(LiveNotifyEvent event){
+        switch (event.event){
+            case LIVE_START_OK:
+                onResume();
+                break;
+            case LIVE_STOP_OK:
+                onResume();
+                break;
+        }
     }
 }

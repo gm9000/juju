@@ -29,15 +29,14 @@
         android:paddingRight="10dp"
         android:textColor="@color/white"
         android:text="@string/un_read"/>
-    <com.juju.app.view.RoundImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/creatorImage"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="-40dp"
         android:layout_below="@+id/party_preview"
-        android:src="@mipmap/head"
-        android:scaleType="fitCenter"/>
+        android:src="@mipmap/head"/>
     <TextView
         android:id="@+id/creator_name"
         android:layout_width="wrap_content"

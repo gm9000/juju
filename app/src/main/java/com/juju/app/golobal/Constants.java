@@ -135,6 +135,8 @@ public class Constants {
 
     public static final String GROUP_ID = "groupId";    //  群组ID
     public static final String PARTY_ID = "partyId";    //  聚会ID
+    public static final String LIVE_ID = "liveId";    //  聚会ID
+    public static final String VIDEO_URL = "videoUrl";   //  视频URL
     public static final String IS_OWNER = "isOwner";    //  是否是创建者
     public static final String PLAN_ID = "planId";    //  聚会ID
     public static final String USER_NO = "userNo";    //  聚会ID
