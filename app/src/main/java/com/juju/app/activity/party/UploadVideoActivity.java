@@ -19,10 +19,13 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.adapters.DiscussListAdapter;
 import com.juju.app.annotation.SystemColor;
 import com.juju.app.bean.json.LoginResBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.VideoProgram;
+import com.juju.app.event.notify.DiscussNotifyEvent;
+import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.event.notify.LiveNotifyEvent;
 import com.juju.app.event.notify.SeizeNotifyEvent;
 import com.juju.app.golobal.AppContext;
@@ -35,6 +38,7 @@ import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.service.notify.LiveDiscussNotify;
 import com.juju.app.service.notify.LiveSeizeStartNotify;
 import com.juju.app.service.notify.LiveSeizeStopNotify;
 import com.juju.app.service.notify.LiveStartNotify;
@@ -43,6 +47,7 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.CameraUtil;
 import com.juju.app.utils.HttpReqParamUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.dialog.WarnTipDialog;
@@ -66,13 +71,15 @@ import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @ContentView(R.layout.activity_party_video)
-@SystemColor(isApply=false)
+@SystemColor(isApply = false)
 public class UploadVideoActivity extends BaseActivity implements View.OnClickListener, CameraStreamingManager.StreamingStateListener, HttpCallBack4OK, StreamStatusCallback {
 
     private static final String TAG = "UploadVideoActivity";
@@ -130,6 +137,10 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     private String relayUserNo;
     private int relayCount;
 
+
+    private DiscussListAdapter discussListAdapter;
+    private List discussList;
+
     /**
      * IMServiceConnector
      */
@@ -142,7 +153,6 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             initView();
             initListener();
             previewCameraVideo();
-            mCameraStreamingManager.resume();
         }
 
         @Override
@@ -152,7 +162,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        Log.d(TAG,"onCreate");
+        Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         imServiceConnector.connect(this);
         EventBus.getDefault().register(this);
@@ -161,30 +171,32 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     }
 
     @Override
-    protected void onStop(){
-        Log.d(TAG,"onStop");
+    protected void onStop() {
+        Log.d(TAG, "onStop");
         super.onStop();
         mCameraStreamingManager.pause();
     }
 
     @Override
     protected void onDestroy() {
-        Log.d(TAG,"onDestory");
+        Log.d(TAG, "onDestory");
         super.onDestroy();
         imServiceConnector.disconnect(this);
         EventBus.getDefault().unregister(this);
-        if(liveId!=null){
+        if (liveId != null) {
             releaseLive(true);
+        }else{
+            mCameraStreamingManager = null;
         }
 
 
     }
 
     @Override
-    protected void onResume(){
-        Log.d(TAG,"onResume");
+    protected void onResume() {
+        Log.d(TAG, "onResume");
         super.onResume();
-        if(mCameraStreamingManager!=null) {
+        if (mCameraStreamingManager != null) {
             mCameraStreamingManager.resume();
         }
     }
@@ -203,27 +215,27 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         JSONObject mJSONObject = new JSONObject();
         //        this.streamId = var1.getString("id");
         try {
-            mJSONObject.put("id",new String("123456"));
-            mJSONObject.put("hub",new String("juju"));
+            mJSONObject.put("id", new String("123456"));
+            mJSONObject.put("hub", new String("juju"));
 //            mJSONObject.put("title","12345");
-            mJSONObject.put("title",mediaId);
-            mJSONObject.put("publishKey",new String("123456"));
-            mJSONObject.put("publishSecurity",new String("static"));
+            mJSONObject.put("title", mediaId);
+            mJSONObject.put("publishKey", new String("123456"));
+            mJSONObject.put("publishSecurity", new String("static"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
         JSONObject hosts = new JSONObject();
         JSONObject publish = new JSONObject();
         try {
-            publish.put("rtmp", GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort);
-            hosts.put("publish",publish);
-            mJSONObject.put("hosts",hosts);
+            publish.put("rtmp", GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort);
+            hosts.put("publish", publish);
+            mJSONObject.put("hosts", hosts);
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
         StreamingProfile.AudioProfile aProfile = new StreamingProfile.AudioProfile(44100, 48 * 1000);
-        StreamingProfile.VideoProfile vProfile = new StreamingProfile.VideoProfile(15, 200*1000, 30);
+        StreamingProfile.VideoProfile vProfile = new StreamingProfile.VideoProfile(15, 200 * 1000, 30);
         StreamingProfile.AVProfile avProfile = new StreamingProfile.AVProfile(vProfile, aProfile);
 
         StreamingProfile.Stream stream = new StreamingProfile.Stream(mJSONObject);
@@ -247,15 +259,15 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                 .setCameraPrvSizeLevel(CameraStreamingSetting.PREVIEW_SIZE_LEVEL.MEDIUM)
                 .setCameraPrvSizeRatio(CameraStreamingSetting.PREVIEW_SIZE_RATIO.RATIO_16_9);
 
-        if(isSupportHWEncode()){
+        if (isSupportHWEncode()) {
             mCameraStreamingSetting.setFocusMode(CameraStreamingSetting.FOCUS_MODE_CONTINUOUS_VIDEO);
             mCameraStreamingSetting.setContinuousFocusModeEnabled(true);
         }
 
         StreamingEnv.init(context);
-        if(isSupportHWEncode()) {
+        if (isSupportHWEncode()) {
             mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.HW_VIDEO_WITH_HW_AUDIO_CODEC);
-        }else{
+        } else {
             mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.SW_VIDEO_WITH_SW_AUDIO_CODEC);
         }
         mCameraStreamingManager.prepare(mCameraStreamingSetting, mProfile);
@@ -285,31 +297,56 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             e.printStackTrace();
         }
 
+        imgUpload.setVisibility(View.GONE);
+
         layoutSliding.setSliderFadeColor(getResources().getColor(R.color.transparent));
 
 
-        if(!CameraUtil.hasFrontFacingCamera()){
+        if (!CameraUtil.hasFrontFacingCamera()) {
             imgChange.setVisibility(View.GONE);
         }
         layoutSliding.setVisibility(View.GONE);
+
+        discussList = new ArrayList();
+
+        discussListAdapter = new DiscussListAdapter(this);
+        discussListAdapter.setDiscussList(discussList);
+        discussListView.setAdapter(discussListAdapter);
 
     }
 
 
     @Event(R.id.img_change)
-    private void changeCamera(View view){
+    private void changeCamera(View view) {
         mCameraStreamingManager.switchCamera();
     }
 
     @Event(R.id.img_close)
-    private void closeVideo(View view){
+    private void closeVideo(View view) {
         releaseLive(false);
     }
 
-    @Event(R.id.img_seize)
-    private void notifySeize(View view){
+    @Event(R.id.btn_send)
+    private void addDiscuss(View view) {
+        //TODO  发送通知
 
-        WarnTipDialog tipdialog = new WarnTipDialog(this,"确定要发起续播竞赛吗？");
+        if (StringUtils.empty(txtDiscuss.getText())) {
+            return;
+        }
+
+        DiscussNotifyEvent.DiscussNotifyBean discussNotifyBean = new DiscussNotifyEvent.DiscussNotifyBean();
+        discussNotifyBean.setGroupId(groupId);
+        discussNotifyBean.setLiveId(liveId);
+        discussNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+        discussNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+        discussNotifyBean.setContent(txtDiscuss.getText().toString());
+        LiveDiscussNotify.instance().executeCommand4Send(discussNotifyBean);
+    }
+
+    @Event(R.id.img_seize)
+    private void notifySeize(View view) {
+
+        WarnTipDialog tipdialog = new WarnTipDialog(this, "确定要发起续播竞赛吗？");
         tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
@@ -329,40 +366,41 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     private void notifySeize() {
     }
 
-    private void releaseLive(final boolean onDestoryCall){
+    private void releaseLive(final boolean onDestoryCall) {
 
-        if(liveId == null){
+        if (liveId == null) {
             ActivityUtil.finish(this);
             return;
         }
 
         CommandActionConstant.HttpReqParam INVITEUSER = CommandActionConstant.HttpReqParam.END_LIVE;
         Map<String, Object> paramMap = HttpReqParamUtil.instance().buildMap();
-        Map<String,Object> liveMap = new HashMap<String,Object>();
-        liveMap.put("id",liveId);
-        liveMap.put("videoUrl","rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
-        liveMap.put("captureUrl","http://219.143.237.229:8080/capture.jpg");
-        liveMap.put("width",320);
-        liveMap.put("height",180);
-        paramMap.put("live",liveMap);
+        Map<String, Object> liveMap = new HashMap<String, Object>();
+        liveMap.put("id", liveId);
+        liveMap.put("videoUrl", "rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
+        liveMap.put("captureUrl", "http://219.143.237.229:8080/capture.jpg");
+        liveMap.put("width", 320);
+        liveMap.put("height", 180);
+        paramMap.put("live", liveMap);
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
                 INVITEUSER.code(), INVITEUSER.url(),
                 new HttpCallBack4OK() {
                     @Override
                     public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
-                        if(obj != null && obj instanceof JSONObject) {
-                            JSONObject jsonRoot = (JSONObject)obj;
+                        if (obj != null && obj instanceof JSONObject) {
+                            JSONObject jsonRoot = (JSONObject) obj;
                             int status = JSONUtils.getInt(jsonRoot, "status", -1);
-                            if(status == 0) {
+                            if (status == 0) {
                                 mCameraStreamingManager.stopStreaming();
                                 mCameraStreamingManager.destroy();
+                                mCameraStreamingManager = null;
 
                                 VideoProgram videoProgram = null;
                                 try {
-                                    videoProgram = JujuDbUtils.getInstance().selector(VideoProgram.class).where("id","=",liveId).findFirst();
+                                    videoProgram = JujuDbUtils.getInstance().selector(VideoProgram.class).where("id", "=", liveId).findFirst();
                                     videoProgram.setEndTime(new Date());
                                     videoProgram.setStatus(1);
-                                    videoProgram.setVideoUrl("rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
+                                    videoProgram.setVideoUrl("rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
                                     JujuDbUtils.saveOrUpdate(videoProgram);
 
                                 } catch (DbException e) {
@@ -370,7 +408,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                                     runOnUiThread(new Runnable() {
                                         @Override
                                         public void run() {
-                                            ToastUtil.showShortToast(UploadVideoActivity.this,getString(R.string.operation_fail),1);
+                                            ToastUtil.showShortToast(UploadVideoActivity.this, getString(R.string.operation_fail), 1);
                                         }
                                     });
                                 }
@@ -378,77 +416,86 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                                 LiveNotifyEvent.LiveNotifyBean liveStopBean = new LiveNotifyEvent.LiveNotifyBean();
                                 liveStopBean.setGroupId(groupId);
                                 liveStopBean.setLiveId(liveId);
-                                liveStopBean.setVideoUrl("rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
+                                liveStopBean.setVideoUrl("rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
                                 liveStopBean.setPartyId(partyId);
                                 liveStopBean.setCaptureUrl("http://219.143.237.229:8080/capture.jpg");
                                 liveStopBean.setWidth(320);
                                 liveStopBean.setHeight(180);
                                 LiveStopNotify.instance().executeCommand4Send(liveStopBean);
                                 liveId = null;
-                                if(!onDestoryCall) {
+                                if (!onDestoryCall) {
                                     ActivityUtil.finish(UploadVideoActivity.this);
                                 }
                                 EventBus.getDefault().post(new LiveNotifyEvent(LiveNotifyEvent.Event.LIVE_STOP_OK));
 
                             } else {
-                                String desc = JSONUtils.getString(jsonRoot,"desc");
-                                ToastUtil.showShortToast(UploadVideoActivity.this,getString(getResValue(desc)),1);
+                                String desc = JSONUtils.getString(jsonRoot, "desc");
+                                ToastUtil.showShortToast(UploadVideoActivity.this, getString(getResValue(desc)), 1);
+                                mCameraStreamingManager = null;
                             }
                         }
                     }
+
                     @Override
                     public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                        mCameraStreamingManager = null;
                     }
                 }, paramMap, JSONObject.class);
         try {
             client.sendPost4OK();
         } catch (UnsupportedEncodingException e) {
+            mCameraStreamingManager = null;
         } catch (JSONException e) {
+            mCameraStreamingManager = null;
         }
 
     }
 
     @Event(R.id.img_upload)
-    private void applyLiveToken(View view){
+    private void applyLiveToken(View view) {
+        imgUpload.setClickable(false);
         Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("partyId", partyId);
         CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GET_LIVE_TOKEN;
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
                 httpReqParam.url(), new HttpCallBack4OK() {
             @Override
             public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
-                if(obj instanceof JSONObject) {
-                    JSONObject jsonRoot = (JSONObject)obj;
+                if (obj instanceof JSONObject) {
+                    JSONObject jsonRoot = (JSONObject) obj;
                     int status = JSONUtils.getInt(jsonRoot, "status", -1);
-                    if(status == 0) {
-                        liveToken = JSONUtils.getString(jsonRoot,"liveToken");
+                    if (status == 0) {
+                        liveToken = JSONUtils.getString(jsonRoot, "liveToken");
                         publishLive();
-                    }else if(status == StatusCode.LIVE_HAS_EXIST){
-                        String preUserNo = JSONUtils.getString(jsonRoot,"userNo");
+                    } else if (status == StatusCode.LIVE_HAS_EXIST) {
+                        String preUserNo = JSONUtils.getString(jsonRoot, "userNo");
                         final String preUserNickName = imService.getContactManager().findContact(preUserNo).getNickName();
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                ToastUtil.showLongToast(UploadVideoActivity.this,preUserNickName + " 抢先了一步,下次不让TA了");
+                                ToastUtil.showLongToast(UploadVideoActivity.this, preUserNickName + " 抢先了一步,下次不让TA了");
                             }
                         });
                         ActivityUtil.finish(UploadVideoActivity.this);
-                    }else{
-                        final String desc = JSONUtils.getString(jsonRoot,"desc");
+                    } else {
+                        imgUpload.setClickable(true);
+                        final String desc = JSONUtils.getString(jsonRoot, "desc");
                         runOnUiThread(new Runnable() {
                             @Override
                             public void run() {
-                                ToastUtil.showShortToast(UploadVideoActivity.this,getString(getResValue(desc)),1);
+                                ToastUtil.showShortToast(UploadVideoActivity.this, getString(getResValue(desc)), 1);
                             }
                         });
                     }
                 }
             }
+
             @Override
             public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                imgUpload.setClickable(true);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        ToastUtil.showShortToast(UploadVideoActivity.this,getString(R.string.operation_fail),1);
+                        ToastUtil.showShortToast(UploadVideoActivity.this, getString(R.string.operation_fail), 1);
                     }
                 });
             }
@@ -462,27 +509,27 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         }
     }
 
-    private void publishLive(){
+    private void publishLive() {
 
         CommandActionConstant.HttpReqParam INVITEUSER = CommandActionConstant.HttpReqParam.ADD_LIVE;
         Map<String, Object> paramMap = HttpReqParamUtil.instance()
                 .buildMap("partyId,liveToken", partyId, liveToken);
-        Map<String,Object> liveMap = new HashMap<String,Object>();
-        liveMap.put("liveUrl","rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
-        liveMap.put("captureUrl","http://219.143.237.229:8080/capture.jpg");
-        liveMap.put("width",320);
-        liveMap.put("height",180);
-        paramMap.put("live",liveMap);
+        Map<String, Object> liveMap = new HashMap<String, Object>();
+        liveMap.put("liveUrl", "rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
+        liveMap.put("captureUrl", "http://219.143.237.229:8080/capture.jpg");
+        liveMap.put("width", 320);
+        liveMap.put("height", 180);
+        paramMap.put("live", liveMap);
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
                 INVITEUSER.code(), INVITEUSER.url(),
                 new HttpCallBack4OK() {
                     @Override
                     public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
-                        if(obj != null && obj instanceof JSONObject) {
-                            JSONObject jsonRoot = (JSONObject)obj;
+                        if (obj != null && obj instanceof JSONObject) {
+                            JSONObject jsonRoot = (JSONObject) obj;
                             int status = JSONUtils.getInt(jsonRoot, "status", -1);
-                            if(status == 0) {
-                                liveId = JSONUtils.getString(jsonRoot,"liveId");
+                            if (status == 0) {
+                                liveId = JSONUtils.getString(jsonRoot, "liveId");
                                 mCameraStreamingManager.startStreaming();
 
                                 VideoProgram videoProgram = new VideoProgram();
@@ -497,7 +544,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                                 LiveNotifyEvent.LiveNotifyBean liveStartBean = new LiveNotifyEvent.LiveNotifyBean();
                                 liveStartBean.setGroupId(groupId);
                                 liveStartBean.setLiveId(liveId);
-                                liveStartBean.setLiveUrl("rtmp://"+GlobalVariable.liveServerIp+":"+GlobalVariable.liveServerPort+"/juju/"+mediaId);
+                                liveStartBean.setLiveUrl("rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
                                 liveStartBean.setPartyId(partyId);
                                 liveStartBean.setCaptureUrl("http://219.143.237.229:8080/capture.jpg");
                                 liveStartBean.setWidth(320);
@@ -509,17 +556,19 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
 
                             } else {
-                                final String desc = JSONUtils.getString(jsonRoot,"desc");
+                                imgUpload.setClickable(true);
+                                final String desc = JSONUtils.getString(jsonRoot, "desc");
                                 runOnUiThread(new Runnable() {
                                     @Override
                                     public void run() {
-                                        ToastUtil.showShortToast(UploadVideoActivity.this,getString(getResValue(desc)),1);
+                                        ToastUtil.showShortToast(UploadVideoActivity.this, getString(getResValue(desc)), 1);
                                     }
                                 });
 
                             }
                         }
                     }
+
                     @Override
                     public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
                     }
@@ -532,15 +581,15 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     }
 
     @Event(R.id.img_share)
-    private void showDialog(View view){
+    private void showDialog(View view) {
         shareDialog = new BottomSheetDialog(this);
         shareDialog.contentView(R.layout.layout_video_share)
                 .inDuration(300);
-        txtWeixin = (TextView)shareDialog.findViewById(R.id.txt_weixin);
-        txtPyq = (TextView)shareDialog.findViewById(R.id.txt_pyq);
-        txtWeibo = (TextView)shareDialog.findViewById(R.id.txt_weibo);
-        txtCopy = (TextView)shareDialog.findViewById(R.id.txt_copy);
-        txtCancel = (TextView)shareDialog.findViewById(R.id.txt_cancel);
+        txtWeixin = (TextView) shareDialog.findViewById(R.id.txt_weixin);
+        txtPyq = (TextView) shareDialog.findViewById(R.id.txt_pyq);
+        txtWeibo = (TextView) shareDialog.findViewById(R.id.txt_weibo);
+        txtCopy = (TextView) shareDialog.findViewById(R.id.txt_copy);
+        txtCancel = (TextView) shareDialog.findViewById(R.id.txt_cancel);
         txtWeixin.setOnClickListener(this);
         txtPyq.setOnClickListener(this);
         txtWeibo.setOnClickListener(this);
@@ -550,26 +599,25 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     }
 
 
-
     @Override
     public void onClick(View v) {
-        switch (v.getId()){
+        switch (v.getId()) {
             case R.id.txt_weixin:
-                ToastUtil.showShortToast(this,"weixin",1);
+                ToastUtil.showShortToast(this, "weixin", 1);
                 shareDialog.dismiss();
                 break;
             case R.id.txt_pyq:
-                ToastUtil.showShortToast(this,"pyq",1);
+                ToastUtil.showShortToast(this, "pyq", 1);
                 shareDialog.dismiss();
                 break;
             case R.id.txt_weibo:
-                ToastUtil.showShortToast(this,"weibo",1);
+                ToastUtil.showShortToast(this, "weibo", 1);
                 shareDialog.dismiss();
                 break;
             case R.id.txt_copy:
                 ClipboardManager cm = (ClipboardManager) getSystemService(this.CLIPBOARD_SERVICE);
-                cm.setText("http://219.143.237.232:8080/hls/"+mediaId+".m3u8");
-                ToastUtil.showShortToast(this,"视频地址已经复制到剪切板",1);
+                cm.setText("http://219.143.237.232:8080/hls/" + mediaId + ".m3u8");
+                ToastUtil.showShortToast(this, "视频地址已经复制到剪切板", 1);
                 shareDialog.dismiss();
                 break;
             case R.id.txt_cancel:
@@ -586,10 +634,12 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                 switch (status) {
                     case CameraStreamingManager.STATE.READY:
                         statusText.setText("准备就绪");
+                        imgUpload.setVisibility(View.VISIBLE);
                         break;
                     case CameraStreamingManager.STATE.STREAMING:
                         statusText.setText("开始直播");
                         imgUpload.setVisibility(View.GONE);
+                        imgUpload.setClickable(true);
                         imgSeize.setVisibility(View.VISIBLE);
                         layoutSliding.setVisibility(View.VISIBLE);
                         publishHlsVideo();
@@ -600,6 +650,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                     case CameraStreamingManager.STATE.CONNECTION_TIMEOUT:
                         statusText.setText("连接超时");
                         imgUpload.setVisibility(View.VISIBLE);
+                        imgUpload.setClickable(true);
                         imgSeize.setVisibility(View.GONE);
                         layoutSliding.setVisibility(View.GONE);
                         mCameraStreamingManager.stopStreaming();
@@ -613,6 +664,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                     case CameraStreamingManager.STATE.DISCONNECTED:
                         statusText.setText("连接中断");
                         imgUpload.setVisibility(View.VISIBLE);
+                        imgUpload.setClickable(true);
                         imgSeize.setVisibility(View.GONE);
                         layoutSliding.setVisibility(View.GONE);
                         mCameraStreamingManager.startStreaming();
@@ -630,7 +682,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                switch(status) {
+                switch (status) {
                     case CameraStreamingManager.STATE.SENDING_BUFFER_HAS_FEW_ITEMS:
                         break;
                     case CameraStreamingManager.STATE.SENDING_BUFFER_HAS_MANY_ITEMS:
@@ -673,7 +725,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     private void publishVideo() {
         Map<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put("videoUrl", HttpConstants.getLiveServerUrl()+mediaId);
+        valueMap.put("videoUrl", HttpConstants.getLiveServerUrl() + mediaId);
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(22,
                 HttpConstants.getUserUrl() + "/publishVideo", this, valueMap, LoginResBean.class);
 
@@ -689,7 +741,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     private void publishHlsVideo() {
         Map<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put("videoUrl", "http://219.143.237.232:8080/hls/"+mediaId+".m3u8");
+        valueMap.put("videoUrl", "http://219.143.237.232:8080/hls/" + mediaId + ".m3u8");
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(21,
                 HttpConstants.getUserUrl() + "/publishVideo", this, valueMap, LoginResBean.class);
 
@@ -707,7 +759,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
         switch (accessId) {
             case 22:
-                if(obj != null) {
+                if (obj != null) {
                 }
                 break;
             case 21:
@@ -726,11 +778,49 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventLiveEnter(LiveEnterNotifyEvent event) {
+        LiveEnterNotifyEvent.LiveEnterNotifyBean bean = event.bean;
+        if (!bean.getLiveId().equals(liveId)) {
+            return;
+        }
+        switch (event.event) {
+            case LIVE_ENTER_NOTIFY_OK:
+                discussList.add(bean);
+                discussListAdapter.notifyDataSetChanged();
+                discussListView.setSelection(discussList.size());
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventLiveDiscuss(DiscussNotifyEvent event) {
+        DiscussNotifyEvent.DiscussNotifyBean bean = event.bean;
+        if (!bean.getLiveId().equals(liveId)) {
+            return;
+        }
+        switch (event.event) {
+            case DISCUSS_NOTIFY_OK:
+                discussList.add(bean);
+                discussListAdapter.notifyDataSetChanged();
+                discussListView.setSelection(discussList.size());
+                txtDiscuss.setText("");
+                break;
+            case DISCUSS_NOTIFY_FAILED:
+                ToastUtil.showLongToast(this, getString(R.string.operation_fail));
+                break;
+            case RECEIVE_DISCUSS_NOTIFY_OK:
+                discussList.add(bean);
+                discussListAdapter.notifyDataSetChanged();
+                discussListView.setSelection(discussList.size());
+                break;
+        }
+    }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4SeizeNotifyEvent(SeizeNotifyEvent event) {
         SeizeNotifyEvent.SeizeNotifyBean bean = event.bean;
-        if(!bean.getLiveId().equals(liveId)){
+        if (!bean.getLiveId().equals(liveId)) {
             return;
         }
         switch (event.event) {
@@ -741,7 +831,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                 imgSeize.setVisibility(View.GONE);
                 txtCount.setVisibility(View.VISIBLE);
                 txtCount.setText(String.valueOf(30));
-                new TimeCount(30000,1000).start();
+                new TimeCount(30000, 1000).start();
                 relayUserNo = null;
                 relayCount = 0;
                 break;
@@ -753,7 +843,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                 }
                 break;
             case LIVE_SEIZE_STOP_OK:
-                ToastUtil.showLongToast(this,"已决出续播者("+imService.getContactManager().findContact(relayUserNo).getNickName()+")，并发出通知！");
+                ToastUtil.showLongToast(this, "已决出续播者(" + imService.getContactManager().findContact(relayUserNo).getNickName() + ")，并发出通知！");
                 imgSeize.setVisibility(View.VISIBLE);
                 //TODO  关闭播放界面开启播放界面，需要过场控制
 
@@ -763,13 +853,14 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
 
     /**
-     *******************************************内部类******************************************
+     * ******************************************内部类******************************************
      */
     //计时器
     class TimeCount extends CountDownTimer {
         public TimeCount(long millisInFuture, long countDownInterval) {
             super(millisInFuture, countDownInterval);//参数依次为总时长,和计时的时间间隔
         }
+
         @Override
         public void onFinish() {
 
@@ -779,14 +870,15 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             seizeStartBean.setGroupId(groupId);
             seizeStartBean.setLiveId(liveId);
             seizeStartBean.setCount(relayCount);
-            if(relayUserNo==null) {
+            if (relayUserNo == null) {
                 relayUserNo = "19400000005";
             }
             seizeStartBean.setUserNo(relayUserNo);
             LiveSeizeStopNotify.instance().executeCommand4Send(seizeStartBean);
         }
+
         @Override
-        public void onTick(long millisUntilFinished){//计时过程显示
+        public void onTick(long millisUntilFinished) {//计时过程显示
             long leftTime = millisUntilFinished / 1000;
             txtCount.setText(String.valueOf(leftTime));
         }

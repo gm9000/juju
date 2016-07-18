@@ -11,9 +11,11 @@ import com.juju.app.entity.chat.OtherMessageEntity;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.notify.ApplyInGroupEvent;
+import com.juju.app.event.notify.DiscussNotifyEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.event.notify.LiveNotifyEvent;
 import com.juju.app.event.notify.LocationReportEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
@@ -29,6 +31,8 @@ import com.juju.app.service.notify.ApplyInGroupNotify;
 import com.juju.app.service.notify.ExitGroupNotify;
 import com.juju.app.service.notify.InviteInGroupNotify;
 import com.juju.app.service.notify.InviteUserNotify;
+import com.juju.app.service.notify.LiveDiscussNotify;
+import com.juju.app.service.notify.LiveEnterNotify;
 import com.juju.app.service.notify.LiveSeizeReportNotify;
 import com.juju.app.service.notify.LiveSeizeStartNotify;
 import com.juju.app.service.notify.LiveSeizeStopNotify;
@@ -116,6 +120,8 @@ public class IMOtherManager extends IMManager {
         LiveSeizeStartNotify.instance().stop();
         LiveSeizeStopNotify.instance().stop();
         LiveSeizeReportNotify.instance().stop();
+        LiveDiscussNotify.instance().stop();
+        LiveEnterNotify.instance().stop();
     }
 
     //网络登陆
@@ -176,6 +182,8 @@ public class IMOtherManager extends IMManager {
         LiveSeizeStartNotify.instance().start(this);
         LiveSeizeStopNotify.instance().start(this);
         LiveSeizeReportNotify.instance().start(this);
+        LiveDiscussNotify.instance().start(this);
+        LiveEnterNotify.instance().start(this);
     }
 
     /**
@@ -338,6 +346,16 @@ public class IMOtherManager extends IMManager {
                 SeizeNotifyEvent.SeizeNotifyBean seizeReportNotifyBean = (SeizeNotifyEvent.SeizeNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.RELAY_COUNT.getCls());
                 LiveSeizeReportNotify.instance().executeCommand4Recv(seizeReportNotifyBean);
+                break;
+            case LIVE_DISCUSS:
+                DiscussNotifyEvent.DiscussNotifyBean discussNotifyBean = (DiscussNotifyEvent.DiscussNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_DISCUSS.getCls());
+                LiveDiscussNotify.instance().executeCommand4Recv(discussNotifyBean);
+                break;
+            case LIVE_ENTER:
+                LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = (LiveEnterNotifyEvent.LiveEnterNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_ENTER.getCls());
+                LiveEnterNotify.instance().executeCommand4Recv(liveEnterNotifyBean);
                 break;
             default:
                 otherMessageDao.replaceInto(otherMessageEntity);

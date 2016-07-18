@@ -56,10 +56,14 @@
 
             <ListView
                 android:id="@+id/live_discuss_listView"
-                android:layout_marginBottom="40dp"
                 android:layout_width="match_parent"
-                android:layout_height="0dp"
+                android:layout_height="200dp"
+                android:layout_marginBottom="40dp"
+                android:layout_marginLeft="5dp"
+                android:layout_marginRight="10dp"
                 android:scrollbars="none"
+                android:divider="#00000000"
+                android:dividerHeight="3dp"
                 android:layout_alignParentBottom="true"/>
             <EditText
                 android:id="@+id/txt_discuss"

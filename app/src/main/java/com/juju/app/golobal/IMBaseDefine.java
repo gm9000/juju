@@ -1,9 +1,11 @@
 package com.juju.app.golobal;
 
 import com.juju.app.event.notify.ApplyInGroupEvent;
+import com.juju.app.event.notify.DiscussNotifyEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.event.notify.LiveNotifyEvent;
 import com.juju.app.event.notify.LocationReportEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
@@ -555,7 +557,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return DiscussNotifyEvent.DiscussNotifyBean.class;
             }
 
             public int MsgType() {
@@ -625,7 +627,28 @@ public final class IMBaseDefine {
             public int MsgType() {
                 return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
-        };
+        },
+
+        LIVE_ENTER {
+            @Override
+            public String code() {
+                return "4015";
+            }
+
+            @Override
+            public String desc() {
+                return "直播进入/离开";
+            }
+
+            @Override
+            public Class getCls() {
+                return LiveEnterNotifyEvent.LiveEnterNotifyBean.class;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
+        },;
 
         public abstract String code();
 

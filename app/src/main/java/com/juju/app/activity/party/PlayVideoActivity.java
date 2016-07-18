@@ -5,6 +5,9 @@ import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.widget.SlidingPaneLayout;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -18,16 +21,24 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.adapters.DiscussListAdapter;
 import com.juju.app.annotation.SystemColor;
+import com.juju.app.entity.Plan;
+import com.juju.app.event.notify.DiscussNotifyEvent;
+import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.event.notify.SeizeNotifyEvent;
+import com.juju.app.fragment.party.PlanDetailFragment;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.service.notify.LiveDiscussNotify;
+import com.juju.app.service.notify.LiveEnterNotify;
 import com.juju.app.service.notify.LiveSeizeReportNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ScreenUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.rey.material.app.BottomSheetDialog;
 
@@ -40,6 +51,10 @@ import org.xutils.view.annotation.ViewInject;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
@@ -81,6 +96,9 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
 
     @ViewInject(R.id.txt_relay_count)
     private TextView txtRelayCount;
+
+    private DiscussListAdapter discussListAdapter;
+    private List discussList;
 
     private String groupId;
     private String liveId;
@@ -137,18 +155,41 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
     }
 
     @Override
-    protected void onPause() {
-        ijkMediaPlayer.pause();
+    protected void onPause(){
         super.onPause();
+        if (ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
+            ijkMediaPlayer.stop();
+            isPlaying = false;
+            LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
+            liveEnterNotifyBean.setGroupId(groupId);
+            liveEnterNotifyBean.setLiveId(liveId);
+            liveEnterNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+            liveEnterNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+            liveEnterNotifyBean.setType(1);
+            LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
+        }
     }
 
     @Override
     protected void onDestroy() {
-        ijkMediaPlayer.stop();
-        ijkMediaPlayer.release();
+        if (ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
+            ijkMediaPlayer.stop();
+            ijkMediaPlayer.release();
+        }
         mHandler.removeMessages(MSG_UPDATE_DURATION);
         EventBus.getDefault().unregister(this);
         imServiceConnector.disconnect(this);
+
+
+        if (isPlaying) {
+            LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
+            liveEnterNotifyBean.setGroupId(groupId);
+            liveEnterNotifyBean.setLiveId(liveId);
+            liveEnterNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+            liveEnterNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+            liveEnterNotifyBean.setType(1);
+            LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
+        }
         super.onDestroy();
     }
 
@@ -187,11 +228,20 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
 
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
+
+
+        discussList = new ArrayList();
+
+        discussListAdapter = new DiscussListAdapter(this);
+        discussListAdapter.setDiscussList(discussList);
+        discussListView.setAdapter(discussListAdapter);
+
+
     }
 
 
     @Event(R.id.txt_relay_count)
-    private void relayCount(View view){
+    private void relayCount(View view) {
         txtRelayCount.setText(String.valueOf(++relayCount));
     }
 
@@ -201,6 +251,23 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
         ijkMediaPlayer.release();
         mHandler.removeMessages(MSG_UPDATE_DURATION);
         ActivityUtil.finish(this);
+    }
+
+    @Event(R.id.btn_send)
+    private void addDiscuss(View view) {
+        //TODO  发送通知
+
+        if (StringUtils.empty(txtDiscuss.getText())) {
+            return;
+        }
+
+        DiscussNotifyEvent.DiscussNotifyBean discussNotifyBean = new DiscussNotifyEvent.DiscussNotifyBean();
+        discussNotifyBean.setGroupId(groupId);
+        discussNotifyBean.setLiveId(liveId);
+        discussNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+        discussNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+        discussNotifyBean.setContent(txtDiscuss.getText().toString());
+        LiveDiscussNotify.instance().executeCommand4Send(discussNotifyBean);
     }
 
     @Event(R.id.img_share)
@@ -332,6 +399,7 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
 //            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txtDiscuss.getLayoutParams();
 //            layoutParams.leftMargin = 100;
 //            txtDiscuss.setLayoutParams(layoutParams);
+            discussListView.setVisibility(View.GONE);
             txtDiscuss.setVisibility(View.GONE);
         }
 
@@ -340,6 +408,7 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
 //            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txtDiscuss.getLayoutParams();
 //            layoutParams.leftMargin = 10;
 //            txtDiscuss.setLayoutParams(layoutParams);
+            discussListView.setVisibility(View.VISIBLE);
             txtDiscuss.setVisibility(View.VISIBLE);
         }
     }
@@ -352,6 +421,7 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
         return false;
     }
 
+    private boolean isPlaying = false;
     private IMediaPlayer.OnPreparedListener mOnPreparedListener = new IMediaPlayer.OnPreparedListener() {
 
         @Override
@@ -374,6 +444,15 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
                 }
             }
             mHandler.sendEmptyMessageDelayed(MSG_UPDATE_DURATION, 500);
+
+            LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
+            liveEnterNotifyBean.setGroupId(groupId);
+            liveEnterNotifyBean.setLiveId(liveId);
+            liveEnterNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+            liveEnterNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+            liveEnterNotifyBean.setType(0);
+            LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
+            isPlaying = true;
         }
     };
 
@@ -412,7 +491,6 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
     private IMediaPlayer.OnCompletionListener mOnCompletionListener = new IMediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(IMediaPlayer mp) {
-
         }
     };
 
@@ -451,7 +529,6 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
             switch (msg.what) {
                 case MSG_UPDATE_DURATION: {
 
-                    System.out.println("-------------------------------------------ad:" + ijkMediaPlayer.getAudioCachedDuration() + "-vd:" + ijkMediaPlayer.getVideoCachedDuration() + "-aps:" + ijkMediaPlayer.getAudioCachedPackets() + "-vps:" + ijkMediaPlayer.getVideoCachedPackets());
                     if (aTrackIndex > -1 && !delayProcessing && ijkMediaPlayer.getAudioCachedDuration() > 1000) {
                         ijkMediaPlayer.deselectTrack(aTrackIndex);
                         delayProcessing = true;
@@ -468,9 +545,48 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
     };
 
     @Subscribe(threadMode = ThreadMode.MAIN)
-    public void onEvent4SeizeNotifyEvent(SeizeNotifyEvent event) {
+    public void onEventLiveEnter(LiveEnterNotifyEvent event) {
+        LiveEnterNotifyEvent.LiveEnterNotifyBean bean = event.bean;
+        if (!bean.getLiveId().equals(liveId)) {
+            return;
+        }
+        switch (event.event) {
+            case LIVE_ENTER_NOTIFY_OK:
+                discussList.add(bean);
+                discussListAdapter.notifyDataSetChanged();
+                discussListView.setSelection(discussList.size());
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventLiveDiscuss(DiscussNotifyEvent event) {
+        DiscussNotifyEvent.DiscussNotifyBean bean = event.bean;
+        if (!bean.getLiveId().equals(liveId)) {
+            return;
+        }
+        switch (event.event) {
+            case DISCUSS_NOTIFY_OK:
+                discussList.add(bean);
+                discussListAdapter.notifyDataSetChanged();
+                discussListView.setSelection(discussList.size());
+                txtDiscuss.setText("");
+                break;
+            case DISCUSS_NOTIFY_FAILED:
+                ToastUtil.showLongToast(this, getString(R.string.operation_fail));
+                break;
+            case RECEIVE_DISCUSS_NOTIFY_OK:
+                discussList.add(bean);
+                discussListAdapter.notifyDataSetChanged();
+                discussListView.setSelection(discussList.size());
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4SeizeNotify(SeizeNotifyEvent event) {
         SeizeNotifyEvent.SeizeNotifyBean bean = event.bean;
-        if(!bean.getLiveId().equals(liveId)){
+        if (!bean.getLiveId().equals(liveId)) {
             return;
         }
         switch (event.event) {
@@ -479,15 +595,15 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
                 txtRelayCount.setClickable(true);
                 txtCount.setVisibility(View.VISIBLE);
                 txtRelayCount.setVisibility(View.VISIBLE);
-                relayCount=0;
+                relayCount = 0;
                 txtRelayCount.setText(String.valueOf(relayCount));
-                new TimeCount(bean.getSeconds()*1000,1000).start();
+                new TimeCount(bean.getSeconds() * 1000, 1000).start();
                 break;
             case LIVE_SEIZE_STOP_OK:
 
-                if(bean.getUserNo().equals(AppContext.getUserInfoBean().getUserNo())){
+                if (bean.getUserNo().equals(AppContext.getUserInfoBean().getUserNo())) {
                     ToastUtil.showLongToast(this, "恭喜！您获得了续播权！");
-                }else {
+                } else {
                     ToastUtil.showLongToast(this, imService.getContactManager().findContact(bean.getUserNo()).getNickName() + " 获得了续播权！");
                 }
                 break;
@@ -495,19 +611,20 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
     }
 
     /**
-     *******************************************内部类******************************************
+     * ******************************************内部类******************************************
      */
     //计时器
     class TimeCount extends CountDownTimer {
         public TimeCount(long millisInFuture, long countDownInterval) {
             super(millisInFuture, countDownInterval);//参数依次为总时长,和计时的时间间隔
         }
+
         @Override
         public void onFinish() {
             txtCount.setVisibility(View.GONE);
             txtRelayCount.setVisibility(View.GONE);
             txtRelayCount.setClickable(false);
-            if(relayCount == 0){
+            if (relayCount == 0) {
                 return;
             }
             //计数统计完毕，通知续播
@@ -518,11 +635,48 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
             seizeStartBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
             LiveSeizeReportNotify.instance().executeCommand4Send(seizeStartBean);
         }
+
         @Override
-        public void onTick(long millisUntilFinished){//计时过程显示
+        public void onTick(long millisUntilFinished) {//计时过程显示
             long leftTime = millisUntilFinished / 1000;
             txtCount.setText(String.valueOf(leftTime));
         }
+    }
+
+
+    private static final class PageMenuAdapter extends FragmentStatePagerAdapter {
+
+        private PlanDetailActivity activity;
+        private String groupId;
+        private List<Plan> planList;
+        private boolean isOwner;
+        private Map<Integer,PlanDetailFragment> fragmentMap = new HashMap<Integer,PlanDetailFragment>();
+
+        public PageMenuAdapter(FragmentManager fragmentManager, PlanDetailActivity activity, String groupId, List<Plan> planList, boolean isOwner) {
+            super(fragmentManager);
+            this.activity = activity;
+            this.groupId = groupId;
+            this.planList = planList;
+            this.isOwner = isOwner;
+        }
+
+
+        @Override
+        public Fragment getItem(int position) {
+            final PlanDetailFragment fragment = new PlanDetailFragment(activity,groupId,planList.get(position),isOwner);
+            fragmentMap.put(position,fragment);
+            return fragment;
+        }
+
+        public PlanDetailFragment getFragment(int position){
+            return fragmentMap.get(position);
+        }
+
+        @Override
+        public int getCount() {
+            return planList.size();
+        }
+
     }
 
 }
