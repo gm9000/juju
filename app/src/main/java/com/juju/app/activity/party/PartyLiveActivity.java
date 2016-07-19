@@ -1,5 +1,6 @@
 package com.juju.app.activity.party;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.AbsListView;
@@ -40,6 +41,10 @@ import java.util.UUID;
 
 @ContentView(R.layout.activity_party_live)
 public class PartyLiveActivity extends BaseActivity implements View.OnClickListener, VideoProgramListAadpter.Callback {
+
+
+    private static final int SEIZE_PLAY = 0x01;
+    private static final int SEIZE_UPLOAD = 0x02;
 
     @ViewInject(R.id.layout_party_bar)
     private RelativeLayout topLayout;
@@ -270,8 +275,41 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
         Map<String,String> param = new HashMap<String,String>();
         param.put(Constants.GROUP_ID,party.getGroupId());
         param.put(Constants.PARTY_ID,partyId);
-        ActivityUtil.startActivity4UPAndNew(this,UploadVideoActivity.class,param);
+        ActivityUtil.startActivityForResultNew(this,UploadVideoActivity.class,SEIZE_PLAY,param);
     }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK) {
+            switch (requestCode) {
+                case SEIZE_PLAY:
+                    seizePlayLive(data.getStringExtra(Constants.LIVE_ID),data.getStringExtra(Constants.VIDEO_URL));
+                    break;
+                case SEIZE_UPLOAD:
+                    seizeUploadLive(data.getStringExtra(Constants.LIVE_ID));
+                    break;
+            }
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+    private  void seizePlayLive(String liveId,String videoUrl){
+        Map<String,Object> paramMap = new HashMap<String,Object>();
+        paramMap.put(Constants.GROUP_ID,party.getGroupId());
+        paramMap.put(Constants.LIVE_ID,liveId);
+        paramMap.put(Constants.VIDEO_URL,videoUrl +"?requestId="+ UUID.randomUUID().toString());
+
+        ActivityUtil.startActivityForResultNew(this, PlayVideoActivity.class,SEIZE_UPLOAD,paramMap);
+    }
+
+    private  void seizeUploadLive(String liveId){
+        Map<String,String> param = new HashMap<String,String>();
+        param.put(Constants.GROUP_ID,party.getGroupId());
+        param.put(Constants.PARTY_ID,partyId);
+        param.put(Constants.LIVE_ID,liveId);
+        ActivityUtil.startActivityForResultNew(this,UploadVideoActivity.class,SEIZE_PLAY,param);
+    }
+
 
     @Override
     public void playVideo(VideoProgram videoProgram) {
@@ -282,7 +320,7 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
         paramMap.put(Constants.LIVE_ID,videoProgram.getId());
         paramMap.put(Constants.VIDEO_URL,videoProgram.getVideoUrl()+"?requestId="+ UUID.randomUUID().toString());
 
-        ActivityUtil.startActivity4UPAndNew(this, PlayVideoActivity.class, paramMap);
+        ActivityUtil.startActivityForResultNew(this, PlayVideoActivity.class,SEIZE_UPLOAD, paramMap);
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)

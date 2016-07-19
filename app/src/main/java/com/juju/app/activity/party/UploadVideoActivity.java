@@ -2,6 +2,7 @@ package com.juju.app.activity.party;
 
 import android.content.ClipboardManager;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
@@ -153,6 +154,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             initView();
             initListener();
             previewCameraVideo();
+            mCameraStreamingManager.resume();
         }
 
         @Override
@@ -210,7 +212,19 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     private void previewCameraVideo() {
 
-        mediaId = UUID.randomUUID().toString();
+        if(liveId != null) {
+            VideoProgram videoProgram = null;
+            try {
+                videoProgram = JujuDbUtils.getInstance().selector(VideoProgram.class).where("id","=",liveId).findFirst();
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+            mediaId = videoProgram.getVideoUrl().substring(videoProgram.getVideoUrl().lastIndexOf("/")+1);
+        }
+
+        if(mediaId == null){
+            mediaId = UUID.randomUUID().toString();
+        }
 
         JSONObject mJSONObject = new JSONObject();
         //        this.streamId = var1.getString("id");
@@ -283,6 +297,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     private void initParam() {
         groupId = getIntent().getStringExtra(Constants.GROUP_ID);
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
+        liveId = getIntent().getStringExtra(Constants.LIVE_ID);
     }
 
     private void initView() {
@@ -400,6 +415,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                                     videoProgram = JujuDbUtils.getInstance().selector(VideoProgram.class).where("id", "=", liveId).findFirst();
                                     videoProgram.setEndTime(new Date());
                                     videoProgram.setStatus(1);
+                                    //  TODO   设置历史视频请求的URL
                                     videoProgram.setVideoUrl("rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
                                     JujuDbUtils.saveOrUpdate(videoProgram);
 
@@ -536,6 +552,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                                 videoProgram.setId(liveId);
                                 videoProgram.setPartyId(partyId);
                                 videoProgram.setCaptureUrl("http://219.143.237.229:8080/capture.jpg");
+                                videoProgram.setVideoUrl("rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
                                 videoProgram.setStartTime(new Date());
                                 videoProgram.setCreatorNo(AppContext.getUserInfoBean().getUserNo());
                                 videoProgram.setStatus(0);
@@ -551,9 +568,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                                 liveStartBean.setHeight(180);
                                 liveStartBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
                                 liveStartBean.setNickName(AppContext.getUserInfoBean().getNickName());
-
                                 LiveStartNotify.instance().executeCommand4Send(liveStartBean);
-
 
                             } else {
                                 imgUpload.setClickable(true);
@@ -634,7 +649,11 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                 switch (status) {
                     case CameraStreamingManager.STATE.READY:
                         statusText.setText("准备就绪");
-                        imgUpload.setVisibility(View.VISIBLE);
+                        if(liveId!=null){
+                            mCameraStreamingManager.startStreaming();
+                        }else {
+                            imgUpload.setVisibility(View.VISIBLE);
+                        }
                         break;
                     case CameraStreamingManager.STATE.STREAMING:
                         statusText.setText("开始直播");
@@ -847,6 +866,21 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                 imgSeize.setVisibility(View.VISIBLE);
                 //TODO  关闭播放界面开启播放界面，需要过场控制
 
+                VideoProgram videoProgram = null;
+                try {
+                    videoProgram = JujuDbUtils.getInstance().selector(VideoProgram.class).where("id", "=", liveId).findFirst();
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+
+                Intent intent = getIntent();
+                intent.putExtra(Constants.LIVE_ID,videoProgram.getId());
+                intent.putExtra(Constants.VIDEO_URL,videoProgram.getVideoUrl());
+                mCameraStreamingManager.stopStreaming();
+                mCameraStreamingManager.destroy();
+                this.setResult(RESULT_OK,intent);
+                liveId = null;
+                ActivityUtil.finish(this);
                 break;
         }
     }

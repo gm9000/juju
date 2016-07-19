@@ -1,13 +1,12 @@
 package com.juju.app.activity.party;
 
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.widget.SlidingPaneLayout;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -23,11 +22,10 @@ import android.widget.TextView;
 import com.juju.app.R;
 import com.juju.app.adapters.DiscussListAdapter;
 import com.juju.app.annotation.SystemColor;
-import com.juju.app.entity.Plan;
+import com.juju.app.config.HttpConstants;
 import com.juju.app.event.notify.DiscussNotifyEvent;
 import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.event.notify.SeizeNotifyEvent;
-import com.juju.app.fragment.party.PlanDetailFragment;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.service.im.IMService;
@@ -52,9 +50,7 @@ import org.xutils.view.annotation.ViewInject;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
@@ -603,6 +599,12 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
 
                 if (bean.getUserNo().equals(AppContext.getUserInfoBean().getUserNo())) {
                     ToastUtil.showLongToast(this, "恭喜！您获得了续播权！");
+                    Intent intent = getIntent();
+                    intent.putExtra(Constants.LIVE_ID,liveId);
+                    this.setResult(RESULT_OK,intent);
+                    isPlaying = false;
+                    ActivityUtil.finish(this);
+
                 } else {
                     ToastUtil.showLongToast(this, imService.getContactManager().findContact(bean.getUserNo()).getNickName() + " 获得了续播权！");
                 }
@@ -641,42 +643,6 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
             long leftTime = millisUntilFinished / 1000;
             txtCount.setText(String.valueOf(leftTime));
         }
-    }
-
-
-    private static final class PageMenuAdapter extends FragmentStatePagerAdapter {
-
-        private PlanDetailActivity activity;
-        private String groupId;
-        private List<Plan> planList;
-        private boolean isOwner;
-        private Map<Integer,PlanDetailFragment> fragmentMap = new HashMap<Integer,PlanDetailFragment>();
-
-        public PageMenuAdapter(FragmentManager fragmentManager, PlanDetailActivity activity, String groupId, List<Plan> planList, boolean isOwner) {
-            super(fragmentManager);
-            this.activity = activity;
-            this.groupId = groupId;
-            this.planList = planList;
-            this.isOwner = isOwner;
-        }
-
-
-        @Override
-        public Fragment getItem(int position) {
-            final PlanDetailFragment fragment = new PlanDetailFragment(activity,groupId,planList.get(position),isOwner);
-            fragmentMap.put(position,fragment);
-            return fragment;
-        }
-
-        public PlanDetailFragment getFragment(int position){
-            return fragmentMap.get(position);
-        }
-
-        @Override
-        public int getCount() {
-            return planList.size();
-        }
-
     }
 
 }
