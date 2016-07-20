@@ -86,7 +86,7 @@ public class RecentInfo {
             peerId = groupEntity.getPeerId();
             sessionType = DBConstant.SESSION_TYPE_GROUP;
 
-            ArrayList<String>  avatarList = new ArrayList<>();
+            ArrayList<String>  avatarList = new ArrayList<String>();
             name = groupEntity.getMainName();
 
             // 免打扰的设定

@@ -39,7 +39,7 @@ public class GroupChatListAdapter extends BaseSwipeAdapter {
 
     private Logger logger = Logger.getLogger(GroupChatListAdapter.class);
 
-    private List<RecentInfo> recentSessionList = new ArrayList<>();
+    private List<RecentInfo> recentSessionList = new ArrayList<RecentInfo>();
 
 
     private LayoutInflater mInflater = null;

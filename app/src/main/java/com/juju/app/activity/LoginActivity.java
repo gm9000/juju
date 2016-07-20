@@ -209,7 +209,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         if(vsBool) {
             loading(R.string.login_progress_signing_in);
             String password = MD5Util.MD5(pwd);
-            Map<String, Object> valueMap = new HashMap<>();
+            Map<String, Object> valueMap = new HashMap<String,Object>();
             valueMap.put("userNo", loginId);
             valueMap.put("password", password);
             JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(

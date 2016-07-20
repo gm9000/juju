@@ -22,7 +22,7 @@ public class MessageEvent {
     public MessageEvent(Event event, MessageEntity entity){
         //默认值 初始化使用
         this.event = event;
-        msgList = new ArrayList<>(1);
+        msgList = new ArrayList<MessageEntity>(1);
         msgList.add(entity);
     }
 

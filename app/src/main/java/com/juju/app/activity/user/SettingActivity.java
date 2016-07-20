@@ -249,7 +249,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 //        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
 //        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
 //        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
-        Map<String, Object> valueMap = new HashMap<>();
+        Map<String, Object> valueMap = new HashMap<String,Object>();
         valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_nick_name));
         valueMap.put(Constants.PROPERTY_VALUE, txt_nickName.getText().toString());
         startActivityNew(this, PropertiesSettingActivity.class, valueMap);

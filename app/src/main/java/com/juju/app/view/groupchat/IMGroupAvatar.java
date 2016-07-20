@@ -28,7 +28,7 @@ public class IMGroupAvatar extends LinearLayout {
     private int childCorner =0;
     private int defaultChildAvatarRes = R.mipmap.group_default;
     private int defaultParentAvatarBk = R.mipmap.group_avatar_bk;
-    private ArrayList<ImageView> mAvatarImages = new ArrayList<>();
+    private ArrayList<ImageView> mAvatarImages = new ArrayList<ImageView>();
     private ArrayList<String> mImageUrls = new ArrayList<String>();
 
     private static int DEFAULT_MAX_COLUMN_SIZE = 3;

@@ -21,6 +21,7 @@ import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.SpfUtil;
+import com.pili.pldroid.streaming.StreamingEnv;
 import com.rey.material.app.ThemeManager;
 import com.squareup.leakcanary.LeakCanary;
 
@@ -59,7 +60,8 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-//        LeakCanary.install(this);
+        StreamingEnv.init(getApplicationContext());
+        LeakCanary.install(this);
         long begin = System.currentTimeMillis();
         initFramework();
         initConfig();

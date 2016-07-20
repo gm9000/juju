@@ -139,7 +139,7 @@ public class GroupListAdapter extends BaseAdapter  implements AdapterView.OnItem
         }
 
         Set<String> userNos = groupEntity.getlistGroupMemberIds();
-        List<String> avatarUrlList = new ArrayList<>();
+        List<String> avatarUrlList = new ArrayList<String>();
         for(String userNo : userNos){
             User entity = IMContactManager.instance().findContact(userNo);
             if(entity != null){

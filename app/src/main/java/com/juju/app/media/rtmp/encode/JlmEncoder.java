@@ -58,7 +58,7 @@ public abstract class JlmEncoder {
 
     protected boolean encoding = false;
 
-    protected ConcurrentLinkedQueue<byte[]> yuvQueue = new ConcurrentLinkedQueue<>();
+    protected ConcurrentLinkedQueue<byte[]> yuvQueue = new ConcurrentLinkedQueue<byte[]>();
     protected final Object yuvLock = new Object();
     protected AtomicInteger yuvCacheNum = new AtomicInteger(0);
 

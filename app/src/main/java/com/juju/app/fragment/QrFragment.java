@@ -129,7 +129,7 @@ public class QrFragment extends BaseFragment implements CreateUIHelper {
         final GroupEntity groupEntity = imService.getGroupManager().findGroupById(groupId);
         groupName = groupEntity.getMainName();
         Set<String> set = groupEntity.getlistGroupMemberIds();
-        List<String> avatarUrlList = new ArrayList<>();
+        List<String> avatarUrlList = new ArrayList<String>();
         for(String userNo : set){
             User entity = IMContactManager.instance().findContact(userNo);
             if(entity != null){

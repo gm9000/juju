@@ -180,7 +180,7 @@ public class GroupJoinInActivity extends BaseActivity implements CreateUIHelper 
     public void sendGetGroupOutline2BServer(String groupId, String inviteCode) {
         Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("groupId,inviteCode", groupId, inviteCode);
         CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GETGROUPOUTLINE;
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(httpReqParam.code(),
                 httpReqParam.url(), new HttpCallBack4OK() {
             @Override
             public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
@@ -191,7 +191,7 @@ public class GroupJoinInActivity extends BaseActivity implements CreateUIHelper 
                         final String groupName = JSONUtils.getString(jsonRoot, "groupName");
                         final long userCount = JSONUtils.getLong(jsonRoot, "userCount", 1);
                         String[] jsonUserNos = JSONUtils.getStringArray(jsonRoot, "topUserNos", null);
-                        final List<String> userNoList = new ArrayList<>();
+                        final List<String> userNoList = new ArrayList<String>();
 
                         if(jsonUserNos != null) {
                             for(String userNo : jsonUserNos) {

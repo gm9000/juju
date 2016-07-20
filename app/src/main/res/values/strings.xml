@@ -373,4 +373,49 @@
 
     <string name="action_failed">操作异常,请检查网络或重新登录</string>
 
+
+<!-- 聚会活动类型  START -->
+    <string name="MEISHI">吃饭</string>
+    <string name="PASHAN">爬山</string>
+    <string name="JIAOYOU">郊游</string>
+    <string name="YOUYONG">运动</string>
+    <string name="KTV">K歌</string>
+    <string name="DAPAI">打牌</string>
+    <string name="QIXING">骑行</string>
+    <string name="PAOBU">跑步</string>
+    <string name="YECHUI">野炊</string>
+    <string name="ZIJIAYOU">自驾游</string>
+    <string name="TUOZHAN">拓展</string>
+    <string name="TAIQIU">台球</string>
+<!-- 聚会活动类型  END -->
+
+
+<!-- 错误描述  START -->
+    <string name="SUCCESS">成功</string>
+    <string name="USER_NOT_EXIST">用户不存在</string>
+    <string name="GROUP_NOT_EXIST">群组不存在</string>
+    <string name="GROUP_USER_NOT_EXIST">群组用户不存在</string>
+    <string name="PARTY_NOT_EXIST">聚会不存在</string>
+    <string name="PLAN_NOT_EXIST">聚会任务不存在</string>
+    <string name="SERVER_NOT_EXIST">服务器不存在</string>
+    <string name="TOKEN_NOT_EXIST">令牌不存在</string>
+    <string name="LIVE_NOT_EXIST">直播节目不存在</string>
+
+    <string name="USER_HAS_EXIST">用户已存在</string>
+    <string name="PHONE_HAS_EXIST">该手机号已被注册</string>
+    <string name="SERVER_HAS_EXIST">服务器已经存在</string>
+
+    <string name="PASSWORD_ERROR">密码错误</string>
+    <string name="TOKEN_ERROR">令牌错误</string>
+    <string name="INVITE_CODE_ERROR">邀请码无效</string>
+    <string name="ADMIN_QUIT_GROUP_ERROR">群主退群异常</string>
+
+    <string name="NOT_PERMIT">无权限</string>
+    <string name="HAVE_CHECKED">已经审核</string>
+
+    <string name="PARAM_ILLEGAL">非法参数</string>
+    <string name="INVALID">无效操作</string>
+    <string name="UNKNOWN_ERROR">未知异常</string>
+<!-- 错误描述  END -->
+
 </resources>

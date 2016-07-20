@@ -75,7 +75,7 @@ dependencies {
     compile "com.daimajia.swipelayout:library:1.2.0@aar"
     compile files('libs/locSDK_6.13.jar')
     compile 'com.skyfishjy.ripplebackground:library:1.0.1'
-    compile files('libs/pldroid-camera-streaming-1.6.2.jar')
+    compile files('libs/pldroid-camera-streaming-1.7.1.jar')
     compile 'com.qiniu:happy-dns:0.2.7'
     compile 'tv.danmaku.ijk.media:ijkplayer-java:0.5.1'
     compile 'com.panxw.imageindicator:library:1.0.2'

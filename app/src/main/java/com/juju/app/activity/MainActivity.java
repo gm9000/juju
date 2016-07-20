@@ -653,8 +653,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_name_over_length, 0);
             return;
         }
-        Map<String, Object> valueMap = new HashMap<>();
-        Map<String, Object> groupMap = new HashMap<>();
+        Map<String, Object> valueMap = new HashMap<String,Object>();
+        Map<String, Object> groupMap = new HashMap<String,Object>();
 
         valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());

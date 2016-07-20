@@ -1,31 +1,29 @@
 package com.juju.app.activity.party;
 
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Message;
-import android.support.v4.widget.SlidingPaneLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.ImageView;
-import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.adapters.DiscussListAdapter;
 import com.juju.app.annotation.SystemColor;
-import com.juju.app.config.HttpConstants;
 import com.juju.app.event.notify.DiscussNotifyEvent;
 import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.event.notify.SeizeNotifyEvent;
+import com.juju.app.fragment.party.LiveMenuFragment;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.service.im.IMService;
@@ -36,7 +34,6 @@ import com.juju.app.service.notify.LiveSeizeReportNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ScreenUtil;
-import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.rey.material.app.BottomSheetDialog;
 
@@ -48,7 +45,6 @@ import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
 import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,7 +55,7 @@ import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
 
 @ContentView(R.layout.activity_play_video)
 @SystemColor(isApply = false)
-public class PlayVideoActivity extends BaseActivity implements View.OnClickListener, SurfaceHolder.Callback {
+public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Callback {
 
     private static final String TAG = "PlayVideoActivity";
 
@@ -69,23 +65,10 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
     private SurfaceHolder mSurfaceHolder;
     private View loadingView;
 
-    @ViewInject(R.id.layout_sliding)
-    private SlidingPaneLayout layoutSliding;
-    @ViewInject(R.id.layout_right_menu)
-    private RelativeLayout layoutRightMenu;
-    @ViewInject(R.id.live_discuss_listView)
-    private ListView discussListView;
-    @ViewInject(R.id.txt_discuss)
-    private EditText txtDiscuss;
-    @ViewInject(R.id.btn_send)
-    private Button btnSend;
-    @ViewInject(R.id.img_share)
-    private ImageView imgShare;
-    private TextView txtWeixin;
-    private TextView txtPyq;
-    private TextView txtWeibo;
-    private TextView txtCopy;
-    private TextView txtCancel;
+    @ViewInject(R.id.live_menu_container)
+    private ViewPager liveMenuPager;
+
+    private LiveMenuAdapter liveMenuAdapter;
 
     @ViewInject(R.id.txt_count)
     private TextView txtCount;
@@ -168,8 +151,10 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
 
     @Override
     protected void onDestroy() {
-        if (ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
-            ijkMediaPlayer.stop();
+        if (ijkMediaPlayer != null ) {
+            if(ijkMediaPlayer.isPlaying()) {
+                ijkMediaPlayer.stop();
+            }
             ijkMediaPlayer.release();
         }
         mHandler.removeMessages(MSG_UPDATE_DURATION);
@@ -190,7 +175,6 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
     }
 
     private void initListener() {
-        layoutSliding.setPanelSlideListener(new SliderListener());
     }
 
     private void initParam() {
@@ -204,34 +188,21 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
 
     private void initView() {
         if (isLiveStreaming(videoUrl)) {
+            discussList = new ArrayList();
+            discussListAdapter = new DiscussListAdapter(this);
+            discussListAdapter.setDiscussList(discussList);
 
-            try {
-                Field f_overHang = SlidingPaneLayout.class.getDeclaredField("mOverhangSize");
-                f_overHang.setAccessible(true);
-                //设置左菜单离右边屏幕边缘的距离为0，设置全屏
-                f_overHang.set(layoutSliding, 150);
-            } catch (NoSuchFieldException e) {
-                e.printStackTrace();
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-
-            layoutSliding.setSliderFadeColor(getResources().getColor(R.color.transparent));
+            liveMenuAdapter = new LiveMenuAdapter(getSupportFragmentManager(),this,discussListAdapter);
+            liveMenuPager.setAdapter(liveMenuAdapter);
+            liveMenuPager.setCurrentItem(1);
         } else {
-            layoutSliding.setVisibility(View.GONE);
+            liveMenuPager.setVisibility(View.GONE);
         }
+
         loadingView = findViewById(R.id.LoadingView);
 
         mSurfaceHolder = mSurfaceView.getHolder();
         mSurfaceHolder.addCallback(this);
-
-
-        discussList = new ArrayList();
-
-        discussListAdapter = new DiscussListAdapter(this);
-        discussListAdapter.setDiscussList(discussList);
-        discussListView.setAdapter(discussListAdapter);
-
 
     }
 
@@ -247,41 +218,6 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
         ijkMediaPlayer.release();
         mHandler.removeMessages(MSG_UPDATE_DURATION);
         ActivityUtil.finish(this);
-    }
-
-    @Event(R.id.btn_send)
-    private void addDiscuss(View view) {
-        //TODO  发送通知
-
-        if (StringUtils.empty(txtDiscuss.getText())) {
-            return;
-        }
-
-        DiscussNotifyEvent.DiscussNotifyBean discussNotifyBean = new DiscussNotifyEvent.DiscussNotifyBean();
-        discussNotifyBean.setGroupId(groupId);
-        discussNotifyBean.setLiveId(liveId);
-        discussNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
-        discussNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
-        discussNotifyBean.setContent(txtDiscuss.getText().toString());
-        LiveDiscussNotify.instance().executeCommand4Send(discussNotifyBean);
-    }
-
-    @Event(R.id.img_share)
-    private void showDialog(View view) {
-        shareDialog = new BottomSheetDialog(this);
-        shareDialog.contentView(R.layout.layout_video_share)
-                .inDuration(300);
-        txtWeixin = (TextView) shareDialog.findViewById(R.id.txt_weixin);
-        txtPyq = (TextView) shareDialog.findViewById(R.id.txt_pyq);
-        txtWeibo = (TextView) shareDialog.findViewById(R.id.txt_weibo);
-        txtCopy = (TextView) shareDialog.findViewById(R.id.txt_copy);
-        txtCancel = (TextView) shareDialog.findViewById(R.id.txt_cancel);
-        txtWeixin.setOnClickListener(this);
-        txtPyq.setOnClickListener(this);
-        txtWeibo.setOnClickListener(this);
-        txtCopy.setOnClickListener(this);
-        txtCancel.setOnClickListener(this);
-        shareDialog.show();
     }
 
     private void playVide(SurfaceHolder surfaceHolder) {
@@ -350,31 +286,6 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
 
 
     @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.txt_weixin:
-                ToastUtil.showShortToast(this, "weixin", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_pyq:
-                ToastUtil.showShortToast(this, "pyq", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_weibo:
-                ToastUtil.showShortToast(this, "weibo", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_copy:
-                ToastUtil.showShortToast(this, "copy", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_cancel:
-                shareDialog.dismiss();
-                break;
-        }
-    }
-
-    @Override
     public void surfaceCreated(SurfaceHolder holder) {
         playVide(holder);
     }
@@ -387,26 +298,6 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
 
-    }
-
-    private class SliderListener extends SlidingPaneLayout.SimplePanelSlideListener {
-        @Override
-        public void onPanelOpened(View panel) {
-//            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txtDiscuss.getLayoutParams();
-//            layoutParams.leftMargin = 100;
-//            txtDiscuss.setLayoutParams(layoutParams);
-            discussListView.setVisibility(View.GONE);
-            txtDiscuss.setVisibility(View.GONE);
-        }
-
-        @Override
-        public void onPanelClosed(View panel) {
-//            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txtDiscuss.getLayoutParams();
-//            layoutParams.leftMargin = 10;
-//            txtDiscuss.setLayoutParams(layoutParams);
-            discussListView.setVisibility(View.VISIBLE);
-            txtDiscuss.setVisibility(View.VISIBLE);
-        }
     }
 
 
@@ -550,7 +441,7 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
             case LIVE_ENTER_NOTIFY_OK:
                 discussList.add(bean);
                 discussListAdapter.notifyDataSetChanged();
-                discussListView.setSelection(discussList.size());
+                liveMenuAdapter.getFragment(1).updateDiscuss(false);
                 break;
         }
     }
@@ -565,8 +456,7 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
             case DISCUSS_NOTIFY_OK:
                 discussList.add(bean);
                 discussListAdapter.notifyDataSetChanged();
-                discussListView.setSelection(discussList.size());
-                txtDiscuss.setText("");
+                liveMenuAdapter.getFragment(1).updateDiscuss(true);
                 break;
             case DISCUSS_NOTIFY_FAILED:
                 ToastUtil.showLongToast(this, getString(R.string.operation_fail));
@@ -574,7 +464,7 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
             case RECEIVE_DISCUSS_NOTIFY_OK:
                 discussList.add(bean);
                 discussListAdapter.notifyDataSetChanged();
-                discussListView.setSelection(discussList.size());
+                liveMenuAdapter.getFragment(1).updateDiscuss(false);
                 break;
         }
     }
@@ -612,6 +502,16 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
         }
     }
 
+    public void sendDiscuss(String message) {
+        DiscussNotifyEvent.DiscussNotifyBean discussNotifyBean = new DiscussNotifyEvent.DiscussNotifyBean();
+        discussNotifyBean.setGroupId(groupId);
+        discussNotifyBean.setLiveId(liveId);
+        discussNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+        discussNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+        discussNotifyBean.setContent(message);
+        LiveDiscussNotify.instance().executeCommand4Send(discussNotifyBean);
+    }
+
     /**
      * ******************************************内部类******************************************
      */
@@ -643,6 +543,41 @@ public class PlayVideoActivity extends BaseActivity implements View.OnClickListe
             long leftTime = millisUntilFinished / 1000;
             txtCount.setText(String.valueOf(leftTime));
         }
+    }
+
+
+    private static final class LiveMenuAdapter extends FragmentStatePagerAdapter {
+
+        private BaseActivity activity;
+        private DiscussListAdapter discussListAdapter;
+        private LiveMenuFragment[] fragments = new LiveMenuFragment[]{null,null};
+
+        public LiveMenuAdapter(FragmentManager fragmentManager, BaseActivity activity, DiscussListAdapter discussAdapter) {
+            super(fragmentManager);
+            this.activity = activity;
+            this.discussListAdapter = discussAdapter;
+        }
+
+
+        @Override
+        public Fragment getItem(int position) {
+            final LiveMenuFragment fragment = new LiveMenuFragment(activity,false,position,"");
+            if(position == 1){
+                fragment.setDiscussAdapter(discussListAdapter);
+            }
+            fragments[position] = fragment;
+            return fragment;
+        }
+
+        public LiveMenuFragment getFragment(int position){
+            return fragments[position];
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
     }
 
 }

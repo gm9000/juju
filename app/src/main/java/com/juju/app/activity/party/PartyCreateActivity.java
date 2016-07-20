@@ -221,7 +221,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
         if(group != null) {
             txtGroupName.setText(group.getMainName());
             Set<String> userNos = group.getlistGroupMemberIds();
-            List<String> avatarUrlList = new ArrayList<>();
+            List<String> avatarUrlList = new ArrayList<String>();
             for (String userNo : userNos) {
                 User entity = IMContactManager.instance().findContact(userNo);
                 if (entity != null) {

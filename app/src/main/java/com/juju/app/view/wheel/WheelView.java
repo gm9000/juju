@@ -183,7 +183,7 @@ public class WheelView extends View {
     private void init(Context context) {
         this.context = context;
         timer = new Timer();
-        itemList = new ArrayList<>();
+        itemList = new ArrayList<String>();
 
         mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         mPaint.setStyle(Style.FILL);

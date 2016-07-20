@@ -23,7 +23,7 @@ import de.hdodenhof.circleimageview.CircleImageView;
 
 public class MyInviteListAdapter extends BaseSwipeAdapter {
     private Context context;
-    private List<Invite> inviteList = new ArrayList<>();
+    private List<Invite> inviteList = new ArrayList<Invite>();
     private Callback mCallback;
 
 

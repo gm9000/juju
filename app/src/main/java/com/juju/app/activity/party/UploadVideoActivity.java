@@ -1,34 +1,34 @@
 package com.juju.app.activity.party;
 
-import android.content.ClipboardManager;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.hardware.Camera;
-import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.support.v4.widget.SlidingPaneLayout;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.ListView;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.adapters.DiscussListAdapter;
 import com.juju.app.annotation.SystemColor;
-import com.juju.app.bean.json.LoginResBean;
-import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.VideoProgram;
 import com.juju.app.event.notify.DiscussNotifyEvent;
 import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.event.notify.LiveNotifyEvent;
 import com.juju.app.event.notify.SeizeNotifyEvent;
+import com.juju.app.fragment.party.LiveMenuFragment;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.CommandActionConstant;
 import com.juju.app.golobal.Constants;
@@ -37,6 +37,8 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.golobal.StatusCode;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.media.Config;
+import com.juju.app.media.gles.FBO;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.notify.LiveDiscussNotify;
@@ -48,17 +50,16 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.CameraUtil;
 import com.juju.app.utils.HttpReqParamUtil;
-import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
+import com.juju.app.view.CameraPreviewFrameView;
 import com.juju.app.view.dialog.WarnTipDialog;
 import com.pili.pldroid.streaming.CameraStreamingManager;
 import com.pili.pldroid.streaming.CameraStreamingSetting;
 import com.pili.pldroid.streaming.StreamStatusCallback;
-import com.pili.pldroid.streaming.StreamingEnv;
 import com.pili.pldroid.streaming.StreamingProfile;
+import com.pili.pldroid.streaming.SurfaceTextureCallback;
 import com.pili.pldroid.streaming.widget.AspectFrameLayout;
-import com.rey.material.app.BottomSheetDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -71,7 +72,6 @@ import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -81,7 +81,7 @@ import java.util.UUID;
 
 @ContentView(R.layout.activity_party_video)
 @SystemColor(isApply = false)
-public class UploadVideoActivity extends BaseActivity implements View.OnClickListener, CameraStreamingManager.StreamingStateListener, HttpCallBack4OK, StreamStatusCallback {
+public class UploadVideoActivity extends BaseActivity implements CameraStreamingManager.StreamingStateListener, StreamStatusCallback, CameraPreviewFrameView.Listener, SurfaceTextureCallback, CameraStreamingManager.StreamingSessionListener {
 
     private static final String TAG = "UploadVideoActivity";
 
@@ -96,34 +96,15 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
     @ViewInject(R.id.img_seize)
     private ImageView imgSeize;
+    @ViewInject(R.id.img_torch)
+    private ImageView imgTorch;
     @ViewInject(R.id.txt_count)
     private TextView txtCount;
 
-    @ViewInject(R.id.layout_sliding)
-    private SlidingPaneLayout layoutSliding;
+    @ViewInject(R.id.live_menu_container)
+    private ViewPager liveMenuPager;
 
-    @ViewInject(R.id.layout_right_menu)
-    private RelativeLayout layoutRight;
-    @ViewInject(R.id.live_discuss_listView)
-    private ListView discussListView;
-    @ViewInject(R.id.txt_discuss)
-    private EditText txtDiscuss;
-    @ViewInject(R.id.btn_send)
-    private Button btnSend;
-    @ViewInject(R.id.img_share)
-    private ImageView imgShare;
-
-    private BottomSheetDialog shareDialog;
-    private TextView txtWeixin;
-    private TextView txtPyq;
-    private TextView txtWeibo;
-    private TextView txtCopy;
-    private TextView txtCancel;
-
-    @ViewInject(R.id.cameraPreview_afl)
-    private AspectFrameLayout afl;
-    @ViewInject(R.id.cameraPreview_surfaceView)
-    private GLSurfaceView glSurfaceView;
+    private LiveMenuAdapter liveMenuAdapter;
 
     private CameraStreamingManager mCameraStreamingManager;
 
@@ -142,6 +123,22 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     private DiscussListAdapter discussListAdapter;
     private List discussList;
 
+
+    private FBO mFBO = new FBO();
+
+    private boolean mIsReady = false;
+    private int mCurrentZoom = 0;
+    private int mMaxZoom = 0;
+    private boolean mIsNeedMute = false;
+    private boolean mIsNeedFB = false;
+    private boolean mIsTorchOn = false;
+
+    private static final int MSG_SET_ZOOM    = 1;
+    private static final int MSG_MUTE    = 2;
+    private static final int MSG_FB = 3;
+
+    private static final int ZOOM_MINIMUM_WAIT_MILLIS = 30; //ms
+
     /**
      * IMServiceConnector
      */
@@ -150,11 +147,6 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         public void onIMServiceConnected() {
             logger.d("UploadVieoActivity#onIMServiceConnected");
             imService = imServiceConnector.getIMService();
-            initParam();
-            initView();
-            initListener();
-            previewCameraVideo();
-            mCameraStreamingManager.resume();
         }
 
         @Override
@@ -166,18 +158,15 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     protected void onCreate(Bundle savedInstanceState) {
         Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
-        imServiceConnector.connect(this);
-        EventBus.getDefault().register(this);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // 防止锁屏
+        initParam();
+        previewCameraVideo();
+        initView();
+        imServiceConnector.connect(this);
+        EventBus.getDefault().register(this);
     }
 
-    @Override
-    protected void onStop() {
-        Log.d(TAG, "onStop");
-        super.onStop();
-        mCameraStreamingManager.pause();
-    }
 
     @Override
     protected void onDestroy() {
@@ -188,9 +177,8 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         if (liveId != null) {
             releaseLive(true);
         }else{
-            mCameraStreamingManager = null;
+            mCameraStreamingManager.destroy();
         }
-
 
     }
 
@@ -198,16 +186,19 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     protected void onResume() {
         Log.d(TAG, "onResume");
         super.onResume();
-        if (mCameraStreamingManager != null) {
+        try {
             mCameraStreamingManager.resume();
+        } catch (Exception e) {
+            ToastUtil.showShortToast(this, "Device open error!", 1);
         }
     }
 
     @Override
     protected void onPause() {
+        Log.d(TAG, "onPause");
         super.onPause();
+        mIsReady = false;
         mCameraStreamingManager.pause();
-        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     private void previewCameraVideo() {
@@ -266,32 +257,42 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
 
         CameraStreamingSetting mCameraStreamingSetting = new CameraStreamingSetting();
         mCameraStreamingSetting.setCameraId(Camera.CameraInfo.CAMERA_FACING_BACK)
-                .setContinuousFocusModeEnabled(true)
                 .setRecordingHint(false)
-                .setFrontCameraMirror(false)
+                .setCameraFacingId(Config.DEFAULT_CAMERA_FACING_ID)
+                .setFrontCameraMirror(true)
+                .setBuiltInFaceBeautyEnabled(true)
                 .setResetTouchFocusDelayInMs(2000)
                 .setCameraPrvSizeLevel(CameraStreamingSetting.PREVIEW_SIZE_LEVEL.MEDIUM)
-                .setCameraPrvSizeRatio(CameraStreamingSetting.PREVIEW_SIZE_RATIO.RATIO_16_9);
+                .setCameraPrvSizeRatio(CameraStreamingSetting.PREVIEW_SIZE_RATIO.RATIO_16_9)
+                .setFaceBeautySetting(new CameraStreamingSetting.FaceBeautySetting(1.0f, 1.0f, 0.8f))
+                .setVideoFilter(CameraStreamingSetting.VIDEO_FILTER_TYPE.VIDEO_FILTER_NONE);
 
         if (isSupportHWEncode()) {
-            mCameraStreamingSetting.setFocusMode(CameraStreamingSetting.FOCUS_MODE_CONTINUOUS_VIDEO);
             mCameraStreamingSetting.setContinuousFocusModeEnabled(true);
+            mCameraStreamingSetting.setFocusMode(CameraStreamingSetting.FOCUS_MODE_CONTINUOUS_VIDEO);
         }
 
-        StreamingEnv.init(context);
+
+        AspectFrameLayout afl = (AspectFrameLayout)findViewById(R.id.cameraPreview_afl);
+        afl.setShowMode(AspectFrameLayout.SHOW_MODE.REAL);
+        CameraPreviewFrameView cameraPreviewSurfaceView = (CameraPreviewFrameView)findViewById(R.id.cameraPreview_surfaceView);
+        cameraPreviewSurfaceView.setListener(this);
         if (isSupportHWEncode()) {
-            mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.HW_VIDEO_WITH_HW_AUDIO_CODEC);
+            mCameraStreamingManager = new CameraStreamingManager(this, afl, cameraPreviewSurfaceView, CameraStreamingManager.EncodingType.HW_VIDEO_WITH_HW_AUDIO_CODEC);
         } else {
-            mCameraStreamingManager = new CameraStreamingManager(this, afl, glSurfaceView, CameraStreamingManager.EncodingType.SW_VIDEO_WITH_SW_AUDIO_CODEC);
+            mCameraStreamingManager = new CameraStreamingManager(this, afl, cameraPreviewSurfaceView, CameraStreamingManager.EncodingType.SW_VIDEO_WITH_SW_AUDIO_CODEC);
         }
-        mCameraStreamingManager.prepare(mCameraStreamingSetting, mProfile);
+
+
+
+        mCameraStreamingManager.prepare(mCameraStreamingSetting, null, null, mProfile);
+
         mCameraStreamingManager.setStreamingStateListener(this);
+        mCameraStreamingManager.setSurfaceTextureCallback(this);
+        mCameraStreamingManager.setStreamingSessionListener(this);
+//        mCameraStreamingManager.setNativeLoggingEnabled(false);
         mCameraStreamingManager.setStreamStatusCallback(this);
-    }
 
-
-    private void initListener() {
-        layoutSliding.setPanelSlideListener(new SliderListener());
     }
 
     private void initParam() {
@@ -301,32 +302,24 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
     }
 
     private void initView() {
-        try {
-            Field f_overHang = SlidingPaneLayout.class.getDeclaredField("mOverhangSize");
-            f_overHang.setAccessible(true);
-            //设置左菜单离右边屏幕边缘的距离为0，设置全屏
-            f_overHang.set(layoutSliding, 150);
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
 
         imgUpload.setVisibility(View.GONE);
-
-        layoutSliding.setSliderFadeColor(getResources().getColor(R.color.transparent));
-
 
         if (!CameraUtil.hasFrontFacingCamera()) {
             imgChange.setVisibility(View.GONE);
         }
-        layoutSliding.setVisibility(View.GONE);
+
 
         discussList = new ArrayList();
-
         discussListAdapter = new DiscussListAdapter(this);
         discussListAdapter.setDiscussList(discussList);
-        discussListView.setAdapter(discussListAdapter);
+
+
+        liveMenuAdapter = new LiveMenuAdapter(getSupportFragmentManager(),this,discussListAdapter);
+        liveMenuPager.setAdapter(liveMenuAdapter);
+        liveMenuPager.setCurrentItem(1);
+        liveMenuPager.setVisibility(View.GONE);
+
 
     }
 
@@ -341,21 +334,19 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         releaseLive(false);
     }
 
-    @Event(R.id.btn_send)
-    private void addDiscuss(View view) {
-        //TODO  发送通知
 
-        if (StringUtils.empty(txtDiscuss.getText())) {
-            return;
+    @Event(R.id.img_torch)
+    private void turnLight(View view){
+        if(mIsTorchOn){
+            mIsTorchOn = false;
+            imgTorch.setImageResource(R.mipmap.light_off);
+            mCameraStreamingManager.turnLightOff();
+        }else{
+            mIsTorchOn = true;
+            imgTorch.setImageResource(R.mipmap.light_on);
+            mCameraStreamingManager.turnLightOn();
         }
 
-        DiscussNotifyEvent.DiscussNotifyBean discussNotifyBean = new DiscussNotifyEvent.DiscussNotifyBean();
-        discussNotifyBean.setGroupId(groupId);
-        discussNotifyBean.setLiveId(liveId);
-        discussNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
-        discussNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
-        discussNotifyBean.setContent(txtDiscuss.getText().toString());
-        LiveDiscussNotify.instance().executeCommand4Send(discussNotifyBean);
     }
 
     @Event(R.id.img_seize)
@@ -397,7 +388,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         liveMap.put("width", 320);
         liveMap.put("height", 180);
         paramMap.put("live", liveMap);
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
                 INVITEUSER.code(), INVITEUSER.url(),
                 new HttpCallBack4OK() {
                     @Override
@@ -408,7 +399,6 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                             if (status == 0) {
                                 mCameraStreamingManager.stopStreaming();
                                 mCameraStreamingManager.destroy();
-                                mCameraStreamingManager = null;
 
                                 VideoProgram videoProgram = null;
                                 try {
@@ -447,22 +437,18 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                             } else {
                                 String desc = JSONUtils.getString(jsonRoot, "desc");
                                 ToastUtil.showShortToast(UploadVideoActivity.this, getString(getResValue(desc)), 1);
-                                mCameraStreamingManager = null;
                             }
                         }
                     }
 
                     @Override
                     public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
-                        mCameraStreamingManager = null;
                     }
                 }, paramMap, JSONObject.class);
         try {
             client.sendPost4OK();
         } catch (UnsupportedEncodingException e) {
-            mCameraStreamingManager = null;
         } catch (JSONException e) {
-            mCameraStreamingManager = null;
         }
 
     }
@@ -472,7 +458,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         imgUpload.setClickable(false);
         Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("partyId", partyId);
         CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GET_LIVE_TOKEN;
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(httpReqParam.code(),
                 httpReqParam.url(), new HttpCallBack4OK() {
             @Override
             public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
@@ -536,7 +522,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         liveMap.put("width", 320);
         liveMap.put("height", 180);
         paramMap.put("live", liveMap);
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
                 INVITEUSER.code(), INVITEUSER.url(),
                 new HttpCallBack4OK() {
                     @Override
@@ -595,60 +581,16 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         }
     }
 
-    @Event(R.id.img_share)
-    private void showDialog(View view) {
-        shareDialog = new BottomSheetDialog(this);
-        shareDialog.contentView(R.layout.layout_video_share)
-                .inDuration(300);
-        txtWeixin = (TextView) shareDialog.findViewById(R.id.txt_weixin);
-        txtPyq = (TextView) shareDialog.findViewById(R.id.txt_pyq);
-        txtWeibo = (TextView) shareDialog.findViewById(R.id.txt_weibo);
-        txtCopy = (TextView) shareDialog.findViewById(R.id.txt_copy);
-        txtCancel = (TextView) shareDialog.findViewById(R.id.txt_cancel);
-        txtWeixin.setOnClickListener(this);
-        txtPyq.setOnClickListener(this);
-        txtWeibo.setOnClickListener(this);
-        txtCopy.setOnClickListener(this);
-        txtCancel.setOnClickListener(this);
-        shareDialog.show();
-    }
-
-
     @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.txt_weixin:
-                ToastUtil.showShortToast(this, "weixin", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_pyq:
-                ToastUtil.showShortToast(this, "pyq", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_weibo:
-                ToastUtil.showShortToast(this, "weibo", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_copy:
-                ClipboardManager cm = (ClipboardManager) getSystemService(this.CLIPBOARD_SERVICE);
-                cm.setText("http://219.143.237.232:8080/hls/" + mediaId + ".m3u8");
-                ToastUtil.showShortToast(this, "视频地址已经复制到剪切板", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_cancel:
-                shareDialog.dismiss();
-                break;
-        }
-    }
-
-    @Override
-    public void onStateChanged(final int status, Object o) {
+    public void onStateChanged(final int status, final Object extra) {
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
                 switch (status) {
                     case CameraStreamingManager.STATE.READY:
                         statusText.setText("准备就绪");
+                        mIsReady = true;
+                        mMaxZoom = mCameraStreamingManager.getMaxZoom();
                         if(liveId!=null){
                             mCameraStreamingManager.startStreaming();
                         }else {
@@ -660,8 +602,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                         imgUpload.setVisibility(View.GONE);
                         imgUpload.setClickable(true);
                         imgSeize.setVisibility(View.VISIBLE);
-                        layoutSliding.setVisibility(View.VISIBLE);
-                        publishHlsVideo();
+                        liveMenuPager.setVisibility(View.VISIBLE);
                         break;
                     case CameraStreamingManager.STATE.CAMERA_SWITCHED:
                         statusText.setText("切换摄像头");
@@ -671,7 +612,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                         imgUpload.setVisibility(View.VISIBLE);
                         imgUpload.setClickable(true);
                         imgSeize.setVisibility(View.GONE);
-                        layoutSliding.setVisibility(View.GONE);
+                        liveMenuPager.setVisibility(View.GONE);
                         mCameraStreamingManager.stopStreaming();
                         break;
                     case CameraStreamingManager.STATE.NETBLOCKING:
@@ -685,8 +626,24 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
                         imgUpload.setVisibility(View.VISIBLE);
                         imgUpload.setClickable(true);
                         imgSeize.setVisibility(View.GONE);
-                        layoutSliding.setVisibility(View.GONE);
-                        mCameraStreamingManager.startStreaming();
+                        liveMenuPager.setVisibility(View.GONE);
+                        mCameraStreamingManager.resume();
+                        break;
+                    case CameraStreamingManager.STATE.TORCH_INFO:
+                        if (extra != null) {
+                            final boolean isSupportedTorch = (Boolean) extra;
+                            Log.i(TAG, "isSupportedTorch=" + isSupportedTorch);
+                            runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (isSupportedTorch) {
+                                        imgTorch.setVisibility(View.VISIBLE);
+                                    } else {
+                                        imgTorch.setVisibility(View.GONE);
+                                    }
+                                }
+                            });
+                        }
                         break;
 
                 }
@@ -722,79 +679,96 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         });
     }
 
+    @Override
+    public boolean onSingleTapUp(MotionEvent e) {
+        Log.i(TAG, "onSingleTapUp X:" + e.getX() + ",Y:" + e.getY());
 
-    private class SliderListener extends SlidingPaneLayout.SimplePanelSlideListener {
-        @Override
-        public void onPanelOpened(View panel) {
-//            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txtDiscuss.getLayoutParams();
-//            layoutParams.leftMargin = 100;
-//            txtDiscuss.setLayoutParams(layoutParams);
-            txtDiscuss.setVisibility(View.GONE);
+        if (mIsReady) {
+            mCameraStreamingManager.doSingleTapUp((int) e.getX(), (int) e.getY());
+            return true;
         }
-
-        @Override
-        public void onPanelClosed(View panel) {
-//            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)txtDiscuss.getLayoutParams();
-//            layoutParams.leftMargin = 10;
-//            txtDiscuss.setLayoutParams(layoutParams);
-            txtDiscuss.setVisibility(View.VISIBLE);
-        }
-    }
-
-
-    private void publishVideo() {
-        Map<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put("videoUrl", HttpConstants.getLiveServerUrl() + mediaId);
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(22,
-                HttpConstants.getUserUrl() + "/publishVideo", this, valueMap, LoginResBean.class);
-
-        //增加注释
-        try {
-            client.sendPost4OK();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void publishHlsVideo() {
-        Map<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put("videoUrl", "http://219.143.237.232:8080/hls/" + mediaId + ".m3u8");
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(21,
-                HttpConstants.getUserUrl() + "/publishVideo", this, valueMap, LoginResBean.class);
-
-        //增加注释
-        try {
-            client.sendPost4OK();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        return false;
     }
 
     @Override
-    public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
-        switch (accessId) {
-            case 22:
-                if (obj != null) {
-                }
-                break;
-            case 21:
-                publishVideo();
-                break;
+    public boolean onZoomValueChanged(float factor) {
+        if (mIsReady && mCameraStreamingManager.isZoomSupported()) {
+            mCurrentZoom = (int) (mMaxZoom * factor);
+            mCurrentZoom = Math.min(mCurrentZoom, mMaxZoom);
+            mCurrentZoom = Math.max(0, mCurrentZoom);
+
+            Log.d(TAG, "zoom ongoing, scale: " + mCurrentZoom + ",factor:" + factor + ",maxZoom:" + mMaxZoom);
+            if (!mHandler.hasMessages(MSG_SET_ZOOM)) {
+                mHandler.sendMessageDelayed(mHandler.obtainMessage(MSG_SET_ZOOM), ZOOM_MINIMUM_WAIT_MILLIS);
+                return true;
+            }
         }
+        return false;
     }
 
     @Override
-    public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
-
+    public void onSurfaceCreated() {
+        Log.i(TAG, "onSurfaceCreated");
+        mFBO.initialize(this);
     }
 
+    @Override
+    public void onSurfaceChanged(int width, int height) {
+        Log.i(TAG, "onSurfaceChanged width:" + width + ",height:" + height);
+        mFBO.updateSurfaceSize(width, height);
+    }
+
+    @Override
+    public void onSurfaceDestroyed() {
+        Log.i(TAG, "onSurfaceDestroyed");
+        mFBO.release();
+    }
+
+    @Override
+    public int onDrawFrame(int texId, int texWidth, int texHeight, float[] transformMatrix) {
+        // newTexId should not equal with texId. texId is from the SurfaceTexture.
+        // Otherwise, there is no filter effect.
+        int newTexId = mFBO.drawFrame(texId, texWidth, texHeight);
+//        Log.i(TAG, "onDrawFrame texId:" + texId + ",newTexId:" + newTexId + ",texWidth:" + texWidth + ",texHeight:" + texHeight);
+        return newTexId;
+    }
+
+    @Override
+    public boolean onRecordAudioFailedHandled(int err) {
+        mCameraStreamingManager.updateEncodingType(CameraStreamingManager.EncodingType.SW_VIDEO_CODEC);
+        mCameraStreamingManager.startStreaming();
+        return true;
+    }
+
+    @Override
+    public boolean onRestartStreamingHandled(int err) {
+        Log.i(TAG, "onRestartStreamingHandled");
+        return mCameraStreamingManager.startStreaming();
+    }
+
+    @Override
+    public Camera.Size onPreviewSizeSelected(List<Camera.Size> list) {
+        Camera.Size size = null;
+//        if (list != null) {
+//            for (Camera.Size s : list) {
+//                size = s;
+//                Log.i(TAG, "w:" + s.width + ", h:" + s.height);
+//                break;
+//                if (s.height < 480) {
+//                    continue;
+//                } else {
+//                    size = s;
+//                    break;
+//                }
+//            }
+//        }
+//        Log.e(TAG, "selected size :" + size.width + "x" + size.height);
+        return size;
+    }
 
     private static boolean isSupportHWEncode() {
         return Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2;
+//        return Build.VERSION.SDK_INT >= 19;
     }
 
     @Subscribe(threadMode = ThreadMode.MAIN)
@@ -807,7 +781,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             case LIVE_ENTER_NOTIFY_OK:
                 discussList.add(bean);
                 discussListAdapter.notifyDataSetChanged();
-                discussListView.setSelection(discussList.size());
+                liveMenuAdapter.getFragment(1).updateDiscuss(false);
                 break;
         }
     }
@@ -822,8 +796,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             case DISCUSS_NOTIFY_OK:
                 discussList.add(bean);
                 discussListAdapter.notifyDataSetChanged();
-                discussListView.setSelection(discussList.size());
-                txtDiscuss.setText("");
+                liveMenuAdapter.getFragment(1).updateDiscuss(true);
                 break;
             case DISCUSS_NOTIFY_FAILED:
                 ToastUtil.showLongToast(this, getString(R.string.operation_fail));
@@ -831,7 +804,7 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             case RECEIVE_DISCUSS_NOTIFY_OK:
                 discussList.add(bean);
                 discussListAdapter.notifyDataSetChanged();
-                discussListView.setSelection(discussList.size());
+                liveMenuAdapter.getFragment(1).updateDiscuss(false);
                 break;
         }
     }
@@ -885,6 +858,16 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
         }
     }
 
+    public void sendDiscuss(String message) {
+        DiscussNotifyEvent.DiscussNotifyBean discussNotifyBean = new DiscussNotifyEvent.DiscussNotifyBean();
+        discussNotifyBean.setGroupId(groupId);
+        discussNotifyBean.setLiveId(liveId);
+        discussNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+        discussNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+        discussNotifyBean.setContent(message);
+        LiveDiscussNotify.instance().executeCommand4Send(discussNotifyBean);
+    }
+
 
     /**
      * ******************************************内部类******************************************
@@ -916,6 +899,64 @@ public class UploadVideoActivity extends BaseActivity implements View.OnClickLis
             long leftTime = millisUntilFinished / 1000;
             txtCount.setText(String.valueOf(leftTime));
         }
+    }
+
+    private Handler mHandler = new Handler(Looper.getMainLooper()) {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MSG_SET_ZOOM:
+                    mCameraStreamingManager.setZoomValue(mCurrentZoom);
+                    break;
+                case MSG_MUTE:
+                    mIsNeedMute = !mIsNeedMute;
+                    mCameraStreamingManager.mute(mIsNeedMute);
+                    break;
+                case MSG_FB:
+                    mIsNeedFB = !mIsNeedFB;
+                    mCameraStreamingManager.setVideoFilterType(mIsNeedFB ?
+                            CameraStreamingSetting.VIDEO_FILTER_TYPE.VIDEO_FILTER_BEAUTY
+                            : CameraStreamingSetting.VIDEO_FILTER_TYPE.VIDEO_FILTER_NONE);
+                    break;
+                default:
+                    Log.e(TAG, "Invalid message");
+                    break;
+            }
+        }
+    };
+
+    private static final class LiveMenuAdapter extends FragmentStatePagerAdapter {
+
+        private BaseActivity activity;
+        private DiscussListAdapter discussListAdapter;
+        private LiveMenuFragment[] fragments = new LiveMenuFragment[]{null,null};
+
+        public LiveMenuAdapter(FragmentManager fragmentManager, BaseActivity activity, DiscussListAdapter discussAdapter) {
+            super(fragmentManager);
+            this.activity = activity;
+            this.discussListAdapter = discussAdapter;
+        }
+
+
+        @Override
+        public Fragment getItem(int position) {
+            final LiveMenuFragment fragment = new LiveMenuFragment(activity,true,position,"");
+            if(position == 1){
+                fragment.setDiscussAdapter(discussListAdapter);
+            }
+            fragments[position] = fragment;
+            return fragment;
+        }
+
+        public LiveMenuFragment getFragment(int position){
+            return fragments[position];
+        }
+
+        @Override
+        public int getCount() {
+            return 2;
+        }
+
     }
 
 }

@@ -55,7 +55,7 @@ public class RtmpConnection implements RtmpPublisher, PacketRxHandler {
     private RtmpSessionInfo rtmpSessionInfo;
     private ReadThread readThread;
     private WriteThread writeThread;
-    private final ConcurrentLinkedQueue<RtmpPacket> rxPacketQueue = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<RtmpPacket> rxPacketQueue = new ConcurrentLinkedQueue<RtmpPacket>();
     private final Object rxPacketLock = new Object();
     private volatile boolean active = false;
     private volatile boolean connecting = false;

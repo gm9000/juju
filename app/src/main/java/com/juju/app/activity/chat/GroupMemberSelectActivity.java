@@ -163,7 +163,7 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
      * @return
      */
     private Set<String> getAlreadyCheckList(){
-        Set<String> alreadyListSet = new HashSet<>();
+        Set<String> alreadyListSet = new HashSet<String>();
         if(peerEntity == null){
             Toast.makeText(GroupMemberSelectActivity.this, getString(R.string.error_group_info), Toast.LENGTH_SHORT).show();
             finish(GroupMemberSelectActivity.this);
@@ -368,7 +368,7 @@ public class GroupMemberSelectActivity extends BaseActivity implements CreateUIH
 
     private void initUser4Phones() {
         List<String> phoneSet = getContactPhoneSet();
-        List<String> oldPhoneSet = new ArrayList<>();
+        List<String> oldPhoneSet = new ArrayList<String>();
         int length = 100;
 
         if(phoneSet.size() >0) {
