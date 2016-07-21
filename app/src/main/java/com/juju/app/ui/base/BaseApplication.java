@@ -59,7 +59,7 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
-//        LeakCanary.install(this);
+        LeakCanary.install(this);
         long begin = System.currentTimeMillis();
         initFramework();
         initConfig();
@@ -198,8 +198,6 @@ public class BaseApplication extends Application {
         intent.setClass(this, IMService.class);
         stopService(intent);
     }
-
-
 
 
 }
