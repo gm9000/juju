@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    style="@style/dialog_fullscreen_style"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     android:background="@color/white">
 
     <TextView
@@ -18,36 +17,47 @@
     <ImageView
         android:id="@+id/img_select_date"
         android:layout_below="@+id/txt_title"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="15dp"
         android:layout_marginLeft="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="50dp"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
         android:gravity="center"
         android:src="@mipmap/calendar"/>
+
+    <TextView
+        android:id="@+id/txt_week"
+        style="@style/BlueTxt20"
+        android:layout_below="@+id/txt_title"
+        android:layout_marginTop="15dp"
+        android:layout_width="wrap_content"
+        android:layout_height="35dp"
+        android:layout_centerHorizontal="true"
+        android:gravity="center"/>
 
     <LinearLayout
         android:id="@+id/date_select_layout"
         android:layout_width="wrap_content"
         android:layout_below="@+id/img_select_date"
         android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
         android:background="@color/white"
         android:orientation="horizontal">
         <com.juju.app.view.wheel.WheelView
             android:id="@+id/select_date_wheel_year_wheel"
             android:layout_width="wrap_content"
-            android:layout_height="150dp"
+            android:layout_height="130dp"
             android:layout_marginLeft="10dp"
             android:layout_weight="1"/>
         <com.juju.app.view.wheel.WheelView
             android:id="@+id/select_date_month_wheel"
             android:layout_width="wrap_content"
-            android:layout_height="150dp"
+            android:layout_height="130dp"
             android:layout_weight="1"/>
 
         <com.juju.app.view.wheel.WheelView
             android:id="@+id/select_date_day_wheel"
             android:layout_width="wrap_content"
-            android:layout_height="150dp"
+            android:layout_height="130dp"
             android:layout_marginRight="10dp"
             android:layout_weight="1"/>
     </LinearLayout>
@@ -56,11 +66,11 @@
     <ImageView
         android:id="@+id/img_select_time"
         android:layout_below="@+id/date_select_layout"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="15dp"
         android:gravity="center"
-        android:layout_width="wrap_content"
+        android:layout_width="35dp"
         android:layout_marginLeft="10dp"
-        android:layout_height="50dp"
+        android:layout_height="35dp"
         android:src="@mipmap/clock"/>
 
     <LinearLayout
@@ -68,43 +78,45 @@
         android:layout_below="@id/img_select_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="5dp"
+        android:layout_marginTop="10dp"
         android:background="@color/white"
         android:orientation="horizontal">
         <com.juju.app.view.wheel.WheelView
             android:id="@+id/select_time_wheel_left"
             android:layout_width="wrap_content"
             android:layout_marginLeft="30dp"
-            android:layout_height="150dp"
+            android:layout_height="130dp"
             android:layout_weight="1"/>
 
         <com.juju.app.view.wheel.WheelView
             android:id="@+id/select_time_wheel_right"
             android:layout_width="wrap_content"
-            android:layout_height="150dp"
+            android:layout_height="130dp"
             android:layout_marginRight="30dp"
             android:layout_weight="1"/>
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/layout_operation"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_marginBottom="20dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginRight="10dp"
+        android:layout_below="@+id/select_time_layout"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="30dp"
+        android:layout_marginRight="30dp"
         android:orientation="horizontal">
-
         <Button
             android:id="@+id/select_date_cancel"
             style="@style/dialog_left_btn_style" />
-
         <View style="@style/dialog_cutting_line_style" />
-
         <Button
             android:id="@+id/select_date_sure"
             style="@style/dialog_right_btn_style" />
     </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="10dp"
+        android:layout_below="@+id/layout_operation"/>
 
 </RelativeLayout>

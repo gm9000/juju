@@ -11,6 +11,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -20,6 +21,7 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.baidu.mapapi.common.Logger;
 import com.juju.app.R;
 import com.juju.app.adapters.DiscussListAdapter;
 import com.juju.app.annotation.SystemColor;
@@ -123,6 +125,7 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
@@ -135,30 +138,25 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume");
         super.onResume();
-        if (ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
+        if (ijkMediaPlayer != null && isPlaying) {
             ijkMediaPlayer.start();
         }
     }
 
     @Override
     protected void onPause(){
+        Log.d(TAG, "onPause");
         super.onPause();
-        if (ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
+        if(isPlaying){
             ijkMediaPlayer.stop();
-            isPlaying = false;
-            LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
-            liveEnterNotifyBean.setGroupId(groupId);
-            liveEnterNotifyBean.setLiveId(liveId);
-            liveEnterNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
-            liveEnterNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
-            liveEnterNotifyBean.setType(1);
-            LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
         }
     }
 
     @Override
     protected void onDestroy() {
+        Log.d(TAG, "onDestory");
         if (ijkMediaPlayer != null ) {
             if(ijkMediaPlayer.isPlaying()) {
                 ijkMediaPlayer.stop();
@@ -170,6 +168,7 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
         imServiceConnector.disconnect(this);
 
         if (isPlaying) {
+            isPlaying = false;
             LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
             liveEnterNotifyBean.setGroupId(groupId);
             liveEnterNotifyBean.setLiveId(liveId);
@@ -179,6 +178,12 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
             LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
         }
         super.onDestroy();
+    }
+
+    @Override
+    protected void onStop(){
+        Log.d(TAG, "onStop");
+        super.onStop();
     }
 
     private void initListener() {
@@ -305,7 +310,17 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-
+        if (isPlaying && ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
+            ijkMediaPlayer.stop();
+            isPlaying = false;
+            LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
+            liveEnterNotifyBean.setGroupId(groupId);
+            liveEnterNotifyBean.setLiveId(liveId);
+            liveEnterNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+            liveEnterNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+            liveEnterNotifyBean.setType(1);
+            LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
+        }
     }
 
 

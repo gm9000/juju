@@ -400,7 +400,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
     @Event(value=R.id.layout_plan_add)
     private void addPlan(View view){
-//        ActivityUtil.startActivityForResult(this,PlanCreateActivity.class,ADD_PLAN);
         startActivityForResultNew(this, PlanCreateActivity.class, ADD_PLAN);
     }
 
@@ -423,9 +422,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
         }
         if(index > -1) {
             Plan plan = planList.get(index);
-//            BasicNameValuePair indexParam = new BasicNameValuePair("index",String.valueOf(index));
-//            BasicNameValuePair planParam = new BasicNameValuePair("planStr",JacksonUtil.turnObj2String(plan));
-//            ActivityUtil.startActivityForResult(this, PlanCreateActivity.class,EDIT_PLAN,indexParam,planParam);
             Map<String, Object> valueMap = new HashMap<>();
             valueMap.put("index", String.valueOf(index));
             valueMap.put("planStr", JacksonUtil.turnObj2String(plan));
