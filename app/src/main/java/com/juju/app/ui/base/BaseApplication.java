@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
 import android.support.multidex.MultiDex;
 import android.util.Log;
 
@@ -14,20 +13,13 @@ import com.facebook.stetho.Stetho;
 import com.facebook.stetho.inspector.database.DatabaseFilesProvider;
 import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
-import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.CacheManager;
 import com.juju.app.golobal.AppContext;
-import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
-import com.juju.app.utils.SpfUtil;
 import com.pili.pldroid.streaming.StreamingEnv;
 import com.rey.material.app.ThemeManager;
-import com.squareup.leakcanary.LeakCanary;
 
-import org.xutils.DbManager;
-import org.xutils.db.table.TableEntity;
-import org.xutils.ex.DbException;
 import org.xutils.x;
 
 import java.io.File;
@@ -61,7 +53,7 @@ public class BaseApplication extends Application {
     public void onCreate() {
         super.onCreate();
         StreamingEnv.init(getApplicationContext());
-        LeakCanary.install(this);
+//        LeakCanary.install(this);
         long begin = System.currentTimeMillis();
         initFramework();
         initConfig();

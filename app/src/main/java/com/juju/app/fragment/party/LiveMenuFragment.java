@@ -1,11 +1,9 @@
 package com.juju.app.fragment.party;
 
 import android.annotation.SuppressLint;
-import android.content.ClipboardManager;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -18,8 +16,6 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.StringUtils;
-import com.juju.app.utils.ToastUtil;
-import com.rey.material.app.BottomSheetDialog;
 
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
@@ -28,7 +24,7 @@ import org.xutils.view.annotation.ViewInject;
 @SuppressLint("ValidFragment")
 @ContentView(R.layout.fragment_live_menu)
 @CreateFragmentUI(viewId = R.layout.fragment_live_menu)
-public class LiveMenuFragment extends BaseFragment implements CreateUIHelper, View.OnClickListener {
+public class LiveMenuFragment extends BaseFragment implements CreateUIHelper{
 
     private static final String TAG = "LiveMenuFragment";
     private UploadVideoActivity uploadActivity;
@@ -40,10 +36,10 @@ public class LiveMenuFragment extends BaseFragment implements CreateUIHelper, Vi
     private EditText txtDiscuss;
     @ViewInject(R.id.btn_send)
     private Button btnSend;
-    @ViewInject(R.id.img_share)
-    private ImageView imgShare;
+//    @ViewInject(R.id.img_share)
+//    private ImageView imgShare;
 
-    private BottomSheetDialog shareDialog;
+//    private BottomSheetDialog shareDialog;
     private TextView txtWeixin;
     private TextView txtPyq;
     private TextView txtWeibo;
@@ -86,7 +82,7 @@ public class LiveMenuFragment extends BaseFragment implements CreateUIHelper, Vi
                 discussListView.setVisibility(View.GONE);
                 txtDiscuss.setVisibility(View.GONE);
                 btnSend.setVisibility(View.GONE);
-                imgShare.setVisibility(View.GONE);
+//                imgShare.setVisibility(View.GONE);
                 break;
             case 1:
                 discussListView.setAdapter(discussAdapter);
@@ -123,51 +119,51 @@ public class LiveMenuFragment extends BaseFragment implements CreateUIHelper, Vi
     }
 
 
-    @Event(R.id.img_share)
-    private void showDialog(View view) {
-        shareDialog = new BottomSheetDialog(isUpload?uploadActivity:playActivity);
-        shareDialog.contentView(R.layout.layout_video_share)
-                .inDuration(300);
-        txtWeixin = (TextView) shareDialog.findViewById(R.id.txt_weixin);
-        txtPyq = (TextView) shareDialog.findViewById(R.id.txt_pyq);
-        txtWeibo = (TextView) shareDialog.findViewById(R.id.txt_weibo);
-        txtCopy = (TextView) shareDialog.findViewById(R.id.txt_copy);
-        txtCancel = (TextView) shareDialog.findViewById(R.id.txt_cancel);
-        txtWeixin.setOnClickListener(this);
-        txtPyq.setOnClickListener(this);
-        txtWeibo.setOnClickListener(this);
-        txtCopy.setOnClickListener(this);
-        txtCancel.setOnClickListener(this);
-        shareDialog.show();
-    }
-
-
-    @Override
-    public void onClick(View v) {
-        switch (v.getId()) {
-            case R.id.txt_weixin:
-                ToastUtil.showShortToast(isUpload?uploadActivity:playActivity, "weixin", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_pyq:
-                ToastUtil.showShortToast(isUpload?uploadActivity:playActivity, "pyq", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_weibo:
-                ToastUtil.showShortToast(isUpload?uploadActivity:playActivity, "weibo", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_copy:
-                ClipboardManager cm = (ClipboardManager) (isUpload?uploadActivity:playActivity).getSystemService((isUpload?uploadActivity:playActivity).CLIPBOARD_SERVICE);
-                cm.setText(hlsUrl);
-                ToastUtil.showShortToast(isUpload?uploadActivity:playActivity, "视频地址已经复制到剪切板", 1);
-                shareDialog.dismiss();
-                break;
-            case R.id.txt_cancel:
-                shareDialog.dismiss();
-                break;
-        }
-    }
+//    @Event(R.id.img_share)
+//    private void showDialog(View view) {
+//        shareDialog = new BottomSheetDialog(isUpload?uploadActivity:playActivity);
+//        shareDialog.contentView(R.layout.layout_video_share)
+//                .inDuration(300);
+//        txtWeixin = (TextView) shareDialog.findViewById(R.id.txt_weixin);
+//        txtPyq = (TextView) shareDialog.findViewById(R.id.txt_pyq);
+//        txtWeibo = (TextView) shareDialog.findViewById(R.id.txt_weibo);
+//        txtCopy = (TextView) shareDialog.findViewById(R.id.txt_copy);
+//        txtCancel = (TextView) shareDialog.findViewById(R.id.txt_cancel);
+//        txtWeixin.setOnClickListener(this);
+//        txtPyq.setOnClickListener(this);
+//        txtWeibo.setOnClickListener(this);
+//        txtCopy.setOnClickListener(this);
+//        txtCancel.setOnClickListener(this);
+//        shareDialog.show();
+//    }
+//
+//
+//    @Override
+//    public void onClick(View v) {
+//        switch (v.getId()) {
+//            case R.id.txt_weixin:
+//                ToastUtil.showShortToast(isUpload?uploadActivity:playActivity, "weixin", 1);
+//                shareDialog.dismiss();
+//                break;
+//            case R.id.txt_pyq:
+//                ToastUtil.showShortToast(isUpload?uploadActivity:playActivity, "pyq", 1);
+//                shareDialog.dismiss();
+//                break;
+//            case R.id.txt_weibo:
+//                ToastUtil.showShortToast(isUpload?uploadActivity:playActivity, "weibo", 1);
+//                shareDialog.dismiss();
+//                break;
+//            case R.id.txt_copy:
+//                ClipboardManager cm = (ClipboardManager) (isUpload?uploadActivity:playActivity).getSystemService((isUpload?uploadActivity:playActivity).CLIPBOARD_SERVICE);
+//                cm.setText(hlsUrl);
+//                ToastUtil.showShortToast(isUpload?uploadActivity:playActivity, "视频地址已经复制到剪切板", 1);
+//                shareDialog.dismiss();
+//                break;
+//            case R.id.txt_cancel:
+//                shareDialog.dismiss();
+//                break;
+//        }
+//    }
 
     @Event(R.id.btn_send)
     private void addDiscuss(View view) {

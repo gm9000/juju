@@ -292,7 +292,27 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
     @Event(value=R.id.txt_right)
     private void publishParty(View view){
-        savePartyToServer(true);
+
+        if(StringUtils.empty(txt_partyTitle.getText().toString())){
+            ToastUtil.showShortToast(this, "请设置聚会主题", 1);
+            return;
+        }
+
+        if(planList.size()==0){
+            ToastUtil.showShortToast(this, "请添加聚会方案", 1);
+            return;
+        }
+
+        WarnTipDialog tipdialog = new WarnTipDialog(context,"发布后不能修改\n确认发布该聚会？");
+        tipdialog.setOkLable(getResources().getString(R.string.save));
+        tipdialog.setBtnOkLinstener( new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                savePartyToServer(true);
+            }
+        });
+        tipdialog.show();
+
     }
 
     private void savePartyToServer(boolean isPublish) {
@@ -304,11 +324,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
         //  正式发布聚会
         if (isPublish){
-
-            if(planList.size()==0){
-                ToastUtil.showShortToast(this, "请添加聚会方案", 1);
-                return;
-            }
 
             UserInfoBean userTokenInfoBean = AppContext.getUserInfoBean();
             PartyReqBean reqBean = new PartyReqBean();
