@@ -61,6 +61,7 @@
     <string name="no_network">网络连接不可用，请检查你的网络设置</string>
     <string name="operation_success">操作成功</string>
     <string name="operation_fail">操作失败</string>
+    <string name="empty_data">空空无也！</string>
 
 
     <!-- 群聊 -->

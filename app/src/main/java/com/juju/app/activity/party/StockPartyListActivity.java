@@ -11,6 +11,7 @@ import android.text.TextWatcher;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -185,6 +186,10 @@ public class StockPartyListActivity extends BaseActivity implements AdapterView.
         listView.getLoadingLayoutProxy().setPullLabel(getResources().getString(R.string.pull_up_refresh_pull_label));
         listView.getRefreshableView().setCacheColorHint(Color.WHITE);
         listView.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
+
+        View emptyView = getLayoutInflater().inflate(R.layout.layout_empty, null);
+        ((ViewGroup)listView.getRefreshableView().getParent()).addView(emptyView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        listView.getRefreshableView().setEmptyView(emptyView);
 
     }
 

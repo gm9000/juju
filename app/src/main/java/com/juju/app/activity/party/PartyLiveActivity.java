@@ -3,6 +3,7 @@ package com.juju.app.activity.party;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -121,7 +122,7 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
                 selector = JujuDbUtils.getInstance().selector(VideoProgram.class).where("party_id","=",partyId);
                 selector.orderBy("status").orderBy("local_id", true);
                 videoProgramList = selector.findAll();
-                if(videoProgramList==null){
+                if(videoProgramList == null){
                     videoProgramList = new ArrayList<VideoProgram>();
                 }
                 if(videoProgramList.size()>0){
@@ -220,6 +221,9 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
         topLayout.getBackground().setAlpha(200);
 
+        View emptyView = getLayoutInflater().inflate(R.layout.layout_empty, null);
+        ((ViewGroup)listView.getParent()).addView(emptyView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        listView.setEmptyView(emptyView);
     }
 
 
@@ -229,7 +233,7 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
             selector = JujuDbUtils.getInstance().selector(VideoProgram.class).where("party_id","=",partyId);
             selector.orderBy("status").orderBy("local_id", true);
             videoProgramList = selector.findAll();
-            if(videoProgramList==null){
+            if(videoProgramList == null){
                 videoProgramList = new ArrayList<VideoProgram>();
             }
             if(videoProgramList.size()>0){

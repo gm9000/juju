@@ -28,7 +28,7 @@ public class MyPartyListAdapter extends BaseSwipeAdapter {
         this.partyList = partyList;
     }
 
-    private List<Party> partyList = new ArrayList<Party>();
+    private List<Party> partyList;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
     private Callback mCallback;
 
