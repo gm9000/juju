@@ -13,11 +13,12 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.mogujie.tt.R;
-import com.mogujie.tt.config.SysConstant;
-import com.mogujie.tt.ui.activity.MessageActivity;
-import com.mogujie.tt.utils.CommonUtil;
-import com.mogujie.tt.utils.Logger;
+
+import com.juju.app.R;
+import com.juju.app.activity.chat.ChatActivity;
+import com.juju.app.golobal.Constants;
+import com.juju.app.utils.CommonUtil;
+import com.juju.app.utils.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
@@ -25,8 +26,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 
-// todo 这个类还是有用的，但是结构不清晰
-// 应该是处理图像的 辅助类 和imageTool 配合使用
 
 public class PhotoHelper {
     private Context context;
@@ -93,7 +92,6 @@ public class PhotoHelper {
 
     /**
      * @Description 上传服务器前调用该方法进行压缩
-     * @param path
      * @return
      * @throws IOException
      */
@@ -173,8 +171,8 @@ public class PhotoHelper {
         intent.putExtra(MediaStore.EXTRA_OUTPUT,
                 Uri.fromFile(new File(takePhotoSavePath)));
         // intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
-        ((MessageActivity) context).startActivityForResult(intent,
-                SysConstant.CAMERA_WITH_DATA);
+        ((ChatActivity) context).startActivityForResult(intent,
+                Constants.CAMERA_WITH_DATA);
     }
 
     /**

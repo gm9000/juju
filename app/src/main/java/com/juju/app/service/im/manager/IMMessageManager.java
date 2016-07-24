@@ -1,5 +1,6 @@
 package com.juju.app.service.im.manager;
 
+import android.content.Intent;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -8,6 +9,7 @@ import com.juju.app.biz.MessageDao;
 import com.juju.app.biz.impl.MessageDaoImpl;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.AudioMessage;
+import com.juju.app.entity.chat.ImageMessage;
 import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
@@ -20,6 +22,7 @@ import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.golobal.MessageConstant;
 import com.juju.app.helper.chat.SequenceNumberMaker;
+import com.juju.app.service.im.LoadImageService;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.iq.RedisResIQ;
 import com.juju.app.service.im.service.XMPPServiceImpl;
@@ -28,12 +31,15 @@ import com.juju.app.utils.StringUtils;
 
 import org.apache.commons.lang.math.NumberUtils;
 import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.Message;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -88,9 +94,9 @@ public class IMMessageManager extends IMManager {
     }
 
     public void onLoginSuccess() {
-//        if (!EventBus.getDefault().isRegistered(inst)) {
-//            EventBus.getDefault().register(inst);
-//        }
+        if (!EventBus.getDefault().isRegistered(inst)) {
+            EventBus.getDefault().register(inst);
+        }
     }
 
     /**
@@ -497,6 +503,141 @@ public class IMMessageManager extends IMManager {
         }
     }
 
+//    /**
+//     * 发送图片消息
+//     * @param msgList
+//     */
+//    public void sendImages(List<ImageMessage> msgList) {
+//        logger.i("chat#image#sendImages size:%d",msgList.size());
+//        if(null == msgList || msgList.size() <=0){
+//            return ;
+//        }
+//
+//        int len = msgList.size();
+//        ArrayList<MessageEntity> needDbList = new ArrayList<>();
+//        for (ImageMessage msg : msgList) {
+//            needDbList.add(msg);
+//        }
+////        DBInterface.instance().batchInsertOrUpdateMessage(needDbList);
+//
+//        for (ImageMessage msg : msgList) {
+//            logger.d("chat#pic#sendImage  msg:%s",msg);
+//            // image message would wrapped as a text message after uploading
+//            int loadStatus = msg.getLoadStatus();
+//
+//            switch (loadStatus){
+//                case MessageConstant.IMAGE_LOADED_FAILURE:
+//                case MessageConstant.IMAGE_UNLOAD:
+//                case MessageConstant.IMAGE_LOADING:
+//                    msg.setLoadStatus(MessageConstant.IMAGE_LOADING);
+//                    Intent loadImageIntent = new Intent(ctx, LoadImageService.class);
+//                    loadImageIntent.putExtra(Constants.UPLOAD_IMAGE_INTENT_PARAMS, msg);
+//                    ctx.startService(loadImageIntent);
+//                    break;
+//                case MessageConstant.IMAGE_LOADED_SUCCESS:
+////                    sendMessage(msg);
+//                    break;
+//                default:
+//                    throw new RuntimeException("sendImages#status不可能出现的状态");
+//            }
+//        }
+//        /**将最后一条更新到Session上面*/
+//        sessionManager.updateSession(msgList.get(len-1), true);
+//    }
+
+
+    public void sendMsgImages(List<ImageMessage> msgList) {
+        if (isAuthenticated()) {
+            for (final ImageMessage imageMessage : msgList) {
+                String uuid = UUID.randomUUID().toString();
+                logger.d("chat#pic#sendImage  msg:%s",imageMessage);
+                // image message would wrapped as a text message after uploading
+                int loadStatus = imageMessage.getLoadStatus();
+                imageMessage.setStatus(MessageConstant.MSG_SENDING);
+                imageMessage.setId(uuid);
+                //插入本地数据库
+                final MessageEntity dbMessage = imageMessage.clone();
+                messageDao.saveOrUpdate(dbMessage);
+
+                switch (loadStatus){
+                    case MessageConstant.IMAGE_LOADED_FAILURE:
+                    case MessageConstant.IMAGE_UNLOAD:
+                    case MessageConstant.IMAGE_LOADING:
+                        imageMessage.setLoadStatus(MessageConstant.IMAGE_LOADING);
+                        Intent loadImageIntent = new Intent(ctx, LoadImageService.class);
+                        loadImageIntent.putExtra(Constants.UPLOAD_IMAGE_INTENT_PARAMS, imageMessage);
+                        ctx.startService(loadImageIntent);
+                        break;
+//                    case MessageConstant.IMAGE_LOADED_SUCCESS:
+//                        try {
+//                            socketService.sendMessage(imageMessage.getFromId(), imageMessage.getToId(),
+//                                    imageMessage.getSendContent(), uuid, IMBaseDefine.MsgType.MSG_IMAGE,
+//                                    new XMPPServiceCallbackImpl() {
+//                                        @Override
+//                                        public void onSuccess(Object t) {
+//                                            //回复时间
+//                                            if (t instanceof XMPPServiceImpl.ReplayMessageTime) {
+//                                                XMPPServiceImpl.ReplayMessageTime messageTime =
+//                                                        (XMPPServiceImpl.ReplayMessageTime) t;
+//                                                String id = messageTime.getId();
+//                                                String time = messageTime.getTime();
+//                                                if (dbMessage != null) {
+//                                                    dbMessage.setStatus(MessageConstant.MSG_SUCCESS);
+//                                                    //通知消息
+//                                                    imageMessage.setStatus(MessageConstant.MSG_SUCCESS);
+//                                                    if (NumberUtils.isNumber(time)) {
+//                                                        int msgId = SequenceNumberMaker.getInstance()
+//                                                                .makelocalUniqueMsgId(Long.parseLong(time));
+//                                                        //更新msgId
+//                                                        dbMessage.setMsgId(msgId);
+//                                                        dbMessage.setCreated(Long.parseLong(time));
+//                                                        dbMessage.setUpdated(Long.parseLong(time));
+//                                                    }
+//
+//                                                    //更新会话
+//                                                    sessionManager.updateSession(dbMessage, true);
+//                                                    triggerEvent(new MessageEvent(MessageEvent.Event
+//                                                            .ACK_SEND_MESSAGE_OK, imageMessage));
+//                                                    messageDao.saveOrUpdate(dbMessage);
+//                                                }
+//                                            }
+//                                        }
+//
+//                                        @Override
+//                                        public void onFailed() {
+//                                            //消息发送失败
+//                                            dbMessage.setStatus(MessageConstant.MSG_FAILURE);
+//                                            messageDao.saveOrUpdate(dbMessage);
+//                                            imageMessage.setStatus(MessageConstant.MSG_FAILURE);
+//                                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
+//                                        }
+//
+//                                        @Override
+//                                        public void onTimeout() {
+//                                            //消息发送超时
+//                                            dbMessage.setStatus(MessageConstant.MSG_FAILURE);
+//                                            messageDao.saveOrUpdate(dbMessage);
+//                                            imageMessage.setStatus(MessageConstant.MSG_FAILURE);
+//                                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
+//                                        }
+//                                    });
+//                        } catch (SmackException.NotConnectedException e) {
+//                            Log.e(TAG, "sendText:", e);
+//                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
+//                        }
+//                        break;
+                    default:
+                        throw new RuntimeException("sendImages#status不可能出现的状态");
+                }
+            }
+        } else {
+            //TODO ChatActivity提示未验证通过
+
+        }
+    }
+
+
+
     public void onRecvMsg(Message message, IMBaseDefine.MsgType msgType) {
         if(msgType != null) {
             switch (msgType) {
@@ -553,4 +694,130 @@ public class IMMessageManager extends IMManager {
         messageDao.replaceInto(messageEntity);
     }
 
+
+    /**图片的处理放在这里，因为在发送图片的过程中，很可能chatActivity已经关闭掉*/
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4Message(MessageEvent event){
+        MessageEvent.Event  type = event.getEvent();
+        switch (type){
+            case IMAGE_UPLOAD_FAILD:
+                logger.d("pic#onUploadImageFaild");
+                ImageMessage imageMessage = (ImageMessage)event.getMessageEntity();
+                imageMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_FAILURE);
+                imageMessage.setStatus(MessageConstant.MSG_FAILURE);
+
+                MessageEntity messageEntity = imageMessage.clone();
+                messageDao.replaceInto(messageEntity);
+
+                /**通知Activity层 失败*/
+                event.setEvent(MessageEvent.Event.HANDLER_IMAGE_UPLOAD_FAILD);
+                event.setMessageEntity(imageMessage);
+                triggerEvent(event);
+                break;
+            case IMAGE_UPLOAD_SUCCESS:
+                onImageUploadFinish(event);
+                break;
+            case IMAGE_UPLOAD_PROGRESSING:
+                onImageLoadProgress(event);
+                break;
+        }
+    }
+
+
+    //上传下载进度
+    private void onImageLoadProgress(MessageEvent imageEvent) {
+        logger.d("pic#onImageLoadProgress");
+        final ImageMessage imageMessage = (ImageMessage)imageEvent.getMessageEntity();
+        imageMessage.setProgress(imageEvent.getProgress());
+        triggerEvent(new MessageEvent(MessageEvent.Event
+                .ACK_SEND_MESSAGE_OK, imageMessage));
+    }
+
+    private void onImageUploadFinish(MessageEvent imageEvent){
+        final ImageMessage imageMessage = (ImageMessage)imageEvent.getMessageEntity();
+        logger.d("pic#onImageUploadFinish");
+        String imageUrl = imageMessage.getUrl();
+        logger.d("pic#imageUrl:%s", imageUrl);
+        String realImageURL = "";
+        try {
+            realImageURL = URLDecoder.decode(imageUrl, "utf-8");
+            logger.d("pic#realImageUrl:%s", realImageURL);
+        } catch (UnsupportedEncodingException e) {
+            logger.e(e.toString());
+        }
+
+        imageMessage.setUrl(realImageURL);
+        imageMessage.setStatus(MessageConstant.MSG_SUCCESS);
+        imageMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_SUCCESS);
+        final MessageEntity dbMessage = imageMessage.clone();
+//        dbInterface.insertOrUpdateMessage(imageMessage);
+        messageDao.replaceInto(dbMessage);
+
+        /**通知Activity层 成功 ， 事件通知*/
+        imageEvent.setEvent(MessageEvent.Event.HANDLER_IMAGE_UPLOAD_SUCCESS);
+        imageEvent.setMessageEntity(imageMessage);
+        triggerEvent(imageEvent);
+
+        imageMessage.setContent(MessageConstant.IMAGE_MSG_START
+                + realImageURL + MessageConstant.IMAGE_MSG_END);
+//        sendMessage(imageMessage);
+
+        String uuid = UUID.randomUUID().toString();
+        try {
+            socketService.sendMessage(imageMessage.getFromId(), imageMessage.getToId(),
+                    imageMessage.getSendContent(), uuid, IMBaseDefine.MsgType.MSG_IMAGE,
+                    new XMPPServiceCallbackImpl() {
+                        @Override
+                        public void onSuccess(Object t) {
+                            //回复时间
+                            if (t instanceof XMPPServiceImpl.ReplayMessageTime) {
+                                XMPPServiceImpl.ReplayMessageTime messageTime =
+                                        (XMPPServiceImpl.ReplayMessageTime) t;
+                                String id = messageTime.getId();
+                                String time = messageTime.getTime();
+                                if (dbMessage != null) {
+                                    dbMessage.setStatus(MessageConstant.MSG_SUCCESS);
+                                    //通知消息
+                                    imageMessage.setStatus(MessageConstant.MSG_SUCCESS);
+                                    if (NumberUtils.isNumber(time)) {
+                                        int msgId = SequenceNumberMaker.getInstance()
+                                                .makelocalUniqueMsgId(Long.parseLong(time));
+                                        //更新msgId
+                                        dbMessage.setMsgId(msgId);
+                                        dbMessage.setCreated(Long.parseLong(time));
+                                        dbMessage.setUpdated(Long.parseLong(time));
+                                    }
+
+                                    //更新会话
+                                    sessionManager.updateSession(dbMessage, true);
+                                    triggerEvent(new MessageEvent(MessageEvent.Event
+                                            .ACK_SEND_MESSAGE_OK, imageMessage));
+                                    messageDao.replaceInto(dbMessage);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailed() {
+                            //消息发送失败
+                            dbMessage.setStatus(MessageConstant.MSG_FAILURE);
+                            messageDao.replaceInto(dbMessage);
+                            imageMessage.setStatus(MessageConstant.MSG_FAILURE);
+                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
+                        }
+
+                        @Override
+                        public void onTimeout() {
+                            //消息发送超时
+                            dbMessage.setStatus(MessageConstant.MSG_FAILURE);
+                            messageDao.replaceInto(dbMessage);
+                            imageMessage.setStatus(MessageConstant.MSG_FAILURE);
+                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
+                        }
+                    });
+        } catch (SmackException.NotConnectedException e) {
+            Log.e(TAG, "sendText:", e);
+            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
+        }
+    }
 }

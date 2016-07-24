@@ -7,10 +7,8 @@ import android.util.AttributeSet;
 import android.view.View;
 import android.widget.ImageView;
 
-import com.mogujie.tt.R;
-import com.mogujie.tt.utils.CommonUtil;
-import com.mogujie.tt.utils.FileUtil;
-import com.mogujie.tt.utils.ImageLoaderUtil;
+import com.juju.app.R;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.assist.FailReason;
 import com.nostra13.universalimageloader.core.assist.ImageScaleType;
@@ -18,18 +16,14 @@ import com.nostra13.universalimageloader.core.imageaware.ImageAware;
 import com.nostra13.universalimageloader.core.imageaware.ImageViewAware;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 
-import org.apache.commons.io.IOUtils;
 
-/**
- * Created by zhujian on 15/2/13.
- */
 public class BubbleImageView extends ImageView {
     /**
      * 图片设置相关
      */
     protected String imageUrl = null;
     protected boolean isAttachedOnWindow = false;
-    protected int defaultImageRes = R.drawable.tt_message_image_default;
+    protected int defaultImageRes = R.mipmap.tt_message_image_default;
 
     protected ImageLoaddingCallback imageLoaddingCallback;
 
@@ -61,8 +55,8 @@ public class BubbleImageView extends ImageView {
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(this.imageUrl, imageAware, new DisplayImageOptions.Builder()
                         .cacheInMemory(true)
                         .cacheOnDisk(true)
-                        .showImageOnLoading(R.drawable.tt_message_image_default)
-                        .showImageOnFail(R.drawable.tt_message_image_error)
+                        .showImageOnLoading(R.mipmap.tt_message_image_default)
+                        .showImageOnFail(R.mipmap.tt_message_image_error)
                         .imageScaleType(ImageScaleType.IN_SAMPLE_INT)
                         .bitmapConfig(Bitmap.Config.RGB_565)
                         .delayBeforeLoading(100)
@@ -103,7 +97,7 @@ public class BubbleImageView extends ImageView {
                 });
             }
         } else {
-            this.setImageResource(R.drawable.tt_message_image_default);
+            this.setImageResource(R.mipmap.tt_message_image_default);
         }
     }
 

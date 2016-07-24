@@ -8,8 +8,9 @@ import android.os.Handler;
 import android.text.TextUtils;
 import android.widget.ImageView;
 
-import com.mogujie.tt.ui.activity.PickPhotoActivity;
-import com.mogujie.tt.utils.Logger;
+
+import com.juju.app.activity.chat.PickPhotoActivity;
+import com.juju.app.utils.Logger;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -21,9 +22,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * @Description 相册图片缓存
- * @author Nana
- * @date 2014-5-9
+ * 项目名称：juju
+ * 类描述：相册图片缓存
+ * 创建人：gm
+ * 日期：2016/7/21 11:09
+ * 版本：V1.0.0
  */
 public class BitmapCache extends Activity {
 

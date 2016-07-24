@@ -1,10 +1,11 @@
 package com.juju.app.fastdfs.exception;
 
 /**
- * 封装fastdfs的异常，使用非受检异常
- * 
- * @author yuqih
- * 
+ * 项目名称：juju
+ * 类描述：封装fastdfs的异常，使用非受检异常
+ * 创建人：gm
+ * 日期：2016/7/22 10:14
+ * 版本：V1.0.0
  */
 public abstract class FdfsException extends RuntimeException {
 

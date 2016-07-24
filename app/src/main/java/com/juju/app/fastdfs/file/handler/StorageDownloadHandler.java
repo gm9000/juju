@@ -1,5 +1,11 @@
 package com.juju.app.fastdfs.file.handler;
 
+import com.juju.app.fastdfs.callback.ProgressCallback;
+import com.juju.app.fastdfs.file.BytesUtil;
+import com.juju.app.fastdfs.file.CmdConstants;
+import com.juju.app.fastdfs.file.OtherConstants;
+import com.juju.app.fastdfs.socket.FdfsInputStream;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -7,11 +13,6 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import third.rewrite.fastdfs.callback.ProgressCallback;
-import third.rewrite.fastdfs.proto.BytesUtil;
-import third.rewrite.fastdfs.proto.CmdConstants;
-import third.rewrite.fastdfs.proto.OtherConstants;
-import third.rewrite.fastdfs.socket.FdfsInputStream;
 
 public class StorageDownloadHandler extends AbstractHandler<FdfsInputStream> {
 
@@ -94,7 +95,7 @@ public class StorageDownloadHandler extends AbstractHandler<FdfsInputStream> {
 	}
 
 	@Override
-	protected void send(OutputStream ous, ProgressCallback callback)
+	protected void send(OutputStream ous, String uuid, ProgressCallback callback)
 			throws IOException {
 		byte[] header;
 		byte[] bsOffset;
@@ -137,14 +138,15 @@ public class StorageDownloadHandler extends AbstractHandler<FdfsInputStream> {
 	}
 
 	@Override
-	protected void receive(InputStream ins, ProgressCallback callback)
+	protected void receive(InputStream ins, String uuid,  ProgressCallback callback, String recvHost)
 			throws IOException {
 		System.out.println("StorageDownloadHandler#ProgressCallback#receive1");
 		receiveHeader(ins);
 		if (this.errorCode != 0) {
 			return;
 		}
-		result = new FdfsInputStream(ins, contentLength, callback);
+		result = new FdfsInputStream(ins, contentLength, uuid, callback);
+		
 	}
 
 }

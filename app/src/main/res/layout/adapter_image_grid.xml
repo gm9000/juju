@@ -10,8 +10,8 @@
         android:layout_height="81dp"
         android:layout_centerInParent="true"
         android:scaleType="centerCrop"
-        android:background="@drawable/tt_default_album_grid_image"
-        android:src="@drawable/tt_default_album_grid_image" />
+        android:background="@mipmap/tt_default_album_grid_image"
+        android:src="@mipmap/tt_default_album_grid_image" />
 
     <ImageView
         android:id="@+id/isselected"
@@ -21,6 +21,6 @@
         android:layout_alignParentTop="true"
         android:layout_marginRight="5dp"
         android:layout_marginTop="5dp"
-        android:src="@drawable/tt_album_img_select_nor" />
+        android:src="@mipmap/tt_album_img_select_nor" />
 
 </RelativeLayout>

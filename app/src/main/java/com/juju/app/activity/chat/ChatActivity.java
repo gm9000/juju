@@ -42,18 +42,23 @@ import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.juju.app.R;
 import com.juju.app.adapter.ChatAdapter;
+import com.juju.app.adapter.album.AlbumHelper;
+import com.juju.app.adapter.album.ImageBucket;
+import com.juju.app.adapter.album.ImageItem;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.GroupEntity;
+import com.juju.app.entity.chat.ImageMessage;
 import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.MessageEvent;
 import com.juju.app.event.PriorityEvent;
+import com.juju.app.event.SelectEvent;
 import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
@@ -65,6 +70,7 @@ import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.HandlerConstant;
+import com.juju.app.golobal.IntentConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.audio.AudioPlayerHandler;
@@ -90,6 +96,7 @@ import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
@@ -117,20 +124,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private static  Sensor sensor = null;
     private static ChatAdapter adapter = null;
     private IMService imService;
-
-
-
-    //title组件
-//    @ViewInject(R.id.img_back)
-//    private ImageView img_back;
-//    @ViewInject(R.id.txt_left)
-//    private TextView txt_left;
-//    @ViewInject(R.id.txt_title)
-//    private TextView txt_title;
-//    @ViewInject(R.id.img_right)
-//    private ImageView img_right;
-
-
 
     @ViewInject(R.id.show_add_photo_btn)
     private ImageView addPhotoBtn;
@@ -204,6 +197,10 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     private UserInfoBean userInfoBean;
 
+    private AlbumHelper albumHelper = null;
+    private List<ImageBucket> albumList = null;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -251,8 +248,10 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         initTitleView();
         initSoftInputMethod();
         initEmo();
+        initAlbumHelper();
         initAudioSensor();
         initViews();
+
     }
 
     /**
@@ -403,20 +402,20 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     @Event(R.id.take_photo_btn)
     private void onClick4BtnTakePhoto(View view) {
-//        if (albumList.size() < 1) {
-//            Toast.makeText(MessageActivity.this,
-//                    getResources().getString(R.string.not_found_album), Toast.LENGTH_LONG)
-//                    .show();
-//            return;
-//        }
-        // 选择图片的时候要将session的整个会话传过来
-//        Intent intent = new Intent(ChatActivity.this, PickPhotoActivity.class);
-//        intent.putExtra(IntentConstant.KEY_SESSION_KEY, currentSessionKey);
-//        startActivityForResult(intent, SysConstant.ALBUM_BACK_DATA);
-//
-//        MessageActivity.this.overridePendingTransition(R.anim.tt_album_enter, R.anim.tt_stay);
-//        //addOthersPanelView.setVisibility(View.GONE);
-//        messageEdt.clearFocus();//切记清除焦点
+        if (albumList.size() < 1) {
+            Toast.makeText(ChatActivity.this,
+                    getResources().getString(R.string.not_found_album), Toast.LENGTH_LONG)
+                    .show();
+            return;
+        }
+        // 选择图片的时候要将session的整个回话 传过来
+        Intent intent = new Intent(ChatActivity.this, PickPhotoActivity.class);
+        intent.putExtra(IntentConstant.KEY_SESSION_KEY, currentSessionKey);
+        startActivityForResult(intent, Constants.ALBUM_BACK_DATA);
+
+        ChatActivity.this.overridePendingTransition(R.anim.tt_album_enter, R.anim.tt_stay);
+        //addOthersPanelView.setVisibility(View.GONE);
+        messageEdt.clearFocus();//切记清除焦点
         scrollToBottomListItem();
     }
 
@@ -795,6 +794,14 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     }
 
     /**
+     * @Description 初始化数据（相册,表情,数据库相关）
+     */
+    private void initAlbumHelper() {
+        albumHelper = AlbumHelper.getHelper(ChatActivity.this);
+        albumList = albumHelper.getImagesBucketList(false);
+    }
+
+    /**
      * @Description 初始化AudioManager，用于访问控制音量和钤声模式
      */
     private void initAudioSensor() {
@@ -1139,14 +1146,14 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
             case HANDLER_IMAGE_UPLOAD_FAILD: {
                 logger.d("pic#onUploadImageFaild");
-//                ImageMessage imageMessage = (ImageMessage) event.getMessageEntity();
-//                adapter.updateItemState(imageMessage);
-//                showToast(R.string.message_send_failed);
+                ImageMessage imageMessage = (ImageMessage) event.getMessageEntity();
+                adapter.updateItemState(imageMessage);
+                ToastUtil.TextIntToast(getApplicationContext(), R.string.message_send_failed, 0);
             }
             break;
             case HANDLER_IMAGE_UPLOAD_SUCCESS: {
-//                ImageMessage imageMessage = (ImageMessage) event.getMessageEntity();
-//                adapter.updateItemState(imageMessage);
+                ImageMessage imageMessage = (ImageMessage) event.getMessageEntity();
+                adapter.updateItemState(imageMessage);
             }
             break;
 
@@ -1440,6 +1447,24 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4SelectPhoto(SelectEvent event) {
+        List<ImageItem> itemList = event.getList();
+        if (itemList != null || itemList.size() > 0)
+            handleImagePickData(itemList);
+    }
+
+    private void handleImagePickData(List<ImageItem> list) {
+        ArrayList<ImageMessage> listMsg = new ArrayList<>();
+        ArrayList<ImageItem> itemList = (ArrayList<ImageItem>) list;
+        for (ImageItem item : itemList) {
+            ImageMessage imageMessage = ImageMessage.buildForSend(item, loginUser, peerEntity);
+            listMsg.add(imageMessage);
+            pushList(imageMessage);
+        }
+        //TODO 发送图片
+        imService.getMessageManager().sendMsgImages(listMsg);
+    }
 
 
     /**
@@ -1454,7 +1479,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
         /**到底采用哪种ID呐??*/
 //        long localId = messageEntity.getId();
-        adapter.notifyDataSetChanged();
+        adapter.updateItemState(messageEntity);
     }
 
 

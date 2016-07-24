@@ -166,6 +166,7 @@ public class IMService extends Service {
         contactMgr.onNormalLoginOk();
         sessionMgr.onNormalLoginOk();
         unReadMsgMgr.onNormalLoginOk();
+        messageMgr.onLoginSuccess();
         //消息通知栏状态
         notificationMgr.onLoginSuccess();
         otherManager.onNormalLoginOk();

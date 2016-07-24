@@ -2,6 +2,7 @@ package com.juju.app.view.groupchat;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
@@ -9,20 +10,23 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 
-import com.mogujie.tt.DB.entity.MessageEntity;
-import com.mogujie.tt.DB.entity.UserEntity;
-import com.mogujie.tt.R;
-import com.mogujie.tt.config.MessageConstant;
-import com.mogujie.tt.imservice.entity.ImageMessage;
-import com.mogujie.tt.ui.widget.BubbleImageView;
-import com.mogujie.tt.ui.widget.MGProgressbar;
-import com.mogujie.tt.utils.FileUtil;
-import com.mogujie.tt.utils.Logger;
+import com.juju.app.R;
+import com.juju.app.entity.User;
+import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.entity.chat.ImageMessage;
+import com.juju.app.golobal.MessageConstant;
+import com.juju.app.utils.FileUtil;
+import com.juju.app.utils.Logger;
+import com.juju.app.view.BubbleImageView;
+import com.juju.app.view.MGProgressbar;
+
 
 /**
- * @author : yingmu on 15-1-9.
- * @email : yingmu@mogujie.com.
- *
+ * 项目名称：juju
+ * 类描述：图片View
+ * 创建人：gm   
+ * 日期：2016/7/21 18:20
+ * 版本：V1.0.0
  */
 public class ImageRenderView extends BaseMsgRenderView {
     private Logger logger = Logger.getLogger(ImageRenderView.class);
@@ -43,7 +47,7 @@ public class ImageRenderView extends BaseMsgRenderView {
     }
 
     public static ImageRenderView inflater(Context context, ViewGroup viewGroup, boolean isMine){
-        int resource = isMine?R.layout.tt_mine_image_message_item:R.layout.tt_other_image_message_item;
+        int resource = isMine?R.layout.tt_mine_image_message_item: R.layout.tt_other_image_message_item;
         ImageRenderView imageRenderView = (ImageRenderView) LayoutInflater.from(context).inflate(resource, viewGroup, false);
         imageRenderView.setMine(isMine);
         imageRenderView.setParentView(viewGroup);
@@ -75,7 +79,7 @@ public class ImageRenderView extends BaseMsgRenderView {
      * 2. 然后分析loadStatus 判断消息的展示状态
      */
     @Override
-    public void render(final MessageEntity messageEntity,final UserEntity userEntity,Context ctx) {
+    public void render(final MessageEntity messageEntity, final User userEntity, Context ctx) {
         super.render(messageEntity, userEntity,ctx);
     }
 
@@ -138,6 +142,12 @@ public class ImageRenderView extends BaseMsgRenderView {
                     @Override
                     public void onLoadingStarted(String imageUri, View view) {
                         imageProgress.showProgress();
+                        imageProgress.setShowText(true);
+                        imageProgress.setText(((ImageMessage) entity).getProgress()+"%");
+
+//                        Bitmap image = ((BitmapDrawable)messageImage.getDrawable()).getBitmap();
+//                        logger.d("msgSuccess#width -> %d", image.getWidth());
+//                        logger.d("msgSuccess#height -> %d", image.getHeight());
                     }
 
                     @Override
@@ -189,7 +199,11 @@ public class ImageRenderView extends BaseMsgRenderView {
                         {
                             imageLoadListener.onLoadComplete(imageUri);
                         }
+                        imageProgress.setShowText(true);
+                        imageProgress.setText("100%");
                         getImageProgress().hideProgress();
+                        imageProgress.setShowText(false);
+                        imageProgress.setText("");
                     }
 
                     @Override

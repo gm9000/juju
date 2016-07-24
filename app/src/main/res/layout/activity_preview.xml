@@ -3,7 +3,7 @@
     android:layout_height="fill_parent"
     android:orientation="vertical">
 
-    <com.mogujie.tt.ui.widget.CustomViewPager
+    <com.juju.app.view.CustomViewPager
         android:id="@+id/viewPager"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content" />
@@ -26,7 +26,7 @@
                 android:layout_height="match_parent"
                 android:layout_alignParentLeft="true"
                 android:scaleType="center"
-                android:src="@drawable/tt_back_btn" />
+                android:src="@mipmap/tt_back_btn" />
 
             <ImageView
                 android:id="@+id/select_btn"
@@ -35,7 +35,7 @@
                 android:layout_alignParentRight="true"
                 android:layout_centerVertical="true"
                 android:scaleType="center"
-                android:src="@drawable/tt_album_img_selected" />
+                android:src="@mipmap/tt_album_img_selected" />
         </RelativeLayout>
 
         <RelativeLayout

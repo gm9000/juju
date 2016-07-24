@@ -1,14 +1,16 @@
 package com.juju.app.fastdfs.socket;
 
+import com.juju.app.fastdfs.exception.FdfsConnectException;
+import com.juju.app.fastdfs.file.BytesUtil;
+import com.juju.app.fastdfs.file.CmdConstants;
+import com.juju.app.fastdfs.file.OtherConstants;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Arrays;
 
-import third.rewrite.fastdfs.exception.FdfsConnectException;
-import third.rewrite.fastdfs.proto.BytesUtil;
-import third.rewrite.fastdfs.proto.CmdConstants;
-import third.rewrite.fastdfs.proto.OtherConstants;
+
 
 public class FdfsSocket extends Socket {
 

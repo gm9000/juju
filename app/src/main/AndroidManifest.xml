@@ -136,6 +136,8 @@
          android:enabled="true"
          android:process=":remote" />
 
+        <service android:name=".service.im.LoadImageService" />
+
         <activity
             android:name=".activity.user.PropertiesSettingActivity"
             android:label="@string/title_activity_properties_setting"
@@ -206,6 +208,18 @@
             android:screenOrientation="portrait" />
         <activity android:name=".activity.chat.GroupTransferActivity"
             android:screenOrientation="portrait"/>
+        <activity
+            android:name=".activity.chat.ImageGridActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".activity.chat.PickPhotoActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".activity.chat.PreviewActivity"
+            android:screenOrientation="portrait">
+        </activity>
     </application>
 
 </manifest>

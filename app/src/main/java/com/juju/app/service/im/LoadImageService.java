@@ -5,25 +5,33 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.text.TextUtils;
 
-import com.mogujie.tt.DB.sp.SystemConfigSp;
-import com.mogujie.tt.config.SysConstant;
-import com.mogujie.tt.config.UrlConstant;
-import com.mogujie.tt.imservice.entity.ImageMessage;
-import com.mogujie.tt.imservice.event.MessageEvent;
-import com.mogujie.tt.ui.helper.PhotoHelper;
-import com.mogujie.tt.utils.FileUtil;
-import com.mogujie.tt.utils.MoGuHttpClient;
-import com.mogujie.tt.utils.Logger;
 
+import com.juju.app.entity.chat.ImageMessage;
+import com.juju.app.event.MessageEvent;
+import com.juju.app.fastdfs.StorePath;
+import com.juju.app.fastdfs.callback.ProgressCallback;
+import com.juju.app.fastdfs.exception.FdfsIOException;
+import com.juju.app.fastdfs.service.impl.StorageClientService;
+import com.juju.app.golobal.Constants;
+import com.juju.app.helper.PhotoHelper;
+import com.juju.app.utils.FileUtil;
+import com.juju.app.utils.Logger;
+import com.juju.app.utils.SystemConfigSp;
+
+import org.greenrobot.eventbus.EventBus;
+
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 
-import de.greenrobot.event.EventBus;
 
 /**
- * @author : yingmu on 15-1-12.
- * @email : yingmu@mogujie.com.
- *
+ * 项目名称：juju
+ * 类描述：异步图片服务
+ * 创建人：gm
+ * 日期：2016/7/22 16:18
+ * 版本：V1.0.0
  */
 public class LoadImageService extends IntentService {
 
@@ -51,38 +59,53 @@ public class LoadImageService extends IntentService {
      */
     @Override
     protected void onHandleIntent(Intent intent) {
-        ImageMessage messageInfo = (ImageMessage)intent.getSerializableExtra(SysConstant.UPLOAD_IMAGE_INTENT_PARAMS);
-            String result = null;
+        final ImageMessage messageInfo = (ImageMessage)intent.getSerializableExtra(Constants.UPLOAD_IMAGE_INTENT_PARAMS);
+            final String result = null;
             Bitmap bitmap;
             try {
                 File file= new File(messageInfo.getPath());
-                if(file.exists() && FileUtil.getExtensionName(messageInfo.getPath()).toLowerCase().equals(".gif"))
-                {
-                    MoGuHttpClient httpClient = new MoGuHttpClient();
-                    SystemConfigSp.instance().init(getApplicationContext());
-                    result = httpClient.uploadImage3(SystemConfigSp.instance().getStrConfig(SystemConfigSp.SysCfgDimension.MSFSSERVER), FileUtil.File2byte(messageInfo.getPath()), messageInfo.getPath());
-                }
-                else
-                {
-                    bitmap = PhotoHelper.revitionImage(messageInfo.getPath());
-                    if (null != bitmap) {
-                        MoGuHttpClient httpClient = new MoGuHttpClient();
-                        byte[] bytes = PhotoHelper.getBytes(bitmap);
-                        result = httpClient.uploadImage3(SystemConfigSp.instance().getStrConfig(SystemConfigSp.SysCfgDimension.MSFSSERVER), bytes, messageInfo.getPath());
-                    }
-                }
+                bitmap = PhotoHelper.revitionImage(messageInfo.getPath());
+                if (null != bitmap) {
+                    byte[] bytes = PhotoHelper.getBytes(bitmap);
+                    String uuid = UUID.randomUUID().toString();
+                    StorageClientService.instance().uploadFile(uuid, "group1", new ByteArrayInputStream(bytes), bytes.length,
+                            FileUtil.getExtensionName(messageInfo.getPath()).toLowerCase(), new ProgressCallback<StorePath>() {
 
-                if (TextUtils.isEmpty(result)) {
-                    logger.i("upload image faild,cause by result is empty/null");
-                    EventBus.getDefault().post(new MessageEvent(MessageEvent.Event.IMAGE_UPLOAD_FAILD
-                    ,messageInfo));
-                } else {
-                    logger.i("upload image succcess,imageUrl is %s",result);
-                    String imageUrl = result;
-                    messageInfo.setUrl(imageUrl);
-                    EventBus.getDefault().post(new MessageEvent(
-                            MessageEvent.Event.IMAGE_UPLOAD_SUCCESS
-                            ,messageInfo));
+                                @Override
+                                public void updateProgress(String id, long total, long current) {
+                                    logger.d("上传进度：%d", current);
+                                    double d = (double)current/total;
+                                    logger.d("上传百分百："+(d*100));
+                                    EventBus.getDefault().post(new MessageEvent(MessageEvent.Event
+                                            .IMAGE_UPLOAD_PROGRESSING, messageInfo, Double.valueOf(d*100).intValue()));
+                                }
+
+                                @Override
+                                public void sendError(String id, FdfsIOException e) {
+                                    logger.e("uploadFile#sendError is error");
+                                    e.printStackTrace();
+                                    EventBus.getDefault().post(new MessageEvent(MessageEvent.Event
+                                            .IMAGE_UPLOAD_FAILD, messageInfo));
+                                }
+
+                                @Override
+                                public void recvError(String id, FdfsIOException e) {
+                                    logger.e("uploadFile#recvError is error");
+                                    e.printStackTrace();
+                                    EventBus.getDefault().post(new MessageEvent(MessageEvent.Event.IMAGE_UPLOAD_FAILD
+                                            ,messageInfo));
+                                }
+
+                                @Override
+                                public void complete(String id, StorePath storePath) {
+                                    System.out.println("上传完成");
+                                    logger.i("upload image succcess,url is %s",storePath.getUrl());
+                                    String imageUrl = storePath.getUrl();
+                                    messageInfo.setUrl(imageUrl);
+                                    EventBus.getDefault().post(new MessageEvent(MessageEvent.Event
+                                            .IMAGE_UPLOAD_SUCCESS, messageInfo));
+                                }
+                            });
                 }
             } catch (IOException e) {
                 logger.e(e.getMessage());

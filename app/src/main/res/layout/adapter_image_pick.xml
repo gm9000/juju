@@ -47,6 +47,6 @@
         android:layout_centerVertical="true"
         android:layout_marginRight="15dip"
         android:focusable="false"
-        android:src="@drawable/tt_album_arrow" />
+        android:src="@mipmap/tt_album_arrow" />
 
 </RelativeLayout>

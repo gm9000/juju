@@ -12,20 +12,22 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.mogujie.tt.R;
-import com.mogujie.tt.ui.adapter.album.BitmapCache.ImageCallback;
-import com.mogujie.tt.config.SysConstant;
-import com.mogujie.tt.ui.activity.PickPhotoActivity;
-import com.mogujie.tt.utils.Logger;
+
+import com.juju.app.R;
+import com.juju.app.activity.chat.PickPhotoActivity;
+import com.juju.app.golobal.Constants;
+import com.juju.app.utils.Logger;
 
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * @Description 图片列表适配器
- * @author Nana
- * @date 2014-5-9
+ * 项目名称：juju
+ * 类描述：图片列表适配器
+ * 创建人：gm
+ * 日期：2016/7/21 11:16
+ * 版本：V1.0.0
  */
 public class ImageGridAdapter extends BaseAdapter {
 
@@ -49,7 +51,7 @@ public class ImageGridAdapter extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-    ImageCallback callback = new ImageCallback() {
+    BitmapCache.ImageCallback callback = new BitmapCache.ImageCallback() {
         @Override
         public void imageLoad(ImageView imageView, Bitmap bitmap,
                               Object... params) {
@@ -117,7 +119,7 @@ public class ImageGridAdapter extends BaseAdapter {
         try {
             if (null == convertView) {
                 holder = new Holder();
-                convertView = View.inflate(activity, R.layout.tt_item_image_grid,
+                convertView = View.inflate(activity, R.layout.adapter_image_grid,
                         null);
                 holder.iv = (ImageView) convertView.findViewById(R.id.image);
                 holder.selected = (ImageView) convertView
@@ -157,21 +159,22 @@ public class ImageGridAdapter extends BaseAdapter {
                             item.getImagePath(), callback);
                 } else {
                     holder.iv
-                            .setImageResource(R.drawable.tt_default_album_grid_image);
+                            .setImageResource(R.mipmap.tt_default_album_grid_image);
                 }
             }
 
             if (item.isSelected()) {
-                holder.selected.setImageResource(R.drawable.tt_album_img_selected);
+                holder.selected.setImageResource(R.mipmap.tt_album_img_selected);
             } else {
                 holder.selected
-                        .setImageResource(R.drawable.tt_album_img_select_nor);
+                        .setImageResource(R.mipmap.tt_album_img_select_nor);
             }
             holder.iv.setOnClickListener(new OnClickListener() {
 
                 @Override
                 public void onClick(View v) {
                     String path = dataList.get(position).getImagePath();
+                    logger.d("holder.iv.setOnClickListener#path -> %s", path);
                     Bitmap bmp = cache.getCacheBitmap(path, path);
                     if (null != bmp && bmp == PickPhotoActivity.bimap) {
                         Toast.makeText(
@@ -181,11 +184,11 @@ public class ImageGridAdapter extends BaseAdapter {
                                 Toast.LENGTH_LONG).show();
                         return;
                     }
-                    if (selectTotal < SysConstant.MAX_SELECT_IMAGE_COUNT) {
+                    if (selectTotal < Constants.MAX_SELECT_IMAGE_COUNT) {
                         item.setSelected(!item.isSelected());
                         if (item.isSelected()) {
                             holder.selected
-                                    .setImageResource(R.drawable.tt_album_img_selected);
+                                    .setImageResource(R.mipmap.tt_album_img_selected);
                             selectTotal++;
                             if (null != textcallback)
                                 textcallback.onListen(selectTotal);
@@ -193,17 +196,17 @@ public class ImageGridAdapter extends BaseAdapter {
 
                         } else if (!item.isSelected()) {
                             holder.selected
-                                    .setImageResource(R.drawable.tt_album_img_select_nor);
+                                    .setImageResource(R.mipmap.tt_album_img_select_nor);
                             selectTotal--;
                             if (null != textcallback)
                                 textcallback.onListen(selectTotal);
                             selectedMap.remove(position);
                         }
-                    } else if (selectTotal >= SysConstant.MAX_SELECT_IMAGE_COUNT) {
+                    } else if (selectTotal >= Constants.MAX_SELECT_IMAGE_COUNT) {
                         if (item.isSelected() == true) {
                             item.setSelected(!item.isSelected());
                             holder.selected
-                                    .setImageResource(R.drawable.tt_album_img_select_nor);
+                                    .setImageResource(R.mipmap.tt_album_img_select_nor);
                             selectTotal--;
                             selectedMap.remove(position);
                         } else {

@@ -1,10 +1,11 @@
 package com.juju.app.fastdfs.file;
 
 /**
- * fastdfs协议暂时未分类的常量
- * 
- * @author yuqih
- * 
+ * 项目名称：juju
+ * 类描述：fastdfs协议暂时未分类的常量
+ * 创建人：gm
+ * 日期：2016/7/23 12:42
+ * 版本：V1.0.0
  */
 public final class OtherConstants {
 	/**

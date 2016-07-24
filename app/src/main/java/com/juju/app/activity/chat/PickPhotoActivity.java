@@ -13,27 +13,37 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.mogujie.tt.R;
-import com.mogujie.tt.ui.adapter.album.AlbumHelper;
-import com.mogujie.tt.ui.adapter.album.ImageBucket;
-import com.mogujie.tt.ui.adapter.album.ImageBucketAdapter;
-import com.mogujie.tt.config.IntentConstant;
-import com.mogujie.tt.utils.Logger;
+import com.juju.app.R;
+import com.juju.app.adapter.album.AlbumHelper;
+import com.juju.app.adapter.album.ImageBucket;
+import com.juju.app.adapter.album.ImageBucketAdapter;
+import com.juju.app.annotation.CreateUI;
+import com.juju.app.golobal.IntentConstant;
+import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.ui.base.CreateUIHelper;
+import com.juju.app.utils.Logger;
+
+import org.xutils.view.annotation.ContentView;
 
 import java.io.Serializable;
 import java.util.List;
 
 /**
- * @Description 相册列表
- * @author Nana
- * @date 2014-5-6
+ * 项目名称：juju
+ * 类描述：相册列表
+ * 创建人：gm
+ * 日期：2016/7/21 11:01
+ * 版本：V1.0.0
  */
-public class PickPhotoActivity extends Activity {
+@ContentView(R.layout.tt_activity_pick_photo)
+@CreateUI(showTopView = true)
+public class PickPhotoActivity extends BaseActivity implements CreateUIHelper {
+
     List<ImageBucket> dataList = null;
     ListView listView = null;
     ImageBucketAdapter adapter = null;
     AlbumHelper helper = null;
-    TextView cancel = null;
+//    TextView cancel = null;
     public static Bitmap bimap = null;
     boolean touchable = true;
     private String currentSessionKey;
@@ -51,27 +61,29 @@ public class PickPhotoActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
     	logger.d("pic#PickPhotoActivity onCreate");
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.tt_activity_pick_photo);
-        initData();
-        initView();
+//        setContentView(R.layout.tt_activity_pick_photo);
+//        initData();
+//        initView();
     }
 
     /**
      * 初始化数据
      */
-    private void initData() {
+    public void loadData() {
         Bundle bundle =  getIntent().getExtras();
         currentSessionKey = bundle.getString(IntentConstant.KEY_SESSION_KEY);
         helper = AlbumHelper.getHelper(getApplicationContext());
         dataList = helper.getImagesBucketList(true);
         bimap = BitmapFactory.decodeResource(getResources(),
-                R.drawable.tt_default_album_grid_image);
+                R.mipmap.tt_default_album_grid_image);
     }
 
     /**
      * 初始化view
      */
-    private void initView() {
+    public void initView() {
+        setTopTitle(R.string.take_photo_btn_text);
+        setTopRightText(R.string.cancel);
         listView = (ListView) findViewById(R.id.list);
         adapter = new ImageBucketAdapter(this, dataList);
 
@@ -93,8 +105,8 @@ public class PickPhotoActivity extends Activity {
 //                PickPhotoActivity.this.finish();
             }
         });
-        cancel = (TextView) findViewById(R.id.cancel);
-        cancel.setOnClickListener(new OnClickListener() {
+//        cancel = (TextView) findViewById(R.id.cancel);
+        topRightTitleTxt.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 setResult(Activity.RESULT_OK, null);

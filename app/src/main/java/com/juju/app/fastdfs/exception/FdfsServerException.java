@@ -1,16 +1,18 @@
 package com.juju.app.fastdfs.exception;
 
+import com.juju.app.fastdfs.file.ErrorCodeConstants;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import third.rewrite.fastdfs.proto.ErrorCodeConstants;
 
 /**
- * fastdfs服务端返回的错误码构成的异常
- * 
- * @author yuqih
- * 
+ * 项目名称：juju
+ * 类描述：fastdfs服务端返回的错误码构成的异常
+ * 创建人：gm
+ * 日期：2016/7/22 10:20
+ * 版本：V1.0.0
  */
 public class FdfsServerException extends FdfsException {
 

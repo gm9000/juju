@@ -11,5 +11,7 @@ public class IntentConstant {
 
     public static final String KEY_SESSION_KEY = "chat_session_key";
 
+    public static final String EXTRA_IMAGE_LIST = "imagelist";
+    public static final String EXTRA_ALBUM_NAME = "name";
 
 }

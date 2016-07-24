@@ -10,16 +10,18 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.mogujie.tt.R;
-import com.mogujie.tt.ui.adapter.album.BitmapCache.ImageCallback;
-import com.mogujie.tt.utils.Logger;
+
+import com.juju.app.R;
+import com.juju.app.utils.Logger;
 
 import java.util.List;
 
 /**
- * @Description 相册适配器
- * @author Nana
- * @date 2014-5-9
+ * 项目名称：juju
+ * 类描述：相册适配器
+ * 创建人：gm
+ * 日期：2016/7/21 11:08
+ * 版本：V1.0.0
  */
 public class ImageBucketAdapter extends BaseAdapter {
 
@@ -30,7 +32,7 @@ public class ImageBucketAdapter extends BaseAdapter {
     // 图片集列表
     List<ImageBucket> dataList;
     BitmapCache cache;
-    ImageCallback callback = new ImageCallback() {
+    BitmapCache.ImageCallback callback = new BitmapCache.ImageCallback() {
         @Override
         public void imageLoad(ImageView imageView, Bitmap bitmap,
                               Object... params) {
@@ -86,7 +88,7 @@ public class ImageBucketAdapter extends BaseAdapter {
         try {
             if (null == convertView) {
                 holder = new Holder();
-                convertView = View.inflate(act, R.layout.tt_item_image_pick, null);
+                convertView = View.inflate(act, R.layout.adapter_image_pick, null);
                 holder.iv = (ImageView) convertView.findViewById(R.id.image);
                 holder.name = (TextView) convertView.findViewById(R.id.name);
                 holder.count = (TextView) convertView.findViewById(R.id.count);
@@ -118,11 +120,11 @@ public class ImageBucketAdapter extends BaseAdapter {
                 logger.e("no images in bucket " + item.bucketName);
             }
             if (position == selectedPosition) {
-                holder.albumArrow.setImageResource(R.drawable.tt_album_arrow_sel);
+                holder.albumArrow.setImageResource(R.mipmap.tt_album_arrow_sel);
                 holder.name.setTextColor(Color.WHITE);
                 holder.count.setTextColor(Color.WHITE);
             } else {
-                holder.albumArrow.setImageResource(R.drawable.tt_album_arrow);
+                holder.albumArrow.setImageResource(R.mipmap.tt_album_arrow);
                 holder.name.setTextColor(Color.BLACK);
                 holder.count.setTextColor(R.color.album_list_item_count_color);
             }

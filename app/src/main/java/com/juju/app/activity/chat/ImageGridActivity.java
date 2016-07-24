@@ -22,34 +22,41 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.mogujie.tt.R;
-import com.mogujie.tt.ui.adapter.album.ImageGridAdapter;
-import com.mogujie.tt.ui.adapter.album.ImageGridAdapter.TextCallback;
-import com.mogujie.tt.ui.adapter.album.ImageItem;
-import com.mogujie.tt.config.IntentConstant;
-import com.mogujie.tt.config.SysConstant;
-import com.mogujie.tt.imservice.event.SelectEvent;
-import com.mogujie.tt.imservice.service.IMService;
-import com.mogujie.tt.imservice.support.IMServiceConnector;
-import com.mogujie.tt.utils.Logger;
+
+import com.juju.app.R;
+import com.juju.app.adapter.album.ImageGridAdapter;
+import com.juju.app.adapter.album.ImageItem;
+import com.juju.app.annotation.CreateUI;
+import com.juju.app.event.SelectEvent;
+import com.juju.app.golobal.Constants;
+import com.juju.app.golobal.IntentConstant;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.utils.Logger;
+
+import org.greenrobot.eventbus.EventBus;
+import org.xutils.view.annotation.ContentView;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import de.greenrobot.event.EventBus;
-
 /**
- * @Description 相册图片列表
- * @author Nana
- * @date 2014-5-9
+ * 项目名称：juju
+ * 类描述：相册图片列表
+ * 创建人：gm
+ * 日期：2016/7/21 11:15
+ * 版本：V1.0.0
  */
-public class ImageGridActivity extends Activity implements OnTouchListener {
+@ContentView(R.layout.activity_image_grid)
+@CreateUI(showTopView = true)
+public class ImageGridActivity extends BaseActivity implements OnTouchListener {
     private List<ImageItem> dataList = null;
     private GridView gridView = null;
-    private TextView title = null;
-    private TextView cancel = null;
+//    private TextView title = null;
+//    private TextView cancel = null;
     private static TextView finish = null;
     private TextView preview = null;
     private String name = null;
@@ -81,7 +88,7 @@ public class ImageGridActivity extends Activity implements OnTouchListener {
             switch (msg.what) {
                 case 0:
                     Toast.makeText(ImageGridActivity.this,
-                            "最多选择" + SysConstant.MAX_SELECT_IMAGE_COUNT + "张图片",
+                            "最多选择" + Constants.MAX_SELECT_IMAGE_COUNT + "张图片",
                             Toast.LENGTH_LONG).show();
                     break;
                 default:
@@ -119,7 +126,7 @@ public class ImageGridActivity extends Activity implements OnTouchListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         imServiceConnector.connect(this);
-        setContentView(R.layout.tt_activity_image_grid);
+//        setContentView(R.layout.activity_image_grid);
         context = this;
         name = (String) getIntent().getSerializableExtra(
                 IntentConstant.EXTRA_ALBUM_NAME);
@@ -132,7 +139,7 @@ public class ImageGridActivity extends Activity implements OnTouchListener {
     private void initAdapter() {
         adapter = new ImageGridAdapter(ImageGridActivity.this, dataList,
                 mHandler);
-        adapter.setTextCallback(new TextCallback() {
+        adapter.setTextCallback(new ImageGridAdapter.TextCallback() {
             public void onListen(int count) {
                 setSendText(count);
             }
@@ -142,6 +149,8 @@ public class ImageGridActivity extends Activity implements OnTouchListener {
     }
 
     private void initView() {
+        setTopTitle(name);
+        setTopRightText(R.string.cancel);
         gridView = (GridView) findViewById(R.id.gridview);
         gridView.setSelector(new ColorDrawable(Color.TRANSPARENT));
         gridView.setOnItemClickListener(new OnItemClickListener() {
@@ -152,26 +161,21 @@ public class ImageGridActivity extends Activity implements OnTouchListener {
             }
         });
 
-        title = (TextView) findViewById(R.id.base_fragment_title);
-        if (name.length() > 12) {
-            name = name.substring(0, 11) + "...";
-        }
-        title.setText(name);
-        leftBtn = (ImageView) findViewById(R.id.back_btn);
-        leftBtn.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                ImageGridActivity.this.finish();
-            }
-        });
-        cancel = (TextView) findViewById(R.id.cancel);
-        cancel.setOnClickListener(new OnClickListener() {
+//        title = (TextView) findViewById(R.id.base_fragment_title);
+//        if (name.length() > 12) {
+//            name = name.substring(0, 11) + "...";
+//        }
+//        title.setText(name);
+
+
+        topRightTitleTxt.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 adapter.setSelectMap(null);
                 ImageGridActivity.this.finish();
             }
         });
+
         finish = (TextView) findViewById(R.id.finish);
         finish.setOnClickListener(new OnClickListener() {
 
@@ -215,7 +219,7 @@ public class ImageGridActivity extends Activity implements OnTouchListener {
                     Intent intent = new Intent(ImageGridActivity.this,
                             PreviewActivity.class);
                     startActivityForResult(intent,
-                            SysConstant.ALBUM_PREVIEW_BACK);
+                            Constants.ALBUM_PREVIEW_BACK);
                 } else {
                     Toast.makeText(ImageGridActivity.this,
                             R.string.need_choose_images, Toast.LENGTH_SHORT)
@@ -227,9 +231,10 @@ public class ImageGridActivity extends Activity implements OnTouchListener {
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
         setAdapterSelectedMap(null);
         imServiceConnector.disconnect(this);
-        super.onStop();
+//        super.onStop();
     }
 
     public static void setSendText(int selNum) {

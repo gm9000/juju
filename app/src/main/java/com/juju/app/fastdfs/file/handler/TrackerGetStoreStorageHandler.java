@@ -1,5 +1,12 @@
 package com.juju.app.fastdfs.file.handler;
 
+import com.juju.app.fastdfs.StorageClient;
+import com.juju.app.fastdfs.callback.ProgressCallback;
+import com.juju.app.fastdfs.file.BytesUtil;
+import com.juju.app.fastdfs.file.CmdConstants;
+import com.juju.app.fastdfs.file.OtherConstants;
+import com.juju.app.utils.StringUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,13 +15,6 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import org.apache.commons.lang3.StringUtils;
-
-import third.rewrite.fastdfs.StorageClient;
-import third.rewrite.fastdfs.callback.ProgressCallback;
-import third.rewrite.fastdfs.proto.BytesUtil;
-import third.rewrite.fastdfs.proto.CmdConstants;
-import third.rewrite.fastdfs.proto.OtherConstants;
 
 public class TrackerGetStoreStorageHandler extends
 		AbstractHandler<StorageClient> {
@@ -96,14 +96,14 @@ public class TrackerGetStoreStorageHandler extends
 	}
 
 	@Override
-	protected void send(OutputStream ous, ProgressCallback callback)
+	protected void send(OutputStream ous, String uuid, ProgressCallback callback)
 			throws IOException {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	protected void receive(InputStream ins, ProgressCallback callback)
+	protected void receive(InputStream ins, String uuid, ProgressCallback callback, String recvHost)
 			throws IOException {
 		// TODO Auto-generated method stub
 		

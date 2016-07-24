@@ -347,4 +347,8 @@ public class StringUtils {
 		}
 		return new String(source);
 	}
+
+	public static String[] split(final String str, final String separatorChars, final int max) {
+		return org.apache.commons.lang.StringUtils.split(str, separatorChars, max);
+	}
 }

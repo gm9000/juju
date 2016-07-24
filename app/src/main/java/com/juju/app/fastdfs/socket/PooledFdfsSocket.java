@@ -1,14 +1,14 @@
 package com.juju.app.fastdfs.socket;
 
+import com.juju.app.utils.Logger;
+
 import java.io.IOException;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 
 public class PooledFdfsSocket extends FdfsSocket {
-	
-	private final Log logger = LogFactory.getLog(getClass());
+
+	private Logger logger = Logger.getLogger(PooledFdfsSocket.class);
 
 	private GenericObjectPool<PooledFdfsSocket> pool;
 	private boolean needDestroy;
@@ -30,13 +30,13 @@ public class PooledFdfsSocket extends FdfsSocket {
 			try {
 				pool.invalidateObject(this);
 			} catch (Exception ignore) {
-				logger.warn("error occurs when invalidate socket in pool", ignore);
+				logger.error(ignore);
 			}
 		} else {
 			try {
 				pool.returnObject(this);
 			} catch (Exception ignore) {
-				logger.warn("error occurs when return socket to pool", ignore);
+				logger.error(ignore);
 			}
 		}
 	}

@@ -96,6 +96,10 @@
     <color name="pickimage_item_bg">#ffffff</color>
     <color name="default_light_grey_color">#929292</color>
 
+    <!--相册 -->
+    <color name="album_list_item_count_color">#bcbcbc</color>
+
+
 
     <!--群聊详情 -->
 

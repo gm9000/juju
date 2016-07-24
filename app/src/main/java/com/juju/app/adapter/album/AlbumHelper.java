@@ -8,7 +8,8 @@ import android.provider.MediaStore.Audio.Albums;
 import android.provider.MediaStore.Images.Media;
 import android.provider.MediaStore.Images.Thumbnails;
 
-import com.mogujie.tt.utils.Logger;
+
+import com.juju.app.utils.Logger;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,18 +21,16 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 /**
- * @Description 相册相关处理
- * @author Nana
- * @date 2014-5-6
+ * 相册相关处理
  */
 public class AlbumHelper {
     Context context = null;
     ContentResolver contentResolver = null;
 
     // 缩略图列表
-    HashMap<String, String> thumbnailList = new HashMap<String, String>();
-    List<HashMap<String, String>> albumList = new ArrayList<HashMap<String, String>>();
-    HashMap<String, ImageBucket> bucketList = new HashMap<String, ImageBucket>();
+    HashMap<String, String> thumbnailList = new HashMap<>();
+    List<HashMap<String, String>> albumList = new ArrayList<>();
+    HashMap<String, ImageBucket> bucketList = new HashMap<>();
     private Logger logger = Logger.getLogger(AlbumHelper.class);
 
     private static AlbumHelper instance = null;
@@ -298,22 +297,7 @@ public class AlbumHelper {
 					return Integer.valueOf(rhs.count).compareTo(Integer.valueOf(lhs.count));
 				}
 			});
-            
             return imageList;
-//            List<ImageBucket> tmpList = new ArrayList<ImageBucket>();
-//            Iterator<Entry<String, ImageBucket>> itr = bucketList.entrySet()
-//                    .iterator();
-//            while (itr.hasNext()) {
-//                Map.Entry<String, ImageBucket> entry = (Map.Entry<String, ImageBucket>) itr
-//                        .next();
-//                ImageBucket bucket = entry.getValue();
-//                if (bucket.bucketName.equals("Camera")) {
-//                    tmpList.onAddMsg(0, bucket);
-//                } else {
-//                    tmpList.onAddMsg(bucket);
-//                }
-//            }
-//            return tmpList;
         } catch (Exception e) {
             logger.e(e.getMessage());
             return null;

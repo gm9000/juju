@@ -1,5 +1,11 @@
 package com.juju.app.fastdfs.file.handler;
 
+import com.juju.app.fastdfs.StorageClient;
+import com.juju.app.fastdfs.callback.ProgressCallback;
+import com.juju.app.fastdfs.file.BytesUtil;
+import com.juju.app.fastdfs.file.CmdConstants;
+import com.juju.app.fastdfs.file.OtherConstants;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -8,11 +14,6 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.util.Arrays;
 
-import third.rewrite.fastdfs.StorageClient;
-import third.rewrite.fastdfs.callback.ProgressCallback;
-import third.rewrite.fastdfs.proto.BytesUtil;
-import third.rewrite.fastdfs.proto.CmdConstants;
-import third.rewrite.fastdfs.proto.OtherConstants;
 
 public class TrackerGetFetchStorageHandler extends
 		AbstractHandler<StorageClient> {
@@ -114,16 +115,72 @@ public class TrackerGetFetchStorageHandler extends
 	}
 
 	@Override
-	protected void send(OutputStream ous, ProgressCallback callback)
+	protected void send(OutputStream ous, String uuid, ProgressCallback callback)
 			throws IOException {
-		// TODO Auto-generated method stub
-		
+		byte[] header;
+		byte[] bFileName;
+		byte[] bGroupName;
+		byte[] bs;
+		int len;
+
+		bs = groupName.getBytes(charset);
+		bGroupName = new byte[OtherConstants.FDFS_GROUP_NAME_MAX_LEN];
+		bFileName = path.getBytes(charset);
+
+		if (bs.length <= OtherConstants.FDFS_GROUP_NAME_MAX_LEN) {
+			len = bs.length;
+		} else {
+			len = OtherConstants.FDFS_GROUP_NAME_MAX_LEN;
+		}
+		Arrays.fill(bGroupName, (byte) 0);
+		System.arraycopy(bs, 0, bGroupName, 0, len);
+
+		header = packHeader(cmd, OtherConstants.FDFS_GROUP_NAME_MAX_LEN
+				+ bFileName.length);
+		byte[] wholePkg = new byte[header.length + bGroupName.length
+				+ bFileName.length];
+		System.arraycopy(header, 0, wholePkg, 0, header.length);
+		System.arraycopy(bGroupName, 0, wholePkg, header.length,
+				bGroupName.length);
+		System.arraycopy(bFileName, 0, wholePkg, header.length
+				+ bGroupName.length, bFileName.length);
+		ous.write(wholePkg);
+
+
 	}
 
 	@Override
-	protected void receive(InputStream ins, ProgressCallback callback)
+	protected void receive(InputStream ins, String uuid, ProgressCallback callback, String recvHost)
 			throws IOException {
-		// TODO Auto-generated method stub
+		receiveHeader(ins);
+
+		if (this.errorCode != 0) {
+			return;
+		}
+
+		byte[] bytes = new byte[(int) contentLength];
+		int contentSize = ins.read(bytes);
+		if (contentSize != contentLength) {
+			throw new IOException("读取到的数据长度与协议长度不符");
+		}
+
+		if (contentLength < OtherConstants.TRACKER_QUERY_STORAGE_FETCH_BODY_LEN) {
+			throw new IOException("Invalid body length: " + contentLength);
+		}
+
+		if ((contentLength - OtherConstants.TRACKER_QUERY_STORAGE_FETCH_BODY_LEN)
+				% (OtherConstants.FDFS_IPADDR_SIZE - 1) != 0) {
+			throw new IOException("Invalid body length: " + contentLength);
+		}
+
+		String ip = new String(bytes, OtherConstants.FDFS_GROUP_NAME_MAX_LEN,
+				OtherConstants.FDFS_IPADDR_SIZE - 1).trim();
+		int offset = OtherConstants.FDFS_GROUP_NAME_MAX_LEN
+				+ OtherConstants.FDFS_IPADDR_SIZE - 1;
+		int port = (int) BytesUtil.buff2long(bytes, offset);
+
+		result = new StorageClient(new InetSocketAddress(ip, port), charset,
+				(byte) 0);
 		
 	}
 

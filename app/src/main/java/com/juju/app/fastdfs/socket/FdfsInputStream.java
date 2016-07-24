@@ -1,9 +1,10 @@
 package com.juju.app.fastdfs.socket;
 
+import com.juju.app.fastdfs.callback.ProgressCallback;
+
 import java.io.IOException;
 import java.io.InputStream;
 
-import third.rewrite.fastdfs.callback.ProgressCallback;
 
 public class FdfsInputStream extends InputStream {
 
@@ -13,6 +14,7 @@ public class FdfsInputStream extends InputStream {
 	private final long size;
 	private long remainByteSize;
 	private ProgressCallback callback;
+	private String uuid;
 	long lastUpdateTime = System.currentTimeMillis();
 
 
@@ -22,11 +24,12 @@ public class FdfsInputStream extends InputStream {
 		remainByteSize = size;
 	}
 	
-	public FdfsInputStream(InputStream ins, long size, ProgressCallback callback) {
+	public FdfsInputStream(InputStream ins, long size, String uuid, ProgressCallback callback) {
 		this.ins = ins;
 		this.size = size;
 		remainByteSize = size;
 		this.callback = callback;
+		this.uuid = uuid;
 		lastUpdateTime = System.currentTimeMillis();
 	}
 
@@ -50,8 +53,11 @@ public class FdfsInputStream extends InputStream {
 			long currTime = System.currentTimeMillis();
 	           if (currTime - lastUpdateTime >= loadingUpdateMaxTimeSpan) {
 	               lastUpdateTime = currTime;
-	               callback.onLoading(size, size-remainByteSize, false);
+	               callback.updateProgress(uuid, size, size-remainByteSize);
 	           }
+			 if(remainByteSize == 0) {
+				 callback.complete(uuid, this);
+			 }
 		}
 		return byteSize;
 	}

@@ -7,6 +7,7 @@ import android.content.ClipboardManager;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioManager;
+import android.os.Bundle;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,6 +24,7 @@ import com.juju.app.R;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.AudioMessage;
+import com.juju.app.entity.chat.ImageMessage;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.RenderType;
@@ -34,10 +36,12 @@ import com.juju.app.tools.Emoparser;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.CommonUtil;
 import com.juju.app.utils.DateUtil;
+import com.juju.app.utils.FileUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.groupchat.AudioRenderView;
+import com.juju.app.view.groupchat.ImageRenderView;
 import com.juju.app.view.groupchat.MessageOperatePopup;
 import com.juju.app.view.groupchat.NormalNotifyRenderView;
 import com.juju.app.view.groupchat.TextRenderView;
@@ -127,10 +131,10 @@ public class ChatAdapter extends BaseAdapter {
 //                    convertView = GifImageMsgRender(position, convertView, parent, false);
                     break;
                 case MESSAGE_TYPE_MINE_IMAGE:
-//                    convertView = imageMsgRender(position, convertView, parent, true);
+                    convertView = imageMsgRender(position, convertView, parent, true);
                     break;
                 case MESSAGE_TYPE_OTHER_IMAGE:
-//                    convertView = imageMsgRender(position, convertView, parent, false);
+                    convertView = imageMsgRender(position, convertView, parent, false);
                     break;
                 case MESSAGE_TYPE_MINE_TETX:
                     convertView = textMsgRender(position, convertView, parent, true);
@@ -175,15 +179,9 @@ public class ChatAdapter extends BaseAdapter {
                                 : RenderType.MESSAGE_TYPE_OTHER_AUDIO;
                         break;
                     case DBConstant.SHOW_IMAGE_TYPE:
-//                        ImageMessage imageMessage = (ImageMessage) info;
-//                        if (CommonUtil.gifCheck(imageMessage.getUrl())) {
-//                            type = isMine ? RenderType.MESSAGE_TYPE_MINE_GIF_IMAGE
-//                                    : RenderType.MESSAGE_TYPE_OTHER_GIF_IMAGE;
-//                        } else {
-//                            type = isMine ? RenderType.MESSAGE_TYPE_MINE_IMAGE
-//                                    : RenderType.MESSAGE_TYPE_OTHER_IMAGE;
-//                        }
-
+                        ImageMessage imageMessage = (ImageMessage) info;
+                        type = isMine ? RenderType.MESSAGE_TYPE_MINE_IMAGE
+                                : RenderType.MESSAGE_TYPE_OTHER_IMAGE;
                         break;
                     case DBConstant.SHOW_ORIGIN_TEXT_TYPE:
                         if (info.isGIfEmo()) {
@@ -424,6 +422,164 @@ public class ChatAdapter extends BaseAdapter {
     }
 
 
+    /**
+     * 1.头像事件
+     * mine:事件 other事件
+     * 图片的状态  消息收到，没收到，图片展示成功，没有成功
+     * 触发图片的事件  【长按】
+     * <p/>
+     * 图片消息类型的render
+     *
+     * @param position
+     * @param convertView
+     * @param parent
+     * @param isMine
+     * @return
+     */
+    private View imageMsgRender(final int position, View convertView, final ViewGroup parent, final boolean isMine) {
+        ImageRenderView imageRenderView;
+        final ImageMessage imageMessage = (ImageMessage) msgObjectList.get(position);
+        User userEntity = imService.getContactManager().findContactByFormId(imageMessage.getFromId());
+
+        /**保存在本地的path*/
+        final String imagePath = imageMessage.getPath();
+        /**消息中的image路径*/
+        final String imageUrl = imageMessage.getUrl();
+
+        if (null == convertView) {
+            imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
+        } else {
+            if(convertView instanceof ImageRenderView
+                    && (isMine == ((ImageRenderView) convertView).isMine())) {
+                imageRenderView = (ImageRenderView) convertView;
+            } else {
+                imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
+            }
+        }
+
+        final ImageView messageImage = imageRenderView.getMessageImage();
+        final int msgId = imageMessage.getMsgId();
+        imageRenderView.setBtnImageListener(new ImageRenderView.BtnImageListener() {
+            @Override
+            public void onMsgFailure() {
+                /**
+                 * 多端同步也不会拉到本地失败的数据
+                 * 只有isMine才有的状态，消息发送失败
+                 * 1. 图片上传失败。点击图片重新上传??[也是重新发送]
+                 * 2. 图片上传成功，但是发送失败。 点击重新发送??
+                 */
+                if (FileUtil.isSdCardAvailuable()) {
+//                    imageMessage.setLoadStatus(MessageStatus.IMAGE_UNLOAD);//如果是图片已经上传成功呢？
+                    imageMessage.setStatus(MessageConstant.MSG_SENDING);
+                    if (imService != null) {
+//                        imService.getMessageManager().resendMessage(imageMessage);
+                    }
+                    updateItemState(msgId, imageMessage);
+                } else {
+                    Toast.makeText(ctx, ctx.getString(R.string.sdcard_unavaluable), Toast.LENGTH_LONG).show();
+                }
+            }
+
+            //DetailPortraitActivity 以前用的是DisplayImageActivity 这个类
+            @Override
+            public void onMsgSuccess() {
+//                Intent i = new Intent(ctx, PreviewMessageImagesActivity.class);
+//                Bundle bundle = new Bundle();
+//                bundle.putSerializable(IntentConstant.CUR_MESSAGE, imageMessage);
+//                i.putExtras(bundle);
+//                ctx.startActivity(i);
+//                ((Activity) ctx).overridePendingTransition(R.anim.tt_image_enter, R.anim.tt_stay);
+            }
+        });
+
+        // 设定触发loadImage的事件
+        imageRenderView.setImageLoadListener(new ImageRenderView.ImageLoadListener() {
+
+            @Override
+            public void onLoadComplete(String loaclPath) {
+                logger.d("chat#pic#save image ok");
+                logger.d("pic#setsavepath:%s", loaclPath);
+//                imageMessage.setPath(loaclPath);//下载的本地路径不再存储
+                imageMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_SUCCESS);
+                updateItemState(imageMessage);
+
+            }
+
+            @Override
+            public void onLoadFailed() {
+                logger.d("chat#pic#onBitmapFailed");
+                imageMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_FAILURE);
+                updateItemState(imageMessage);
+                logger.d("download failed");
+            }
+        });
+
+        final View messageLayout = imageRenderView.getMessageLayout();
+        messageImage.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // 创建一个pop对象，然后 分支判断状态，然后显示需要的内容
+                MessageOperatePopup popup = getPopMenu(parent, new OperateItemClickListener(imageMessage, position));
+                boolean bResend = (imageMessage.getStatus() == MessageConstant.MSG_FAILURE)
+                        || (imageMessage.getLoadStatus() == MessageConstant.IMAGE_UNLOAD);
+                popup.show(messageLayout, DBConstant.SHOW_IMAGE_TYPE, bResend, isMine);
+                return true;
+            }
+        });
+
+        /**父类控件中的发送失败view*/
+        imageRenderView.getMessageFailed().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                // 重发或者重新加载
+                MessageOperatePopup popup = getPopMenu(parent, new OperateItemClickListener(imageMessage, position));
+                popup.show(messageLayout, DBConstant.SHOW_IMAGE_TYPE, true, isMine);
+            }
+        });
+        imageRenderView.render(imageMessage, userEntity, ctx);
+
+        return imageRenderView;
+    }
+
+    /**
+     * msgId 是消息ID
+     * localId是本地的ID
+     * position 是list 的位置
+     * <p/>
+     * 只更新item的状态
+     * 刷新单条记录
+     * <p/>
+     */
+    public void updateItemState(int position, final MessageEntity messageEntity) {
+        //更新DB
+        //更新单条记录
+//        imService.getDbInterface().insertOrUpdateMessage(messageEntity);
+        notifyDataSetChanged();
+    }
+
+    /**
+     * 对于混合消息的特殊处理
+     */
+    public void updateItemState(final MessageEntity messageEntity) {
+        String dbId = messageEntity.getId();
+        int msgId = messageEntity.getMsgId();
+        int len = msgObjectList.size();
+        for (int index = len - 1; index > 0; index--) {
+            Object object = msgObjectList.get(index);
+            if (object instanceof MessageEntity) {
+                MessageEntity entity = (MessageEntity) object;
+                if (object instanceof ImageMessage) {
+                    ImageMessage.addToImageMessageList((ImageMessage) object);
+                }
+                if (entity.getId() .equals(dbId) && entity.getMsgId() == msgId) {
+                    msgObjectList.set(index, messageEntity);
+                    break;
+                }
+            }
+        }
+        notifyDataSetChanged();
+    }
+
     private MessageOperatePopup currentPop;
 
     /**
@@ -573,16 +729,16 @@ public class ChatAdapter extends BaseAdapter {
                     }
                 }
 
-//                else if (mType == DBConstant.SHOW_IMAGE_TYPE) {
-//                    logger.d("pic#resend");
-//                    // 之前的状态是什么 上传没有成功继续上传
-//                    // 上传成功，发送消息
-//                    ImageMessage imageMessage = (ImageMessage) mMsgInfo;
-//                    if (TextUtils.isEmpty(imageMessage.getPath())) {
-//                        Toast.makeText(ctx, ctx.getString(R.string.image_path_unavaluable), Toast.LENGTH_LONG).show();
-//                        return;
-//                    }
-//                }
+                else if (mType == DBConstant.SHOW_IMAGE_TYPE) {
+                    logger.d("pic#resend");
+                    // 之前的状态是什么 上传没有成功继续上传
+                    // 上传成功，发送消息
+                    ImageMessage imageMessage = (ImageMessage) mMsgInfo;
+                    if (TextUtils.isEmpty(imageMessage.getPath())) {
+                        Toast.makeText(ctx, ctx.getString(R.string.image_path_unavaluable), Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                }
                 mMsgInfo.setStatus(MessageConstant.MSG_SENDING);
                 msgObjectList.remove(mPosition);
                 addItem(mMsgInfo);

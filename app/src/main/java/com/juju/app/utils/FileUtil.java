@@ -471,5 +471,35 @@ public class FileUtil {
         return is;
     }
 
+    public static boolean isFileExist(String filePath)
+    {
+        File file = new File(filePath);
+        return file.exists();
+    }
 
+    public static boolean isSdCardAvailuable() {
+        boolean bRet = false;
+        do {
+            if (!Environment.getExternalStorageState().equals(
+                    Environment.MEDIA_MOUNTED)) {
+                break;
+            }
+            if (CommonUtil.getSDFreeSize() < 5) {
+                break;
+            }
+            bRet = true;
+        } while (false);
+
+        return bRet;
+    }
+
+    public static String getExtensionName(String filename) {
+        if ((filename != null) && (filename.length() > 0)) {
+            int dot = filename.lastIndexOf('.');
+            if ((dot >-1) && (dot < (filename.length() - 1))) {
+                return filename.substring(dot + 1);
+            }
+        }
+        return filename;
+    }
 }

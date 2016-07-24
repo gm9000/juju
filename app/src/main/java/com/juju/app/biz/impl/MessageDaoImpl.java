@@ -7,6 +7,7 @@ import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.MessageDao;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.AudioMessage;
+import com.juju.app.entity.chat.ImageMessage;
 import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.golobal.DBConstant;
@@ -174,9 +175,9 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
                         newList.add(AudioMessage.parseFromDB(info));
                     }
                     break;
-//                case DBConstant.SHOW_IMAGE_TYPE:
-//                    newList.add(ImageMessage.parseFromDB(info));
-//                    break;
+                case DBConstant.SHOW_IMAGE_TYPE:
+                    newList.add(ImageMessage.parseFromDB(info));
+                    break;
                 case DBConstant.SHOW_ORIGIN_TEXT_TYPE:
                     newList.add(TextMessage.parseFromDB(info));
                     break;

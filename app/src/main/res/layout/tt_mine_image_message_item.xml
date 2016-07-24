@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.mogujie.tt.ui.widget.message.ImageRenderView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.juju.app.view.groupchat.ImageRenderView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
     android:background="@color/default_bk"
     android:paddingBottom="20dp"
     android:paddingRight="10dp">
-    <!--xmlns:BubbleImageView="http://schemas.android.com/apk/res-auto"-->
 
-    <com.mogujie.tt.ui.widget.IMBaseImageView
+    <com.juju.app.view.groupchat.IMBaseImageView
         android:id="@+id/user_portrait"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_alignParentRight="true"
         android:scaleType="centerCrop"
-        android:src="@drawable/tt_default_user_portrait_corner" />
+        android:src="@mipmap/tt_default_user_portrait_corner" />
 
     <RelativeLayout
         android:id="@+id/content_layout"
@@ -33,7 +33,7 @@
             android:layout_marginRight="8dp"
             android:adjustViewBounds="true"
             android:contentDescription="@string/message_image_desc"
-            android:src="@drawable/tt_msg_tip"
+            android:src="@mipmap/tt_msg_tip"
             android:visibility="gone" />
 
         <ProgressBar
@@ -53,7 +53,7 @@
             android:background="@drawable/tt_mine_image_vertical_bk"
             >
 
-            <com.mogujie.tt.ui.widget.BubbleImageView
+            <com.juju.app.view.BubbleImageView
                 android:id="@+id/message_image"
                 android:layout_width="80dp"
                 android:layout_height="150dp"
@@ -61,7 +61,7 @@
                 android:maxWidth="80dp"
                 android:adjustViewBounds="true"
                 android:padding="0dp"
-                android:scaleType="centerCrop"/>
+                android:scaleType="centerCrop" />
                 <!--BubbleImageView:bubble_angle="5dp"-->
                 <!--BubbleImageView:bubble_arrowHeight="10dp"-->
                 <!--BubbleImageView:bubble_arrowLocation="right"-->
@@ -69,7 +69,7 @@
                 <!--BubbleImageView:bubble_arrowTop="15dp"-->
                 <!--BubbleImageView:bubble_arrowWidth="5dp" />-->
 
-            <com.mogujie.tt.ui.widget.MGProgressbar
+            <com.juju.app.view.MGProgressbar
                 android:id="@+id/tt_image_progress"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -80,4 +80,4 @@
         </FrameLayout>
     </RelativeLayout>
 
-</com.mogujie.tt.ui.widget.message.ImageRenderView>
+</com.juju.app.view.groupchat.ImageRenderView>

@@ -2,10 +2,11 @@ package com.juju.app.fastdfs.file;
 
 
 /**
- * fastdfs协议错误码的常量
- * 
- * @author yuqih
- * 
+ * 项目名称：juju
+ * 类描述：fastdfs协议错误码的常量
+ * 创建人：gm
+ * 日期：2016/7/23 12:41
+ * 版本：V1.0.0
  */
 public final class ErrorCodeConstants {
 	

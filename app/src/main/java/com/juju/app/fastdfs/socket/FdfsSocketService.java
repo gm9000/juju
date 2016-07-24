@@ -1,15 +1,14 @@
 package com.juju.app.fastdfs.socket;
 
+import com.juju.app.utils.Logger;
+
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-
 public class FdfsSocketService {
 
-	private final Log logger = LogFactory.getLog(getClass());
+	private Logger logger = Logger.getLogger(FdfsSocketService.class);
 
 	protected static final int DEFAULT_CONNECT_TIMEOUT = 5 * 1000;
 	protected static final int DEFAULT_NETWORK_TIMEOUT = 30 * 1000;
@@ -22,6 +21,21 @@ public class FdfsSocketService {
 	private IBorrowSockectErrorPolicy  borrowSockectErrorPolicy;
 
 	private final Map<InetSocketAddress, FdfsSocketPool> poolMapping = new ConcurrentHashMap<InetSocketAddress, FdfsSocketPool>();
+
+	private volatile static FdfsSocketService inst;
+
+
+	public static FdfsSocketService instance() {
+		if(inst == null) {
+			synchronized (FdfsSocketService.class) {
+				if (inst == null) {
+					inst = new FdfsSocketService();
+					inst.init();
+				}
+			}
+		}
+		return inst;
+	}
 
 	public void init() {
 		if (connectTimeout <= 0) {
@@ -61,14 +75,13 @@ public class FdfsSocketService {
 	}
 
 	public void destroy() {
-
 		synchronized (this) {
 			for (FdfsSocketPool pool : poolMapping.values()) {
 				try {
 					pool.close();
-					logger.debug("pool current size :" + pool.getNumActive()  + "-" + pool.getNumIdle());
+					logger.d("pool current size :" + pool.getNumActive()  + "-" + pool.getNumIdle());
 				} catch (Exception e) {
-					logger.warn("destory pool error", e);
+					logger.error(e);
 				}
 			}
 			poolMapping.clear();

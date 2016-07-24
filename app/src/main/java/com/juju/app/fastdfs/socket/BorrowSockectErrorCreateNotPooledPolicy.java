@@ -1,8 +1,9 @@
 package com.juju.app.fastdfs.socket;
 
+import com.juju.app.fastdfs.exception.FdfsConnectException;
+
 import java.net.InetSocketAddress;
 
-import third.rewrite.fastdfs.exception.FdfsConnectException;
 
 public class BorrowSockectErrorCreateNotPooledPolicy implements
 		IBorrowSockectErrorPolicy {

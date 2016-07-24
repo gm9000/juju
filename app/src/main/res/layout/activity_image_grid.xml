@@ -4,44 +4,44 @@
     android:background="@android:color/white"
     android:orientation="vertical">
 
-    <RelativeLayout
-        android:id="@+id/top"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/top_bar_default_height"
-        android:layout_alignParentTop="true"
-        android:background="@drawable/tt_top_default_bk" >
+    <!--<RelativeLayout-->
+        <!--android:id="@+id/top"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="@dimen/top_bar_default_height"-->
+        <!--android:layout_alignParentTop="true"-->
+        <!--android:background="@mipmap/tt_top_default_bk" >-->
 
-        <ImageView
-            android:id="@+id/back_btn"
-            android:layout_width="57dp"
-            android:layout_height="match_parent"
-            android:layout_alignParentLeft="true"
-            android:scaleType="center"
-            android:src="@drawable/tt_back_btn" />
+        <!--<ImageView-->
+            <!--android:id="@+id/back_btn"-->
+            <!--android:layout_width="57dp"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:layout_alignParentLeft="true"-->
+            <!--android:scaleType="center"-->
+            <!--android:src="@mipmap/tt_back_btn" />-->
 
-        <TextView
-            android:id="@+id/base_fragment_title"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:textColor="#000000"
-            android:textSize="@dimen/top_title_size"
-            android:textStyle="bold" />
+        <!--<TextView-->
+            <!--android:id="@+id/base_fragment_title"-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_centerInParent="true"-->
+            <!--android:textColor="#000000"-->
+            <!--android:textSize="@dimen/top_title_size"-->
+            <!--android:textStyle="bold" />-->
 
-        <TextView
-            android:id="@+id/cancel"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:layout_alignParentRight="true"
-            android:layout_centerVertical="true"
-            android:layout_marginRight="@dimen/top_bar_btn_right_margin"
-            android:clickable="true"
-            android:focusable="true"
-            android:gravity="right|center_vertical"
-            android:text="@string/cancel"
-            android:textColor="@drawable/tt_text_while"
-            android:textSize="@dimen/album_top_cancel_size" />
-    </RelativeLayout>
+        <!--<TextView-->
+            <!--android:id="@+id/cancel"-->
+            <!--android:layout_width="50dp"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_alignParentRight="true"-->
+            <!--android:layout_centerVertical="true"-->
+            <!--android:layout_marginRight="@dimen/top_bar_btn_right_margin"-->
+            <!--android:clickable="true"-->
+            <!--android:focusable="true"-->
+            <!--android:gravity="right|center_vertical"-->
+            <!--android:text="@string/cancel"-->
+            <!--android:textColor="@drawable/tt_text_while"-->
+            <!--android:textSize="@dimen/album_top_cancel_size" />-->
+    <!--</RelativeLayout>-->
 
     <LinearLayout
         android:layout_width="fill_parent"
@@ -99,7 +99,7 @@
             android:layout_height="35dp"
             android:layout_alignParentRight="true"
             android:layout_centerVertical="true"
-            android:background="@drawable/tt_default_btn_bk"
+            android:background="@mipmap/tt_default_btn_bk"
             android:focusable="true"
             android:gravity="center|center_vertical"
             android:onClick="true"

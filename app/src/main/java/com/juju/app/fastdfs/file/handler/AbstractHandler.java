@@ -1,20 +1,27 @@
 package com.juju.app.fastdfs.file.handler;
 
+import com.juju.app.fastdfs.callback.ProgressCallback;
+import com.juju.app.fastdfs.exception.FdfsIOException;
+import com.juju.app.fastdfs.exception.FdfsServerException;
+import com.juju.app.fastdfs.file.BytesUtil;
+import com.juju.app.fastdfs.file.CmdConstants;
+import com.juju.app.fastdfs.file.ErrorCodeConstants;
+import com.juju.app.fastdfs.file.OtherConstants;
+import com.juju.app.fastdfs.socket.PooledFdfsSocket;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.util.Arrays;
 
-import third.rewrite.fastdfs.callback.ProgressCallback;
-import third.rewrite.fastdfs.exception.FdfsServerException;
-import third.rewrite.fastdfs.exception.FdfsIOException;
-import third.rewrite.fastdfs.proto.BytesUtil;
-import third.rewrite.fastdfs.proto.CmdConstants;
-import third.rewrite.fastdfs.proto.ErrorCodeConstants;
-import third.rewrite.fastdfs.proto.OtherConstants;
-import third.rewrite.fastdfs.socket.PooledFdfsSocket;
-
+/**
+ * 项目名称：juju
+ * 类描述：fastdfs处理基础类
+ * 创建人：gm   
+ * 日期：2016/7/22 10:17
+ * 版本：V1.0.0
+ */
 abstract class AbstractHandler<T> implements ICmdProtoHandler<T> {
 
 	protected final Socket socket;
@@ -32,14 +39,12 @@ abstract class AbstractHandler<T> implements ICmdProtoHandler<T> {
 
 	/**
 	 * 处理
-	 * 
+	 *
 	 */
 	@Override
 	public T handle() {
-		System.out.println(this.toString()+"handle#1");
 		try {
 			send(socket.getOutputStream());
-			System.out.println(this.toString()+"handle#2");
 		} catch (IOException e) {
 			if (socket instanceof PooledFdfsSocket) {
 				((PooledFdfsSocket) socket).setNeedDestroy(true);
@@ -48,10 +53,7 @@ abstract class AbstractHandler<T> implements ICmdProtoHandler<T> {
 					"socket io exception occured while sending cmd", e);
 		}
 		try {
-			
-			System.out.println(this.toString()+"handle#3");
 			receive(socket.getInputStream());
-			System.out.println(this.toString()+"handle#4");
 		} catch (IOException e) {
 			if (socket instanceof PooledFdfsSocket) {
 				((PooledFdfsSocket) socket).setNeedDestroy(true);
@@ -63,9 +65,7 @@ abstract class AbstractHandler<T> implements ICmdProtoHandler<T> {
 		if (errorCode == ErrorCodeConstants.SUCCESS) {
 			return result;
 		}
-		System.out.println("handle#5");
 		throw FdfsServerException.byCode(errorCode);
-
 	}
 
 	/**
@@ -73,46 +73,44 @@ abstract class AbstractHandler<T> implements ICmdProtoHandler<T> {
 	 * 
 	 */
 	@Override
-	public T handle(ProgressCallback callback) {
-		System.out.println(this.toString()+"handle#1");
+	public T handle(String uuid, ProgressCallback callback) {
 		try {
-			send(socket.getOutputStream(), callback);
-			System.out.println(this.toString()+"handle#2");
+			send(socket.getOutputStream(), uuid, callback);
 		} catch (IOException e) {
 			if (socket instanceof PooledFdfsSocket) {
 				((PooledFdfsSocket) socket).setNeedDestroy(true);
 			}
-			throw new FdfsIOException(
+			FdfsIOException fdfsIOException = new FdfsIOException(
 					"socket io exception occured while sending cmd", e);
+			callback.sendError(uuid, fdfsIOException);
+			return null;
 		}
 		try {
-			
-			System.out.println(this.toString()+"handle#3");
-			receive(socket.getInputStream(), callback);
-			System.out.println(this.toString()+"handle#4");
+			receive(socket.getInputStream(), uuid, callback, socket.getInetAddress().getHostAddress());
 		} catch (IOException e) {
 			if (socket instanceof PooledFdfsSocket) {
 				((PooledFdfsSocket) socket).setNeedDestroy(true);
 			}
-			throw new FdfsIOException(
+			FdfsIOException fdfsIOException = new FdfsIOException(
 					"socket io exception occured while receive content", e);
+			callback.recvError(uuid, fdfsIOException);
+			return null;
 		}
 
 		if (errorCode == ErrorCodeConstants.SUCCESS) {
 			return result;
 		}
-		System.out.println("handle#5");
 		throw FdfsServerException.byCode(errorCode);
 
 	}
-	
+
 	protected abstract void send(OutputStream ous) throws IOException;
-	
-	protected abstract void send(OutputStream ous, ProgressCallback callback) throws IOException;
+
+	protected abstract void send(OutputStream ous, String uuid, ProgressCallback callback) throws IOException;
 
 	protected abstract void receive(InputStream ins) throws IOException;
-	
-	protected abstract void receive(InputStream ins, ProgressCallback callback) throws IOException;
+
+	protected abstract void receive(InputStream ins, String uuid, ProgressCallback callback, String recvHost) throws IOException;
 
 
 	protected byte[] packHeader(byte cmd, long contentLength) {

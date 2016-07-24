@@ -34,5 +34,10 @@
     <dimen name="user_detail_margin_right_content">40.0dip</dimen>
     <dimen name="user_detail_title">14.0sp</dimen>
 
+    <dimen name="top_bar_btn_right_margin">12dp</dimen>
+    <dimen name="bottom_bar_default_height">50dp</dimen>
+    <dimen name="album_top_cancel_size">14sp</dimen>
+    <dimen name="album_list_item_name_size">15sp</dimen>
+
 
 </resources>

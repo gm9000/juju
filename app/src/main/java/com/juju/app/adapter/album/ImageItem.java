@@ -4,11 +4,11 @@ package com.juju.app.adapter.album;
 import java.io.Serializable;
 
 /**
- * 
- * @Description 图片对象
- * @author Nana
- * @date 2014-5-9
- *
+ * 项目名称：juju
+ * 类描述：图片对象
+ * 创建人：gm
+ * 日期：2016/7/21 10:54
+ * 版本：V1.0.0
  */
 @SuppressWarnings("serial")
 public class ImageItem implements Serializable {

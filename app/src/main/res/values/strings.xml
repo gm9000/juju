@@ -157,6 +157,11 @@
     <string name="history_divider_text">以上是历史信息</string>
     <string name="message_send_failed">请检查网络</string>
     <string name="im_service_disconnected">无法连接到后台消息服务</string>
+    <string name="image_path_unavaluable">图片路径无效</string>
+    <string name="unavailable_image_file">该文件已损坏</string>
+    <string name="need_choose_images">请选择图片～</string>
+
+
 
 
     <!-- 群聊详情 -->

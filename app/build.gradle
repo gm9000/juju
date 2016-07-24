@@ -52,6 +52,8 @@ dependencies {
     compile files('libs/jackson-core-2.6.0.jar')
     compile files('libs/jackson-databind-2.6.0.jar')
     compile files('libs/MobCommons.jar')
+    compile files('libs/commons-pool2-2.2.jar')
+    compile files('libs/commons-io-2.4.jar')
     compile project(':jujulibs')
     compile name: 'SMSSDK-2.0.1', ext: 'aar'
     compile 'org.greenrobot:eventbus:3.0.0'

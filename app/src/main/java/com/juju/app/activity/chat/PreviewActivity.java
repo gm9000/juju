@@ -12,23 +12,31 @@ import android.view.ViewGroup.LayoutParams;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 
-import com.mogujie.tt.R;
-import com.mogujie.tt.ui.adapter.album.ImageGridAdapter;
-import com.mogujie.tt.ui.adapter.album.ImageItem;
-import com.mogujie.tt.utils.ImageUtil;
-import com.mogujie.tt.utils.Logger;
-import com.mogujie.tt.ui.widget.CustomViewPager;
+import com.juju.app.R;
+import com.juju.app.adapter.album.ImageGridAdapter;
+import com.juju.app.adapter.album.ImageItem;
+import com.juju.app.annotation.CreateUI;
+import com.juju.app.ui.base.BaseActivity;
+import com.juju.app.utils.ImageUtils;
+import com.juju.app.utils.Logger;
+import com.juju.app.view.CustomViewPager;
+
+import org.xutils.view.annotation.ContentView;
 
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
 /**
- * @author Nana
- * @Description 图片预览
- * @date 2014-5-9
+ * 项目名称：juju
+ * 类描述：图片预览
+ * 创建人：gm
+ * 日期：2016/7/21 16:33
+ * 版本：V1.0.0
  */
-public class PreviewActivity extends Activity
+@ContentView(R.layout.activity_preview)
+@CreateUI(showTopView = false)
+public class PreviewActivity extends BaseActivity
         implements
         OnPageChangeListener {
 
@@ -48,7 +56,7 @@ public class PreviewActivity extends Activity
         logger.d("pic#PreviewActivity onCreate");
         super.onCreate(savedInstanceState);
 
-        setContentView(R.layout.tt_activity_preview);
+//        setContentView(R.layout.activity_preview);
         initView();
         loadView();
     }
@@ -86,13 +94,13 @@ public class PreviewActivity extends Activity
                             removePosition.remove(curImagePosition);
                         }
                         ImageGridActivity.setSendText(selTotal);
-                        select.setImageResource(R.drawable.tt_album_img_selected);
+                        select.setImageResource(R.mipmap.tt_album_img_selected);
                     } else {
                         int selTotal = adapter.getSelectTotalNum();
                         adapter.setSelectTotalNum(--selTotal);
                         removePosition.put(curImagePosition, curImagePosition);
                         ImageGridActivity.setSendText(selTotal);
-                        select.setImageResource(R.drawable.tt_album_img_select_nor);
+                        select.setImageResource(R.mipmap.tt_album_img_select_nor);
                     }
                 }
             }
@@ -114,9 +122,9 @@ public class PreviewActivity extends Activity
                 imageView.setLayoutParams(new LayoutParams(10, 10));
                 tips[i] = imageView;
                 if (i == 0) {
-                    tips[i].setBackgroundResource(R.drawable.tt_default_dot_down);
+                    tips[i].setBackgroundResource(R.mipmap.tt_default_dot_down);
                 } else {
-                    tips[i].setBackgroundResource(R.drawable.tt_default_dot_up);
+                    tips[i].setBackgroundResource(R.mipmap.tt_default_dot_up);
                 }
                 LinearLayout.LayoutParams layoutParams = new LinearLayout.LayoutParams(new ViewGroup.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT));
                 layoutParams.leftMargin = 5;
@@ -132,9 +140,9 @@ public class PreviewActivity extends Activity
             ImageItem item = adapter.getSelectMap().get(key);
             ImageView imageView = new ImageView(this);
             mImageViews[++index] = imageView;
-            Bitmap bmp = ImageUtil.getBigBitmapForDisplay(item.getImagePath(), PreviewActivity.this);
+            Bitmap bmp = ImageUtils.getBigBitmapForDisplay(item.getImagePath(), PreviewActivity.this);
             if (bmp == null)
-                bmp = ImageUtil.getBigBitmapForDisplay(item.getThumbnailPath(), PreviewActivity.this);
+                bmp = ImageUtils.getBigBitmapForDisplay(item.getThumbnailPath(), PreviewActivity.this);
             if (bmp != null)
                 imageView.setImageBitmap(bmp);
             if (index == 0) {
@@ -165,9 +173,9 @@ public class PreviewActivity extends Activity
     private void setImageBackground(int selectItems) {
         for (int i = 0; i < tips.length; i++) {
             if (i == selectItems) {
-                tips[i].setBackgroundResource(R.drawable.tt_default_dot_down);
+                tips[i].setBackgroundResource(R.mipmap.tt_default_dot_down);
             } else {
-                tips[i].setBackgroundResource(R.drawable.tt_default_dot_up);
+                tips[i].setBackgroundResource(R.mipmap.tt_default_dot_up);
             }
         }
     }
@@ -182,9 +190,9 @@ public class PreviewActivity extends Activity
             if (++index == position) {
                 curImagePosition = key;// 对应适配器中图片列表的真实位置
                 if (adapter.getSelectMap().get(key).isSelected()) {
-                    select.setImageResource(R.drawable.tt_album_img_selected);
+                    select.setImageResource(R.mipmap.tt_album_img_selected);
                 } else {
-                    select.setImageResource(R.drawable.tt_album_img_select_nor);
+                    select.setImageResource(R.mipmap.tt_album_img_select_nor);
                 }
             }
         }

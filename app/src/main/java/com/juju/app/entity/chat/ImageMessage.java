@@ -1,12 +1,19 @@
 package com.juju.app.entity.chat;
 
-import com.mogujie.tt.DB.entity.MessageEntity;
-import com.mogujie.tt.DB.entity.PeerEntity;
-import com.mogujie.tt.DB.entity.UserEntity;
-import com.mogujie.tt.config.DBConstant;
-import com.mogujie.tt.config.MessageConstant;
-import com.mogujie.tt.imservice.support.SequenceNumberMaker;
-import com.mogujie.tt.ui.adapter.album.ImageItem;
+
+import android.graphics.Bitmap;
+import android.util.Base64;
+
+import com.juju.app.adapter.album.ImageItem;
+import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.MessageConstant;
+import com.juju.app.helper.chat.SequenceNumberMaker;
+import com.juju.app.utils.ImageLoaderUtil;
+import com.juju.app.utils.JacksonUtil;
+import com.juju.app.utils.Logger;
+import com.juju.app.view.imagezoom.utils.BitmapUtils;
+import com.nostra13.universalimageloader.core.assist.ImageSize;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -19,16 +26,23 @@ import java.util.Collections;
 import java.util.Comparator;
 
 /**
- * @author : yingmu on 14-12-31.
- * @email : yingmu@mogujie.com.
+ * 项目名称：juju
+ * 类描述：图片信息
+ * 创建人：gm
+ * 日期：2016/7/21 17:44
+ * 版本：V1.0.0
  */
 public class ImageMessage extends MessageEntity implements Serializable {
+
 
     /**本地保存的path*/
     private String path = "";
     /**图片的网络地址*/
     private String url = "";
     private int loadStatus;
+
+    //上传或下载百分百， 此值依赖于loadStatus
+    private int progress;
 
     //存储图片消息
     private static java.util.HashMap<Long,ImageMessage> imageMessageMap = new java.util.HashMap<Long,ImageMessage>();
@@ -41,7 +55,7 @@ public class ImageMessage extends MessageEntity implements Serializable {
         try {
             if(msg!=null && msg.getId()!=null)
             {
-                imageMessageMap.put(msg.getId(),msg);
+                imageMessageMap.put(msg.getLocalId(),msg);
             }
         }catch (Exception e){
         }
@@ -59,8 +73,8 @@ public class ImageMessage extends MessageEntity implements Serializable {
         }
         Collections.sort(imageList, new Comparator<ImageMessage>(){
             public int compare(ImageMessage image1, ImageMessage image2) {
-                Integer a =  image1.getUpdated();
-                Integer b = image2.getUpdated();
+                Long a =  image1.getUpdated();
+                Long b = image2.getUpdated();
                 if(a.equals(b))
                 {
                     return image2.getId().compareTo(image1.getId());
@@ -161,7 +175,7 @@ public class ImageMessage extends MessageEntity implements Serializable {
     }
 
     // 消息页面，发送图片消息
-    public static ImageMessage buildForSend(ImageItem item,UserEntity fromUser,PeerEntity peerEntity){
+    public static ImageMessage buildForSend(ImageItem item, UserEntity fromUser, PeerEntity peerEntity){
         ImageMessage msg = new ImageMessage();
         if (new File(item.getImagePath()).exists()) {
             msg.setPath(item.getImagePath());
@@ -174,7 +188,7 @@ public class ImageMessage extends MessageEntity implements Serializable {
             }
         }
         // 将图片发送至服务器
-        int nowTime = (int) (System.currentTimeMillis() / 1000);
+        long nowTime = System.currentTimeMillis();
 
         msg.setFromId(fromUser.getPeerId());
         msg.setToId(peerEntity.getPeerId());
@@ -195,7 +209,7 @@ public class ImageMessage extends MessageEntity implements Serializable {
 
     public static ImageMessage buildForSend(String takePhotoSavePath, UserEntity fromUser, PeerEntity peerEntity){
         ImageMessage imageMessage = new ImageMessage();
-        int nowTime = (int) (System.currentTimeMillis() / 1000);
+        long nowTime = System.currentTimeMillis();
         imageMessage.setFromId(fromUser.getPeerId());
         imageMessage.setToId(peerEntity.getPeerId());
         imageMessage.setUpdated(nowTime);
@@ -232,21 +246,14 @@ public class ImageMessage extends MessageEntity implements Serializable {
     }
 
     @Override
-    public byte[] getSendContent() {
-        // 发送的时候非常关键
-        String sendContent = MessageConstant.IMAGE_MSG_START
-                + url + MessageConstant.IMAGE_MSG_END;
-        /**
-         * 加密
-         */
-       String encrySendContent =new String(com.mogujie.tt.Security.getInstance().EncryptMsg(sendContent));
-
-        try {
-            return encrySendContent.getBytes("utf-8");
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        }
-        return null;
+    public String getSendContent() {
+        Bitmap bitmap = ImageLoaderUtil.getImageLoaderInstance()
+                .loadImageSync("file://"+path, new ImageSize(80, 150));
+        String small =  BitmapUtils.bitmapToBase64(bitmap);
+        MsgImageContent msgImageContent = MsgImageContent.valueOf(80, 150, small.length(), small, "", url);
+        String sendContent = JacksonUtil.turnObj2String(msgImageContent);
+        System.out.println("getSendContent -> content.length():"+content.length());
+        return sendContent;
     }
 
     /**-----------------------set/get------------------------*/
@@ -272,5 +279,54 @@ public class ImageMessage extends MessageEntity implements Serializable {
 
     public void setLoadStatus(int loadStatus) {
         this.loadStatus = loadStatus;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
+    }
+
+
+    public static class MsgImageContent {
+
+//        “width”:320,
+//                “height”:240,
+//                “size”:2346,   // 大小，单位byte
+//                “small”:”缩略图Base64加密值”,  // 0-32KB
+//                “normalUrl” :”默认压缩图地址” ,//32-256K
+//                ‘largeUrl’ :”原始图片地址”  // >256
+
+
+        //宽度
+        public int width;
+        //高度
+        public int height;
+        //size
+        public int size;
+
+        //小图
+        public String small;
+
+        //默认压缩图片 （暂不处理）
+        public String normalUrl;
+
+        //大图
+        public String largeUrl;
+
+
+        public static MsgImageContent valueOf(int width, int height, int size, String small,
+                                              String normalUrl, String largeUrl) {
+            MsgImageContent msgImageContent = new MsgImageContent();
+            msgImageContent.width = width;
+            msgImageContent.height = height;
+            msgImageContent.size = size;
+            msgImageContent.small = small;
+            msgImageContent.normalUrl = normalUrl;
+            msgImageContent.largeUrl = largeUrl;
+            return msgImageContent;
+        }
     }
 }

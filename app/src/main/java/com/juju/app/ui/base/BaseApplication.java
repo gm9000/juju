@@ -61,7 +61,7 @@ public class BaseApplication extends Application {
     public void onCreate() {
         super.onCreate();
         StreamingEnv.init(getApplicationContext());
-        LeakCanary.install(this);
+//        LeakCanary.install(this);
         long begin = System.currentTimeMillis();
         initFramework();
         initConfig();

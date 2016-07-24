@@ -1,5 +1,7 @@
 package com.juju.app.fastdfs.socket;
 
+import com.juju.app.fastdfs.exception.FdfsConnectException;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 
@@ -7,7 +9,6 @@ import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
-import third.rewrite.fastdfs.exception.FdfsConnectException;
 
 class FdfsSocketFactory extends BasePooledObjectFactory<PooledFdfsSocket> {
 
@@ -18,7 +19,6 @@ class FdfsSocketFactory extends BasePooledObjectFactory<PooledFdfsSocket> {
 	private int connectTimeout;
 
 	/**
-	 * @param pool
 	 * @param socketAddress
 	 * @param soTimeout
 	 * @param connectTimeout
@@ -52,7 +52,6 @@ class FdfsSocketFactory extends BasePooledObjectFactory<PooledFdfsSocket> {
 	/**
 	 * No-op.
 	 * 
-	 * @param obj
 	 *            ignored
 	 */
 	@Override

@@ -11,6 +11,8 @@ public class MessageEvent {
     private ArrayList<MessageEntity> msgList;
     private Event event;
 
+    private int progress;
+
     public MessageEvent(){
     }
 
@@ -26,6 +28,14 @@ public class MessageEvent {
         msgList.add(entity);
     }
 
+    public MessageEvent(Event event, MessageEntity entity, int progress){
+        //默认值 初始化使用
+        this.event = event;
+        msgList = new ArrayList<MessageEntity>(1);
+        msgList.add(entity);
+        this.progress = progress;
+    }
+
     public enum Event{
       NONE,
       HISTORY_MSG_OBTAIN,
@@ -39,7 +49,10 @@ public class MessageEvent {
       HANDLER_IMAGE_UPLOAD_FAILD,
         IMAGE_UPLOAD_FAILD,
         HANDLER_IMAGE_UPLOAD_SUCCESS,
-        IMAGE_UPLOAD_SUCCESS
+        IMAGE_UPLOAD_SUCCESS,
+
+        IMAGE_UPLOAD_PROGRESSING
+
      }
 
     public MessageEntity getMessageEntity() {
@@ -71,5 +84,13 @@ public class MessageEvent {
 
     public void setEvent(Event event) {
         this.event = event;
+    }
+
+    public int getProgress() {
+        return progress;
+    }
+
+    public void setProgress(int progress) {
+        this.progress = progress;
     }
 }

@@ -5,7 +5,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 public class FdfsPoolConfig extends GenericObjectPoolConfig {
 
 	public FdfsPoolConfig() {
-		setMaxTotal(50); // 从池中借出的对象的最大数目50
+		setMaxTotal(10); // 从池中借出的对象的最大数目10
 		setTestWhileIdle(true);
 		setBlockWhenExhausted(true);
 		setMaxWaitMillis(100);

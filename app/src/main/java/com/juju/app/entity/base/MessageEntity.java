@@ -2,6 +2,7 @@ package com.juju.app.entity.base;
 
 
 import com.juju.app.entity.chat.AudioMessage;
+import com.juju.app.entity.chat.ImageMessage;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.helper.chat.EntityChangeEngine;
 
@@ -334,10 +335,10 @@ public class MessageEntity extends BaseEntity implements java.io.Serializable {
 
 	public MessageEntity clone() {
 		MessageEntity entry;
-		if(this instanceof AudioMessage) {
+		if(this instanceof AudioMessage || this instanceof ImageMessage) {
 			entry = new MessageEntity(localId, id, msgId, fromId, toId,  sessionKey,
 					getContent(),  msgType,  displayType, status,  created,  updated);
-		} else {
+		}  else {
 			entry = new MessageEntity(localId, id, msgId, fromId, toId,  sessionKey,
 					content,  msgType,  displayType, status,  created,  updated);
 		}

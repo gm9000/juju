@@ -2,6 +2,7 @@ package com.juju.app.utils;
 
 import android.content.Context;
 import android.os.Environment;
+import android.os.StatFs;
 import android.text.TextUtils;
 import android.util.DisplayMetrics;
 
@@ -170,6 +171,40 @@ public class CommonUtil {
         } else {
             return -1;
         }
+    }
+
+    public static String getImageSavePath(String fileName) {
+
+        if (TextUtils.isEmpty(fileName)) {
+            return null;
+        }
+
+        final File folder = new File(Environment.getExternalStorageDirectory()
+                .getAbsolutePath()
+                + File.separator
+                + "JLM-IM"
+                + File.separator
+                + "images");
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        return folder.getAbsolutePath() + File.separator + fileName;
+    }
+
+    /**
+     * @Description 获取sdcard可用空间的大小
+     * @return
+     */
+    @SuppressWarnings("deprecation")
+    public static long getSDFreeSize() {
+        File path = Environment.getExternalStorageDirectory();
+        StatFs sf = new StatFs(path.getPath());
+        long blockSize = sf.getBlockSize();
+        long freeBlocks = sf.getAvailableBlocks();
+        // return freeBlocks * blockSize; //单位Byte
+        // return (freeBlocks * blockSize)/1024; //单位KB
+        return (freeBlocks * blockSize) / 1024 / 1024; // 单位MB
     }
 
 }
