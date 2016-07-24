@@ -26,6 +26,14 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="10dp"/>
 
+
+    <ImageView
+        android:id="@+id/img_live_menu"
+        android:padding="10dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@mipmap/live_menu"/>
+
     <ImageView
         android:id="@+id/img_change"
         android:layout_alignParentTop="true"
@@ -33,25 +41,6 @@
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:src="@mipmap/camera_change"/>
-    <ImageView
-        android:id="@+id/img_seize"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="6dp"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:visibility="gone"
-        android:src="@mipmap/live_seize"/>
-    <ImageView
-        android:id="@+id/img_torch"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="5dp"
-        android:layout_toRightOf="@+id/img_seize"
-        android:layout_marginTop="6dp"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:visibility="gone"
-        android:src="@mipmap/light_off"/>
     <TextView
         android:id="@+id/statusText"
         android:layout_width="wrap_content"

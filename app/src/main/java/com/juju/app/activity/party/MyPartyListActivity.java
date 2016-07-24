@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -147,6 +148,10 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
         listPartyView.getRefreshableView().setCacheColorHint(Color.WHITE);
         listPartyView.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
         listPartyView.setOnRefreshListener(this);
+
+        View emptyView = getLayoutInflater().inflate(R.layout.layout_empty, null);
+        ((ViewGroup)listPartyView.getRefreshableView().getParent()).addView(emptyView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        listPartyView.getRefreshableView().setEmptyView(emptyView);
 
     }
 

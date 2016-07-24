@@ -207,7 +207,7 @@
             android:layout_marginBottom="5dp"
             android:enabled="true"
             android:background="@drawable/btn_register_bg"
-            android:text="@string/add_plan"
+            android:text="@string/confirm"
             android:textColor="@color/white"
             android:textSize="18sp"/>
         </RelativeLayout>

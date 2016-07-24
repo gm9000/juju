@@ -1,5 +1,6 @@
 package com.juju.app.activity.party;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
@@ -10,18 +11,23 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.baidu.mapapi.common.Logger;
 import com.juju.app.R;
 import com.juju.app.adapters.DiscussListAdapter;
 import com.juju.app.annotation.SystemColor;
 import com.juju.app.event.notify.DiscussNotifyEvent;
 import com.juju.app.event.notify.LiveEnterNotifyEvent;
+import com.juju.app.event.notify.LiveNotifyEvent;
 import com.juju.app.event.notify.SeizeNotifyEvent;
 import com.juju.app.fragment.party.LiveMenuFragment;
 import com.juju.app.golobal.AppContext;
@@ -34,7 +40,9 @@ import com.juju.app.service.notify.LiveSeizeReportNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ScreenUtil;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
+import com.juju.app.view.dialog.WarnTipDialog;
 import com.rey.material.app.BottomSheetDialog;
 
 import org.greenrobot.eventbus.EventBus;
@@ -70,6 +78,8 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
 
     private LiveMenuAdapter liveMenuAdapter;
 
+    @ViewInject(R.id.layout_count)
+    private LinearLayout layoutCount;
     @ViewInject(R.id.txt_count)
     private TextView txtCount;
 
@@ -106,9 +116,6 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
         public void onIMServiceConnected() {
             logger.d("UploadVieoActivity#onIMServiceConnected");
             imService = imServiceConnector.getIMService();
-            initParam();
-            initView();
-            initListener();
         }
 
         @Override
@@ -118,39 +125,38 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         super.onCreate(savedInstanceState);
         EventBus.getDefault().register(this);
         imServiceConnector.connect(this);
+        initParam();
+        initView();
+        initListener();
     }
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume");
         super.onResume();
-        if (ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
+        if (ijkMediaPlayer != null && isPlaying) {
             ijkMediaPlayer.start();
         }
     }
 
     @Override
     protected void onPause(){
+        Log.d(TAG, "onPause");
         super.onPause();
-        if (ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
+        if(isPlaying){
             ijkMediaPlayer.stop();
-            isPlaying = false;
-            LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
-            liveEnterNotifyBean.setGroupId(groupId);
-            liveEnterNotifyBean.setLiveId(liveId);
-            liveEnterNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
-            liveEnterNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
-            liveEnterNotifyBean.setType(1);
-            LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
         }
     }
 
     @Override
     protected void onDestroy() {
+        Log.d(TAG, "onDestory");
         if (ijkMediaPlayer != null ) {
             if(ijkMediaPlayer.isPlaying()) {
                 ijkMediaPlayer.stop();
@@ -161,8 +167,8 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
         EventBus.getDefault().unregister(this);
         imServiceConnector.disconnect(this);
 
-
         if (isPlaying) {
+            isPlaying = false;
             LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
             liveEnterNotifyBean.setGroupId(groupId);
             liveEnterNotifyBean.setLiveId(liveId);
@@ -174,7 +180,19 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
         super.onDestroy();
     }
 
+    @Override
+    protected void onStop(){
+        Log.d(TAG, "onStop");
+        super.onStop();
+    }
+
     private void initListener() {
+        txtRelayCount.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                txtRelayCount.setText(String.valueOf(++relayCount));
+            }
+        });
     }
 
     private void initParam() {
@@ -206,11 +224,6 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
 
     }
 
-
-    @Event(R.id.txt_relay_count)
-    private void relayCount(View view) {
-        txtRelayCount.setText(String.valueOf(++relayCount));
-    }
 
     @Event(R.id.img_close)
     private void closeVideo(View view) {
@@ -297,7 +310,17 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
 
     @Override
     public void surfaceDestroyed(SurfaceHolder holder) {
-
+        if (isPlaying && ijkMediaPlayer != null && ijkMediaPlayer.isPlaying()) {
+            ijkMediaPlayer.stop();
+            isPlaying = false;
+            LiveEnterNotifyEvent.LiveEnterNotifyBean liveEnterNotifyBean = new LiveEnterNotifyEvent.LiveEnterNotifyBean();
+            liveEnterNotifyBean.setGroupId(groupId);
+            liveEnterNotifyBean.setLiveId(liveId);
+            liveEnterNotifyBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+            liveEnterNotifyBean.setNickName(AppContext.getUserInfoBean().getNickName());
+            liveEnterNotifyBean.setType(1);
+            LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
+        }
     }
 
 
@@ -340,6 +363,7 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
             liveEnterNotifyBean.setType(0);
             LiveEnterNotify.instance().executeCommand4Send(liveEnterNotifyBean);
             isPlaying = true;
+            ijkMediaPlayer.start();
         }
     };
 
@@ -479,10 +503,10 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
             case LIVE_SEIZE_START_OK:
                 ToastUtil.showLongToast(this, "抢播开始");
                 txtRelayCount.setClickable(true);
-                txtCount.setVisibility(View.VISIBLE);
+                layoutCount.setVisibility(View.VISIBLE);
                 txtRelayCount.setVisibility(View.VISIBLE);
-                relayCount = 0;
-                txtRelayCount.setText(String.valueOf(relayCount));
+                txtRelayCount.setText(R.string.click_hint);
+                txtCount.setText(String.valueOf(bean.getSeconds()));
                 new TimeCount(bean.getSeconds() * 1000, 1000).start();
                 break;
             case LIVE_SEIZE_STOP_OK:
@@ -498,6 +522,27 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
                 } else {
                     ToastUtil.showLongToast(this, imService.getContactManager().findContact(bean.getUserNo()).getNickName() + " 获得了续播权！");
                 }
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4LiveNotify(LiveNotifyEvent event) {
+        LiveNotifyEvent.LiveNotifyBean bean = event.bean;
+        if (!bean.getLiveId().equals(liveId)) {
+            return;
+        }
+        switch (event.event) {
+            case LIVE_STOP_OK:
+                WarnTipDialog tipdialog = new WarnTipDialog(context,"直播已结束！");
+                tipdialog.hiddenBtnCancel();
+                tipdialog.setBtnOkLinstener( new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ActivityUtil.finish(PlayVideoActivity.this);
+                    }
+                });
+                tipdialog.show();
                 break;
         }
     }
@@ -523,7 +568,7 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
 
         @Override
         public void onFinish() {
-            txtCount.setVisibility(View.GONE);
+            layoutCount.setVisibility(View.GONE);
             txtRelayCount.setVisibility(View.GONE);
             txtRelayCount.setClickable(false);
             if (relayCount == 0) {

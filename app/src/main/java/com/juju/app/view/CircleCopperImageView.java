@@ -38,6 +38,7 @@ public class CircleCopperImageView extends ImageViewTouch{
     private int cutTop;
     private int cutEdgeSize;
     private float originRatio = 0.0f;
+    private float originScale = 1.0f;
 
 
     public CircleCopperImageView(Context context, AttributeSet attrs) {
@@ -54,8 +55,8 @@ public class CircleCopperImageView extends ImageViewTouch{
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         float scale  = getScale();
-        Log.d(LOG,"scale:"+scale);
-        if(originRatio==0.0f && getScale()==1.0f){
+        if(originRatio==0.0f){
+            originScale = scale;
             originRatio = (float)((FastBitmapDrawable) getDrawable()).getBitmap().getWidth()/canvas.getWidth();
         }
         drawCircleShape(canvas);
@@ -63,8 +64,8 @@ public class CircleCopperImageView extends ImageViewTouch{
 
     @Override
     public void setImageBitmap(Bitmap bm) {
-        super.setImageBitmap(bm);
         originRatio = 0.0f;
+        super.setImageBitmap(bm);
     }
 
 
@@ -115,7 +116,7 @@ public class CircleCopperImageView extends ImageViewTouch{
         // Implementation reference: http://stackoverflow.com/a/26930938/1068656
 
 
-        float curRadio = originRatio/getScale();
+        float curRadio = originRatio*originScale/getScale();
 
         final Drawable drawable = getDrawable();
         if (drawable == null || !(drawable instanceof FastBitmapDrawable)) {
@@ -133,22 +134,22 @@ public class CircleCopperImageView extends ImageViewTouch{
 
 
         // Calculate the top-left corner of the crop window relative to the ~original~ bitmap size.
-        float cropX = -getBitmapRect().left*curRadio;
+        float cropX = -getBitmapRect().left*curRadio/originScale;
         if(cropX > originWidth){
             cropX = originWidth;
         }
-        float cropY = (cutTop-getBitmapRect().top)*curRadio;
+        float cropY = (cutTop-getBitmapRect().top)*curRadio/originScale;
         if(cropY > originHeight){
             cropY = originHeight;
         }
 
         // Calculate the crop window size relative to the ~original~ bitmap size.
         // Make sure the right and bottom edges are not outside the ImageView bounds (this is just to address rounding discrepancies).
-        float cropWidth = cutEdgeSize*curRadio;
+        float cropWidth = cutEdgeSize*curRadio/originScale;
         if(cropWidth > originWidth-cropX){
             cropWidth = (float)originWidth-cropX;
         }
-        float cropHeight = cutEdgeSize*curRadio;
+        float cropHeight = cutEdgeSize*curRadio/originScale;
         if(cropHeight > originHeight-cropY){
             cropHeight = (float)originHeight-cropY;
         }

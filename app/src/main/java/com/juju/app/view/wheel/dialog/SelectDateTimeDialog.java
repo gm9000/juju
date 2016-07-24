@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import com.juju.app.R;
 import com.juju.app.view.wheel.WheelStyle;
@@ -18,12 +19,16 @@ import java.util.Date;
 
 public class SelectDateTimeDialog extends BottomSheetDialog {
 
+    private static final SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
     private View dialogView;
     private WheelView yearWheel;
     private WheelView monthWheel;
     private WheelView dayWheel;
     private WheelView leftWheel;
     private WheelView rightWheel;
+
+    private TextView txtWeek;
 
 
     int selectYear;
@@ -59,6 +64,9 @@ public class SelectDateTimeDialog extends BottomSheetDialog {
 
         LayoutInflater layoutInflater = LayoutInflater.from(getContext());
         dialogView = layoutInflater.inflate(R.layout.dialog_wheel_date_time, null);
+
+        txtWeek = (TextView) dialogView.findViewById(R.id.txt_week) ;
+
         yearWheel = (WheelView) dialogView.findViewById(R.id.select_date_wheel_year_wheel);
         monthWheel = (WheelView) dialogView.findViewById(R.id.select_date_month_wheel);
         dayWheel = (WheelView) dialogView.findViewById(R.id.select_date_day_wheel);
@@ -72,6 +80,7 @@ public class SelectDateTimeDialog extends BottomSheetDialog {
             public void onSelect(int index, String text) {
                 selectYear = index + WheelStyle.onLineYear;
                 dayWheel.setWheelItemList(WheelStyle.createDayString(selectYear, selectMonth));
+                showCurrentSWheelWeek();
             }
         });
 
@@ -81,10 +90,17 @@ public class SelectDateTimeDialog extends BottomSheetDialog {
             public void onSelect(int index, String text) {
                 selectMonth = index + 1;
                 dayWheel.setWheelItemList(WheelStyle.createDayString(selectYear, selectMonth));
+                showCurrentSWheelWeek();
             }
         });
 
         dayWheel.setWheelStyle(WheelStyle.STYLE_DAY);
+        dayWheel.setOnSelectListener(new WheelView.onSelectListener() {
+            @Override
+            public void onSelect(int index, String text) {
+                showCurrentSWheelWeek();
+            }
+        });
 
         leftWheel.setWheelStyle(WheelStyle.STYLE_HOUR);
         rightWheel.setWheelStyle(WheelStyle.STYLE_CUT_MINUTE);
@@ -134,6 +150,55 @@ public class SelectDateTimeDialog extends BottomSheetDialog {
 //        new AlertDialog.Builder(context).setView(dialogView).create();
     }
 
+    private void showCurrentWeek(Calendar calendar) {
+
+        switch (calendar.get(Calendar.DAY_OF_WEEK)){
+            case 1:
+                txtWeek.setText("星期日");
+                break;
+            case 2:
+                txtWeek.setText("星期一");
+                break;
+            case 3:
+                txtWeek.setText("星期二");
+                break;
+            case 4:
+                txtWeek.setText("星期三");
+                break;
+            case 5:
+                txtWeek.setText("星期四");
+                break;
+            case 6:
+                txtWeek.setText("星期五");
+                break;
+            case 7:
+                txtWeek.setText("星期六");
+                break;
+        }
+
+    }
+
+    private void showCurrentSWheelWeek() {
+
+        int year = yearWheel.getCurrentItem() + WheelStyle.onLineYear;
+        int month = monthWheel.getCurrentItem();
+        int day = dayWheel.getCurrentItem() + 1;
+        int daySize = dayWheel.getItemCount();
+        if (day > daySize) {
+            day = day - daySize;
+        }
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_MONTH, day);
+        calendar.set(Calendar.MONTH,month);
+        calendar.set(Calendar.YEAR,year);
+        calendar.set(Calendar.HOUR_OF_DAY,9);
+        showCurrentWeek(calendar);
+
+    }
+
+
+
     /**
      * 显示选择日期对话框
      *
@@ -148,12 +213,13 @@ public class SelectDateTimeDialog extends BottomSheetDialog {
         dayWheel.setCurrentItem(day - 1);
         leftWheel.setCurrentItem(mHour);
         rightWheel.setCurrentItem(mMinute);
+
+        showCurrentSWheelWeek();
         show();
     }
 
     public void showTimeStr(String dateString) {
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Date date = null;
         try {
             date = dateFormat.parse(dateString);
@@ -163,6 +229,8 @@ public class SelectDateTimeDialog extends BottomSheetDialog {
 
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);
+
+        showCurrentWeek(calendar);
 
         int year = calendar.get(Calendar.YEAR);
         int month = calendar.get(Calendar.MONTH);

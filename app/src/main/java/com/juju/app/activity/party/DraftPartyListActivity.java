@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.util.TypedValue;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ImageView;
@@ -105,13 +106,13 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
             e.printStackTrace();
         }
 
-        if(partyList == null) {
+        if(partyList == null){
             partyList = new ArrayList<Party>();
         }
 
-        if(partyList.size() >= totalSize){
+        if (partyList.size() >= totalSize) {
             listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_up_no_data_label));
-        }else{
+        } else {
             listPartyView.getLoadingLayoutProxy().setReleaseLabel(getResources().getString(R.string.pull_to_refresh_release_label));
         }
 
@@ -147,6 +148,10 @@ public class DraftPartyListActivity extends BaseActivity implements AdapterView.
         listPartyView.getRefreshableView().setCacheColorHint(Color.WHITE);
         listPartyView.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
         listPartyView.setOnRefreshListener(this);
+
+        View emptyView = getLayoutInflater().inflate(R.layout.layout_empty, null);
+        ((ViewGroup)listPartyView.getRefreshableView().getParent()).addView(emptyView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        listPartyView.getRefreshableView().setEmptyView(emptyView);
 
     }
 

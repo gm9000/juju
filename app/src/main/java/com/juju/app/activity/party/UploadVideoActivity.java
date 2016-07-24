@@ -2,6 +2,7 @@ package com.juju.app.activity.party;
 
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
@@ -50,6 +51,7 @@ import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.CameraUtil;
 import com.juju.app.utils.HttpReqParamUtil;
+import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.CameraPreviewFrameView;
@@ -60,6 +62,7 @@ import com.pili.pldroid.streaming.StreamStatusCallback;
 import com.pili.pldroid.streaming.StreamingProfile;
 import com.pili.pldroid.streaming.SurfaceTextureCallback;
 import com.pili.pldroid.streaming.widget.AspectFrameLayout;
+import com.rey.material.app.BottomSheetDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -81,7 +84,7 @@ import java.util.UUID;
 
 @ContentView(R.layout.activity_party_video)
 @SystemColor(isApply = false)
-public class UploadVideoActivity extends BaseActivity implements CameraStreamingManager.StreamingStateListener, StreamStatusCallback, CameraPreviewFrameView.Listener, SurfaceTextureCallback, CameraStreamingManager.StreamingSessionListener {
+public class UploadVideoActivity extends BaseActivity implements CameraStreamingManager.StreamingStateListener, StreamStatusCallback, CameraPreviewFrameView.Listener, SurfaceTextureCallback, CameraStreamingManager.StreamingSessionListener, View.OnClickListener {
 
     private static final String TAG = "UploadVideoActivity";
 
@@ -94,15 +97,15 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
     @ViewInject(R.id.img_upload)
     private ImageView imgUpload;
 
-    @ViewInject(R.id.img_seize)
-    private ImageView imgSeize;
-    @ViewInject(R.id.img_torch)
-    private ImageView imgTorch;
     @ViewInject(R.id.txt_count)
     private TextView txtCount;
+    @ViewInject(R.id.img_live_menu)
+    private ImageView imgLiveMenu;
 
     @ViewInject(R.id.live_menu_container)
     private ViewPager liveMenuPager;
+
+    private BottomSheetDialog shareDialog;
 
     private LiveMenuAdapter liveMenuAdapter;
 
@@ -132,6 +135,8 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
     private boolean mIsNeedMute = false;
     private boolean mIsNeedFB = false;
     private boolean mIsTorchOn = false;
+    private boolean mCanSeize = false;
+    private boolean mCanLight = false;
 
     private static final int MSG_SET_ZOOM    = 1;
     private static final int MSG_MUTE    = 2;
@@ -161,8 +166,8 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // 防止锁屏
         initParam();
-        previewCameraVideo();
         initView();
+        previewCameraVideo();
         imServiceConnector.connect(this);
         EventBus.getDefault().register(this);
     }
@@ -320,7 +325,6 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         liveMenuPager.setCurrentItem(1);
         liveMenuPager.setVisibility(View.GONE);
 
-
     }
 
 
@@ -334,43 +338,6 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         releaseLive(false);
     }
 
-
-    @Event(R.id.img_torch)
-    private void turnLight(View view){
-        if(mIsTorchOn){
-            mIsTorchOn = false;
-            imgTorch.setImageResource(R.mipmap.light_off);
-            mCameraStreamingManager.turnLightOff();
-        }else{
-            mIsTorchOn = true;
-            imgTorch.setImageResource(R.mipmap.light_on);
-            mCameraStreamingManager.turnLightOn();
-        }
-
-    }
-
-    @Event(R.id.img_seize)
-    private void notifySeize(View view) {
-
-        WarnTipDialog tipdialog = new WarnTipDialog(this, "确定要发起续播竞赛吗？");
-        tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                imgSeize.setClickable(false);
-                SeizeNotifyEvent.SeizeNotifyBean seizeStartBean = new SeizeNotifyEvent.SeizeNotifyBean();
-                seizeStartBean.setGroupId(groupId);
-                seizeStartBean.setLiveId(liveId);
-                seizeStartBean.setType(0);
-                seizeStartBean.setSeconds(25);
-                LiveSeizeStartNotify.instance().executeCommand4Send(seizeStartBean);
-            }
-        });
-        tipdialog.show();
-
-    }
-
-    private void notifySeize() {
-    }
 
     private void releaseLive(final boolean onDestoryCall) {
 
@@ -456,6 +423,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
     @Event(R.id.img_upload)
     private void applyLiveToken(View view) {
         imgUpload.setClickable(false);
+        imgUpload.setVisibility(View.GONE);
         Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("partyId", partyId);
         CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GET_LIVE_TOKEN;
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(httpReqParam.code(),
@@ -480,6 +448,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                         ActivityUtil.finish(UploadVideoActivity.this);
                     } else {
                         imgUpload.setClickable(true);
+                        imgUpload.setVisibility(View.VISIBLE);
                         final String desc = JSONUtils.getString(jsonRoot, "desc");
                         runOnUiThread(new Runnable() {
                             @Override
@@ -494,6 +463,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
             @Override
             public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
                 imgUpload.setClickable(true);
+                imgUpload.setVisibility(View.VISIBLE);
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -558,6 +528,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
 
                             } else {
                                 imgUpload.setClickable(true);
+                                imgUpload.setVisibility(View.VISIBLE);
                                 final String desc = JSONUtils.getString(jsonRoot, "desc");
                                 runOnUiThread(new Runnable() {
                                     @Override
@@ -601,7 +572,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                         statusText.setText("开始直播");
                         imgUpload.setVisibility(View.GONE);
                         imgUpload.setClickable(true);
-                        imgSeize.setVisibility(View.VISIBLE);
+                        mCanSeize = true;
                         liveMenuPager.setVisibility(View.VISIBLE);
                         break;
                     case CameraStreamingManager.STATE.CAMERA_SWITCHED:
@@ -611,23 +582,20 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                         statusText.setText("连接超时");
                         imgUpload.setVisibility(View.VISIBLE);
                         imgUpload.setClickable(true);
-                        imgSeize.setVisibility(View.GONE);
+                        mCanSeize = false;
                         liveMenuPager.setVisibility(View.GONE);
                         mCameraStreamingManager.stopStreaming();
                         break;
-                    case CameraStreamingManager.STATE.NETBLOCKING:
-                        statusText.setText("网络状况不好");
-                        break;
                     case CameraStreamingManager.STATE.SENDING_BUFFER_FULL:
-                        statusText.setText("缓存区满");
+                        statusText.setText("网络状况不好");
                         break;
                     case CameraStreamingManager.STATE.DISCONNECTED:
                         statusText.setText("连接中断");
-                        imgUpload.setVisibility(View.VISIBLE);
-                        imgUpload.setClickable(true);
-                        imgSeize.setVisibility(View.GONE);
-                        liveMenuPager.setVisibility(View.GONE);
-                        mCameraStreamingManager.resume();
+//                        mCanSeize = false;
+//                        liveMenuPager.setVisibility(View.GONE);
+//                        mCameraStreamingManager.stopStreaming();
+//                        mCameraStreamingManager.destroy();
+//                        previewCameraVideo();
                         break;
                     case CameraStreamingManager.STATE.TORCH_INFO:
                         if (extra != null) {
@@ -637,15 +605,14 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                                 @Override
                                 public void run() {
                                     if (isSupportedTorch) {
-                                        imgTorch.setVisibility(View.VISIBLE);
+                                        mCanLight = true;
                                     } else {
-                                        imgTorch.setVisibility(View.GONE);
+                                        mCanLight = false;
                                     }
                                 }
                             });
                         }
                         break;
-
                 }
             }
         });
@@ -817,13 +784,12 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         }
         switch (event.event) {
             case LIVE_SEIZE_START_OK:
-                ToastUtil.showLongToast(this, "已发布抢播通知");
+                ToastUtil.showLongToast(this, "已发送抢播通知");
                 //  渲染倒计时数据，清除当前胜出者。
-                imgSeize.setClickable(true);
-                imgSeize.setVisibility(View.GONE);
+                mCanSeize =  false;
                 txtCount.setVisibility(View.VISIBLE);
-                txtCount.setText(String.valueOf(30));
-                new TimeCount(30000, 1000).start();
+                txtCount.setText(String.valueOf(20));
+                new TimeCount(20000, 1000).start();
                 relayUserNo = null;
                 relayCount = 0;
                 break;
@@ -835,8 +801,8 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                 }
                 break;
             case LIVE_SEIZE_STOP_OK:
-                ToastUtil.showLongToast(this, "已决出续播者(" + imService.getContactManager().findContact(relayUserNo).getNickName() + ")，并发出通知！");
-                imgSeize.setVisibility(View.VISIBLE);
+
+                ToastUtil.showLongToast(this, "已决出续播者(" + imService.getContactManager().findContact(relayUserNo).getNickName() + ")，马上围观！");
                 //TODO  关闭播放界面开启播放界面，需要过场控制
 
                 VideoProgram videoProgram = null;
@@ -854,6 +820,141 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                 this.setResult(RESULT_OK,intent);
                 liveId = null;
                 ActivityUtil.finish(this);
+                break;
+        }
+    }
+
+
+
+    @Event(R.id.img_live_menu)
+    private void showDialog(View view) {
+
+        shareDialog = new BottomSheetDialog(this);
+        shareDialog.contentView(R.layout.layout_live_menu)
+                .inDuration(300);
+
+        TextView txtSeize = (TextView) shareDialog.findViewById(R.id.txt_seize);
+        TextView txtFbSwitch = (TextView) shareDialog.findViewById(R.id.txt_fb_switch);
+        TextView txtLight = (TextView) shareDialog.findViewById(R.id.txt_light);
+        TextView txtCapture = (TextView) shareDialog.findViewById(R.id.txt_capture);
+        TextView txtMute = (TextView) shareDialog.findViewById(R.id.txt_mute);
+        TextView txtCancel = (TextView) shareDialog.findViewById(R.id.txt_cancel);
+
+        Drawable menuDrawable = null;
+        int drwableEdge = ScreenUtil.dip2px(getContext(),60);
+
+
+
+        menuDrawable = getResources().getDrawable(R.mipmap.capture);
+        menuDrawable.setBounds(0, 0, drwableEdge, drwableEdge);
+        txtCapture.setCompoundDrawables(null,menuDrawable,null,null);
+
+        if(mCanSeize){
+            menuDrawable = getResources().getDrawable(R.mipmap.live_seize);
+            menuDrawable.setBounds(0, 0, drwableEdge, drwableEdge);
+            txtSeize.setCompoundDrawables(null,menuDrawable,null,null);
+            txtSeize.setVisibility(View.VISIBLE);
+        }else{
+            txtSeize.setVisibility(View.GONE);
+        }
+
+        if(mCanLight){
+            txtLight.setVisibility(View.VISIBLE);
+        }else{
+            txtLight.setVisibility(View.GONE);
+        }
+
+
+
+
+
+        if(mIsNeedFB){
+            menuDrawable = getResources().getDrawable(R.mipmap.fb_on);
+            menuDrawable.setBounds(0, 0, drwableEdge, drwableEdge);
+            txtFbSwitch.setCompoundDrawables(null,menuDrawable,null,null);
+        }else{
+            menuDrawable = getResources().getDrawable(R.mipmap.fb_off);
+            menuDrawable.setBounds(0, 0, drwableEdge, drwableEdge);
+            txtFbSwitch.setCompoundDrawables(null,menuDrawable,null,null);
+        }
+        if(mIsTorchOn){
+            menuDrawable = getResources().getDrawable(R.mipmap.light_on);
+            menuDrawable.setBounds(0, 0, drwableEdge, drwableEdge);
+            txtLight.setCompoundDrawables(null,menuDrawable,null,null);
+        }else{
+            menuDrawable = getResources().getDrawable(R.mipmap.light_off);
+            menuDrawable.setBounds(0, 0, drwableEdge, drwableEdge);
+            txtLight.setCompoundDrawables(null,menuDrawable,null,null);
+        }
+        if(mIsNeedMute){
+            menuDrawable = getResources().getDrawable(R.mipmap.mute_on);
+            menuDrawable.setBounds(0, 0, drwableEdge, drwableEdge);
+            txtMute.setCompoundDrawables(null,menuDrawable,null,null);
+        }else{
+            menuDrawable = getResources().getDrawable(R.mipmap.mute_off);
+            menuDrawable.setBounds(0, 0, drwableEdge, drwableEdge);
+            txtMute.setCompoundDrawables(null,menuDrawable,null,null);
+        }
+
+
+        txtSeize.setOnClickListener(this);
+        txtFbSwitch.setOnClickListener(this);
+        txtLight.setOnClickListener(this);
+        txtCapture.setOnClickListener(this);
+        txtMute.setOnClickListener(this);
+        txtCancel.setOnClickListener(this);
+
+        shareDialog.show();
+    }
+
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.txt_seize:
+                WarnTipDialog tipdialog = new WarnTipDialog(this, "确定要发起续播竞赛吗？");
+                tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mCanSeize = false;
+                        SeizeNotifyEvent.SeizeNotifyBean seizeStartBean = new SeizeNotifyEvent.SeizeNotifyBean();
+                        seizeStartBean.setGroupId(groupId);
+                        seizeStartBean.setLiveId(liveId);
+                        seizeStartBean.setType(0);
+                        seizeStartBean.setSeconds(15);
+                        LiveSeizeStartNotify.instance().executeCommand4Send(seizeStartBean);
+                    }
+                });
+                tipdialog.show();
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_fb_switch:
+                if (!mHandler.hasMessages(MSG_FB)) {
+                    mHandler.sendEmptyMessage(MSG_FB);
+                }
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_light:
+                if(mIsTorchOn){
+                    mIsTorchOn = false;
+                    mCameraStreamingManager.turnLightOff();
+                }else{
+                    mIsTorchOn = true;
+                    mCameraStreamingManager.turnLightOn();
+                }
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_capture:
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_mute:
+                if (!mHandler.hasMessages(MSG_MUTE)) {
+                    mHandler.sendEmptyMessage(MSG_MUTE);
+                }
+                shareDialog.dismiss();
+                break;
+            case R.id.txt_cancel:
+                shareDialog.dismiss();
                 break;
         }
     }
@@ -882,14 +983,17 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         public void onFinish() {
 
             //计数统计完毕，通知续播
+            if(relayUserNo == null){
+                ToastUtil.showLongToast(UploadVideoActivity.this, "没有续播者，结束本次直播！");
+                ActivityUtil.finish(UploadVideoActivity.this);
+                return;
+            }
+
             txtCount.setVisibility(View.GONE);
             SeizeNotifyEvent.SeizeNotifyBean seizeStartBean = new SeizeNotifyEvent.SeizeNotifyBean();
             seizeStartBean.setGroupId(groupId);
             seizeStartBean.setLiveId(liveId);
             seizeStartBean.setCount(relayCount);
-            if (relayUserNo == null) {
-                relayUserNo = "19400000005";
-            }
             seizeStartBean.setUserNo(relayUserNo);
             LiveSeizeStopNotify.instance().executeCommand4Send(seizeStartBean);
         }

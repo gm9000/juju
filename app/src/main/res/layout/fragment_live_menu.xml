@@ -30,22 +30,22 @@
         />
     <Button
         android:id="@+id/btn_send"
-        android:layout_toLeftOf="@+id/img_share"
         android:text="@string/send"
         android:textColor="@color/white"
         android:textSize="10sp"
-        android:layout_width="45dp"
+        android:layout_width="60dp"
         android:layout_height="30dp"
+        android:layout_alignParentRight="true"
         android:background="@drawable/btn_bg_blue"
         android:layout_alignParentBottom="true"
-        android:layout_marginRight="20dp"/>
-    <ImageView
-        android:id="@+id/img_share"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:layout_alignParentBottom="true"
-        android:layout_marginRight="30dp"
-        android:layout_alignParentRight="true"
-        android:src="@mipmap/share"/>
+        android:layout_marginRight="10dp"/>
+    <!--<ImageView-->
+        <!--android:id="@+id/img_share"-->
+        <!--android:layout_width="30dp"-->
+        <!--android:layout_height="30dp"-->
+        <!--android:layout_alignParentBottom="true"-->
+        <!--android:layout_marginRight="30dp"-->
+        <!--android:layout_alignParentRight="true"-->
+        <!--android:src="@mipmap/share"/>-->
 
 </RelativeLayout>

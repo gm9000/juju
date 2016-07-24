@@ -108,6 +108,10 @@
         <item name="android:textSize">12sp</item>
         <item name="android:focusable">false</item>
     </style>
+    <style name="BlueTxt20" parent="@style/TxtBlue">
+        <item name="android:textSize">20sp</item>
+        <item name="android:focusable">false</item>
+    </style>
 
     <style name="GrayTxt10" parent="@style/TxtGray">
         <item name="android:textSize">10sp</item>
@@ -124,6 +128,11 @@
     <style name="GrayTxt16" parent="@style/TxtGray">
         <item name="android:textSize">16sp</item>
         <item name="android:focusable">false</item>
+    </style>
+    <style name="GrayItalicTxt24" parent="@style/TxtGray">
+        <item name="android:textSize">24sp</item>
+        <item name="android:focusable">false</item>
+        <item name="android:textStyle">italic</item>
     </style>
 
 

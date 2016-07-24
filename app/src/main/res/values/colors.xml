@@ -17,6 +17,7 @@
     <color name="white_translucent">#50FFFFFF</color>
     <color name="black_translucent">#B0000000</color>
     <color name="black_translucent1">#70000000</color>
+    <color name="blue_translucent">#500082E3</color>
 
     <color name="border">@color/white_translucent</color>
     <color name="guideline">@color/white_translucent</color>

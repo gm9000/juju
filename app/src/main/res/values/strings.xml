@@ -61,6 +61,7 @@
     <string name="no_network">网络连接不可用，请检查你的网络设置</string>
     <string name="operation_success">操作成功</string>
     <string name="operation_fail">操作失败</string>
+    <string name="empty_data">空空无也！</string>
 
 
     <!-- 群聊 -->
@@ -212,7 +213,7 @@
     <string name="party_finish_send_failed">聚会结束失败</string>
 
 
-    <!--直播通知相关 -->
+    <!--直播相关 -->
     <string name="live_limit">一个聚会同时只允许一个直播</string>
     <string name="live_start_send_success">直播发布成功</string>
     <string name="live_start_send_failed">直播发布失败</string>
@@ -224,6 +225,14 @@
     <string name="live_seize_stop_send_failed">抢播结束失败</string>
     <string name="live_enter">进来围观</string>
     <string name="live_exit">暂时离开</string>
+    <string name="left_time">剩余时间：</string>
+    <string name="click_hint">猛戳屏幕\n争夺续播权</string>
+    <string name="live_seize">续播</string>
+    <string name="live_fb">美肤</string>
+    <string name="live_capture">截图</string>
+    <string name="live_sound">声音</string>
+    <string name="live_light">照明</string>
+
 
 
     <string name="join_group_send_success">加入群聊成功</string>
