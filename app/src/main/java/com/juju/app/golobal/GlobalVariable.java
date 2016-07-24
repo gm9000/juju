@@ -18,6 +18,16 @@ public final class GlobalVariable {
     public static final int liveServerPort = 1935 ;
     public static String videoUrl = "http://devimages.apple.com/iphone/samples/bipbop/gear1/prog_index.m3u8";
 
+
+    /**
+     *  1：可以扩展多个TRACKER_SERVER1和GROUPNAME1
+     *  2: GROUPNAME1可以包含多个STORAGE_SERVER（N）
+     *  3：STORAGE_SERVER通过TRACKER_SERVER1获取
+     */
+    public static final String TRACKER_SERVER1 = "219.143.237.229:22122";
+    public static final String GROUPNAME1 = "group1";
+
+
 //    public static boolean isAlive = false;
 
     private static HashMap dataMap = new HashMap<String,Object>();

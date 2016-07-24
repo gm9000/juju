@@ -9,6 +9,8 @@ import com.juju.app.fastdfs.file.handler.TrackerGetStoreStorageHandler;
 import com.juju.app.fastdfs.service.ITrackerClientService;
 import com.juju.app.fastdfs.socket.FdfsSocket;
 import com.juju.app.fastdfs.socket.FdfsSocketService;
+import com.juju.app.golobal.AppContext;
+import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.utils.StringUtils;
 import org.apache.commons.io.IOUtils;
 
@@ -49,7 +51,7 @@ public class TrackerClientService implements ITrackerClientService {
             synchronized (TrackerClientService.class) {
                 if (inst == null) {
                     inst = new TrackerClientService();
-                    inst.setTrackerServerValues(new String[]{"219.143.237.229:22122"});
+                    inst.setTrackerServerValues(new String[]{GlobalVariable.TRACKER_SERVER1});
                     inst.setFdfsSocketService(FdfsSocketService.instance());
                     inst.init();
                 }
