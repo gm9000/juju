@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -28,32 +27,36 @@ import com.baidu.mapapi.map.MyLocationConfiguration;
 import com.baidu.mapapi.map.OverlayOptions;
 import com.baidu.mapapi.model.LatLng;
 import com.baidu.mapapi.model.LatLngBounds;
+import com.baidu.mapapi.utils.DistanceUtil;
 import com.juju.app.R;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Plan;
 import com.juju.app.entity.User;
+import com.juju.app.event.notify.LocationReportEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.service.notify.LocationReportNotify;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.view.LocationImageView;
-import com.juju.app.view.RoundImageView;
 import com.rey.material.app.BottomSheetDialog;
 import com.skyfishjy.library.RippleBackground;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.xutils.common.Callback;
 import org.xutils.ex.DbException;
 import org.xutils.image.ImageOptions;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.ViewInject;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 @ContentView(R.layout.activity_party_location)
 public class PartyLocationActivity extends BaseActivity implements View.OnClickListener, BaiduMap.OnMarkerClickListener, View.OnTouchListener{
@@ -73,8 +76,6 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
     @ViewInject(R.id.mapView)
     private MapView mapView;
 
-    @ViewInject(R.id.btn_update_location)
-    private Button btnUpdateLocation;
     @ViewInject(R.id.mic_ripple)
     private RippleBackground micRipple;
     @ViewInject(R.id.img_mic)
@@ -90,9 +91,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
     private float zoom = 18f;
 
     private HashMap<String,Marker> userMarkerMap;
-    private List<UserLocationInfo> userLocationInfoList;
 
-    private List<LatLng> locationList;
 
     private LatLngBounds.Builder boundsBuilder;
 
@@ -115,12 +114,14 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
     private TextView txtCancel;
     private String targetPhone;
 
+    private String groupId;
     private String partyId;
     private Plan plan;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(this);
         initParam();
         initData();
         initView();
@@ -141,6 +142,19 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
         // 在activity执行onDestroy时执行mMapView.onDestroy()，实现地图生命周期管理
         mapView.onDestroy();
         mapView = null;
+
+        if(EventBus.getDefault().isRegistered(this)){
+            EventBus.getDefault().unregister(this);
+        }
+
+        //  报告退出位置分享
+        LocationReportEvent.LocationReportBean quitBean = new LocationReportEvent.LocationReportBean();
+        quitBean.setGroupId(groupId);
+        quitBean.setPartyId(partyId);
+        quitBean.setUserNo(AppContext.getUserInfoBean().getUserNo());
+        quitBean.setNickName(AppContext.getUserInfoBean().getNickName());
+        quitBean.setExit(true);
+        LocationReportNotify.instance().executeCommand4Send(quitBean);
         super.onDestroy();
     }
 
@@ -162,6 +176,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
     }
 
     private void initParam() {
+        groupId = getIntent().getStringExtra(Constants.GROUP_ID);
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
         try {
             plan = JujuDbUtils.getInstance().selector(Plan.class).where("status", "=", 1).and("party_id", "=", partyId).findFirst();
@@ -172,42 +187,14 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
 
     public void initData() {
 
-        locationList = new ArrayList<LatLng>();
-        locationList.add(new LatLng(39.9128964508378,116.317821504652));
-        locationList.add(new LatLng(39.9594476748648,116.310460947917));
-        locationList.add(new LatLng(39.9727856437081,116.328102464588));
-        locationList.add(new LatLng(39.9489004384569,116.331535766545));
-        locationList.add(new LatLng(39.974325406894,116.386965867815));
-        locationList.add(new LatLng(40.0245711174139,116.396177490971));
-        locationList.add(new LatLng(39.9682743181947,116.316048927732));
-        locationList.add(new LatLng(39.9222810304695,116.401137771222));
-        locationList.add(new LatLng(39.8872623839031,116.38875275265));
-        locationList.add(new LatLng(40.0368943327654,116.391552769546));
-
         latitude = plan.getLatitude();
         longitude = plan.getLongitude();
 
         userNo = AppContext.getUserInfoBean().getUserNo();
 
         userMarkerMap = new HashMap<String,Marker>();
-        userLocationInfoList = new ArrayList<UserLocationInfo>();
         boundsBuilder = new LatLngBounds.Builder();
 
-        String userNo = "19400000005";
-        UserLocationInfo userLocationInfo = new UserLocationInfo(userNo,39.9727856437081,116.328102464588);
-        userLocationInfoList.add(userLocationInfo);
-
-        String userNo1 = "19400000006";
-        UserLocationInfo userLocationInfo1 = new UserLocationInfo(userNo1,39.9128964508378,116.317821504652);
-        userLocationInfoList.add(userLocationInfo1);
-
-        String userNo2 = "19400000007";
-        UserLocationInfo userLocationInfo2 = new UserLocationInfo(userNo2,39.974325406894,116.386965867815);
-        userLocationInfoList.add(userLocationInfo2);
-
-        String userNo3 = "19400000008";
-        UserLocationInfo userLocationInfo3 = new UserLocationInfo(userNo3,39.9222810304695,116.401137771222);
-        userLocationInfoList.add(userLocationInfo3);
 
     }
 
@@ -215,26 +202,9 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
         img_back.setOnClickListener(this);
         txt_left.setOnClickListener(this);
 
-        btnUpdateLocation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                updateLocation();
-            }
-        });
-
         mBaiduMap.setOnMarkerClickListener(this);
         imgMic.setOnTouchListener(this);
         imgLocate.setOnClickListener(this);
-    }
-
-    private void updateLocation() {
-        for(String targetNo:userMarkerMap.keySet()){
-            if(targetNo.equals(userNo)){
-                continue;
-            }
-            userMarkerMap.get(targetNo).setPosition(locationList.get(new Random().nextInt(10)));
-            mBaiduMap.hideInfoWindow();
-        }
     }
 
     private void initView() {
@@ -260,18 +230,13 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
         LocationClientOption option = new LocationClientOption();
         option.setOpenGps(true); // 打开gps
         option.setCoorType("bd09ll"); // 设置坐标类型
-        option.setScanSpan(1000);
+        option.setScanSpan(5000);
         mLocClient.setLocOption(option);
         mLocClient.start();
 
     }
 
     private void initOverlay() {
-
-        for(UserLocationInfo locationInfo:userLocationInfoList){
-            locationInfo.showMapIcon();
-            boundsBuilder.include(locationInfo.getLocation());
-        }
 
         if (latitude != 0) {
             LatLng center = new LatLng(latitude, longitude);
@@ -293,7 +258,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.img_right:
-                ActivityUtil.startActivityNew(this,PartyActivity.class);
+                ActivityUtil.startActivityNew(this,PartyLiveActivity.class);
                 break;
             case R.id.img_back:
                 ActivityUtil.finish(this);
@@ -356,11 +321,12 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
             msgDialog = new BottomSheetDialog(this);
             msgDialog.contentView(R.layout.layout_friend_contact)
                     .inDuration(300);
-            RoundImageView headImg = (RoundImageView)msgDialog.findViewById(R.id.img_head);
+            CircleImageView headImg = (CircleImageView)msgDialog.findViewById(R.id.img_head);
             txtCall = (TextView)msgDialog.findViewById(R.id.txt_call);
             txtSms = (TextView)msgDialog.findViewById(R.id.txt_sms);
             txtCancel = (TextView)msgDialog.findViewById(R.id.txt_cancel);
-            BitmapUtilFactory.getInstance(getContext()).bind(headImg, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + clickUserNo);
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                    + clickUserNo, headImg, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             txtCall.setOnClickListener(this);
             txtSms.setOnClickListener(this);
             txtCancel.setOnClickListener(this);
@@ -407,7 +373,6 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
             if (isFirstLoc) {
                 isFirstLoc = false;
                 UserLocationInfo myLocationInfo = new UserLocationInfo(userNo,location.getLatitude(),location.getLongitude(),true);
-                userLocationInfoList.add(myLocationInfo);
                 myLocationInfo.showMapIcon();
                 boundsBuilder.include(myLatLng);
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLngBounds(boundsBuilder.build()));
@@ -415,6 +380,18 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
                 userMarkerMap.get(userNo).setPosition(myLatLng);
                 mBaiduMap.hideInfoWindow();
             }
+
+            double distance = 0;
+            if(latitude != 0 ){
+                distance = DistanceUtil.getDistance(new LatLng(latitude,longitude),myLatLng);
+            }
+
+            //  报告自己的位置
+            LocationReportEvent.LocationReportBean locationReportBean = LocationReportEvent
+                    .LocationReportBean.valueOf(groupId,partyId, myLatLng.latitude,myLatLng.longitude,distance,
+                            AppContext.getUserInfoBean().getUserNo()
+                            , AppContext.getUserInfoBean().getNickName());
+            LocationReportNotify.instance().executeCommand4Send(locationReportBean);
         }
     }
 
@@ -470,6 +447,37 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
                 }
             });
 
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4LocationReport(LocationReportEvent event) {
+        LocationReportEvent.LocationReportBean locationReportBean = event.bean;
+        if(!locationReportBean.getPartyId().equals(partyId)){
+            return;
+        }
+
+        if(locationReportBean.isExit()){
+            if(userMarkerMap.containsKey(locationReportBean.getUserNo())) {
+                userMarkerMap.get(locationReportBean.getUserNo()).remove();
+                userMarkerMap.remove(locationReportBean.getUserNo());
+            }
+            return;
+        }
+
+        switch (event.event) {
+            case LOCATION_REPORT_OK:
+                if(!userMarkerMap.containsKey(locationReportBean.getUserNo())){
+                    UserLocationInfo userLocationInfo = new UserLocationInfo(locationReportBean.getUserNo(),locationReportBean.getLatitude(),locationReportBean.getLongitude());
+                    userLocationInfo.showMapIcon();
+                    boundsBuilder.include(myLatLng);
+                    mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLngBounds(boundsBuilder.build()));
+
+                }else{
+                    userMarkerMap.get(locationReportBean.getUserNo()).setPosition(new LatLng(locationReportBean.getLatitude(),locationReportBean.getLongitude()));
+                    mBaiduMap.hideInfoWindow();
+                }
+                break;
         }
     }
 

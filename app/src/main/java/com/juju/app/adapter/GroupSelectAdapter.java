@@ -30,13 +30,13 @@ public class GroupSelectAdapter extends BaseAdapter  implements SectionIndexer,
         AdapterView.OnItemLongClickListener{
     private Logger logger = Logger.getLogger(GroupSelectAdapter.class);
 
-    private List<User>  allUserList = new ArrayList<>();
-    private List<User>  backupList = new ArrayList<>();
+    private List<User>  allUserList = new ArrayList<User>();
+    private List<User>  backupList = new ArrayList<User>();
 
     /**已经选中的，不能操作*/
-    private Set<String> alreadyListSet = new HashSet<>();
+    private Set<String> alreadyListSet = new HashSet<String>();
     /**在选择面板里面选择的*/
-    private Set<String> checkListSet= new HashSet<>();
+    private Set<String> checkListSet= new HashSet<String>();
 
     private boolean isSearchMode= false;
     private String searchKey;

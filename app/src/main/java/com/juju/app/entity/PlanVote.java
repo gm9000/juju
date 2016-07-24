@@ -12,16 +12,11 @@ public class PlanVote extends BaseEntity {
     @Column(name="plan_id")
     private String planId;
 
-//    @Foreign(column = "attenderNo",foreign = "userNo")
-
 
     //关联User(user_no字段)
     @Column(name="attender_no")
     private String attenderNo;
 
-
-    //临时属性
-    private User attender;
 
 
 
@@ -31,14 +26,6 @@ public class PlanVote extends BaseEntity {
 
     public void setPlanId(String planId) {
         this.planId = planId;
-    }
-
-    public User getAttender() {
-        return attender;
-    }
-
-    public void setAttender(User attender) {
-        this.attender = attender;
     }
 
     public String getAttenderNo() {

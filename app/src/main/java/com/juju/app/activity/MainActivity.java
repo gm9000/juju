@@ -28,9 +28,9 @@ import com.juju.app.biz.impl.GroupDaoImpl;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.enums.DisplayAnimation;
-import com.juju.app.entity.chat.SessionEntity;
 import com.juju.app.event.GroupEvent;
 import com.juju.app.event.UnreadEvent;
+import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.fragment.GroupChatFragment;
 import com.juju.app.fragment.GroupPartyFragment;
 import com.juju.app.fragment.MeFragment;
@@ -43,7 +43,6 @@ import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
@@ -74,6 +73,8 @@ import java.util.Map;
 @ContentView(R.layout.activity_main)
 @CreateUI(showTopView = true)
 public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCallBack4OK, MenuDisplayProcess {
+    private static final String TAG = "MainActivity";
+
     private Logger logger = Logger.getLogger(MainActivity.class);
 
     private final int CREATE_GROUP = 0x01;
@@ -82,8 +83,6 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     private final int CHOOSE_GROUP = 0x04;
 
     private Handler uiHandler = new Handler();
-
-
 
 //    @ViewInject(R.id.img_right)
 //    private ImageView img_right;
@@ -103,6 +102,9 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     @ViewInject(R.id.unread_msg_number)
     private TextView tx_unread_msg_number;
 
+    @ViewInject(R.id.unread_party_number)
+    private TextView txtUnreadPartyNumber;
+
 
     private GroupChatFragment groupChatFragment;
     private GroupPartyFragment groupPartyFragment;
@@ -116,6 +118,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     private TextView[] textviews;
     private int index;
     private int currentTabIndex;// 当前fragment的index
+
+    private boolean isShow;
 
     private UserInfoBean userInfoBean;
 
@@ -143,12 +147,15 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        logger.d(TAG,"onCreate");
+        isShow = true;
         EventBus.getDefault().register(this);
         super.onCreate(savedInstanceState);
     }
 
     @Override
     protected void onDestroy() {
+        logger.d(TAG,"onDestroy");
         imServiceConnector.disconnect(MainActivity.this);
         EventBus.getDefault().unregister(this);
         super.onDestroy();
@@ -157,7 +164,19 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
     //重连
     @Override
     protected void onResume() {
+        logger.d(TAG,"onResume");
+        isShow = true;
+        if(currentTabIndex==1){
+            showPartyHint(false);
+        }
         super.onResume();
+    }
+
+    @Override
+    protected void onPause(){
+        logger.d(TAG,"onPause");
+        isShow = false;
+        super.onPause();
     }
 
     @Override
@@ -221,7 +240,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
      */
     private void initTabView() {
         groupChatFragment = new GroupChatFragment();
-        groupPartyFragment = new GroupPartyFragment();
+        groupPartyFragment = new GroupPartyFragment(this);
+
         meFragment = new MeFragment();
         fragments = new Fragment[] { groupChatFragment, groupPartyFragment,
                 meFragment };
@@ -273,6 +293,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 break;
             case R.id.re_group_party:
                 index = 1;
+                showPartyHint(false);
                 setTopLeftButton(R.mipmap.search_white);
                 setTopTitle(R.string.group_party);
                 setTopRightButton(R.mipmap.top_menu);
@@ -393,7 +414,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
                 partyTitlePopup.show(layout_bar);
                 //TODO 需要修改为从群聊中发起聚会
 //                String groupId = "570dbc6fe4b092891a647e32";
-//                BasicNameValuePair groupIdValue = new BasicNameValuePair(Constants.GROURP_ID,groupId);
+//                BasicNameValuePair groupIdValue = new BasicNameValuePair(Constants.GROUP_ID,groupId);
 //                ActivityUtil.startActivity(this,PartyCreateActivity.class,groupIdValue);
                 break;
         }
@@ -580,7 +601,7 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             switch (requestCode) {
                 case CHOOSE_GROUP:
                     String groupId = data.getStringExtra("selectedGroupId");
-                    ActivityUtil.startActivityNew(MainActivity.this,PartyCreateActivity.class,Constants.GROURP_ID,groupId);
+                    ActivityUtil.startActivityNew(MainActivity.this,PartyCreateActivity.class,Constants.GROUP_ID,groupId);
                     break;
             }
         }
@@ -612,6 +633,15 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
         }
     }
 
+    public void showPartyHint(boolean flag){
+        if(flag){
+            txtUnreadPartyNumber.setVisibility(View.VISIBLE);
+        }else{
+            txtUnreadPartyNumber.setVisibility(View.GONE);
+        }
+
+    }
+
 
     //创建群聊 （考虑放在IMGroupManager）
     private void createGroup(String name, String description) {
@@ -623,8 +653,8 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
             ToastUtil.TextIntToast(getApplicationContext(), R.string.chat_name_over_length, 0);
             return;
         }
-        Map<String, Object> valueMap = new HashMap<>();
-        Map<String, Object> groupMap = new HashMap<>();
+        Map<String, Object> valueMap = new HashMap<String,Object>();
+        Map<String, Object> groupMap = new HashMap<String,Object>();
 
         valueMap.put("userNo", userInfoBean.getUserNo());
         valueMap.put("token", userInfoBean.getToken());
@@ -838,5 +868,18 @@ public class MainActivity extends BaseActivity implements CreateUIHelper, HttpCa
 
     public ImageView getTopLeftBtn(){
         return topLeftBtn;
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4PartyNotifyEvent(PartyNotifyEvent event){
+        if(isShow && currentTabIndex==1){
+            return;
+        }
+        switch (event.event){
+            case PARTY_RECRUIT_OK:
+                showPartyHint(true);
+                break;
+        }
     }
 }

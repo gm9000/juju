@@ -41,63 +41,11 @@
             android:textSize="20sp"/>
     </LinearLayout>
 
-    <android.support.v4.widget.SlidingPaneLayout
-        android:id="@+id/layout_sliding"
+    <android.support.v4.view.ViewPager
+        android:id="@+id/live_menu_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="10dp">
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
-        <RelativeLayout
-            android:id="@+id/layout_right_menu"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <ListView
-                android:id="@+id/live_discuss_listView"
-                android:layout_marginBottom="40dp"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:scrollbars="none"
-                android:layout_alignParentBottom="true"/>
-            <EditText
-                android:id="@+id/txt_discuss"
-                android:layout_width="match_parent"
-                android:layout_toLeftOf="@+id/btn_send"
-                android:layout_height="30dp"
-                android:layout_alignParentBottom="true"
-                android:layout_marginLeft="10dp"
-                android:layout_marginRight="2dp"
-                android:paddingLeft="2dp"
-                android:background="@drawable/discuss_input_border"
-                android:drawableLeft="@mipmap/edit"
-                android:hint="@string/live_discuss"
-                android:singleLine="true"
-                />
-            <Button
-                android:id="@+id/btn_send"
-                android:layout_toLeftOf="@+id/img_share"
-                android:text="@string/send"
-                android:textColor="@color/white"
-                android:textSize="10sp"
-                android:layout_width="45dp"
-                android:layout_height="30dp"
-                android:background="@drawable/btn_bg_blue"
-                android:layout_alignParentBottom="true"
-                android:layout_marginRight="20dp"/>
-            <ImageView
-                android:id="@+id/img_share"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:layout_alignParentBottom="true"
-                android:layout_marginRight="30dp"
-                android:layout_alignParentRight="true"
-                android:src="@mipmap/share"/>
-
-        </RelativeLayout>
-
-    </android.support.v4.widget.SlidingPaneLayout>
+        android:layout_marginBottom="10dp"/>
 
     <ImageView
         android:id="@+id/img_close"
@@ -108,4 +56,24 @@
         android:layout_width="32dp"
         android:layout_height="32dp"
         android:src="@mipmap/power"/>
+    <TextView
+        android:id="@+id/txt_count"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_centerHorizontal="true"
+        style="@style/WhiteTxt18"
+        android:visibility="gone"/>
+    <TextView
+        android:id="@+id/txt_relay_count"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:gravity="center"
+        android:textSize="50dp"
+        android:textColor="@color/white"
+        android:layout_centerInParent="true"
+        android:background="@color/black_translucent"
+        android:visibility="gone"
+        />
 </RelativeLayout>

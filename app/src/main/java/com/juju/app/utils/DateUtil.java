@@ -12,6 +12,9 @@ import java.util.Locale;
 
 public class DateUtil {
 
+    private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static SimpleDateFormat format2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+
     private static Date preRefreshDateTime;
 
     public static boolean toRefresh() {
@@ -28,7 +31,6 @@ public class DateUtil {
 
     @SuppressLint("SimpleDateFormat")
     public static Date getDate(Long dateLong) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String d = format.format(dateLong);
         Date date;
         try {
@@ -247,12 +249,6 @@ public class DateUtil {
         return strDesc;
     }
 
-    public static String getTime4TimeTitle(Date date) {
-        // M:月 d:天 a:上午或下午 h:12小时制的小时 m:分钟
-        SimpleDateFormat format = new SimpleDateFormat("MM-dd a hh:mm",
-                Locale.CHINA);
-        return format.format(date);
-    }
 
     public static int getCurTimeStamp() {
 
@@ -418,5 +414,32 @@ public class DateUtil {
             sb.append("刚刚");
         }
         return sb.toString();
+    }
+
+
+    public static String formatToMinute(Date date){
+        return format2.format(date);
+    }
+
+    public static String format(Date date){
+        return format.format(date);
+    }
+
+    public static Date parse(String dateStr){
+        try {
+            return format.parse(dateStr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public static Date parseFromMinute(String dateStr){
+        try {
+            return format2.parse(dateStr);
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

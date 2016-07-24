@@ -135,7 +135,7 @@ public abstract class DaoSupport<T, PK> implements IDAO<T, PK> {
         } catch (DbException e) {
             Log.e(TAG, "execute findAll error:"+clazz.getSimpleName(), e);
         }
-        if(list == null) list = new ArrayList<>();
+        if(list == null) list = new ArrayList<T>();
         return list;
     }
 

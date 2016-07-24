@@ -1,10 +1,6 @@
 package com.juju.app.golobal;
 
-import com.juju.app.config.*;
 import com.juju.app.config.HttpConstants;
-import com.juju.app.utils.HttpReqParamUtil;
-
-import java.util.Map;
 
 /**
  * 项目名称：juju
@@ -174,8 +170,66 @@ public class CommandActionConstant {
             public String url() {
                 return HttpConstants.getUserUrl()+"/getGroupOutline";
             }
-        };
+        },
 
+        /**
+         * 获取聚会详情
+         */
+        GETPARTYINFO {
+            @Override
+            public int code() {
+                return Integer.parseInt("0030");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/getPartyInfo";
+            }
+        },
+
+
+        /**
+         * 获取直播令牌
+         */
+        GET_LIVE_TOKEN {
+            @Override
+            public int code() {
+                return Integer.parseInt("0040");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/getLiveToken";
+            }
+        },
+        /**
+         * 开始直播
+         */
+        ADD_LIVE {
+            @Override
+            public int code() {
+                return Integer.parseInt("0041");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/addLive";
+            }
+        },
+        /**
+         * 停止直播
+         */
+        END_LIVE {
+            @Override
+            public int code() {
+                return Integer.parseInt("0042");
+            }
+
+            @Override
+            public String url() {
+                return HttpConstants.getUserUrl()+"/endLive";
+            }
+        };
 
 
         public abstract int code();

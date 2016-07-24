@@ -9,7 +9,6 @@ import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
@@ -17,6 +16,9 @@ import com.juju.app.entity.Plan;
 import com.juju.app.fragment.party.PlanDetailFragment;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ScreenUtil;
@@ -54,6 +56,7 @@ public class PlanDetailActivity extends BaseActivity implements ViewPager.OnPage
     private ImageView[] tips;
 
 
+    private String groupId;
     private String partyId;
     private String planId;
     private List<Plan> planList;
@@ -65,13 +68,43 @@ public class PlanDetailActivity extends BaseActivity implements ViewPager.OnPage
 
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
+    public IMContactManager getIMContactManager() {
+        return imService.getContactManager();
+    }
+
+    private IMService imService;
+
+    /**
+     * IMServiceConnector
+     */
+    private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("plan_detail_activity#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+            initParam();
+            initData();
+            initView();
+            initListeners();
+        }
+
+        @Override
+        public void onServiceDisconnected() {
+
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        initParam();
-        initData();
-        initView();
-        initListeners();
+        imServiceConnector.connect(this);
+
+    }
+
+    @Override
+    protected  void onDestroy(){
+        super.onDestroy();
+        imServiceConnector.disconnect(this);
     }
 
     private void initListeners(){
@@ -91,7 +124,7 @@ public class PlanDetailActivity extends BaseActivity implements ViewPager.OnPage
             }
         }
 
-        planDetailAdapter = new PagePlanDetailAdapter(getSupportFragmentManager(),this,planList,isOwner);
+        planDetailAdapter = new PagePlanDetailAdapter(getSupportFragmentManager(),this,groupId,planList,isOwner);
         mPager.setAdapter(planDetailAdapter);
         mPager.setCurrentItem(planIndex);
         mPager.addOnPageChangeListener(this);
@@ -130,6 +163,7 @@ public class PlanDetailActivity extends BaseActivity implements ViewPager.OnPage
     }
 
     public void initParam() {
+        groupId = getIntent().getStringExtra(Constants.GROUP_ID);
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
         isOwner = getIntent().getBooleanExtra(Constants.IS_OWNER, false);
         planId = getIntent().getStringExtra(Constants.PLAN_ID);
@@ -194,13 +228,15 @@ public class PlanDetailActivity extends BaseActivity implements ViewPager.OnPage
     private static final class PagePlanDetailAdapter extends FragmentStatePagerAdapter {
 
         private PlanDetailActivity activity;
+        private String groupId;
         private List<Plan> planList;
         private boolean isOwner;
         private Map<Integer,PlanDetailFragment> fragmentMap = new HashMap<Integer,PlanDetailFragment>();
 
-        public PagePlanDetailAdapter(FragmentManager fragmentManager, PlanDetailActivity activity, List<Plan> planList, boolean isOwner) {
+        public PagePlanDetailAdapter(FragmentManager fragmentManager, PlanDetailActivity activity,String groupId, List<Plan> planList, boolean isOwner) {
             super(fragmentManager);
             this.activity = activity;
+            this.groupId = groupId;
             this.planList = planList;
             this.isOwner = isOwner;
         }
@@ -208,7 +244,7 @@ public class PlanDetailActivity extends BaseActivity implements ViewPager.OnPage
 
         @Override
         public Fragment getItem(int position) {
-            final PlanDetailFragment fragment = new PlanDetailFragment(activity,planList.get(position),isOwner);
+            final PlanDetailFragment fragment = new PlanDetailFragment(activity,groupId,planList.get(position),isOwner);
             fragmentMap.put(position,fragment);
             return fragment;
         }

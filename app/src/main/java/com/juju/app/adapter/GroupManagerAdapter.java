@@ -48,7 +48,7 @@ public class GroupManagerAdapter extends BaseAdapter {
     private boolean showMinusTag = false;
     private boolean showPlusTag = false;
 
-	private List<User> memberList = new ArrayList<>();
+	private List<User> memberList = new ArrayList<User>();
     private IMService imService;
     private String groupCreatorId = "";
     private PeerEntity peerEntity;

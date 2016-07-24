@@ -1,6 +1,5 @@
 package com.juju.app.adapters;
 
-import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -8,14 +7,16 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.activity.party.PlanDetailActivity;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.PlanVote;
-import com.juju.app.golobal.BitmapUtilFactory;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ViewHolderUtil;
-import com.juju.app.view.RoundImageView;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * 项目名称：juju
@@ -26,13 +27,13 @@ import java.util.List;
  */
 public class PlanVoteListAdapter extends BaseAdapter {
 
-    private Context context;
+    private PlanDetailActivity context;
 
     private List<PlanVote> planVoteList;
 
     private int changeIndex;
 
-    public PlanVoteListAdapter(Context context, List<PlanVote> planVoteList) {
+    public PlanVoteListAdapter(PlanDetailActivity context, List<PlanVote> planVoteList) {
         this.context = context;
         if(planVoteList == null){
             this.planVoteList = new ArrayList<PlanVote>();
@@ -71,13 +72,13 @@ public class PlanVoteListAdapter extends BaseAdapter {
             convertView = LayoutInflater.from(context).
                     inflate(R.layout.user_icon_item, parent, false);
         }
-        RoundImageView img_head = ViewHolderUtil.get(convertView, R.id.img_head);
+        CircleImageView img_head = ViewHolderUtil.get(convertView, R.id.img_head);
         TextView txt_nickName = ViewHolderUtil.get(convertView, R.id.txt_nick_name);
 
         final PlanVote planVote = planVoteList.get(position);
-
-        BitmapUtilFactory.getInstance(context).bind(img_head, HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + planVote.getAttender().getUserNo(), BitmapUtilFactory.Option.imageOptions());
-        txt_nickName.setText(planVote.getAttender().getNickName());
+        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                + planVote.getAttenderNo(), img_head, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+        txt_nickName.setText(context.getIMContactManager().findContact(planVote.getAttenderNo()).getNickName());
 
         return convertView;
 

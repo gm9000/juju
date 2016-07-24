@@ -81,7 +81,6 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/shaders" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/blame" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/builds" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/bundles" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/dependency-cache" />
@@ -99,21 +98,17 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.panxw.imageindicator/library/1.0.2/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.skyfishjy.ripplebackground/library/1.0.1/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/com.squareup.leakcanary/leakcanary-android/1.4-beta2/jars" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/de.hdodenhof/circleimageview/2.1.0/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/org.xutils/xutils/3.3.34/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/exploded-aar/tv.danmaku.ijk.media/ijkplayer-java/0.5.1/jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-classes" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-runtime-classes" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-safeguard" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/incremental-verifier" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/instant-run-support" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jniLibs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/multi-dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/pre-dexed" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/reload-dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/restart-dex" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/shaders" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/symbols" />
@@ -127,8 +122,9 @@
     <orderEntry type="library" exported="" name="MobCommons" level="project" />
     <orderEntry type="library" exported="" name="design-23.1.0" level="project" />
     <orderEntry type="library" exported="" name="smack-resolver-minidns-4.1.5" level="project" />
-    <orderEntry type="library" exported="" name="happy-dns-0.2.7" level="project" />
     <orderEntry type="library" exported="" name="smack-im-4.1.5" level="project" />
+    <orderEntry type="library" exported="" name="happy-dns-0.2.7" level="project" />
+    <orderEntry type="library" exported="" name="pldroid-camera-streaming-1.7.1" level="project" />
     <orderEntry type="library" exported="" name="xutils-3.3.34" level="project" />
     <orderEntry type="library" exported="" name="smack-extensions-4.1.5" level="project" />
     <orderEntry type="library" exported="" name="zxing-3.2.2" level="project" />
@@ -165,6 +161,7 @@
     <orderEntry type="library" exported="" name="jsr305-2.0.1" level="project" />
     <orderEntry type="library" exported="" name="jackson-annotations-2.6.0" level="project" />
     <orderEntry type="library" exported="" name="baidumapapi_cloud_v3_7_3" level="project" />
+    <orderEntry type="library" exported="" name="circleimageview-2.1.0" level="project" />
     <orderEntry type="library" exported="" name="eventbus-3.0.0" level="project" />
     <orderEntry type="library" exported="" name="nodemedia-client-v0.9.6" level="project" />
     <orderEntry type="library" exported="" name="systembartint-1.0.3" level="project" />
@@ -177,7 +174,6 @@
     <orderEntry type="library" exported="" name="haha-2.0.2" level="project" />
     <orderEntry type="library" exported="" name="support-annotations-23.4.0" level="project" />
     <orderEntry type="library" exported="" name="leakcanary-android-1.4-beta2" level="project" />
-    <orderEntry type="library" exported="" name="pldroid-camera-streaming-1.6.2" level="project" />
     <orderEntry type="library" exported="" name="commons-lang-2.4" level="project" />
     <orderEntry type="library" exported="" name="smack-sasl-provided-4.1.5" level="project" />
     <orderEntry type="library" exported="" name="commons-cli-1.2" level="project" />

@@ -220,7 +220,7 @@ public class GroupManagerActivity extends BaseActivity {
     private void onClick4Transfer(View view) {
         String itemListData =  buildItemList(peerEntity.getPeerId());
         String groupId = peerEntity.getId();
-        Map<String, Object> valueMap = new HashMap<>();
+        Map<String, Object> valueMap = new HashMap<String,Object>();
         valueMap.put(Constants.SINGLE_CHECK_LIST_DATA, itemListData);
         valueMap.put(Constants.SINGLE_CHECK_TARGET_ID, groupId);
         startActivityNew(GroupManagerActivity.this, GroupTransferActivity.class,
@@ -240,7 +240,7 @@ public class GroupManagerActivity extends BaseActivity {
                     //删除群组
                     Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("groupId", groupEntity.getId());
                     CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.DELETEGROUP;
-                    JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
+                    JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(httpReqParam.code(),
                             httpReqParam.url(), new HttpCallBack4OK() {
                         @Override
                         public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {

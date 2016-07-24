@@ -23,13 +23,11 @@ import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.utils.StringUtils;
-import com.juju.app.view.RoundImageView;
 import com.juju.app.view.dialog.WarnTipDialog;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
@@ -45,6 +43,8 @@ import org.xutils.view.annotation.ViewInject;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 @ContentView(R.layout.activity_setting)
 public class SettingActivity extends BaseActivity implements HttpCallBack {
@@ -64,7 +64,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
 
     @ViewInject(R.id.head)
-    private RoundImageView headImg;
+    private CircleImageView headImg;
 
 
     @ViewInject(R.id.layout_phone)
@@ -249,7 +249,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 //        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
 //        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
 //        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
-        Map<String, Object> valueMap = new HashMap<>();
+        Map<String, Object> valueMap = new HashMap<String,Object>();
         valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_nick_name));
         valueMap.put(Constants.PROPERTY_VALUE, txt_nickName.getText().toString());
         startActivityNew(this, PropertiesSettingActivity.class, valueMap);

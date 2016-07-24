@@ -45,7 +45,7 @@
             android:layout_height="80dp"
             android:src="@mipmap/play"/>
     </RelativeLayout>
-    <com.juju.app.view.RoundImageView
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/img_head"
         android:layout_marginRight="5dp"
         android:layout_marginLeft="10dp"

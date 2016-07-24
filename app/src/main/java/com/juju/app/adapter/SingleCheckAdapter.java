@@ -36,8 +36,8 @@ public class SingleCheckAdapter extends BaseAdapter implements SectionIndexer,
         AdapterView.OnItemClickListener {
 
     private Logger logger = Logger.getLogger(GroupSelectAdapter.class);
-    private List<ItemBean> allItemList = new ArrayList<>();
-    private List<ItemBean> backupList = new ArrayList<>();
+    private List<ItemBean> allItemList = new ArrayList<ItemBean>();
+    private List<ItemBean> backupList = new ArrayList<ItemBean>();
 
 
     private boolean isSearchMode = false;

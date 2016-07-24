@@ -1,11 +1,18 @@
 package com.juju.app.golobal;
 
 import com.juju.app.event.notify.ApplyInGroupEvent;
+import com.juju.app.event.notify.DiscussNotifyEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
+import com.juju.app.event.notify.LiveEnterNotifyEvent;
+import com.juju.app.event.notify.LiveNotifyEvent;
+import com.juju.app.event.notify.LocationReportEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.PartyNotifyEvent;
+import com.juju.app.event.notify.PlanVoteEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
+import com.juju.app.event.notify.SeizeNotifyEvent;
 
 /**
  * 项目名称：juju
@@ -16,7 +23,8 @@ import com.juju.app.event.notify.RemoveGroupEvent;
  */
 public final class IMBaseDefine {
 
-    private IMBaseDefine() {}
+    private IMBaseDefine() {
+    }
 
     //群组变更类型
     public enum GroupModifyType {
@@ -133,15 +141,16 @@ public final class IMBaseDefine {
         };
 
 
-
         public abstract String code();
+
         public abstract String desc();
+
         public abstract Class getCls();
 
 
         public static MsgType getInstanceByCode(String code) {
-            for(MsgType msgType : MsgType.values()) {
-                if(msgType.code().equals(code)) {
+            for (MsgType msgType : MsgType.values()) {
+                if (msgType.code().equals(code)) {
                     return msgType;
                 }
             }
@@ -355,7 +364,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -376,7 +385,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -397,7 +406,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return PlanVoteEvent.PlanVoteBean.class;
             }
 
             public int MsgType() {
@@ -418,7 +427,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -439,7 +448,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return PartyNotifyEvent.PartyNotifyBean.class;
             }
 
             public int MsgType() {
@@ -461,7 +470,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return LocationReportEvent.LocationReportBean.class;
             }
 
             public int MsgType() {
@@ -485,7 +494,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return LiveNotifyEvent.LiveNotifyBean.class;
             }
 
             public int MsgType() {
@@ -506,7 +515,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return LiveNotifyEvent.LiveNotifyBean.class;
             }
 
             public int MsgType() {
@@ -548,7 +557,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return DiscussNotifyEvent.DiscussNotifyBean.class;
             }
 
             public int MsgType() {
@@ -569,7 +578,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return SeizeNotifyEvent.SeizeNotifyBean.class;
             }
 
             public int MsgType() {
@@ -590,7 +599,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return SeizeNotifyEvent.SeizeNotifyBean.class;
             }
 
             public int MsgType() {
@@ -612,22 +621,46 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return SeizeNotifyEvent.SeizeNotifyBean.class;
             }
 
             public int MsgType() {
                 return DBConstant.MSG_TYPE_GROUP_NOTIFY;
             }
-        };
+        },
+
+        LIVE_ENTER {
+            @Override
+            public String code() {
+                return "4015";
+            }
+
+            @Override
+            public String desc() {
+                return "直播进入/离开";
+            }
+
+            @Override
+            public Class getCls() {
+                return LiveEnterNotifyEvent.LiveEnterNotifyBean.class;
+            }
+
+            public int MsgType() {
+                return DBConstant.MSG_TYPE_GROUP_NOTIFY;
+            }
+        },;
 
         public abstract String code();
+
         public abstract String desc();
+
         public abstract Class getCls();
+
         public abstract int MsgType();
 
         public static NotifyType getInstanceByCode(String code) {
-            for(NotifyType notifyType : NotifyType.values()) {
-                if(notifyType.code().equals(code)) {
+            for (NotifyType notifyType : NotifyType.values()) {
+                if (notifyType.code().equals(code)) {
                     return notifyType;
                 }
             }
@@ -655,9 +688,6 @@ public final class IMBaseDefine {
     }
 
 
-
-
-
     //加群邀请回复Bean
     public static class InviteGroupNotifyResBean {
         public String code;
@@ -683,8 +713,6 @@ public final class IMBaseDefine {
             return bean;
         }
     }
-
-
 
 
 }

@@ -64,6 +64,9 @@ public class Party extends BaseEntity {
     @Column(name = "group_id")
     private String groupId;
 
+    @Column(name = "is_new")
+    private boolean isNew;
+
     private User creator;
 
     private PinYinUtil.PinYinElement pinyinElement = new PinYinUtil.PinYinElement();
@@ -194,4 +197,11 @@ public class Party extends BaseEntity {
         return coverUrl;
     }
 
+    public boolean isNew() {
+        return isNew;
+    }
+
+    public void setNew(boolean aNew) {
+        isNew = aNew;
+    }
 }

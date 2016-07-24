@@ -21,11 +21,9 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.CircleCopperImageView;
-import com.juju.app.view.RoundImageView;
 import com.juju.app.view.imagezoom.utils.DecodeUtils;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
@@ -44,6 +42,8 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.hdodenhof.circleimageview.CircleImageView;
+
 @ContentView(R.layout.activity_upload_photo)
 public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, View.OnLongClickListener {
 
@@ -60,7 +60,7 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
     private CircleCopperImageView headImg;
 
     @ViewInject(R.id.head)
-    private RoundImageView originHeadImg;
+    private CircleImageView originHeadImg;
 
     @ViewInject(R.id.menu_layout)
     private RelativeLayout menuLayout;

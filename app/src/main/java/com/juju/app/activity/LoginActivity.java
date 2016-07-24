@@ -22,13 +22,10 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.UserDaoImpl;
 import com.juju.app.config.HttpConstants;
-import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
 import com.juju.app.event.UnreadEvent;
 import com.juju.app.golobal.AppContext;
-import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
-import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.helper.IMUIHelper;
 import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
@@ -36,12 +33,10 @@ import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.manager.IMLoginManager;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
-import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.DBUtil;
 import com.juju.app.utils.HttpReqParamUtil;
-import com.juju.app.utils.JacksonUtil;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.MD5Util;
 import com.juju.app.utils.SpfUtil;
@@ -49,15 +44,12 @@ import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.utils.json.JSONUtils;
 import com.juju.app.view.ClearEditText;
-import com.juju.app.view.RoundImageView;
-
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
@@ -65,6 +57,8 @@ import org.xutils.view.annotation.ViewInject;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 
 @ContentView(R.layout.activity_login)
@@ -88,7 +82,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
     private ClearEditText txt_password;
 
     @ViewInject(R.id.portrait)
-    private RoundImageView portrait;
+    private CircleImageView portrait;
 
     @ViewInject(R.id.nickName)
     private TextView tv_nickName;
@@ -160,9 +154,8 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         layout_login_main.setFocusableInTouchMode(true);
 
         if(StringUtils.isNotBlank(AppContext.getUserInfoBean().getUserNo())){
-            BitmapUtilFactory.getInstance(this).bind(portrait, HttpConstants.getUserUrl() +
-                            "/getPortraitSmall?targetNo=" + AppContext.getUserInfoBean().getUserNo(),
-                    BitmapUtilFactory.Option.imageOptions());
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo="
+                    + AppContext.getUserInfoBean().getUserNo(), portrait, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }
 
         if(AppContext.getUserInfoBean().getNickName() != null){
@@ -216,7 +209,7 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
         if(vsBool) {
             loading(R.string.login_progress_signing_in);
             String password = MD5Util.MD5(pwd);
-            Map<String, Object> valueMap = new HashMap<>();
+            Map<String, Object> valueMap = new HashMap<String,Object>();
             valueMap.put("userNo", loginId);
             valueMap.put("password", password);
             JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(

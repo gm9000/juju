@@ -1,6 +1,5 @@
 package com.juju.app.activity.chat;
 
-import android.app.Dialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -13,11 +12,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.SystemClock;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.Selection;
@@ -28,7 +25,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
@@ -42,7 +38,6 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-
 import com.handmark.pulltorefresh.library.PullToRefreshBase;
 import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.juju.app.R;
@@ -54,7 +49,6 @@ import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.PeerEntity;
-import com.juju.app.entity.chat.RecentInfo;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.GroupEvent;
@@ -65,31 +59,26 @@ import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
 import com.juju.app.event.notify.InviteUserEvent;
 import com.juju.app.event.notify.MasterTransferEvent;
+import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.HandlerConstant;
-import com.juju.app.golobal.IntentConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.service.im.audio.AudioPlayerHandler;
 import com.juju.app.service.im.audio.AudioRecordHandler;
 import com.juju.app.service.im.manager.IMGroupManager;
-import com.juju.app.service.im.manager.IMLoginManager;
-import com.juju.app.service.im.manager.IMMessageManager;
 import com.juju.app.tools.Emoparser;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.CreateUIHelper;
-import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.CommonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.SystemConfigSp;
 import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.EmoGridView;
 import com.juju.app.view.MGProgressbar;
-
 import com.juju.app.view.groupchat.YayaEmoGridView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
@@ -101,9 +90,7 @@ import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -121,7 +108,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         TextWatcher,
         View.OnTouchListener,
         SensorEventListener {
-
     private Logger logger = Logger.getLogger(ChatActivity.class);
     private InputMethodManager inputManager = null;
 //    private Dialog soundVolumeDialog = null;
@@ -1398,6 +1384,57 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
                     onMsgRecv(textMessage4Recv);
                     MessageEntity messageEntity4Recv = textMessage4Recv.clone();
                     imService.getMessageManager().replaceInto(messageEntity4Recv);
+                    break;
+            }
+        }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4PartyNotifyEvent(PartyNotifyEvent event){
+        logger.d("ChatActivity#PartyNotifyEvent# -> %s", event);
+        PartyNotifyEvent.PartyNotifyBean partyNotifyBean  = event.bean;
+        if(currentSessionKey.indexOf(partyNotifyBean.getGroupId()) >= 0) {
+            String toPeerId = partyNotifyBean.getGroupId()+"@"+userInfoBean.getmMucServiceName()+"."
+                    +userInfoBean.getmServiceName();
+            User fromUser = null;
+            String content = null;
+            switch (event.event){
+                case PARTY_RECRUIT_OK:
+                    fromUser = imService.getContactManager().findContact(partyNotifyBean.getUserNo());
+                    if(partyNotifyBean.getUserNo().equals(userInfoBean.getUserNo())) {
+                        content = "我发起了聚会“"+partyNotifyBean.getPartyName()+"”";
+                    } else {
+                        content = partyNotifyBean.getNickName()+"发起了聚会“"+partyNotifyBean.getPartyName()+"”";
+                    }
+                    TextMessage textMessage4Recv = TextMessage.buildForSend2Notify(partyNotifyBean.replyId,
+                            partyNotifyBean.replyTime, content, fromUser.getPeerId(), toPeerId);
+                    onMsgRecv(textMessage4Recv);
+//                    MessageEntity messageEntity4Recv = textMessage4Recv.clone();
+//                    imService.getMessageManager().replaceInto(messageEntity4Recv);
+                    break;
+                case PARTY_CANCEL_OK:
+                    fromUser = imService.getContactManager().findContact(partyNotifyBean.getUserNo());
+                    if(partyNotifyBean.getUserNo().equals(userInfoBean.getUserNo())) {
+                        content = "我取消了聚会“"+partyNotifyBean.getPartyName()+"”";
+                    } else {
+                        content = partyNotifyBean.getNickName()+"取消了聚会“"+partyNotifyBean.getPartyName()+"”";
+                    }
+                    TextMessage partyCancelMsg4Recv = TextMessage.buildForSend2Notify(partyNotifyBean.replyId,
+                            partyNotifyBean.replyTime, content, fromUser.getPeerId(), toPeerId);
+                    onMsgRecv(partyCancelMsg4Recv);
+                    break;
+
+                case PARTY_CONFIRM_OK:
+                    fromUser = imService.getContactManager().findContact(partyNotifyBean.getUserNo());
+                    if(partyNotifyBean.getUserNo().equals(userInfoBean.getUserNo())) {
+                        content = "我启动了聚会“"+partyNotifyBean.getPartyName()+"”";
+                    } else {
+                        content = partyNotifyBean.getNickName()+"启动了聚会“"+partyNotifyBean.getPartyName()+"”";
+                    }
+                    TextMessage partyConfirmMsg4Recv = TextMessage.buildForSend2Notify(partyNotifyBean.replyId,
+                            partyNotifyBean.replyTime, content, fromUser.getPeerId(), toPeerId);
+                    onMsgRecv(partyConfirmMsg4Recv);
                     break;
             }
         }

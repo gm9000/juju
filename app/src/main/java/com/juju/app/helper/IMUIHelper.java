@@ -29,6 +29,28 @@ import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 
 public class IMUIHelper {
 
+
+
+    // 文字高亮显示
+    public static void setTextStartHilighted(TextView textView, String text,int endIndex) {
+        textView.setText(text);
+        if (textView == null
+                || TextUtils.isEmpty(text)
+                || endIndex < 0) {
+            return;
+        }
+
+        int startIndex = 0;
+        if (startIndex < 0 || endIndex > text.length()) {
+            return;
+        }
+        // 开始高亮处理
+        int color =  Color.rgb(255, 255, 255);
+        textView.setText(text, BufferType.SPANNABLE);
+        Spannable span = (Spannable) textView.getText();
+        span.setSpan(new ForegroundColorSpan(color), startIndex, endIndex, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+    }
+
     // 文字高亮显示
     public static void setTextHilighted(TextView textView, String text,SearchElement searchElement) {
         textView.setText(text);

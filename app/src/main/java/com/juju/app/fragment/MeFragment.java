@@ -6,7 +6,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
@@ -26,7 +25,6 @@ import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
 import com.juju.app.https.JlmHttpClient;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
@@ -34,7 +32,6 @@ import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.ScreenUtil;
 import com.juju.app.utils.SpfUtil;
-import com.juju.app.view.RoundImageView;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -42,13 +39,17 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
+import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
+import org.xutils.x;
 
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Map;
+
+import de.hdodenhof.circleimageview.CircleImageView;
 
 /**
  * 项目名称：juju
@@ -64,7 +65,7 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     private static final String TAG = "MeFragment";
 
     @ViewInject(R.id.head)
-    private RoundImageView imgHead;
+    private CircleImageView imgHead;
     @ViewInject(R.id.txt_nick_name)
     private TextView txtNickName;
     @ViewInject(R.id.txt_phone)
@@ -171,6 +172,16 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
         User userInfo = null;
         if(userInfoStr != null){
             userInfo = JacksonUtil.turnString2Obj(userInfoStr,User.class);
+        }
+        if(userInfo == null){
+            try {
+                userInfo = JujuDbUtils.getInstance().selector(User.class).where("user_no","=",userNo).findFirst();
+                if(userInfo != null){
+                    SpfUtil.put(getActivity().getApplicationContext(),Constants.USER_INFO,JacksonUtil.turnObj2String(userInfo));
+                }
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
         }
         if(userInfo == null){
 

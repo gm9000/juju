@@ -49,13 +49,22 @@ public class HttpReqParamUtil {
         if(keyArr.length != objs.length)
             throw new IllegalArgumentException("buildMap#key/value pair does not match");
 
-        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> map = new HashMap<String,Object>();
         if(userInfoBean != null) {
             map.put("userNo", userInfoBean.getUserNo());
             map.put("token", userInfoBean.getToken());
         }
         for (int i = 0; i < keyArr.length; i++) {
             map.put(keyArr[i].trim(), objs[i]);
+        }
+        return map;
+    }
+
+    public Map<String, Object> buildMap() {
+        Map<String, Object> map = new HashMap<>();
+        if(userInfoBean != null) {
+            map.put("userNo", userInfoBean.getUserNo());
+            map.put("token", userInfoBean.getToken());
         }
         return map;
     }

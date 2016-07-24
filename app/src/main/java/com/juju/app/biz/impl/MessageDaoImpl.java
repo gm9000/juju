@@ -123,7 +123,7 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
         if(messageList != null && messageList.size() >0) {
             return formatMessage(messageList);
         } else {
-            messageList = new ArrayList<>();
+            messageList = new ArrayList<MessageEntity>();
         }
         return messageList;
     }

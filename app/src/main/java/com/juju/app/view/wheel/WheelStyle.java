@@ -66,7 +66,7 @@ public class WheelStyle {
     }
 
     private static List<String> createHourString() {
-        List<String> wheelString = new ArrayList<>();
+        List<String> wheelString = new ArrayList<String>();
         for (int i = 0; i < 24; i++) {
             wheelString.add(String.format("%02d 点", i));
         }

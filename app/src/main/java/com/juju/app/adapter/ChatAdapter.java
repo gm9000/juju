@@ -60,7 +60,7 @@ public class ChatAdapter extends BaseAdapter {
     private Logger logger = Logger.getLogger(ChatAdapter.class);
 
     //消息集合
-    private ArrayList<Object> msgObjectList = new ArrayList<>();
+    private ArrayList<Object> msgObjectList = new ArrayList<Object>();
 
     private Context ctx;
 

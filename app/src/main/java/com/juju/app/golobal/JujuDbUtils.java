@@ -58,6 +58,10 @@ public class JujuDbUtils {
         GlobalVariable.delete(entityClass.getSimpleName() + "needRefresh");
     }
 
+    public static void openRefresh(Class entityClass){
+        GlobalVariable.put(entityClass.getSimpleName() + "needRefresh",true);
+    }
+
     public static boolean needRefresh(Class entityClass){
         return GlobalVariable.get(entityClass.getSimpleName() + "needRefresh",Boolean.class,false);
     }

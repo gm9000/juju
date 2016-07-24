@@ -39,8 +39,8 @@ public class SearchAdapter extends BaseAdapter implements
 
     private Logger logger = Logger.getLogger(SearchAdapter.class);
 
-    private List<User>  userList = new ArrayList<>();
-    private List<GroupEntity> groupList = new ArrayList<>();
+    private List<User>  userList = new ArrayList<User>();
+    private List<GroupEntity> groupList = new ArrayList<GroupEntity>();
 
     private String searchKey;
     private Context ctx;

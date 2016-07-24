@@ -66,7 +66,7 @@ public class UserInfoActivity extends BaseActivity implements CreateUIHelper {
                 initBaseProfile();
                 initDetailProfile();
             }
-            ArrayList<String> userIds = new ArrayList<>(1);
+            ArrayList<String> userIds = new ArrayList<String>(1);
             //just single type
             userIds.add(currentUserId);
 

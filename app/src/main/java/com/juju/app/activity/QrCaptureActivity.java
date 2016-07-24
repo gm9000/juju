@@ -307,7 +307,7 @@ public class QrCaptureActivity extends BaseActivity implements SurfaceHolder.Cal
                     String jsonStr = content.split("=")[1];
                     GroupQrBean groupQrBean = JacksonUtil.turnString2Obj(jsonStr, GroupQrBean.class);
                     logger.d("handleDecode#扫描成功 -> groupId:%s,code:%s", groupQrBean.groupId, groupQrBean.code);
-                    Map<String, String> valueMap = new HashMap<>();
+                    Map<String, String> valueMap = new HashMap<String,String>();
                     valueMap.put("code", groupQrBean.code);
                     valueMap.put("groupId", groupQrBean.groupId);
                     startActivityNew(QrCaptureActivity.this, GroupJoinInActivity.class, valueMap);

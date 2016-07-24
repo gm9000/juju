@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_discuss">
+
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/img_user"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:src="@mipmap/head"/>
+    <TextView
+        android:id="@+id/txt_content"
+        style="@style/BlueTxt12"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:padding="5dp"
+        android:layout_toRightOf="@+id/img_user"
+        android:text="聚龙小子：卡卡松岛枫看"/>
+
+</RelativeLayout>

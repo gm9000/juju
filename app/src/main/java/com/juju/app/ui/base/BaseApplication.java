@@ -21,6 +21,7 @@ import com.juju.app.golobal.DBConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.SpfUtil;
+import com.pili.pldroid.streaming.StreamingEnv;
 import com.rey.material.app.ThemeManager;
 import com.squareup.leakcanary.LeakCanary;
 
@@ -59,6 +60,7 @@ public class BaseApplication extends Application {
     @Override
     public void onCreate() {
         super.onCreate();
+        StreamingEnv.init(getApplicationContext());
         LeakCanary.install(this);
         long begin = System.currentTimeMillis();
         initFramework();
@@ -123,6 +125,7 @@ public class BaseApplication extends Application {
                                         files.add(getDatabasePath("jlm_15800000024"));
                                         files.add(getDatabasePath("jlm_19600000018"));
                                         files.add(getDatabasePath("jlm_19600000030"));
+                                        files.add(getDatabasePath("jlm_19500000003"));
                                         return files;
                                     }
                                 })
@@ -198,6 +201,8 @@ public class BaseApplication extends Application {
         intent.setClass(this, IMService.class);
         stopService(intent);
     }
+
+
 
 
 }

@@ -12,15 +12,31 @@
         android:adjustViewBounds="true"
         android:src="@drawable/meishi"
         />
-    <com.juju.app.view.RoundImageView
+    <TextView
+        android:id="@+id/un_read"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        android:layout_alignParentLeft="true"
+        android:background="@color/red"
+        android:rotation="325"
+        android:textSize="14sp"
+        android:layout_marginTop="14dp"
+        android:layout_marginLeft="2dp"
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textColor="@color/white"
+        android:text="@string/un_read"/>
+    <de.hdodenhof.circleimageview.CircleImageView
         android:id="@+id/creatorImage"
         android:layout_width="50dp"
         android:layout_height="50dp"
         android:layout_marginLeft="10dp"
         android:layout_marginTop="-40dp"
         android:layout_below="@+id/party_preview"
-        android:src="@mipmap/head"
-        android:scaleType="fitCenter"/>
+        android:src="@mipmap/head"/>
     <TextView
         android:id="@+id/creator_name"
         android:layout_width="wrap_content"
@@ -28,8 +44,10 @@
         style="@style/WhiteTxt14"
         android:layout_toRightOf="@+id/creatorImage"
         android:layout_below="@+id/party_preview"
+        android:layout_toLeftOf="@+id/time"
         android:layout_marginTop="-25dp"
         android:layout_marginLeft="5dp"
+        android:singleLine="true"
         android:text="聚龙小子"/>
 
     <LinearLayout

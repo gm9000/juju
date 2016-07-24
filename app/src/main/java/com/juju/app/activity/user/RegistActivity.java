@@ -369,7 +369,7 @@ public class RegistActivity extends BaseActivity implements CreateUIHelper {
 //        valuePairs.add(phoneValue);
 //        valuePairs.add(nickNameValue);
 //        valuePairs.add(passwordValue);
-        Map<String, Object> valueMap = new HashMap<>();
+        Map<String, Object> valueMap = new HashMap<String,Object>();
         valueMap.put(Constants.PHONE, phone);
         valueMap.put(Constants.NICKNAME, nickName);
         valueMap.put(Constants.PASSWORD, password);

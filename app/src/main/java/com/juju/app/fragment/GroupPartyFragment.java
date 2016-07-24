@@ -6,7 +6,6 @@ import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
@@ -34,6 +33,7 @@ import com.juju.app.adapters.PartyListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
 import com.juju.app.entity.Party;
 import com.juju.app.enums.DisplayAnimation;
+import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseFragment;
@@ -44,6 +44,9 @@ import com.juju.app.view.MenuDisplayProcess;
 import com.juju.app.view.SearchEditText;
 import com.rey.material.app.BottomSheetDialog;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.xutils.db.Selector;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
@@ -107,7 +110,12 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
         Log.d(TAG,"onStop:" + inflater.toString());
     }
 
-    @Nullable
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        EventBus.getDefault().register(GroupPartyFragment.this);
+    }
+
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -141,7 +149,17 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                 partyListAdapter.onSearch(searchEditText.getText().toString());
             }
             partyListAdapter.notifyDataSetChanged();
+            JujuDbUtils.closeRefresh(Party.class);
         }
+    }
+
+    @Override
+    public void onDestroy() {
+        if(EventBus.getDefault().isRegistered(GroupPartyFragment.this)){
+            EventBus.getDefault().unregister(GroupPartyFragment.this);
+        }
+        super.onDestroy();
+
     }
 
     @Override
@@ -224,13 +242,13 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                                      int visibleItemCount, int totalItemCount) {
                     if (firstVisibleItem > lastVisibleItemPosition) {// 上滑
                         if (menuIsShow) {
-                            mdProdess.hiddenMenu();
-                            menuIsShow = false;
+//                            mdProdess.hiddenMenu();
+//                            menuIsShow = false;
                         }
                     } else if (firstVisibleItem < lastVisibleItemPosition) {// 下滑
                         if (!menuIsShow) {
-                            mdProdess.showMenu();
-                            menuIsShow = true;
+//                            mdProdess.showMenu();
+//                            menuIsShow = true;
                         }
                     } else {
                         return;
@@ -265,6 +283,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
         }
 
     }
+
 
     @Override
     public void initView() {
@@ -441,6 +460,23 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
             mLocClient.unRegisterLocationListener(myListener);
             mLocClient.stop();
             mLocClient = null;
+        }
+    }
+
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4PartyNotifyEvent(PartyNotifyEvent event){
+        Log.d(TAG,"PartyNotifyEvent:"+event);
+        switch (event.event){
+            case PARTY_RECRUIT_OK:
+                onResume();
+                break;
+            case PARTY_CANCEL_OK:
+                onResume();
+                break;
+            case PARTY_CONFIRM_OK:
+                onResume();
+                break;
         }
     }
 
