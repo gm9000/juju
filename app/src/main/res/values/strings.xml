@@ -211,6 +211,7 @@
     <string name="party_confirm_send_failed">聚会取消失败</string>
     <string name="party_finish_send_success">聚会结束成功</string>
     <string name="party_finish_send_failed">聚会结束失败</string>
+    <string name="party_finish">该聚会已结束</string>
 
 
     <!--直播相关 -->

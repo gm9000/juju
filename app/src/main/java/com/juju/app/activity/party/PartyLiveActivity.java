@@ -2,6 +2,7 @@ package com.juju.app.activity.party;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
@@ -16,6 +17,7 @@ import com.juju.app.entity.Party;
 import com.juju.app.entity.VideoProgram;
 import com.juju.app.enums.DisplayAnimation;
 import com.juju.app.event.notify.LiveNotifyEvent;
+import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.service.im.IMService;
@@ -43,6 +45,7 @@ import java.util.UUID;
 @ContentView(R.layout.activity_party_live)
 public class PartyLiveActivity extends BaseActivity implements View.OnClickListener, VideoProgramListAadpter.Callback {
 
+    private static final String TAG = "PartyLiveActivity";
 
     private static final int SEIZE_PLAY = 0x01;
     private static final int SEIZE_UPLOAD = 0x02;
@@ -221,6 +224,10 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
         topLayout.getBackground().setAlpha(200);
 
+        if(party.getStatus() == 2){
+            imgLiveStart.setVisibility(View.GONE);
+        }
+
         View emptyView = getLayoutInflater().inflate(R.layout.layout_empty, null);
         ((ViewGroup)listView.getParent()).addView(emptyView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
         listView.setEmptyView(emptyView);
@@ -335,6 +342,19 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
                 break;
             case LIVE_STOP_OK:
                 onResume();
+                break;
+        }
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4PartyNotifyEvent(PartyNotifyEvent event){
+        Log.d(TAG,"PartyNotifyEvent:"+event);
+        switch (event.event){
+            case PARTY_END_OK:
+                if(event.bean.getPartyId().equals(partyId)){
+                    ToastUtil.showShortToast(this,getString(R.string.party_finish),1);
+                    imgLiveStart.setVisibility(View.GONE);
+                }
                 break;
         }
     }
