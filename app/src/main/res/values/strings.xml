@@ -306,6 +306,7 @@
     <string name="copy_url">复制链接</string>
     <string name="phone_call">打电话</string>
     <string name="send_sms">发短信</string>
+    <string name="finish_party">结束聚会</string>
 
     <!-- 群组选择列表-->
     <string name="choose_group">选择群</string>
