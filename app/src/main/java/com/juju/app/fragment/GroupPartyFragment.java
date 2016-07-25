@@ -1,6 +1,7 @@
 package com.juju.app.fragment;
 
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.graphics.Color;
 import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
@@ -31,28 +32,39 @@ import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.activity.party.PartyLiveActivity;
 import com.juju.app.adapters.PartyListAdapter;
 import com.juju.app.annotation.CreateFragmentUI;
+import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.Party;
 import com.juju.app.enums.DisplayAnimation;
 import com.juju.app.event.notify.PartyNotifyEvent;
+import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.https.HttpCallBack4OK;
+import com.juju.app.https.JlmHttpClient;
+import com.juju.app.service.notify.PartyEndNotify;
 import com.juju.app.ui.base.BaseFragment;
 import com.juju.app.ui.base.CreateUIHelper;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.SpfUtil;
 import com.juju.app.view.MenuDisplayProcess;
 import com.juju.app.view.SearchEditText;
+import com.juju.app.view.dialog.WarnTipDialog;
 import com.rey.material.app.BottomSheetDialog;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.xutils.db.Selector;
 import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 项目名称：juju
@@ -66,6 +78,9 @@ import java.util.List;
 public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,PartyListAdapter.Callback, PullToRefreshBase.OnRefreshListener2 {
 
     private static final String TAG = "GroupPartyFragment";
+
+    private static final int FINISH_PARTY = 0x01;
+
     private PullToRefreshListView listView;
 
     private PartyListAdapter partyListAdapter;
@@ -82,6 +97,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
     private BottomSheetDialog msgDialog;
     private TextView txtTop;
     private TextView txtStock;
+    private TextView txtFinish;
     private TextView txtCancel;
 
     private ImageView topLeftBtn;
@@ -216,6 +232,11 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
         listView.setOnRefreshListener(this);
 
 
+        View emptyView = inflater.inflate(R.layout.layout_empty, null);
+        ((ViewGroup)listView.getRefreshableView().getParent()).addView(emptyView,new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT));
+        listView.getRefreshableView().setEmptyView(emptyView);
+
+
         if(mdProdess!=null) {
             listView.setOnScrollListener(new AbsListView.OnScrollListener() {
 
@@ -318,6 +339,25 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                 .inDuration(300);
         txtTop = (TextView)msgDialog.findViewById(R.id.btn_menu1);
         txtStock = (TextView)msgDialog.findViewById(R.id.btn_menu2);
+        if(party.getCreator().equals(AppContext.getUserInfoBean().getUserNo())) {
+            txtFinish = (TextView) msgDialog.findViewById(R.id.btn_menu3);
+            txtFinish.setText(R.string.finish_party);
+            txtFinish.setVisibility(View.VISIBLE);
+            txtFinish.setOnClickListener(new View.OnClickListener(){
+                @Override
+                public void onClick(View v) {
+                    msgDialog.dismiss();
+                    WarnTipDialog tipdialog = new WarnTipDialog(getContext(),"确定要结束该聚会吗？");
+                    tipdialog.setBtnOkLinstener(new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            finishParty(party);
+                        }
+                    });
+                    tipdialog.show();
+                }
+            });
+        }
         txtCancel = (TextView)msgDialog.findViewById(R.id.txt_cancel);
         txtCancel.setOnClickListener(new View.OnClickListener(){
             @Override
@@ -382,6 +422,65 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                 partyListAdapter.reOrderParty();
                 break;
         }
+        partyListAdapter.notifyDataSetChanged();
+    }
+
+
+    private void finishParty(final Party party){
+
+
+        Map<String, Object> reqBean = new HashMap<String, Object>();
+        reqBean.put("userNo", AppContext.getUserInfoBean().getUserNo());
+        reqBean.put("token", AppContext.getUserInfoBean().getToken());
+        reqBean.put("partyId", party.getId());
+
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(FINISH_PARTY, HttpConstants.getUserUrl() + "/confirmParty", new HttpCallBack4OK() {
+            @Override
+            public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+                switch (accessId) {
+                    case FINISH_PARTY:
+                        if (obj != null) {
+                            JSONObject jsonRoot = (JSONObject) obj;
+                            try {
+                                int status = jsonRoot.getInt("status");
+                                if (status == 0) {
+                                    party.setStatus(2);
+                                    JujuDbUtils.saveOrUpdate(party);
+                                    //  通知 Party已经结束
+                                    PartyNotifyEvent.PartyNotifyBean partyNotifyBean = PartyNotifyEvent
+                                            .PartyNotifyBean.valueOf(party.getGroupId(), party.getId(), party.getName(),
+                                                    AppContext.getUserInfoBean().getUserNo()
+                                                    , AppContext.getUserInfoBean().getNickName());
+                                    PartyEndNotify.instance().executeCommand4Send(partyNotifyBean);
+                                } else {
+                                    Log.e(TAG, "return status code:" + status);
+                                }
+                            } catch (JSONException e) {
+                                Log.e(TAG, "回调解析失败", e);
+                                e.printStackTrace();
+                            }
+                        }
+                        break;
+                }
+            }
+
+            @Override
+            public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+
+            }
+        }, reqBean, JSONObject.class);
+        try {
+            client.sendPost4OK();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+
+
+        party.setStatus(2);
+        JujuDbUtils.saveOrUpdate(party);
         partyListAdapter.notifyDataSetChanged();
     }
 
@@ -475,6 +574,9 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                 onResume();
                 break;
             case PARTY_CONFIRM_OK:
+                onResume();
+                break;
+            case PARTY_END_OK:
                 onResume();
                 break;
         }

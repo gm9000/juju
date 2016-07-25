@@ -370,7 +370,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
 
             myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
 
-            if (isFirstLoc) {
+            if (isFirstLoc || userMarkerMap.get(userNo)==null) {
                 isFirstLoc = false;
                 UserLocationInfo myLocationInfo = new UserLocationInfo(userNo,location.getLatitude(),location.getLongitude(),true);
                 myLocationInfo.showMapIcon();

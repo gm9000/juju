@@ -128,7 +128,10 @@ public class PartyNotifyEvent {
         PARTY_CANCEL_FAILED,
 
         PARTY_CONFIRM_OK,
-        PARTY_CONFIRM_FAILED
+        PARTY_CONFIRM_FAILED,
+
+        PARTY_END_OK,
+        PARTY_END_FAILED
     }
 
     /**
@@ -158,6 +161,11 @@ public class PartyNotifyEvent {
                 //聚会启动（消息服务器）
                 SEND_PARTY_CONFIRM_MSERVER_OK,
                 SEND_PARTY_CONFIRM_MSERVER_FAILED,
+
+
+                //聚会启动（消息服务器）
+                SEND_PARTY_END_MSERVER_OK,
+                SEND_PARTY_END_MSERVER_FAILED,
 
                 //成功
                 OK,

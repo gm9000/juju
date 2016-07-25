@@ -42,6 +42,7 @@ import com.juju.app.service.notify.LocationReportNotify;
 import com.juju.app.service.notify.MasterTransferNotify;
 import com.juju.app.service.notify.PartyCancelNotify;
 import com.juju.app.service.notify.PartyConfirmNotify;
+import com.juju.app.service.notify.PartyEndNotify;
 import com.juju.app.service.notify.PartyRecruitNotify;
 import com.juju.app.service.notify.PlanVoteNotify;
 import com.juju.app.service.notify.RemoveGroupNotify;
@@ -113,6 +114,7 @@ public class IMOtherManager extends IMManager {
         PartyRecruitNotify.instance().stop();
         PartyCancelNotify.instance().stop();
         PartyConfirmNotify.instance().stop();
+        PartyEndNotify.instance().stop();
         PlanVoteNotify.instance().stop();
         LocationReportNotify.instance().stop();
         LiveStartNotify.instance().stop();
@@ -173,6 +175,7 @@ public class IMOtherManager extends IMManager {
         PartyRecruitNotify.instance().start(this);
         PartyCancelNotify.instance().start(this);
         PartyConfirmNotify.instance().start(this);
+        PartyEndNotify.instance().start(this);
         PlanVoteNotify.instance().start(this);
         LocationReportNotify.instance().start(this);
         ExitGroupNotify.instance().start(this, IMGroupManager.instance());
@@ -311,6 +314,11 @@ public class IMOtherManager extends IMManager {
                 PartyNotifyEvent.PartyNotifyBean partyConfirmBean = (PartyNotifyEvent.PartyNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_CONFIRM.getCls());
                 PartyConfirmNotify.instance().executeCommand4Recv(partyConfirmBean);
+                break;
+            case PARTY_END:
+                PartyNotifyEvent.PartyNotifyBean partyEndBean = (PartyNotifyEvent.PartyNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_END.getCls());
+                PartyEndNotify.instance().executeCommand4Recv(partyEndBean);
                 break;
             case PLAN_VOTE:
                 PlanVoteEvent.PlanVoteBean planVoteBean = (PlanVoteEvent.PlanVoteBean)
