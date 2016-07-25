@@ -120,6 +120,7 @@ public class CommonUtil {
     }
 
 
+
     public static String getSavePath(int type) {
         String path;
         String floder = (type == Constants.FILE_SAVE_TYPE_IMAGE) ? "images"
@@ -174,21 +175,18 @@ public class CommonUtil {
     }
 
     public static String getImageSavePath(String fileName) {
-
         if (TextUtils.isEmpty(fileName)) {
             return null;
         }
-
         final File folder = new File(Environment.getExternalStorageDirectory()
                 .getAbsolutePath()
                 + File.separator
-                + "JLM-IM"
+                + "juju"
                 + File.separator
                 + "images");
         if (!folder.exists()) {
             folder.mkdirs();
         }
-
         return folder.getAbsolutePath() + File.separator + fileName;
     }
 

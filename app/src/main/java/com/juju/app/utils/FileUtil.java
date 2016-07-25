@@ -338,6 +338,21 @@ public class FileUtil {
         }
     }
 
+    public static String saveImageResourceToFile(byte[] content, String userNo) {
+        try {
+            String imageSavePath = CommonUtil.getImageSavePath(userNo+"-"+System.currentTimeMillis()+".jpg");
+            File file = new File(imageSavePath);
+            FileOutputStream fops = new FileOutputStream(file);
+            fops.write(content);
+            fops.flush();
+            fops.close();
+            return imageSavePath;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
     /**
      * 获取缓存目录
      *

@@ -12,9 +12,11 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.text.Editable;
 import android.text.Selection;
@@ -96,6 +98,7 @@ import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Timer;
@@ -200,6 +203,9 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private AlbumHelper albumHelper = null;
     private List<ImageBucket> albumList = null;
 
+    private String takePhotoSavePath = "";
+
+
 
 
     @Override
@@ -214,6 +220,23 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         unregisterReceiver(receiver);
         imServiceConnector.disconnect(this);
         super.onDestroy();
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (RESULT_OK != resultCode)
+            return;
+        switch (requestCode) {
+            case Constants.CAMERA_WITH_DATA:
+                handleTakePhotoData(data);
+                break;
+            case Constants.ALBUM_BACK_DATA:
+                logger.d("pic#ALBUM_BACK_DATA");
+                setIntent(data);
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -421,12 +444,12 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     @Event(R.id.take_camera_btn)
     private void onClick4BtnTakCamera(View view) {
-//        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//        takePhotoSavePath = CommonUtil.getImageSavePath(String.valueOf(System.currentTimeMillis())
-//                + ".jpg");
-//        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(takePhotoSavePath)));
-//        startActivityForResult(intent, SysConstant.CAMERA_WITH_DATA);
-//        addOthersPanelView.setVisibility(View.GONE);
+        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        takePhotoSavePath = CommonUtil.getImageSavePath(String.valueOf(System.currentTimeMillis())
+                + ".jpg");
+        intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(takePhotoSavePath)));
+        startActivityForResult(intent, Constants.CAMERA_WITH_DATA);
+        addOthersPanelView.setVisibility(View.GONE);
         scrollToBottomListItem();
     }
 
@@ -457,86 +480,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private String audioSavePath = null;
     private AudioRecordHandler audioRecorderInstance = null;
     private Thread audioRecorderThread = null;
-
-
-    /**
-     * 发送语音
-     * @param v
-     * @param event
-     * @return
-     */
-//    @Event(value = R.id.record_voice_btn, type = View.OnTouchListener.class)
-//    private boolean onTouch4RecordVoiceBtn(View v, MotionEvent event) {
-//        if (event.getAction() == MotionEvent.ACTION_DOWN) {
-//            if (AudioPlayerHandler.getInstance().isPlaying())
-//                AudioPlayerHandler.getInstance().stopPlayer();
-//            y1 = event.getY();
-//            recordAudioBtn.setBackgroundResource(R.drawable.tt_pannel_btn_voiceforward_pressed);
-//            recordAudioBtn.setText(ChatActivity.this.getResources().getString(
-//                    R.string.release_to_send_voice));
-//
-//            soundVolumeImg.setImageResource(R.mipmap.tt_sound_volume_01);
-//            soundVolumeImg.setVisibility(View.VISIBLE);
-//            soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_default_bk);
-//            soundVolumeDialog.show();
-//            audioSavePath = CommonUtil
-//                    .getAudioSavePath(userInfoBean.getUserNo());
-//
-//            logger.d("onTouch4RecordVoiceBtn -> audioSavePath:%s", audioSavePath);
-//            // 这个callback很蛋疼，发送消息从MotionEvent.ACTION_UP 判断
-//            audioRecorderInstance = new AudioRecordHandler(audioSavePath);
-//
-//            audioRecorderThread = new Thread(audioRecorderInstance);
-//            audioRecorderInstance.setRecording(true);
-//            logger.d("message_activity#audio#audio record thread starts");
-//            audioRecorderThread.start();
-//        } else if (event.getAction() == MotionEvent.ACTION_MOVE) {
-//            y2 = event.getY();
-//            if (y1 - y2 > 180) {
-//                soundVolumeImg.setVisibility(View.GONE);
-//                soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_cancel_bk);
-//            } else {
-//                soundVolumeImg.setVisibility(View.VISIBLE);
-//                soundVolumeLayout.setBackgroundResource(R.mipmap.tt_sound_volume_default_bk);
-//            }
-//        } else if (event.getAction() == MotionEvent.ACTION_UP) {
-//            y2 = event.getY();
-//            if (audioRecorderInstance.isRecording()) {
-//                audioRecorderInstance.setRecording(false);
-//            }
-//            if (soundVolumeDialog.isShowing()) {
-//                soundVolumeDialog.dismiss();
-//            }
-//            recordAudioBtn.setBackgroundResource(R.drawable.tt_pannel_btn_voiceforward_normal);
-//            recordAudioBtn.setText(ChatActivity.this.getResources().getString(
-//                    R.string.tip_for_voice_forward));
-//            if (y1 - y2 <= 180) {
-//                if (audioRecorderInstance.getRecordTime() >= 0.5) {
-//                    if (audioRecorderInstance.getRecordTime() < Constants.MAX_SOUND_RECORD_TIME) {
-//                        Message msg = uiHandler.obtainMessage();
-//                        msg.what = HandlerConstant.HANDLER_RECORD_FINISHED;
-//                        msg.obj = audioRecorderInstance.getRecordTime();
-//                        uiHandler.sendMessage(msg);
-//                    }
-//                } else {
-//                    soundVolumeImg.setVisibility(View.GONE);
-//                    soundVolumeLayout
-//                            .setBackgroundResource(R.mipmap.tt_sound_volume_short_tip_bk);
-//                    soundVolumeDialog.show();
-//                    Timer timer = new Timer();
-//                    timer.schedule(new TimerTask() {
-//                        public void run() {
-//                            if (soundVolumeDialog.isShowing())
-//                                soundVolumeDialog.dismiss();
-//                            this.cancel();
-//                        }
-//                    }, 700);
-//                }
-//            }
-//        }
-//        return false;
-//    }
-
 
 
 
@@ -824,7 +767,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         lvPTR.getLoadingLayoutProxy().setLoadingDrawable(loadingDrawable);
         lvPTR.getRefreshableView().setCacheColorHint(Color.WHITE);
         lvPTR.getRefreshableView().setSelector(new ColorDrawable(Color.WHITE));
-//        lvPTR.getRefreshableView().setOnTouchListener(lvPTROnTouchListener);
+        lvPTR.getRefreshableView().setOnTouchListener(lvPTROnTouchListener);
         adapter = new ChatAdapter(this);
         adapter.setImService(null, loginUser);
         lvPTR.setAdapter(adapter);
@@ -1540,11 +1483,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private void initData() {
         historyTimes = 0;
         adapter.clearItem();
-//        ImageMessage.clearImageMessageList();
-//        loginUser = imService.getLoginManager().getLoginInfo();
-//        peerEntity = imService.getSessionManager().findPeerEntity(currentSessionKey);
-
-
+        ImageMessage.clearImageMessageList();
         // 头像、历史消息加载、取消通知
         setTitleByUser();
         reqHistoryMsg();
@@ -1670,6 +1609,22 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
             onRecordVoiceEnd(Constants.MAX_SOUND_RECORD_TIME);
         } catch (Exception e) {
         }
+    }
+
+
+    /**
+     * @param data
+     * @Description 处理拍照后的数据
+     * 应该是从某个 activity回来的
+     */
+    private void handleTakePhotoData(Intent data) {
+        ImageMessage imageMessage = ImageMessage.buildForSend(takePhotoSavePath, loginUser, peerEntity);
+        List<ImageMessage> sendList = new ArrayList<>(1);
+        sendList.add(imageMessage);
+        imService.getMessageManager().sendMsgImages(sendList);
+        // 格式有些问题
+        pushList(imageMessage);
+        messageEdt.clearFocus();//消除焦点
     }
 
     public static Handler getUiHandler() {

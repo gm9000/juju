@@ -104,6 +104,8 @@ public class AudioMessage extends MessageEntity implements Serializable {
     }
 
 
+
+
     /**
      * Not-null value.
      * DB 存数解析的时候需要

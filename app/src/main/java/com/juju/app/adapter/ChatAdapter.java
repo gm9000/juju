@@ -21,6 +21,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.juju.app.R;
+import com.juju.app.activity.chat.PreviewMessageImagesActivity;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.AudioMessage;
@@ -29,6 +30,7 @@ import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.RenderType;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.IntentConstant;
 import com.juju.app.golobal.MessageConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.audio.AudioPlayerHandler;
@@ -246,9 +248,9 @@ public class ChatAdapter extends BaseAdapter {
 //        } else {
 //            msgObjectList.add(msg);
 //        }
-//        if (msg instanceof ImageMessage) {
-//            ImageMessage.addToImageMessageList((ImageMessage) msg);
-//        }
+        if (msg instanceof ImageMessage) {
+            ImageMessage.addToImageMessageList((ImageMessage) msg);
+        }
         msgObjectList.add(msg);
         logger.d("#messageAdapter#addItem");
         notifyDataSetChanged();
@@ -441,21 +443,19 @@ public class ChatAdapter extends BaseAdapter {
         final ImageMessage imageMessage = (ImageMessage) msgObjectList.get(position);
         User userEntity = imService.getContactManager().findContactByFormId(imageMessage.getFromId());
 
-        /**保存在本地的path*/
-        final String imagePath = imageMessage.getPath();
-        /**消息中的image路径*/
-        final String imageUrl = imageMessage.getUrl();
-
         if (null == convertView) {
             imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
         } else {
-            if(convertView instanceof ImageRenderView
-                    && (isMine == ((ImageRenderView) convertView).isMine())) {
-                imageRenderView = (ImageRenderView) convertView;
-            } else {
-                imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
-            }
+            //需要优化
+//            if(convertView instanceof ImageRenderView
+//                    && (isMine == ((ImageRenderView) convertView).isMine())) {
+//                imageRenderView = (ImageRenderView) convertView;
+//            } else {
+//                imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
+//            }
+            imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
         }
+
 
         final ImageView messageImage = imageRenderView.getMessageImage();
         final int msgId = imageMessage.getMsgId();
@@ -469,10 +469,9 @@ public class ChatAdapter extends BaseAdapter {
                  * 2. 图片上传成功，但是发送失败。 点击重新发送??
                  */
                 if (FileUtil.isSdCardAvailuable()) {
-//                    imageMessage.setLoadStatus(MessageStatus.IMAGE_UNLOAD);//如果是图片已经上传成功呢？
                     imageMessage.setStatus(MessageConstant.MSG_SENDING);
                     if (imService != null) {
-//                        imService.getMessageManager().resendMessage(imageMessage);
+                        imService.getMessageManager().resendMessage(imageMessage);
                     }
                     updateItemState(msgId, imageMessage);
                 } else {
@@ -483,12 +482,12 @@ public class ChatAdapter extends BaseAdapter {
             //DetailPortraitActivity 以前用的是DisplayImageActivity 这个类
             @Override
             public void onMsgSuccess() {
-//                Intent i = new Intent(ctx, PreviewMessageImagesActivity.class);
-//                Bundle bundle = new Bundle();
-//                bundle.putSerializable(IntentConstant.CUR_MESSAGE, imageMessage);
-//                i.putExtras(bundle);
-//                ctx.startActivity(i);
-//                ((Activity) ctx).overridePendingTransition(R.anim.tt_image_enter, R.anim.tt_stay);
+                Intent i = new Intent(ctx, PreviewMessageImagesActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable(IntentConstant.CUR_MESSAGE, imageMessage);
+                i.putExtras(bundle);
+                ctx.startActivity(i);
+                ((Activity) ctx).overridePendingTransition(R.anim.tt_image_enter, R.anim.tt_stay);
             }
         });
 
@@ -655,7 +654,7 @@ public class ChatAdapter extends BaseAdapter {
         }
         // 如果是历史消息，从头开始加
         msgObjectList.addAll(0, chatList);
-//        getImageList();
+        getImageList();
         logger.d("#chatAdapter#addItem");
         notifyDataSetChanged();
     }
@@ -743,7 +742,7 @@ public class ChatAdapter extends BaseAdapter {
                 msgObjectList.remove(mPosition);
                 addItem(mMsgInfo);
                 if (imService != null) {
-//                    imService.getMessageManager().resendMessage(mMsgInfo);
+                    imService.getMessageManager().resendMessage(mMsgInfo);
                 }
 
             } catch (Exception e) {
@@ -764,4 +763,15 @@ public class ChatAdapter extends BaseAdapter {
         }
     }
 
+    /**
+     * 获取图片消息列表
+     */
+    private void getImageList() {
+        for (int i = msgObjectList.size() - 1; i >= 0; --i) {
+            Object item = msgObjectList.get(i);
+            if (item instanceof ImageMessage) {
+                ImageMessage.addToImageMessageList((ImageMessage) item);
+            }
+        }
+    }
 }

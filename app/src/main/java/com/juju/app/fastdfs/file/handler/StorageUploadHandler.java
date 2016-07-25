@@ -236,7 +236,7 @@ public class StorageUploadHandler extends AbstractHandler<StorePath> {
 		long lastUpdateTime = System.currentTimeMillis();
 		while (remainBytes > 0) {
 			try {
-				Thread.currentThread().sleep(100l);
+				Thread.currentThread().sleep(50l);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

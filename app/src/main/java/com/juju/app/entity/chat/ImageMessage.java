@@ -9,12 +9,16 @@ import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.MessageConstant;
 import com.juju.app.helper.chat.SequenceNumberMaker;
+import com.juju.app.utils.FileUtil;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
+import com.juju.app.utils.StringUtils;
 import com.juju.app.view.imagezoom.utils.BitmapUtils;
 import com.nostra13.universalimageloader.core.assist.ImageSize;
 
+import org.apache.commons.lang.math.NumberUtils;
+import org.jivesoftware.smack.packet.Message;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -93,7 +97,6 @@ public class ImageMessage extends MessageEntity implements Serializable {
      */
     public static synchronized void clearImageMessageList(){
         imageMessageMap.clear();
-        imageMessageMap.clear();
     }
 
 
@@ -106,6 +109,7 @@ public class ImageMessage extends MessageEntity implements Serializable {
     private ImageMessage(MessageEntity entity){
         /**父类的id*/
          id =  entity.getId();
+         localId = entity.getLocalId();
          msgId  = entity.getMsgId();
          fromId = entity.getFromId();
          toId   = entity.getToId();
@@ -224,6 +228,48 @@ public class ImageMessage extends MessageEntity implements Serializable {
         imageMessage.setStatus(MessageConstant.MSG_SENDING);
         imageMessage.setLoadStatus(MessageConstant.IMAGE_UNLOAD);
         imageMessage.buildSessionKey(true);
+        return imageMessage;
+    }
+
+    public static ImageMessage buildForReceive(Message message, String fromId, String toId)
+            throws JSONException, UnsupportedEncodingException {
+        ImageMessage imageMessage = new ImageMessage();
+        long nowTime = 0;
+        if(NumberUtils.isNumber(message.getThread())) {
+            nowTime = Long.parseLong(message.getThread());
+            imageMessage.setMsgId(SequenceNumberMaker.getInstance()
+                    .makelocalUniqueMsgId(nowTime));
+        }
+        imageMessage.setId(message.getStanzaId());
+        imageMessage.setFromId(fromId);
+        imageMessage.setToId(toId);
+        int msgType = DBConstant.MSG_TYPE_GROUP_TEXT;
+        imageMessage.setMsgType(msgType);
+        imageMessage.setStatus(MessageConstant.MSG_SUCCESS);
+        imageMessage.setDisplayType(DBConstant.SHOW_IMAGE_TYPE);
+        imageMessage.setCreated(nowTime);
+        imageMessage.setUpdated(nowTime);
+        imageMessage.buildSessionKey(false);
+        if(StringUtils.isBlank(message.getBody())) {
+//            imageMessage.setReadStatus(MessageConstant.AUDIO_READED);
+//            imageMessage.setAudioPath("");
+//            imageMessage.setAudiolength(0);
+
+        } else {
+            MsgImageContent msgImageContent = JacksonUtil.turnString2Obj(message.getBody(),
+                    MsgImageContent.class);
+            byte[] imageContent = Base64.decode(msgImageContent.small, Base64.DEFAULT);
+//            String imageSavePath = FileUtil.saveImageResourceToFile(imageContent, imageMessage.getFromId());
+            imageMessage.setPath("");
+            imageMessage.setUrl(msgImageContent.largeUrl);
+            imageMessage.setLoadStatus(MessageConstant.IMAGE_UNLOAD);
+        }
+        JSONObject extraContent = new JSONObject();
+        extraContent.put("path",imageMessage.getPath());
+        extraContent.put("url",imageMessage.getUrl());
+        extraContent.put("loadStatus",imageMessage.getLoadStatus());
+        String audioContent = extraContent.toString();
+        imageMessage.setContent(audioContent);
         return imageMessage;
     }
 

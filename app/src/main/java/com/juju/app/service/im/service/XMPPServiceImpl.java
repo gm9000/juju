@@ -877,6 +877,10 @@ public class XMPPServiceImpl implements
                     handlerMsg4Audio(message);
                     break;
 
+                case MSG_IMAGE:
+                    handlerMsg4Image(message);
+                    break;
+
             }
         }
     }
@@ -968,6 +972,14 @@ public class XMPPServiceImpl implements
      */
     private void handlerMsg4Audio(Message message) {
         ((IMService)mService).getMessageManager().onRecvMsg(message, IMBaseDefine.MsgType.MSG_AUDIO);
+    }
+
+    /**
+     * 处理图片消息
+     * @param message
+     */
+    private void handlerMsg4Image(Message message) {
+        ((IMService)mService).getMessageManager().onRecvMsg(message, IMBaseDefine.MsgType.MSG_IMAGE);
     }
 
 

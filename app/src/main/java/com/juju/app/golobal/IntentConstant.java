@@ -13,5 +13,7 @@ public class IntentConstant {
 
     public static final String EXTRA_IMAGE_LIST = "imagelist";
     public static final String EXTRA_ALBUM_NAME = "name";
+    public static final String CUR_MESSAGE = "CUR_MESSAGE";
+
 
 }

@@ -44,6 +44,9 @@ public class MessageDaoImpl extends DaoSupport<MessageEntity, Long> implements M
         if(entity instanceof AudioMessage) {
             MessageEntity messageEntity = entity.clone();
             super.replaceInto(messageEntity);
+        } else if (entity instanceof ImageMessage) {
+            MessageEntity messageEntity = entity.clone();
+            super.replaceInto(messageEntity);
         } else {
             super.replaceInto(entity);
         }

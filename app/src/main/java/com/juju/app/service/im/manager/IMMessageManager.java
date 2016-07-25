@@ -644,6 +644,9 @@ public class IMMessageManager extends IMManager {
                 case MSG_AUDIO:
                     executeMsgAudio(message);
                     break;
+                case MSG_IMAGE:
+                    executeMsgImage(message);
+                    break;
             }
         }
     }
@@ -681,6 +684,49 @@ public class IMMessageManager extends IMManager {
                 PriorityEvent notifyEvent = new PriorityEvent();
                 notifyEvent.event = PriorityEvent.Event.MSG_RECEIVED_MESSAGE;
                 notifyEvent.object = audioMessage;
+                triggerEvent(notifyEvent);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            } catch (UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+
+    public void executeMsgImage(Message message) {
+        String[] fromArr = message.getFrom().split("/");
+        if(fromArr != null && fromArr.length >= 2) {
+            String toId = fromArr[0];
+            String fromId = fromArr[1];
+            if(fromId.indexOf("@") >= 0) {
+                fromId = fromId.substring(0, fromId.indexOf("@"));
+            }
+            try {
+                ImageMessage imageMessage = ImageMessage.buildForReceive(message, fromId, toId);
+                //将消息保存到本地数据库
+                MessageEntity dbMessage = imageMessage.clone();
+                messageDao.saveOrUpdate(dbMessage);
+                SessionEntity cacheSessionEntity = sessionManager.getSessionMap()
+                        .get(imageMessage.getSessionKey());
+                /**
+                 * 1:最新接收的消息时间不能小于缓存消息的创建时间
+                 * 2:时间由服务器生成
+                 */
+                if(cacheSessionEntity == null
+                        || cacheSessionEntity.getCreated() < imageMessage.getCreated()) {
+                    //更新缓存，触发通知（更新群组列表UI）
+                    sessionManager.updateSession(dbMessage, true);
+                }
+
+                /**
+                 *  发送已读确认由上层的activity处理 特殊处理
+                 *  1. 未读计数、 通知、session页面
+                 *  2. 当前会话
+                 * */
+                PriorityEvent notifyEvent = new PriorityEvent();
+                notifyEvent.event = PriorityEvent.Event.MSG_RECEIVED_MESSAGE;
+                notifyEvent.object = imageMessage;
                 triggerEvent(notifyEvent);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -819,5 +865,57 @@ public class IMMessageManager extends IMManager {
             Log.e(TAG, "sendText:", e);
             triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
         }
+    }
+
+    /**
+     * 重新发送 message数据包
+     * 1.检测DB状态
+     * 2.删除DB状态 [不用删除]
+     * 3.调用对应的发送
+     * 判断消息的类型、判断是否是重发的状态
+     *
+     * */
+    public void resendMessage(MessageEntity msgInfo) {
+        if (msgInfo == null) {
+            logger.d("chat#resendMessage msgInfo is null or already send success!");
+            return;
+        }
+        /**check 历史原因处理*/
+        if(!SequenceNumberMaker.getInstance().isFailure(msgInfo.getMsgId())){
+            // 之前的状态处理有问题
+            msgInfo.setStatus(MessageConstant.MSG_SUCCESS);
+            messageDao.replaceInto(msgInfo);
+            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_OK,msgInfo));
+            return;
+        }
+
+        logger.d("chat#resendMessage msgInfo %s",msgInfo);
+        /**重新设定message 的时间,已经从DB中删除*/
+        long nowTime = System.currentTimeMillis();
+        msgInfo.setUpdated(nowTime);
+        msgInfo.setCreated(nowTime);
+
+        /**判断信息的类型*/
+        int msgType = msgInfo.getDisplayType();
+        switch (msgType){
+            case DBConstant.SHOW_ORIGIN_TEXT_TYPE:
+                sendText((TextMessage)msgInfo);
+                break;
+            case DBConstant.SHOW_IMAGE_TYPE:
+                sendMsgImage((ImageMessage) msgInfo);
+                break;
+            case DBConstant.SHOW_AUDIO_TYPE:
+                sendMsgAudio((AudioMessage)msgInfo); break;
+            default:
+                throw new IllegalArgumentException("#resendMessage#enum type is wrong!!,cause by displayType"+msgType);
+        }
+    }
+
+
+    public void sendMsgImage(ImageMessage msg){
+        logger.d("ImMessageManager#sendImage ");
+        ArrayList<ImageMessage> msgList = new ArrayList<>();
+        msgList.add(msg);
+        sendMsgImages(msgList);
     }
 }
