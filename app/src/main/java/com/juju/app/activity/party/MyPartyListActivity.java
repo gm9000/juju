@@ -27,7 +27,6 @@ import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.view.dialog.WarnTipDialog;
 
@@ -171,21 +170,16 @@ public class MyPartyListActivity extends BaseActivity implements AdapterView.OnI
         Party curParty = (Party)listPartyView.getRefreshableView().getItemAtPosition(position);
         switch(curParty.getStatus()){
             case -1: // 草稿箱
-//                ActivityUtil.startActivity(this, PartyCreateActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
                 startActivityNew(this, PartyCreateActivity.class, Constants.PARTY_ID,curParty.getId());
                 break;
             case 0: // 召集中
-//                BasicNameValuePair param = new BasicNameValuePair(Constants.PARTY_ID,curParty.getId());
-//                ActivityUtil.startActivity(this, PartyDetailActivity.class,param);
                 startActivityNew(this, PartyDetailActivity.class, Constants.PARTY_ID,curParty.getId());
                 break;
             case 1: //  进行中
-//                ActivityUtil.startActivity(this, PartyActivity.class,new BasicNameValuePair(Constants.PARTY_ID,curParty.getId()));
                 startActivityNew(this, PartyLiveActivity.class, Constants.PARTY_ID,curParty.getId());
                 break;
             case 2: //  已结束
-//                ActivityUtil.startActivity(this, PartyActivity.class);
-                startActivityNew(this, PartyLiveActivity.class);
+                startActivityNew(this, PartyLiveActivity.class, Constants.PARTY_ID,curParty.getId());
                 break;
         }
     }

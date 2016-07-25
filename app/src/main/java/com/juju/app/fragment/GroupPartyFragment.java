@@ -339,7 +339,7 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                 .inDuration(300);
         txtTop = (TextView)msgDialog.findViewById(R.id.btn_menu1);
         txtStock = (TextView)msgDialog.findViewById(R.id.btn_menu2);
-        if(party.getCreator().equals(AppContext.getUserInfoBean().getUserNo())) {
+        if(party.getStatus()==1 && party.getUserNo().equals(AppContext.getUserInfoBean().getUserNo())) {
             txtFinish = (TextView) msgDialog.findViewById(R.id.btn_menu3);
             txtFinish.setText(R.string.finish_party);
             txtFinish.setVisibility(View.VISIBLE);
@@ -433,8 +433,9 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
         reqBean.put("userNo", AppContext.getUserInfoBean().getUserNo());
         reqBean.put("token", AppContext.getUserInfoBean().getToken());
         reqBean.put("partyId", party.getId());
+        reqBean.put("status",2);
 
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(FINISH_PARTY, HttpConstants.getUserUrl() + "/confirmParty", new HttpCallBack4OK() {
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(FINISH_PARTY, HttpConstants.getUserUrl() + "/updatePartyStatus", new HttpCallBack4OK() {
             @Override
             public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
                 switch (accessId) {
@@ -443,7 +444,8 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
                             JSONObject jsonRoot = (JSONObject) obj;
                             try {
                                 int status = jsonRoot.getInt("status");
-                                if (status == 0) {
+                                String finishPartyId = jsonRoot.getString("partyId");
+                                if (status == 0 && finishPartyId.equals(party.getId())) {
                                     party.setStatus(2);
                                     JujuDbUtils.saveOrUpdate(party);
                                     //  通知 Party已经结束
@@ -476,12 +478,6 @@ public class GroupPartyFragment extends BaseFragment implements CreateUIHelper,P
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
-
-
-        party.setStatus(2);
-        JujuDbUtils.saveOrUpdate(party);
-        partyListAdapter.notifyDataSetChanged();
     }
 
     @Override

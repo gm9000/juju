@@ -2,6 +2,7 @@ package com.juju.app.service.notify;
 
 import com.juju.app.R;
 import com.juju.app.entity.Party;
+import com.juju.app.entity.VideoProgram;
 import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.golobal.JujuDbUtils;
@@ -15,6 +16,8 @@ import com.juju.app.utils.ToastUtil;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
+import org.xutils.common.util.KeyValue;
+import org.xutils.db.sqlite.WhereBuilder;
 import org.xutils.ex.DbException;
 
 import java.util.UUID;
@@ -173,7 +176,9 @@ public class PartyEndNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyBean>
     private void confirmLocalPartyData(final PartyNotifyEvent.PartyNotifyBean partyNotifyBean) {
 
         try {
+
             Party party = JujuDbUtils.getInstance().selector(Party.class).where("id", "=", partyNotifyBean.getPartyId()).findFirst();
+
             if(party==null){
                 PartyRecruitNotify.instance().synLocalPartyData(partyNotifyBean, false, new PartyRecruitNotify.CallBack() {
                     @Override

@@ -28,6 +28,7 @@ import com.juju.app.entity.VideoProgram;
 import com.juju.app.event.notify.DiscussNotifyEvent;
 import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.event.notify.LiveNotifyEvent;
+import com.juju.app.event.notify.PartyNotifyEvent;
 import com.juju.app.event.notify.SeizeNotifyEvent;
 import com.juju.app.fragment.party.LiveMenuFragment;
 import com.juju.app.golobal.AppContext;
@@ -824,6 +825,23 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         }
     }
 
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4PartyNotifyEvent(PartyNotifyEvent event){
+        Log.d(TAG,"PartyNotifyEvent:"+event);
+        switch (event.event){
+            case PARTY_END_OK:
+                WarnTipDialog tipdialog = new WarnTipDialog(context,"聚会由发起人结束\n您的直播将被关闭");
+                tipdialog.hiddenBtnCancel();
+                tipdialog.setBtnOkLinstener( new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        ActivityUtil.finish(UploadVideoActivity.this);
+                    }
+                });
+                tipdialog.show();
+                break;
+        }
+    }
 
 
     @Event(R.id.img_live_menu)
