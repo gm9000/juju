@@ -119,7 +119,7 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
     protected  void onResume(){
         Log.e(TAG,"onResume");
         super.onResume();
-
+        refresh();
 
     }
 

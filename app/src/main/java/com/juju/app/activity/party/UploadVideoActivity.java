@@ -520,7 +520,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                                 mCameraStreamingManager.captureFrame(360,640,new FrameCapturedCallback(){
                                     @Override
                                     public void onFrameCaptured(Bitmap bitmap) {
-                                       uploadCapture( DecodeUtils.imageCrop(bitmap,360,270),true);
+                                       uploadCapture( DecodeUtils.imageCrop(bitmap,320,200),true);
                                     }
                                 });
 
@@ -583,6 +583,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                     }
                 });
     }
+
 
     private void notifyLiveStart(){
         LiveNotifyEvent.LiveNotifyBean liveStartBean = new LiveNotifyEvent.LiveNotifyBean();
@@ -1030,7 +1031,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                         mCameraStreamingManager.captureFrame(360,640,new FrameCapturedCallback(){
                             @Override
                             public void onFrameCaptured(Bitmap bitmap) {
-                                uploadCapture( DecodeUtils.imageCrop(bitmap,360,270),false);
+                                uploadCapture( DecodeUtils.imageCrop(bitmap,320,200),false);
                             }
                         });
                     }

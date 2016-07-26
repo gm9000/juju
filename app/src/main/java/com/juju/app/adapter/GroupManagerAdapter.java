@@ -9,11 +9,10 @@ import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-
 import com.juju.app.R;
 import com.juju.app.activity.chat.GroupManagerActivity;
 import com.juju.app.activity.chat.GroupMemberSelectActivity;
-import com.juju.app.activity.chat.UserInfoActivity;
+import com.juju.app.activity.user.SettingActivity;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
@@ -22,20 +21,15 @@ import com.juju.app.event.notify.RemoveGroupEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
-import com.juju.app.helper.IMUIHelper;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.notify.RemoveGroupNotify;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.Logger;
-import com.juju.app.utils.StringUtils;
 import com.juju.app.view.groupchat.IMBaseImageView;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 
 
@@ -228,7 +222,7 @@ public class GroupManagerAdapter extends BaseAdapter {
 					public void onClick(View v) {
 //						IMUIHelper.openUserProfileActivity(context, userEntity.getPeerId());
                         ActivityUtil.startActivityNew(context,
-                                UserInfoActivity.class, Constants.KEY_PEERID, userEntity.getUserNo());
+                                SettingActivity.class, Constants.USER_NO, userEntity.getUserNo());
 					}
 				});
 			}

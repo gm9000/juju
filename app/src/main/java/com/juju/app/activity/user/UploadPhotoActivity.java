@@ -274,50 +274,6 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
         return Bitmap.createBitmap(bitmap, retX, retY, wh, wh, null, false);
     }
 
-//    @Override
-//    public void onSuccess(ResponseInfo<String> responseInfo, int accessId, Object... obj) {
-//        switch (accessId) {
-//            case R.id.upload_head:
-//                txt_confirm.setClickable(true);
-//                txt_cancel.setClickable(true);
-//                if(obj != null && obj.length > 0) {
-//                    JSONObject jsonRoot = (JSONObject)obj[0];
-//                    try {
-//                        int status = jsonRoot.getInt("status");
-//                        if(status == 0) {
-//                            completeLoading();
-//                            UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-//                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + BaseApplication.getInstance().getUserInfoBean().getJujuNo());
-//                            BitmapUtilFactory.getInstance(this).clearCache(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
-//                            originHeadImg.setVisibility(View.VISIBLE);
-//                            headImg.setVisibility(View.GONE);
-//                            menuLayout.setVisibility(View.GONE);
-//                        } else {
-//                        }
-//                    } catch (JSONException e) {
-//                        Log.e(TAG, "回调解析失败", e);
-//                        e.printStackTrace();
-//                    }
-//                }
-//                break;
-//        }
-//    }
-//
-//    @Override
-//    public void onFailure(HttpException error, String msg, int accessId) {
-//        completeLoading();
-//        ToastUtil.showShortToast(this,"上传失败",1);
-//        UserInfoBean userInfoBean = BaseApplication.getInstance().getUserInfoBean();
-//        BitmapUtilFactory.getInstance(this).display(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo());
-//        txt_confirm.setClickable(true);
-//        txt_cancel.setClickable(true);
-//        originHeadImg.setVisibility(View.VISIBLE);
-//        headImg.setVisibility(View.GONE);
-//        menuLayout.setVisibility(View.GONE);
-//        System.out.println("TAG's accessId:" + accessId + "\r\n msg:" + msg + "\r\n code:" +
-//                error.getExceptionCode());
-//    }
-
 
     @Override
     public void onSuccess(Object obj, int accessId, Object inputParameter) {

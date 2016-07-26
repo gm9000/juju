@@ -37,6 +37,7 @@ import com.juju.app.service.im.manager.IMContactManager;
 import com.juju.app.service.notify.PartyRecruitNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
+import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ToastUtil;
@@ -386,6 +387,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
 
                 if(i == 0){
                     party.setTime(plan.getStartTime());
+                    party.setCoverUrl(plan.getCoverUrl());
                     JujuDbUtils.saveOrUpdate(party);
                 }
 
@@ -493,7 +495,6 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                     Plan plan = JacksonUtil.turnString2Obj(planJson,Plan.class);
                     planList.add(plan);
                     refreshPlanInfo(planList.size()-1);
-                    System.out.println("planJson:"+planJson);
                     break;
 
                 case EDIT_PLAN:
@@ -517,7 +518,11 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
             case 0:
                 layoutPlan1.setVisibility(View.VISIBLE);
                 txtPlanType1.setText(getResValue(plan.getType()));
-                imgPlan1.setImageResource(getResValue(plan.getType().toLowerCase(),"mipmap"));
+                if(plan.getCoverUrl()!=null && plan.getCoverUrl().startsWith("http:")){
+                    ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlan1, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+                }else {
+                    imgPlan1.setImageResource(getResValue(plan.getType().toLowerCase(), "mipmap"));
+                }
                 txtPlanDesc1.setText(plan.getDesc());
                 txtPlanLocation1.setText(plan.getAddress());
                 txtPlanTime1.setText(dateFormat.format(plan.getStartTime()));
@@ -525,7 +530,11 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
             case 1:
                 layoutPlan2.setVisibility(View.VISIBLE);
                 txtPlanType2.setText(getResValue(plan.getType()));
-                imgPlan2.setImageResource(getResValue(plan.getType().toLowerCase(),"mipmap"));
+                if(plan.getCoverUrl()!=null && plan.getCoverUrl().startsWith("http:")){
+                    ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlan2, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+                }else {
+                    imgPlan2.setImageResource(getResValue(plan.getType().toLowerCase(), "mipmap"));
+                }
                 txtPlanDesc2.setText(plan.getDesc());
                 txtPlanLocation2.setText(plan.getAddress());
                 txtPlanTime2.setText(dateFormat.format(plan.getStartTime()));
@@ -534,7 +543,11 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                 layoutPlan3.setVisibility(View.VISIBLE);
                 layoutPlanAdd.setVisibility(View.GONE);
                 txtPlanType3.setText(getResValue(plan.getType()));
-                imgPlan3.setImageResource(getResValue(plan.getType().toLowerCase(),"mipmap"));
+                if(plan.getCoverUrl()!=null && plan.getCoverUrl().startsWith("http:")){
+                    ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlan3, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+                }else {
+                    imgPlan3.setImageResource(getResValue(plan.getType().toLowerCase(), "mipmap"));
+                }
                 txtPlanDesc3.setText(plan.getDesc());
                 txtPlanLocation3.setText(plan.getAddress());
                 txtPlanTime3.setText(dateFormat.format(plan.getStartTime()));
