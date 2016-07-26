@@ -236,5 +236,19 @@ public class DecodeUtils {
 		options.inInputShareable = true;
 		options.inTempStorage = new byte[16 * 1024];
 		return options;
-	}	
+	}
+
+	public static Bitmap imageCrop(Bitmap bitmap,int width,int height) {
+		int w = bitmap.getWidth(); // 得到图片的宽，高
+		int h = bitmap.getHeight();
+
+		if(w<width || h<height){
+			return null;
+		}
+
+		int retX = (w-width)/2;
+		int retY = (h-height)/2;
+
+		return Bitmap.createBitmap(bitmap, retX, retY, width, height, null, false);
+	}
 }

@@ -536,7 +536,7 @@ public final class IMBaseDefine {
 
             @Override
             public Class getCls() {
-                return null;
+                return LiveNotifyEvent.LiveNotifyBean.class;
             }
 
             public int MsgType() {

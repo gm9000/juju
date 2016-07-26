@@ -117,7 +117,13 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
     @Override
     protected  void onResume(){
+        Log.e(TAG,"onResume");
         super.onResume();
+
+
+    }
+
+    private void refresh(){
         //  TODO 这里处理处理上有问题， 需要针对特定聚会进行局部刷新
         if(videoProgramList!=null && JujuDbUtils.needRefresh(VideoProgram.class)){
             Selector selector = null;
@@ -336,12 +342,18 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onEvent4LiveNotifyEvent(LiveNotifyEvent event){
+        if(!event.bean.getPartyId().equals(partyId)){
+            return;
+        }
         switch (event.event){
             case LIVE_START_OK:
-                onResume();
+                refresh();
                 break;
             case LIVE_STOP_OK:
-                onResume();
+                refresh();
+                break;
+            case LIVE_CAPTURE_OK:
+                refresh();
                 break;
         }
     }
