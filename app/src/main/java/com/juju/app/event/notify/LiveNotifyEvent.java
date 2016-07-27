@@ -134,6 +134,9 @@ public class LiveNotifyEvent {
         LIVE_START_OK,
         LIVE_START_FAILED,
 
+        LIVE_CAPTURE_OK,
+        LIVE_CAPTUER_FAILED,
+
         LIVE_STOP_OK,
         LIVE_STOP_FAILED,
 
@@ -158,6 +161,10 @@ public class LiveNotifyEvent {
                 //直播开始（消息服务器）
                 SEND_LIVE_START_MSERVER_OK,
                 SEND_LIVE_START_MSERVER_FAILED,
+
+                //截屏封面（消息服务器）
+                SEND_LIVE_CAPTURE_MSERVER_OK,
+                SEND_LIVE_CAPTURE_MSERVER_FAILED,
 
                 //直播结束（消息服务器）
                 SEND_LIVE_STOP_MSERVER_OK,
@@ -186,6 +193,9 @@ public class LiveNotifyEvent {
 
                 PROCESS_LIVE_START_OK,
                 PROCESS_LIVE_START_FAIL,
+
+                PROCESS_LIVE_CAPTURE_OK,
+                PROCESS_LIVE_CAPTURE_FAIL,
 
                 PROCESS_LIVE_STOP_OK,
                 PROCESS_LIVE_STOP_FAIL,

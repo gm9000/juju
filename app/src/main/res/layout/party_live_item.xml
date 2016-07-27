@@ -32,8 +32,7 @@
             android:layout_centerInParent="true"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:src="@drawable/capture"/>
+            android:adjustViewBounds="true"/>
         <ImageView
             android:id="@+id/img_play"
             android:layout_centerInParent="true"

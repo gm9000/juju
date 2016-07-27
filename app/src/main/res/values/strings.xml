@@ -218,6 +218,8 @@
     <string name="live_limit">一个聚会同时只允许一个直播</string>
     <string name="live_start_send_success">直播发布成功</string>
     <string name="live_start_send_failed">直播发布失败</string>
+    <string name="live_capture_send_success">封面更换成功</string>
+    <string name="live_capture_send_failed">封面更换失败</string>
     <string name="live_stop_send_success">直播停止成功</string>
     <string name="live_stop_send_failed">直播停止失败</string>
     <string name="live_seize_start_send_success">抢播启动成功</string>
@@ -230,7 +232,7 @@
     <string name="click_hint">猛戳屏幕\n争夺续播权</string>
     <string name="live_seize">续播</string>
     <string name="live_fb">美肤</string>
-    <string name="live_capture">截图</string>
+    <string name="live_capture">截图封面</string>
     <string name="live_sound">声音</string>
     <string name="live_light">照明</string>
 
@@ -263,6 +265,7 @@
     <string name="plan1">方案一</string>
     <string name="plan2">方案二</string>
     <string name="plan3">方案三</string>
+    <string name="to_default">恢复默认</string>
     <string name="un_read">未阅</string>
     <string name="plan_new">新方案</string>
     <string name="time">时间</string>
@@ -342,6 +345,8 @@
     <string name="female">女</string>
     <string name="logout">退出登录</string>
     <string name="uploading">正在上传&#8230;</string>
+    <string name="uploaded">上传完成</string>
+    <string name="upload_fail">上传失败</string>
     <string name="uncheck">等待验证</string>
     <string name="waiting_you">等你加入</string>
     <string name="waiting_ta">等他加入</string>

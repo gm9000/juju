@@ -31,6 +31,7 @@ import com.juju.app.service.notify.ApplyInGroupNotify;
 import com.juju.app.service.notify.ExitGroupNotify;
 import com.juju.app.service.notify.InviteInGroupNotify;
 import com.juju.app.service.notify.InviteUserNotify;
+import com.juju.app.service.notify.LiveCaptureNotify;
 import com.juju.app.service.notify.LiveDiscussNotify;
 import com.juju.app.service.notify.LiveEnterNotify;
 import com.juju.app.service.notify.LiveSeizeReportNotify;
@@ -118,6 +119,7 @@ public class IMOtherManager extends IMManager {
         PlanVoteNotify.instance().stop();
         LocationReportNotify.instance().stop();
         LiveStartNotify.instance().stop();
+        LiveCaptureNotify.instance().stop();
         LiveStopNotify.instance().stop();
         LiveSeizeStartNotify.instance().stop();
         LiveSeizeStopNotify.instance().stop();
@@ -181,6 +183,7 @@ public class IMOtherManager extends IMManager {
         ExitGroupNotify.instance().start(this, IMGroupManager.instance());
         ApplyInGroupNotify.instance().start(this, IMGroupManager.instance(), IMContactManager.instance());
         LiveStartNotify.instance().start(this);
+        LiveCaptureNotify.instance().start(this);
         LiveStopNotify.instance().start(this);
         LiveSeizeStartNotify.instance().start(this);
         LiveSeizeStopNotify.instance().start(this);
@@ -334,6 +337,11 @@ public class IMOtherManager extends IMManager {
                 LiveNotifyEvent.LiveNotifyBean liveNotifyBean = (LiveNotifyEvent.LiveNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_START.getCls());
                 LiveStartNotify.instance().executeCommand4Recv(liveNotifyBean);
+                break;
+            case LIVE_CAPTURE:
+                LiveNotifyEvent.LiveNotifyBean liveCaptureNotifyBean = (LiveNotifyEvent.LiveNotifyBean)
+                        JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_CAPTURE.getCls());
+                LiveCaptureNotify.instance().executeCommand4Recv(liveCaptureNotifyBean);
                 break;
             case LIVE_STOP:
                 LiveNotifyEvent.LiveNotifyBean liveStopNotifyBean = (LiveNotifyEvent.LiveNotifyBean)

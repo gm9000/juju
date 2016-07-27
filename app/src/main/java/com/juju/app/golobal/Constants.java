@@ -28,9 +28,11 @@ public class Constants {
     // 图片存储路径
     public static final String BASE_PATH = SD_PATH + "/juju/";
 
-
     // 缓存图片路径
     public static final String BASE_IMAGE_CACHE = BASE_PATH + "cache/images/";
+
+    // 缓存头像拍摄路径
+    public static final String HEAD_IMAGE_CACHE = BASE_PATH + "juju_head.jpg";
 
     //是否是开发模式
     public static final boolean IS_APP_MODEL = true;
