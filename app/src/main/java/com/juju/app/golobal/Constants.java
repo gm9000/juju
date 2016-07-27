@@ -25,6 +25,8 @@ public class Constants {
     public static final String SD_PATH = Environment
             .getExternalStorageDirectory().getAbsolutePath();
 
+    public static final String DEFAULT_DIR_NAME = "juju";
+
     // 图片存储路径
     public static final String BASE_PATH = SD_PATH + "/juju/";
 

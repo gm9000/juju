@@ -21,6 +21,7 @@ import com.juju.app.event.SessionEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.helper.chat.SequenceNumberMaker;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
@@ -396,12 +397,24 @@ public class IMSessionManager extends IMManager {
             String thread = jsonBody.getString("thread");
             //以后需要考虑消息类型
             String body = jsonBody.getString("body");
+            String code = jsonBody.getString("code");
             int laststMsgId = SequenceNumberMaker.getInstance().makelocalUniqueMsgId(Long.valueOf(thread));
             sessionEntity.setPeerId(to);
             sessionEntity.buildSessionKey();
             sessionEntity.setTalkId(from);
             sessionEntity.setLatestMsgId(laststMsgId);
-            sessionEntity.setLatestMsgData(body);
+            if(com.juju.app.utils.StringUtils.isBlank(code)
+                    || IMBaseDefine.MsgType.MSG_TEXT.code().equals(code)) {
+                sessionEntity.setLatestMsgData(body);
+            }
+            //短语音
+            else if(IMBaseDefine.MsgType.MSG_AUDIO.code().equals(code)) {
+                sessionEntity.setLatestMsgData(DBConstant.DISPLAY_FOR_AUDIO);
+            }
+            //图片
+            else if(IMBaseDefine.MsgType.MSG_IMAGE.code().equals(code)) {
+                sessionEntity.setLatestMsgData(DBConstant.DISPLAY_FOR_IMAGE);
+            }
             sessionEntity.setUpdated(Long.valueOf(thread));
             sessionEntity.setCreated(Long.valueOf(thread));
             return sessionEntity;

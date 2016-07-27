@@ -2,6 +2,7 @@ package com.juju.app.service.im.manager;
 
 import android.content.Intent;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 
 import com.juju.app.biz.DaoSupport;
@@ -26,6 +27,8 @@ import com.juju.app.service.im.LoadImageService;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.iq.RedisResIQ;
 import com.juju.app.service.im.service.XMPPServiceImpl;
+import com.juju.app.utils.FileUtil;
+import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
 import com.juju.app.utils.StringUtils;
 
@@ -35,6 +38,7 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.jivesoftware.smack.SmackException;
 import org.jivesoftware.smack.packet.Message;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -386,13 +390,13 @@ public class IMMessageManager extends IMManager {
             String from = jsonBody.getString("from");
             String thread = jsonBody.getString("thread");
             String body = jsonBody.getString("body");
-
+            String code = jsonBody.getString("code");
+            String stanzaId = jsonBody.getString("stanzaId");
+            messageEntity.setId(stanzaId);
             messageEntity.setCreated(Long.parseLong(thread));
             messageEntity.setUpdated(Long.parseLong(thread));
             int msgId = SequenceNumberMaker.getInstance()
                     .makelocalUniqueMsgId(Long.valueOf(thread));
-
-
             String[] fromArr = from.split("@");
             if(fromArr.length >=2) {
                 messageEntity.setFromId(fromArr[0]);
@@ -401,11 +405,50 @@ public class IMMessageManager extends IMManager {
             }
             messageEntity.setMsgId(msgId);
             messageEntity.setToId(to);
-            messageEntity.setMsgType(DBConstant.MSG_TYPE_GROUP_TEXT);
             messageEntity.setStatus(MessageConstant.MSG_SUCCESS);
-            messageEntity.setContent(body);
-            messageEntity.setDisplayType(DBConstant.SHOW_ORIGIN_TEXT_TYPE);
+            messageEntity.setMsgType(DBConstant.MSG_TYPE_GROUP_TEXT);
             messageEntity.buildSessionKey(false);
+
+            if(StringUtils.isBlank(code) || IMBaseDefine.MsgType.MSG_TEXT.code().equals(code)) {
+                messageEntity.setDisplayType(DBConstant.SHOW_ORIGIN_TEXT_TYPE);
+                messageEntity.setContent(body);
+            }
+            //短语音
+            else if(IMBaseDefine.MsgType.MSG_AUDIO.code().equals(code)) {
+                JSONArray jsonArray = new JSONArray(body);
+                if(jsonArray != null && jsonArray.length() >0) {
+                    JSONObject bodyJson = jsonArray.getJSONObject(0);
+                    AudioMessage.MsgAudioContent msgAudioContent = JacksonUtil.turnString2Obj(bodyJson.toString(),
+                            AudioMessage.MsgAudioContent.class);
+                    byte[] audioContent = Base64.decode(msgAudioContent.content, Base64.DEFAULT);
+                    String audioSavePath = FileUtil.saveAudioResourceToFile(audioContent, messageEntity.getFromId());
+                    JSONObject extraContent = new JSONObject();
+                    extraContent.put("audioPath",audioSavePath);
+                    extraContent.put("audiolength", msgAudioContent.duration);
+                    extraContent.put("readStatus", MessageConstant.AUDIO_UNREAD);
+                    String audioContentStr = extraContent.toString();
+                    messageEntity.setContent(audioContentStr);
+                }
+                messageEntity.setDisplayType(DBConstant.SHOW_AUDIO_TYPE);
+
+            }
+            //图片
+            else if(IMBaseDefine.MsgType.MSG_IMAGE.code().equals(code)) {
+                JSONArray jsonArray = new JSONArray(body);
+                if(jsonArray != null && jsonArray.length() >0) {
+                    JSONObject bodyJson = jsonArray.getJSONObject(0);
+                    ImageMessage.MsgImageContent msgImageContent = JacksonUtil.turnString2Obj(bodyJson.toString(),
+                            ImageMessage.MsgImageContent.class);
+//                    byte[] imageContent = Base64.decode(msgImageContent.small, Base64.DEFAULT);
+                    JSONObject extraContent = new JSONObject();
+                    extraContent.put("path","");
+                    extraContent.put("url",msgImageContent.largeUrl);
+                    extraContent.put("loadStatus",MessageConstant.IMAGE_LOADED_SUCCESS);
+                    String imageContent = extraContent.toString();
+                    messageEntity.setContent(imageContent);
+                }
+                messageEntity.setDisplayType(DBConstant.SHOW_IMAGE_TYPE);
+            }
         }
         return messageEntity;
     }

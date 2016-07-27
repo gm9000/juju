@@ -49,7 +49,7 @@ public class BubbleImageView extends ImageView {
     public void setImageUrl(final String url) {
         System.out.println("setImageUrl#this:"+this.toString());
         this.imageUrl = url;
-//        if (isAttachedOnWindow) {
+        if (isAttachedOnWindow) {
             final BubbleImageView view = this;
             if (!TextUtils.isEmpty(this.imageUrl)) {
                 ImageAware imageAware = new ImageViewAware(this, false);
@@ -97,9 +97,9 @@ public class BubbleImageView extends ImageView {
                     }
                 });
             }
-//        } else {
-//            this.setImageResource(R.mipmap.tt_message_image_default);
-//        }
+        } else {
+            this.setImageResource(R.mipmap.tt_message_image_default);
+        }
     }
 
     @Override

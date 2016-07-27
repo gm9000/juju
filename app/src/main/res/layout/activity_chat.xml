@@ -177,8 +177,7 @@
 			android:orientation="vertical"
 			android:background="@color/emo_bk_color"
 			android:visibility="gone"
-			android:gravity="bottom"
-			>
+			android:gravity="bottom">
 
 			<View
 				android:layout_width="fill_parent"
@@ -194,55 +193,57 @@
 				android:gravity="center_vertical"
 				android:visibility="gone" />
 
-			<com.juju.app.view.groupchat.YayaEmoGridView
-				android:id="@+id/yaya_emo_gridview"
-				android:layout_width="match_parent"
-				android:layout_height="match_parent"
-				android:layout_alignParentLeft="true"
-				android:gravity="center_vertical"
-				android:layout_weight="1"
-				android:visibility="gone" />
+			<!--<com.juju.app.view.groupchat.YayaEmoGridView-->
+				<!--android:id="@+id/yaya_emo_gridview"-->
+				<!--android:layout_width="match_parent"-->
+				<!--android:layout_height="match_parent"-->
+				<!--android:layout_alignParentLeft="true"-->
+				<!--android:gravity="center_vertical"-->
+				<!--android:layout_weight="1"-->
+				<!--android:visibility="gone" />-->
 
-			<RadioGroup
-				android:id="@+id/emo_tab_group"
-				android:layout_width="match_parent"
-				android:layout_height="30dp"
-				android:gravity="center_vertical"
-				android:layout_gravity="bottom"
-				android:orientation="horizontal"
-				android:checkedButton="@+id/tab1"
-				android:background="@color/group_manager_user_title">
+			<!--<RadioGroup-->
+				<!--android:id="@+id/emo_tab_group"-->
+				<!--android:layout_width="match_parent"-->
+				<!--android:layout_height="30dp"-->
+				<!--android:gravity="center_vertical"-->
+				<!--android:layout_gravity="bottom"-->
+				<!--android:orientation="horizontal"-->
+				<!--android:checkedButton="@+id/tab1"-->
+				<!--android:background="@color/group_manager_user_title">-->
 
-				<!-- 第一个标签，注意button属性设置成null，以此去掉自带的radio button -->
-				<!-- 注意：id="@id/tab1"，为什么不是+id呢？这个和加载先后有关系,Google一下吧 -->
-				<RadioButton
-					android:id="@id/tab1"
-					android:tag="tab1"
-					android:layout_width="fill_parent"
-					android:layout_height="fill_parent"
-					android:layout_weight="1.0"
-					android:text="@string/yaya_emo"
-					android:button="@null"
-					android:gravity="center"
-					android:layout_gravity="bottom"
-					android:textSize="14sp"
-					android:textColor="@android:color/black"
-					android:background="@drawable/tab_bg_selector"/>
+				<!--&lt;!&ndash; 第一个标签，注意button属性设置成null，以此去掉自带的radio button &ndash;&gt;-->
+				<!--&lt;!&ndash; 注意：id="@id/tab1"，为什么不是+id呢？这个和加载先后有关系,Google一下吧 &ndash;&gt;-->
+				<!--<RadioButton-->
+					<!--android:id="@id/tab1"-->
+					<!--android:tag="tab1"-->
+					<!--android:layout_width="fill_parent"-->
+					<!--android:layout_height="fill_parent"-->
+					<!--android:layout_weight="1.0"-->
+					<!--android:text="@string/yaya_emo"-->
+					<!--android:button="@null"-->
+					<!--android:gravity="center"-->
+					<!--android:layout_gravity="bottom"-->
+					<!--android:textSize="14sp"-->
+					<!--android:textColor="@android:color/black"-->
+					<!--android:background="@drawable/tab_bg_selector"/>-->
 
-				<RadioButton
-					android:id="@+id/tab2"
-					android:layout_width="fill_parent"
-					android:layout_height="fill_parent"
-					android:layout_weight="1.0"
-					android:text="@string/default_emo"
-					android:button="@null"
-					android:layout_gravity="bottom"
-					android:gravity="center"
-					android:textSize="14sp"
-					android:textColor="@android:color/black"
-					android:background="@drawable/tab_bg_selector"/>
+				<!--<RadioButton-->
+					<!--android:id="@+id/tab2"-->
+					<!--android:layout_width="fill_parent"-->
+					<!--android:layout_height="fill_parent"-->
+					<!--android:layout_weight="1.0"-->
+					<!--android:text="@string/default_emo"-->
+					<!--android:button="@null"-->
+					<!--android:layout_gravity="bottom"-->
+					<!--android:gravity="center"-->
+					<!--android:textSize="14sp"-->
+					<!--android:textColor="@android:color/black"-->
+					<!--android:background="@drawable/tab_bg_selector"/>-->
 
-			</RadioGroup>
+			<!--</RadioGroup>-->
+
+
 
 		</LinearLayout>>
 

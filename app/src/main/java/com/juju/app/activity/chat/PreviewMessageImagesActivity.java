@@ -12,17 +12,25 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 
 import com.juju.app.R;
+import com.juju.app.annotation.CreateUI;
+import com.juju.app.annotation.SystemColor;
 import com.juju.app.entity.chat.ImageMessage;
 import com.juju.app.fragment.chat.MessageImageFragment;
 import com.juju.app.golobal.IntentConstant;
 import com.juju.app.service.im.IMService;
 import com.juju.app.service.im.IMServiceConnector;
+import com.juju.app.ui.base.BaseActivity;
 
+
+import org.xutils.view.annotation.ContentView;
 
 import java.util.ArrayList;
 
 
-public class PreviewMessageImagesActivity extends FragmentActivity
+@ContentView(R.layout.activity_preview_message_images)
+@CreateUI(showTopView = false)
+@SystemColor(isApply = false)
+public class PreviewMessageImagesActivity extends BaseActivity
         implements ViewPager.OnPageChangeListener {
     private ViewPager viewPager;
     private LinearLayout group;
@@ -38,7 +46,7 @@ public class PreviewMessageImagesActivity extends FragmentActivity
         @Override
         public void onIMServiceConnected() {
             imService = imServiceConnector.getIMService();
-            if(imService!=null)
+            if(imService != null)
             {
                 loadFragments();
             }
@@ -52,7 +60,6 @@ public class PreviewMessageImagesActivity extends FragmentActivity
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_preview_message_images);
         imageList=ImageMessage.getImageMessageList();
         try {
             messageInfo = (ImageMessage) getIntent().getSerializableExtra(IntentConstant.CUR_MESSAGE);
@@ -106,7 +113,8 @@ public class PreviewMessageImagesActivity extends FragmentActivity
                     fragment.setImageInfo(item);
                     fragment.setImService(imService);
                     fragments.add(fragment);
-                    if (item.getMsgId()==messageInfo.getMsgId()&&messageInfo.getId().equals(item.getId())) {
+                    if (item.getMsgId()==messageInfo.getMsgId()
+                            && messageInfo.getId().equals(item.getId())) {
                         curImagePosition = i;
                     }
                 }
