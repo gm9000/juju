@@ -5,7 +5,6 @@ import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Looper;
-import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
@@ -23,10 +22,10 @@ import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
-import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
@@ -102,14 +101,37 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
 
     private TimeCount time;
 
+    private IMService imService;
+    /**
+     * IMServiceConnector
+     */
+    private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("SettingActivity#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+        }
+
+        @Override
+        public void onServiceDisconnected() {
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 //        ViewUtils.inject(this);
+        imServiceConnector.connect(this);
         initParam();
         initData();
         initView();
 
+    }
+
+    @Override
+    protected void onDestroy(){
+        super.onDestroy();
+        imServiceConnector.disconnect(this);
     }
 
     private void initData() {
@@ -312,7 +334,9 @@ public class PropertiesSettingActivity extends BaseActivity implements XEditText
                         if(status == 0) {
                             userInfo.setUpdate(false);
                             SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfo));
+                            userInfo.updateVersion();
                             JujuDbUtils.saveOrUpdate(userInfo);
+                            imService.getContactManager().getUserMap().put(userInfo.getUserNo(),userInfo);
                             ActivityUtil.finish(this);
                         } else {
                             Log.e(TAG,"return status code:"+status);

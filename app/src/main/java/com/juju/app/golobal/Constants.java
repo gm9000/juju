@@ -34,6 +34,8 @@ public class Constants {
     // 缓存头像拍摄路径
     public static final String HEAD_IMAGE_CACHE = BASE_PATH + "juju_head.jpg";
 
+    public static final String PLAN_COVER_CACHE = BASE_PATH + "juju_plan_cover.jpg.jpg";
+
     //是否是开发模式
     public static final boolean IS_APP_MODEL = true;
 

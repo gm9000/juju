@@ -154,11 +154,6 @@ public class MeFragment extends BaseFragment implements CreateUIHelper, View.OnC
     public void onResume(){
         Log.d(TAG, "onResume");
         super.onResume();
-        if(JujuDbUtils.needRefresh(Party.class) || JujuDbUtils.needRefresh(Invite.class)){
-            initView();
-            JujuDbUtils.closeRefresh(Party.class);
-            JujuDbUtils.closeRefresh(Invite.class);
-        }
         loadUserInfo();
     }
 

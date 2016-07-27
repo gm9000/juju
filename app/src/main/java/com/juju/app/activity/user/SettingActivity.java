@@ -21,13 +21,16 @@ import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.https.HttpCallBack;
+import com.juju.app.https.HttpCallBack4OK;
 import com.juju.app.https.JlmHttpClient;
+import com.juju.app.service.im.IMService;
+import com.juju.app.service.im.IMServiceConnector;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.SpfUtil;
-import com.juju.app.utils.StringUtils;
+import com.juju.app.utils.ToastUtil;
 import com.juju.app.view.dialog.WarnTipDialog;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
@@ -94,9 +97,26 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     private String userNo;
 
+    private IMService imService;
+    /**
+     * IMServiceConnector
+     */
+    private IMServiceConnector imServiceConnector = new IMServiceConnector() {
+        @Override
+        public void onIMServiceConnected() {
+            logger.d("SettingActivity#onIMServiceConnected");
+            imService = imServiceConnector.getIMService();
+        }
+
+        @Override
+        public void onServiceDisconnected() {
+        }
+    };
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        imServiceConnector.connect(this);
         initParam();
         initView();
         loadUserInfo();
@@ -109,19 +129,22 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
     @Override
     protected void onResume(){
         super.onResume();
-        loadUserInfo();
+        if(userNo==null) {
+            loadSelfUserInfo();
+        }
     }
 
     @Override
     public void onDestroy(){
         super.onDestroy();
         Log.d(TAG, "onDestroy");
-        udateUserInfo();
+        updateUserInfo();
+        imServiceConnector.disconnect(this);
 
     }
 
 
-    private void udateUserInfo() {
+    private void updateUserInfo() {
         String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
         User userInfo = null;
         if(userInfoStr!=null) {
@@ -148,50 +171,147 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         }
     }
 
-
     private void loadUserInfo() {
         String targetNo = userNo==null?AppContext.getUserInfoBean().getUserNo():userNo;
-        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
-        User userInfo = null;
-        if(StringUtils.isBlank(userNo)) {
-            String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
-            if (userInfoStr != null) {
-                userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
-            }
+        if(targetNo.equals(AppContext.getUserInfoBean().getUserNo())){
+            loadSelfUserInfo();
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }else{
             try {
-                userInfo = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userNo).findFirst();
+                getUserVersion(targetNo);
             } catch (DbException e) {
                 e.printStackTrace();
             }
-            if(userInfo != null){
-                txt_title.setText(userInfo.getNickName());
-            }
         }
-        if(userInfo == null){
-            UserInfoBean userInfoBean = AppContext.getUserInfoBean();
-            Map<String, Object> valueMap = new HashMap<String, Object>();
-            valueMap.put("userNo", userInfoBean.getUserNo());
-            valueMap.put("token", userInfoBean.getToken());
-            valueMap.put("targetNo", userNo==null?userInfoBean.getUserNo():userNo);
+    }
 
-            JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
-                    R.id.txt_jujuNo, HttpConstants.getUserUrl() + "/getUserInfo", this, valueMap,
-                    JSONObject.class);
-            try {
-                client.sendGet();
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            } catch (JSONException e) {
-                e.printStackTrace();
+
+    private void getUserVersion(final String userNo) throws DbException {
+        final User user  = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userNo).findFirst();
+        if(user == null){
+            ToastUtil.showShortToast(this,getString(R.string.load_user_info_fail),1);
+            return;
+        }
+
+        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
+        Map<String, Object> valueMap = new HashMap<String, Object>();
+        valueMap.put("userNo", userInfoBean.getUserNo());
+        valueMap.put("token", userInfoBean.getToken());
+        valueMap.put("targetNo", userNo);
+        valueMap.put("version",user.getVersion());
+
+        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
+                R.id.txt_gender, HttpConstants.getUserUrl() + "/getUserVersion", new HttpCallBack4OK() {
+            @Override
+            public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
+                if(obj != null) {
+                    JSONObject jsonRoot = (JSONObject)obj;
+                    try {
+                        int status = jsonRoot.getInt("status");
+                        if(status == 0) {
+                            int flag = jsonRoot.getInt("flag");
+                            if(flag > 1){
+                                UserInfoBean userInfoBean = AppContext.getUserInfoBean();
+                                //  清除大头像缓存
+                                String imgUrl = HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getUserNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userNo;
+                                MemoryCacheUtils.removeFromCache(imgUrl,ImageLoaderUtil.getImageLoaderInstance().getMemoryCache());
+                                DiskCacheUtils.removeFromCache(imgUrl,ImageLoaderUtil.getImageLoaderInstance().getDiskCache());
+                                //  清除小头像缓存
+                                String imgSmallUrl = HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo;
+                                MemoryCacheUtils.removeFromCache(imgSmallUrl,ImageLoaderUtil.getImageLoaderInstance().getMemoryCache());
+                                DiskCacheUtils.removeFromCache(imgSmallUrl,ImageLoaderUtil.getImageLoaderInstance().getDiskCache());
+                            }
+
+                            if(flag==1 || flag==3) {
+                                JSONObject userJson = jsonRoot.getJSONObject("user");
+                                //   "userNo":"100000001","nickName":"别名-1","userPhone":"13800000001","birthday":1451889752445,"gender":1,"createTime":1451889752445}
+                                user.setUserNo(userJson.getString("userNo"));
+                                user.setNickName(userJson.getString("nickName"));
+                                user.setUserPhone(userJson.getString("userPhone"));
+                                user.setGender(userJson.getInt("gender"));
+                                user.setVersion(userJson.getInt("version"));
+                                JujuDbUtils.saveOrUpdate(user);
+
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        txt_gender.setText(user.getGender() == 0 ? "女" : "男");
+                                        txt_jujuNo.setText(user.getUserNo());
+                                        txt_phoneNo.setText(user.getUserPhone());
+                                        txt_nickName.setText(user.getNickName());
+                                        txt_title.setText(user.getNickName());
+                                    }
+                                });
+
+                                //  更新缓存中的userInfo
+                                imService.getContactManager().getUserMap().put(userNo,user);
+                                ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+                            }
+                            if(flag == 0 || flag==2){
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        loadLocalUserInfo(userNo);
+                                        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+                                    }
+                                });
+
+                            }
+                        } else {
+                        }
+                    } catch (JSONException e) {
+                        Log.e(TAG, "回调解析失败", e);
+                        e.printStackTrace();
+                    }
+                }
             }
-        }else{
+
+            @Override
+            public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+
+            }
+        }, valueMap,
+                JSONObject.class);
+        try {
+            client.sendGet4OK();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadSelfUserInfo() {
+        String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
+        User userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
+        if(userInfo != null) {
             txt_gender.setText(userInfo.getGender() == 0 ? "女" : "男");
             txt_jujuNo.setText(userInfo.getUserNo());
             txt_phoneNo.setText(userInfo.getUserPhone());
             txt_nickName.setText(userInfo.getNickName());
+        }else{
+            ToastUtil.showShortToast(this,getString(R.string.load_user_info_fail),1);
         }
     }
+
+    private void loadLocalUserInfo(String userNo) {
+        User  userInfo = null;
+        try {
+            userInfo = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userNo).findFirst();
+        } catch (DbException e) {
+            e.printStackTrace();
+        }
+        if(userInfo!=null){
+            txt_gender.setText(userInfo.getGender() == 0 ? "女" : "男");
+            txt_jujuNo.setText(userInfo.getUserNo());
+            txt_phoneNo.setText(userInfo.getUserPhone());
+            txt_nickName.setText(userInfo.getNickName());
+            txt_title.setText(userInfo.getNickName());
+        }else{
+            ToastUtil.showShortToast(this,getString(R.string.load_user_info_fail),1);
+        }
+    }
+
 
     private void initView() {
 
@@ -429,8 +549,10 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
                         if(status == 0) {
                             String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
                             User userInfo = JacksonUtil.turnString2Obj(userInfoStr, User.class);
+                            userInfo.updateVersion();
                             userInfo.setUpdate(false);
                             JujuDbUtils.saveOrUpdate(userInfo);
+                            imService.getContactManager().getUserMap().put(userInfo.getUserNo(),userInfo);
                             SpfUtil.put(getApplicationContext(), Constants.USER_INFO, JacksonUtil.turnObj2String(userInfo));
                         } else {
                             Log.e(TAG,"return status code:"+status);

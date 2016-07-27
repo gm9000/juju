@@ -95,6 +95,9 @@ public class  User extends BaseEntity {
     @Column(name = "avatar")
     private String avatar;
 
+    @Column(name = "version")
+    private int version;
+
     private String peerId;
 
     private PinYinUtil.PinYinElement pinyinElement = new PinYinUtil.PinYinElement();
@@ -184,6 +187,18 @@ public class  User extends BaseEntity {
 
     public void setAvatar(String avatar) {
         this.avatar = avatar;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public void setVersion(int version) {
+        this.version = version;
+    }
+
+    public void updateVersion(){
+        this.version++;
     }
 
     public SearchElement getSearchElement() {

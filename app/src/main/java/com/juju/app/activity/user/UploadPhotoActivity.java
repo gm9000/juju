@@ -5,9 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
-import android.provider.SyncStateContract;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -199,7 +197,7 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
 
                     headImg.setVisibility(View.VISIBLE);
                     menuLayout.setVisibility(View.VISIBLE);
-                    Bitmap bitmap = DecodeUtils.decode(this, Uri.parse(Environment.getExternalStorageDirectory()+"/juju/"+imageName), size, size);
+                    Bitmap bitmap = DecodeUtils.decode(this, Uri.parse(Constants.HEAD_IMAGE_CACHE), size, size);
                     headImg.setImageBitmap(bitmap);
 
                     break;

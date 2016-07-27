@@ -183,6 +183,7 @@
     <string name="title_fragment_user_detail_email">邮箱</string>
     <string name="save_image">保存图片到手机</string>
     <string name="search_original_image">查看图片</string>
+    <string name="load_user_info_fail">加载用户信息失败</string>
 
     <!-- 用户列表-->
     <string name="choose_contact">选择联系人</string>

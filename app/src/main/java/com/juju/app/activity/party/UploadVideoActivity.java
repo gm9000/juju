@@ -130,7 +130,6 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
 
     private VideoProgram videoProgram;
 
-    private IMService imService;
 
     private String relayUserNo;
     private int relayCount;
@@ -157,6 +156,8 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
     private static final int MSG_FB = 3;
 
     private static final int ZOOM_MINIMUM_WAIT_MILLIS = 30; //ms
+
+    private IMService imService;
 
     /**
      * IMServiceConnector

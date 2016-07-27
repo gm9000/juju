@@ -6,7 +6,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.view.View;
@@ -130,7 +129,6 @@ public class PlanCreateActivity extends BaseActivity implements AdapterView.OnIt
     private int index = -1;
     private Plan plan;
     private String coverUrl;
-    private final String coverName = "juju_plan_cover.jpg";
 
     private TextView txtCapture;
     private TextView txtPhoto;
@@ -333,7 +331,11 @@ public class PlanCreateActivity extends BaseActivity implements AdapterView.OnIt
             public void onClick(View v) {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
                 // 指定调用相机拍照后照片的储存路径
-                File imageFile = new File(Environment.getExternalStorageDirectory() + "/juju/" + coverName);
+                File cacheDir = new File(Constants.BASE_PATH);
+                if(!cacheDir.exists()){
+                    cacheDir.mkdir();
+                }
+                File imageFile = new File(Constants.PLAN_COVER_CACHE);
                 if (!imageFile.exists()) {
                     try {
                         imageFile.createNewFile();
@@ -404,7 +406,7 @@ public class PlanCreateActivity extends BaseActivity implements AdapterView.OnIt
                     txtUploadProcess.setText("");
                     layoutPicker.setVisibility(View.VISIBLE);
                     menuLayout.setVisibility(View.VISIBLE);
-                    Bitmap bitmap = DecodeUtils.decode(this, Uri.parse(Environment.getExternalStorageDirectory()+"/juju/"+coverName), coverWidth, coverHeight);
+                    Bitmap bitmap = DecodeUtils.decode(this, Uri.parse(Constants.PLAN_COVER_CACHE), coverWidth, coverHeight);
                     coverPicker.setImageBitmap(bitmap);
 
                     break;
