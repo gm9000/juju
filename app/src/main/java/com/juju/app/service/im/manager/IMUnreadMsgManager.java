@@ -19,6 +19,7 @@ import com.juju.app.event.UnreadEvent;
 import com.juju.app.exceptions.JUJUXMPPException;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.DBConstant;
+import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.helper.chat.EntityChangeEngine;
 import com.juju.app.helper.chat.SequenceNumberMaker;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
@@ -491,9 +492,20 @@ public class IMUnreadMsgManager extends IMManager {
                 String from = jsonBody.getString("from");
                 String thread = jsonBody.getString("thread");
                 String body = jsonBody.getString("body");
+                String code = jsonBody.getString("code");
                 int laststMsgId = SequenceNumberMaker.getInstance()
                         .makelocalUniqueMsgId(Long.valueOf(thread));
-                unreadEntity.setLatestMsgData(body);
+                if(StringUtils.isBlank(code) || IMBaseDefine.MsgType.MSG_TEXT.code().equals(code)) {
+                    unreadEntity.setLatestMsgData(body);
+                }
+                //短语音
+                else if(IMBaseDefine.MsgType.MSG_AUDIO.code().equals(code)) {
+                    unreadEntity.setLatestMsgData(DBConstant.DISPLAY_FOR_AUDIO);
+                }
+                //图片
+                else if(IMBaseDefine.MsgType.MSG_IMAGE.code().equals(code)) {
+                    unreadEntity.setLatestMsgData(DBConstant.DISPLAY_FOR_IMAGE);
+                }
                 unreadEntity.setPeerId(to);
                 unreadEntity.setLaststMsgId(laststMsgId);
                 //消息服务+本地数据库

@@ -447,15 +447,14 @@ public class ChatAdapter extends BaseAdapter {
             imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
         } else {
             //需要优化
-//            if(convertView instanceof ImageRenderView
-//                    && (isMine == ((ImageRenderView) convertView).isMine())) {
-//                imageRenderView = (ImageRenderView) convertView;
-//            } else {
-//                imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
-//            }
-            imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
+            if(convertView instanceof ImageRenderView
+                    && (isMine == ((ImageRenderView) convertView).isMine())) {
+                imageRenderView = (ImageRenderView) convertView;
+            } else {
+                imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
+            }
+//            imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
         }
-
 
         final ImageView messageImage = imageRenderView.getMessageImage();
         final int msgId = imageMessage.getMsgId();
@@ -479,7 +478,6 @@ public class ChatAdapter extends BaseAdapter {
                 }
             }
 
-            //DetailPortraitActivity 以前用的是DisplayImageActivity 这个类
             @Override
             public void onMsgSuccess() {
                 Intent i = new Intent(ctx, PreviewMessageImagesActivity.class);
@@ -498,7 +496,6 @@ public class ChatAdapter extends BaseAdapter {
             public void onLoadComplete(String loaclPath) {
                 logger.d("chat#pic#save image ok");
                 logger.d("pic#setsavepath:%s", loaclPath);
-//                imageMessage.setPath(loaclPath);//下载的本地路径不再存储
                 imageMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_SUCCESS);
                 updateItemState(imageMessage);
 

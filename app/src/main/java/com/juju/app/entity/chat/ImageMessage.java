@@ -49,7 +49,7 @@ public class ImageMessage extends MessageEntity implements Serializable {
     private int progress;
 
     //存储图片消息
-    private static java.util.HashMap<Long,ImageMessage> imageMessageMap = new java.util.HashMap<Long,ImageMessage>();
+    private static java.util.HashMap<String, ImageMessage> imageMessageMap = new java.util.HashMap<>();
     private static ArrayList<ImageMessage> imageList=null;
     /**
      * 添加一条图片消息
@@ -57,9 +57,9 @@ public class ImageMessage extends MessageEntity implements Serializable {
      */
     public static synchronized void addToImageMessageList(ImageMessage msg){
         try {
-            if(msg!=null && msg.getId()!=null)
+            if(msg !=null && StringUtils.isNotBlank(msg.getId()))
             {
-                imageMessageMap.put(msg.getLocalId(),msg);
+                imageMessageMap.put(msg.getId(), msg);
             }
         }catch (Exception e){
         }
@@ -262,14 +262,14 @@ public class ImageMessage extends MessageEntity implements Serializable {
 //            String imageSavePath = FileUtil.saveImageResourceToFile(imageContent, imageMessage.getFromId());
             imageMessage.setPath("");
             imageMessage.setUrl(msgImageContent.largeUrl);
-            imageMessage.setLoadStatus(MessageConstant.IMAGE_UNLOAD);
+            imageMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_SUCCESS);
         }
         JSONObject extraContent = new JSONObject();
         extraContent.put("path",imageMessage.getPath());
         extraContent.put("url",imageMessage.getUrl());
         extraContent.put("loadStatus",imageMessage.getLoadStatus());
-        String audioContent = extraContent.toString();
-        imageMessage.setContent(audioContent);
+        String imageContent = extraContent.toString();
+        imageMessage.setContent(imageContent);
         return imageMessage;
     }
 

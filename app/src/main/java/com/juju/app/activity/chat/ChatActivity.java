@@ -163,10 +163,7 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private LinearLayout emoLayout;
     @ViewInject(R.id.tt_new_msg_tip)
     private TextView textView_new_msg_tip;
-    @ViewInject(R.id.yaya_emo_gridview)
-    private YayaEmoGridView yayaEmoGridView;
-    @ViewInject(R.id.emo_tab_group)
-    private RadioGroup emoRadioGroup;
+
 
 
     //声音相关组件
@@ -288,17 +285,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     }
 
-//    //结束群聊
-//    @Event(R.id.img_back)
-//    private void goBack(ImageView view) {
-//        ActivityUtil.finish(ChatActivity.this);
-//    }
-//
-//    //结束群聊
-//    @Event(R.id.txt_left)
-//    private void goBack1(TextView view) {
-//        ActivityUtil.finish(ChatActivity.this);
-//    }
 
     //"十字"按键
     @Event(R.id.show_add_photo_btn)
@@ -354,9 +340,9 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
             }
         } else if (emoLayout.getVisibility() == View.GONE) {
             emoLayout.setVisibility(View.VISIBLE);
-            yayaEmoGridView.setVisibility(View.VISIBLE);
-            emoRadioGroup.check(R.id.tab1);
-            emoGridView.setVisibility(View.GONE);
+//            yayaEmoGridView.setVisibility(View.VISIBLE);
+//            emoRadioGroup.check(R.id.tab1);
+            emoGridView.setVisibility(View.VISIBLE);
             inputManager.hideSoftInputFromWindow(messageEdt.getWindowToken(), 0);
         }
         if (addOthersPanelView.getVisibility() == View.VISIBLE) {
@@ -819,9 +805,9 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         }
         emoGridView.setOnEmoGridViewItemClick(onEmoGridViewItemClick);
         emoGridView.setAdapter();
-        yayaEmoGridView.setOnEmoGridViewItemClick(yayaOnEmoGridViewItemClick);
-        yayaEmoGridView.setAdapter();
-        emoRadioGroup.setOnCheckedChangeListener(emoOnCheckedChangeListener);
+//        yayaEmoGridView.setOnEmoGridViewItemClick(yayaOnEmoGridViewItemClick);
+//        yayaEmoGridView.setAdapter();
+//        emoRadioGroup.setOnCheckedChangeListener(emoOnCheckedChangeListener);
 
 
         //LOADING
@@ -927,46 +913,6 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         }
     };
 
-    private YayaEmoGridView.OnEmoGridViewItemClick yayaOnEmoGridViewItemClick = new YayaEmoGridView.OnEmoGridViewItemClick() {
-        @Override
-        public void onItemClick(int facesPos, int viewIndex) {
-            int resId = Emoparser.getInstance(ChatActivity.this).getYayaResIdList()[facesPos];
-            logger.d("message_activity#yayaEmoGridView be clicked");
-
-            String content = Emoparser.getInstance(ChatActivity.this).getYayaIdPhraseMap()
-                    .get(resId);
-            if (content.equals("")) {
-                Toast.makeText(ChatActivity.this,
-                        getResources().getString(R.string.message_null), Toast.LENGTH_LONG).show();
-                return;
-            }
-
-//            TextMessage textMessage = TextMessage.buildForSend(content, loginUser, peerEntity);
-//            imService.getMessageManager().sendText(textMessage);
-//            pushList(textMessage);
-            scrollToBottomListItem();
-        }
-    };
-
-    private RadioGroup.OnCheckedChangeListener emoOnCheckedChangeListener = new RadioGroup.OnCheckedChangeListener() {
-        @Override
-        public void onCheckedChanged(RadioGroup radioGroup, int id) {
-            switch (id) {
-                case R.id.tab2:
-                    if (emoGridView.getVisibility() != View.VISIBLE) {
-                        yayaEmoGridView.setVisibility(View.GONE);
-                        emoGridView.setVisibility(View.VISIBLE);
-                    }
-                    break;
-                case R.id.tab1:
-                    if (yayaEmoGridView.getVisibility() != View.VISIBLE) {
-                        emoGridView.setVisibility(View.GONE);
-                        yayaEmoGridView.setVisibility(View.VISIBLE);
-                    }
-                    break;
-            }
-        }
-    };
 
 
     private ViewTreeObserver.OnGlobalLayoutListener onGlobalLayoutListener = new ViewTreeObserver.OnGlobalLayoutListener() {

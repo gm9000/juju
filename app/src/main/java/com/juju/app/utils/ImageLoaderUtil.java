@@ -34,9 +34,8 @@ public class ImageLoaderUtil {
 
     public static void initImageLoaderConfig(Context context) {
         try {
-            File cacheDir = StorageUtils.getOwnCacheDirectory(context, Constants.BASE_PATH);
+            File cacheDir = StorageUtils.getOwnCacheDirectory(context, Constants.DEFAULT_DIR_NAME);
             File reserveCacheDir = StorageUtils.getCacheDirectory(context);
-
             int maxMemory = (int) (Runtime.getRuntime().maxMemory() );
             // 使用最大可用内存值的1/8作为缓存的大小。
             int cacheSize = maxMemory/8;
@@ -55,6 +54,7 @@ public class ImageLoaderUtil {
                     .diskCache(new UnlimitedDiskCache(cacheDir,reserveCacheDir,new Md5FileNameGenerator()))
                     .diskCacheSize(1024 * 1024 * 1024)
                     .diskCacheFileCount(1000)
+                    .writeDebugLogs()
                     .build();
 
             IMImageLoadInstance = ImageLoader.getInstance();

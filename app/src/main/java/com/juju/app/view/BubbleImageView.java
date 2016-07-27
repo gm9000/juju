@@ -47,6 +47,7 @@ public class BubbleImageView extends ImageView {
     }
 
     public void setImageUrl(final String url) {
+        System.out.println("setImageUrl#this:"+this.toString());
         this.imageUrl = url;
         if (isAttachedOnWindow) {
             final BubbleImageView view = this;
