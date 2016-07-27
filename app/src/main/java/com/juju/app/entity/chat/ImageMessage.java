@@ -262,7 +262,7 @@ public class ImageMessage extends MessageEntity implements Serializable {
 //            String imageSavePath = FileUtil.saveImageResourceToFile(imageContent, imageMessage.getFromId());
             imageMessage.setPath("");
             imageMessage.setUrl(msgImageContent.largeUrl);
-            imageMessage.setLoadStatus(MessageConstant.IMAGE_UNLOAD);
+            imageMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_SUCCESS);
         }
         JSONObject extraContent = new JSONObject();
         extraContent.put("path",imageMessage.getPath());

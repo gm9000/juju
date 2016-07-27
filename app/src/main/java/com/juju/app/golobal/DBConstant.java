@@ -55,7 +55,9 @@ public interface DBConstant {
     /**sessionType*/
     public final int  SESSION_TYPE_SINGLE = 1;
     public final int  SESSION_TYPE_GROUP = 2;
-    public final int SESSION_TYPE_ERROR= 3;
+    public final int  SESSION_NOTIFY_TYPE_GROUP = 3;
+    public final int SESSION_TYPE_ERROR= 4;
+
 
     /**user status
      * 1. 试用期 2. 正式 3. 离职 4.实习
