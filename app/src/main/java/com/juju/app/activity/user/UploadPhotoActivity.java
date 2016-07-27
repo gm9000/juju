@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.provider.SyncStateContract;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.View;
@@ -140,8 +141,13 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
             @SuppressLint("SdCardPath")
             public void onClick(View v) {
                 Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+
                 // 指定调用相机拍照后照片的储存路径
-                File imageFile = new File(Environment.getExternalStorageDirectory() + "/juju/" + imageName);
+                File cacheDir = new File(Constants.BASE_PATH);
+                if(!cacheDir.exists()){
+                    cacheDir.mkdir();
+                }
+                File imageFile = new File(Constants.HEAD_IMAGE_CACHE);
                 if (!imageFile.exists()) {
                     try {
                         imageFile.createNewFile();
@@ -149,6 +155,7 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
                         e.printStackTrace();
                     }
                 }
+
                 intent.putExtra(MediaStore.EXTRA_VIDEO_QUALITY, 1);
                 intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(imageFile));
                 startActivityForResult(intent, PHOTO_REQUEST_TAKEPHOTO);
