@@ -25,6 +25,7 @@ import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.xutils.ex.DbException;
 
 import java.io.UnsupportedEncodingException;
 import java.util.Date;
@@ -116,6 +117,7 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
                             partyNotifyBean.replyId = id;
                             partyNotifyBean.replyTime = replyTime;
                             imOtherManager.updateOtherMessage(id, replyTime);
+                            imOtherManager.updateGroupNotify(partyNotifyBean.getGroupId(),replyTime);
                             buildAndTriggerBusinessFlow4Send(PartyNotifyEvent.BusinessFlow.SendParam
                                     .Send.SEND_PARTY_RECRUIT_MSERVER_OK, partyNotifyBean);
                         } else {

@@ -2,7 +2,6 @@ package com.juju.app.activity.party;
 
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.ListView;
@@ -10,65 +9,29 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.juju.app.R;
-import com.juju.app.activity.chat.ChatActivity;
 import com.juju.app.adapters.MyInviteListAdapter;
 import com.juju.app.bean.UserInfoBean;
 import com.juju.app.biz.DaoSupport;
 import com.juju.app.biz.impl.InviteDaoImpl;
 import com.juju.app.entity.Invite;
 import com.juju.app.entity.Party;
-import com.juju.app.entity.chat.OtherMessageEntity;
-import com.juju.app.entity.chat.RecentInfo;
-import com.juju.app.event.GroupEvent;
 import com.juju.app.event.NotificationMessageEvent;
-import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.user.InviteGroupEvent;
 import com.juju.app.golobal.AppContext;
-import com.juju.app.golobal.CommandActionConstant;
-import com.juju.app.golobal.Constants;
-import com.juju.app.golobal.DBConstant;
-import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.golobal.JujuDbUtils;
-import com.juju.app.https.HttpCallBack4OK;
-import com.juju.app.https.JlmHttpClient;
 import com.juju.app.service.im.IMService;
-import com.juju.app.service.im.IMServiceConnector;
-import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
-import com.juju.app.service.im.service.SocketService;
-import com.juju.app.service.im.service.XMPPServiceImpl;
 import com.juju.app.ui.base.BaseActivity;
-import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.ActivityUtil;
-import com.juju.app.utils.HttpReqParamUtil;
-import com.juju.app.utils.JacksonUtil;
 import com.juju.app.utils.Logger;
-import com.juju.app.utils.StringUtils;
-import com.juju.app.utils.ToastUtil;
-import com.juju.app.utils.json.JSONUtils;
 
-import org.apache.commons.lang.time.DateUtils;
 import org.greenrobot.eventbus.EventBus;
-import org.greenrobot.eventbus.Subscribe;
-import org.greenrobot.eventbus.ThreadMode;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.xutils.ex.DbException;
 import org.xutils.view.annotation.ContentView;
 import org.xutils.view.annotation.Event;
 import org.xutils.view.annotation.ViewInject;
 
-import java.io.UnsupportedEncodingException;
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 @ContentView(R.layout.layout_my_invite_list)
 public class MyInviteListActivity extends BaseActivity implements MyInviteListAdapter.Callback {

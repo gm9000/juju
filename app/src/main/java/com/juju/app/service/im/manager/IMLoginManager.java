@@ -280,6 +280,7 @@ public class IMLoginManager extends IMManager {
         //登录成功后，为MessageManager设置XMPP服务， 暂时这样处理
         IMMessageManager.instance().setSocketService(socketService);
         IMUnreadMsgManager.instance().setSocketService(socketService);
+        IMUnreadNotifyManager.instance().setSocketService(socketService);
         IMSessionManager.instance().setSocketService(socketService);
         IMOtherManager.instance().setSocketService(socketService);
         IMGroupManager.instance().setSocketService(socketService);

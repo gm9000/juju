@@ -510,6 +510,12 @@ public class IMGroupManager extends IMManager {
             joinChatRoomEvent.joinedGroupPeerIds = joinedGroupPeerIds;
             joinChatRoomEvent.event = JoinChatRoomEvent.Event.JOIN_OK_4_UNREAD_MSG_REQ;
             triggerEvent(joinChatRoomEvent);
+
+            //通知IMUnreadMsgManager 获取未读消息
+            JoinChatRoomEvent joinChatRoomNotifyEvent = new JoinChatRoomEvent();
+            joinChatRoomNotifyEvent.joinedGroupPeerIds = joinedGroupPeerIds;
+            joinChatRoomNotifyEvent.event = JoinChatRoomEvent.Event.JOIN_OK_4_UNREAD_NOTIFY_REQ;
+            triggerEvent(joinChatRoomNotifyEvent);
         }
     }
 

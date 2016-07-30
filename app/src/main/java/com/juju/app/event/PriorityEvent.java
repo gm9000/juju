@@ -16,6 +16,6 @@ public class PriorityEvent {
     public Event event;
 
     public enum  Event{
-        MSG_RECEIVED_MESSAGE
+        MSG_RECEIVED_MESSAGE,
     }
 }

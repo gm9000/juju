@@ -84,6 +84,10 @@ public interface SocketService {
     public void findHisMessages(String command, String to, String minTime, String maxTime,
                                 String uuid, int offset, int length, XMPPServiceCallbackImpl listener);
 
+
+    public void findHisNotifys(String command, String to, String minTime, String maxTime,
+                                String uuid, int offset, int length, XMPPServiceCallbackImpl listener);
+
     /**
      * 注册所有监听
      */

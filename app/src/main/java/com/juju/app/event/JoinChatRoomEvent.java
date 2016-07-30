@@ -25,6 +25,10 @@ public class JoinChatRoomEvent {
 
         JOIN_OK_4_UNREAD_MSG_SUCCESS,
 
+        JOIN_OK_4_UNREAD_NOTIFY_REQ,
+
+        JOIN_OK_4_UNREAD_NOTIFY_SUCCESS,
+
         JOIN_FAILED
 
     }

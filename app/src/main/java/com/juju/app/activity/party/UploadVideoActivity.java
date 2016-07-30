@@ -1,7 +1,9 @@
 package com.juju.app.activity.party;
 
+import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.drawable.Drawable;
 import android.hardware.Camera;
@@ -11,9 +13,11 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -99,6 +103,8 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
 
     private static final String TAG = "UploadVideoActivity";
 
+    private static final int REQUEST_CODE_CAMERA = 0x05;
+
     @ViewInject(R.id.img_change)
     private ImageView imgChange;
 
@@ -121,6 +127,8 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
     private LiveMenuAdapter liveMenuAdapter;
 
     private CameraStreamingManager mCameraStreamingManager;
+    private CameraStreamingSetting mCameraStreamingSetting;
+    private StreamingProfile mProfile;
 
     private String mediaId;
     private String groupId;
@@ -182,9 +190,36 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON); // 防止锁屏
         initParam();
         initView();
-        previewCameraVideo();
         imServiceConnector.connect(this);
         EventBus.getDefault().register(this);
+        initCameraStreamingManager();
+
+        if (Build.VERSION.SDK_INT >= 23) {
+            int checkCallPhonePermission = ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA);
+            if(checkCallPhonePermission != PackageManager.PERMISSION_GRANTED){
+                ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.CAMERA},REQUEST_CODE_CAMERA);
+                return;
+            }else{
+                previewCameraVideo();
+            }
+        } else {
+            previewCameraVideo();
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        switch (requestCode) {
+            case REQUEST_CODE_CAMERA:
+                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    previewCameraVideo();
+                } else {
+                    // Permission Denied
+                    ToastUtil.showShortToast(this, "摄像头访问被拒绝", 1);
+                    ActivityUtil.finish(this);
+                }
+                break;
+        }
     }
 
 
@@ -217,11 +252,13 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
     protected void onPause() {
         Log.d(TAG, "onPause");
         super.onPause();
-        mIsReady = false;
-        mCameraStreamingManager.pause();
+        if(mIsReady) {
+            mIsReady = false;
+            mCameraStreamingManager.pause();
+        }
     }
 
-    private void previewCameraVideo() {
+    private void initCameraStreamingManager() {
 
         if(liveId != null && videoProgram == null) {
             try {
@@ -264,7 +301,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
 
         StreamingProfile.Stream stream = new StreamingProfile.Stream(mJSONObject);
 
-        StreamingProfile mProfile = new StreamingProfile();
+        mProfile = new StreamingProfile();
         mProfile.setStream(stream);
         mProfile.setAudioQuality(StreamingProfile.AUDIO_QUALITY_MEDIUM2)
                 .setPreferredVideoEncodingSize(640, 360)
@@ -274,7 +311,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
 //                .setStreamStatusConfig(new StreamingProfile.StreamStatusConfig(3))
                 .setSendingBufferProfile(new StreamingProfile.SendingBufferProfile(0.2f, 0.8f, 3.0f, 20 * 1000));
 
-        CameraStreamingSetting mCameraStreamingSetting = new CameraStreamingSetting();
+        mCameraStreamingSetting = new CameraStreamingSetting();
         mCameraStreamingSetting.setCameraId(Camera.CameraInfo.CAMERA_FACING_BACK)
                 .setRecordingHint(false)
                 .setCameraFacingId(Config.DEFAULT_CAMERA_FACING_ID)
@@ -303,15 +340,16 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         }
 
 
-
-        mCameraStreamingManager.prepare(mCameraStreamingSetting, null, null, mProfile);
-
         mCameraStreamingManager.setStreamingStateListener(this);
         mCameraStreamingManager.setSurfaceTextureCallback(this);
         mCameraStreamingManager.setStreamingSessionListener(this);
 //        mCameraStreamingManager.setNativeLoggingEnabled(false);
         mCameraStreamingManager.setStreamStatusCallback(this);
 
+    }
+
+    private void previewCameraVideo() {
+        mCameraStreamingManager.prepare(mCameraStreamingSetting, null, null, mProfile);
     }
 
     private void initParam() {
@@ -360,7 +398,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
             return;
         }
 
-        CommandActionConstant.HttpReqParam INVITEUSER = CommandActionConstant.HttpReqParam.END_LIVE;
+        CommandActionConstant.HttpReqParam endLiveHttReq = CommandActionConstant.HttpReqParam.END_LIVE;
         Map<String, Object> paramMap = HttpReqParamUtil.instance().buildMap();
         Map<String, Object> liveMap = new HashMap<String, Object>();
         liveMap.put("id", liveId);
@@ -370,7 +408,7 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
         liveMap.put("height", 180);
         paramMap.put("live", liveMap);
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
-                INVITEUSER.code(), INVITEUSER.url(),
+                endLiveHttReq.code(), endLiveHttReq.url(),
                 new HttpCallBack4OK() {
                     @Override
                     public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
@@ -381,18 +419,12 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                                 mCameraStreamingManager.stopStreaming();
                                 mCameraStreamingManager.destroy();
 
-                                videoProgram.setEndTime(new Date());
-                                videoProgram.setStatus(1);
-                                //  TODO   设置历史视频请求的URL
-                                videoProgram.setVideoUrl("rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
-                                JujuDbUtils.saveOrUpdate(videoProgram);
-
-
                                 LiveNotifyEvent.LiveNotifyBean liveStopBean = new LiveNotifyEvent.LiveNotifyBean();
                                 liveStopBean.setGroupId(groupId);
-                                liveStopBean.setLiveId(liveId);
-                                liveStopBean.setVideoUrl("rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
                                 liveStopBean.setPartyId(partyId);
+                                liveStopBean.setLiveId(liveId);
+                                //  TODO 设置录像视频地址
+                                liveStopBean.setVideoUrl("rtmp://" + GlobalVariable.liveServerIp + ":" + GlobalVariable.liveServerPort + "/juju/" + mediaId);
                                 liveStopBean.setCaptureUrl(videoProgram.getCaptureUrl());
                                 liveStopBean.setWidth(320);
                                 liveStopBean.setHeight(180);
@@ -401,7 +433,6 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                                 if (!onDestoryCall) {
                                     ActivityUtil.finish(UploadVideoActivity.this);
                                 }
-                                EventBus.getDefault().post(new LiveNotifyEvent(LiveNotifyEvent.Event.LIVE_STOP_OK,liveStopBean));
 
                             } else {
                                 String desc = JSONUtils.getString(jsonRoot, "desc");
@@ -656,11 +687,6 @@ public class UploadVideoActivity extends BaseActivity implements CameraStreaming
                         break;
                     case CameraStreamingManager.STATE.DISCONNECTED:
                         statusText.setText("连接中断");
-//                        mCanSeize = false;
-//                        liveMenuPager.setVisibility(View.GONE);
-//                        mCameraStreamingManager.stopStreaming();
-//                        mCameraStreamingManager.destroy();
-//                        previewCameraVideo();
                         break;
                     case CameraStreamingManager.STATE.TORCH_INFO:
                         if (extra != null) {

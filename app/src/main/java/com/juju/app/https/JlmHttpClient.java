@@ -147,6 +147,7 @@ public class JlmHttpClient<Req> {
      */
     public void sendUpload() throws UnsupportedEncodingException, JSONException {
         RequestParams params = new RequestParams(url);
+        params.setConnectTimeout(1000*60);
         initPostUploadParams(req, params);
         doSend4Post(params);
     }

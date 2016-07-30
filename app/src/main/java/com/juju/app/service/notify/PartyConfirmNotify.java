@@ -120,6 +120,7 @@ public class PartyConfirmNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
                             partyNotifyBean.replyId = id;
                             partyNotifyBean.replyTime = replyTime;
                             imOtherManager.updateOtherMessage(id, replyTime);
+                            imOtherManager.updateGroupNotify(partyNotifyBean.getGroupId(),replyTime);
                             buildAndTriggerBusinessFlow4Send(PartyNotifyEvent.BusinessFlow.SendParam
                                     .Send.SEND_PARTY_CONFIRM_MSERVER_OK, partyNotifyBean);
                         } else {

@@ -55,6 +55,8 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
     private int size;
 
 
+    @ViewInject(R.id.txt_upload_hint)
+    private TextView txtUploadHint;
     @ViewInject(R.id.upload_head)
     private CircleCopperImageView headImg;
 
@@ -100,6 +102,10 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
         String targetNo = userNo==null?userInfoBean.getUserNo():userNo;
 
         ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getUserNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + targetNo,originHeadImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+
+        if(userNo == null) {
+            txtUploadHint.setVisibility(View.VISIBLE);
+        }
     }
 
 
@@ -318,21 +324,23 @@ public class UploadPhotoActivity extends BaseActivity implements HttpCallBack, V
 
     @Override
     public void onFailure(Throwable ex, boolean isOnCallback, int accessId, Object inputParameter) {
-        completeLoading();
-        ToastUtil.showShortToast(this,"上传失败",1);
-        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
-        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getUserNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getUserNo(),originHeadImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
-//        Picasso.with(getApplicationContext())
-//                .load(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo())
-//                .into(originHeadImg);
-//        BitmapUtilFactory.getInstance(this).bind(originHeadImg, HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getJujuNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getJujuNo(), BitmapUtilFactory.Option.imageOptions());
-        txt_confirm.setClickable(true);
-        txt_cancel.setClickable(true);
-        originHeadImg.setVisibility(View.VISIBLE);
-        headImg.setVisibility(View.GONE);
-        menuLayout.setVisibility(View.GONE);
-        System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback );
-        Log.e(TAG, "onFailure", ex);
+        switch (accessId) {
+            case R.id.upload_head:
+                completeLoading();
+                Log.w(TAG,"upload portrait fail");
+                ex.printStackTrace();
+                ToastUtil.showShortToast(this, "上传失败", 1);
+                UserInfoBean userInfoBean = AppContext.getUserInfoBean();
+                ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getUserNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userInfoBean.getUserNo(), originHeadImg, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+                txt_confirm.setClickable(true);
+                txt_cancel.setClickable(true);
+                originHeadImg.setVisibility(View.VISIBLE);
+                headImg.setVisibility(View.GONE);
+                menuLayout.setVisibility(View.GONE);
+                System.out.println("accessId:" + accessId + "\r\n isOnCallback:" + isOnCallback);
+                Log.e(TAG, "onFailure", ex);
+                break;
+        }
     }
 
     @Override

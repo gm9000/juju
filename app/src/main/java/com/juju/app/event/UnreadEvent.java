@@ -16,6 +16,8 @@ public class UnreadEvent {
     public enum Event {
         UNREAD_MSG_LIST_OK,
 
+        UNREAD_NOTIFY_LIST_OK,
+
         UNREAD_MSG_RECEIVED,
 
         SESSION_READED_UNREAD_MSG

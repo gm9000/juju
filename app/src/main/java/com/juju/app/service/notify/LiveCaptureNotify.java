@@ -17,7 +17,6 @@ import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.xutils.ex.DbException;
 
-import java.util.Date;
 import java.util.UUID;
 
 public class LiveCaptureNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> {
@@ -111,6 +110,7 @@ public class LiveCaptureNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean
                             liveNotifyBean.replyId = id;
                             liveNotifyBean.replyTime = replyTime;
                             imOtherManager.updateOtherMessage(id, replyTime);
+                            imOtherManager.updateGroupNotify(liveNotifyBean.getGroupId(),replyTime);
                             buildAndTriggerBusinessFlow4Send(LiveNotifyEvent.BusinessFlow.SendParam
                                     .Send.SEND_LIVE_CAPTURE_MSERVER_OK, liveNotifyBean);
                         } else {

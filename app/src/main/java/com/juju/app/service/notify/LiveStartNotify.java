@@ -51,7 +51,7 @@ public class LiveStartNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> 
 
     @Override
     public void executeCommand4Recv(LiveNotifyEvent.LiveNotifyBean LiveNotifyBean) {
-        synLocalLiveData(LiveNotifyBean);
+        addLocalLiveData(LiveNotifyBean,true,null);
     }
 
 
@@ -110,6 +110,7 @@ public class LiveStartNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> 
                             liveNotifyBean.replyId = id;
                             liveNotifyBean.replyTime = replyTime;
                             imOtherManager.updateOtherMessage(id, replyTime);
+                            imOtherManager.updateGroupNotify(liveNotifyBean.getGroupId(),replyTime);
                             buildAndTriggerBusinessFlow4Send(LiveNotifyEvent.BusinessFlow.SendParam
                                     .Send.SEND_LIVE_START_MSERVER_OK, liveNotifyBean);
                         } else {
@@ -173,7 +174,7 @@ public class LiveStartNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> 
     /**
      * 同步本地聚会方案数据
      */
-    public void synLocalLiveData(final LiveNotifyEvent.LiveNotifyBean liveNotifyBean) {
+    public void addLocalLiveData(final LiveNotifyEvent.LiveNotifyBean liveNotifyBean, boolean notify, CallBack callBack) {
 
         VideoProgram videoProgram = new VideoProgram();
         videoProgram.setPartyId(liveNotifyBean.getPartyId());
@@ -184,8 +185,17 @@ public class LiveStartNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> 
         videoProgram.setVideoUrl(liveNotifyBean.getLiveUrl());
         videoProgram.setId(liveNotifyBean.getLiveId());
         JujuDbUtils.saveOrUpdate(videoProgram);
-        buildAndTriggerBusinessFlow4Recv(LiveNotifyEvent.BusinessFlow.RecvParam
-                .Recv.PROCESS_LIVE_START_OK, liveNotifyBean);
+        if(notify) {
+            buildAndTriggerBusinessFlow4Recv(LiveNotifyEvent.BusinessFlow.RecvParam
+                    .Recv.PROCESS_LIVE_START_OK, liveNotifyBean);
+        }else{
+            callBack.afterProcessSuccess();
+        }
+    }
+
+    public interface CallBack{
+        public void afterProcessSuccess();
+        public void afterProcessFail();
     }
 
     private void buildAndTriggerBusinessFlow4Recv(LiveNotifyEvent.BusinessFlow.RecvParam.Recv recv,LiveNotifyEvent.LiveNotifyBean LiveNotifyBean) {

@@ -232,6 +232,7 @@ public class PartyLiveActivity extends BaseActivity implements View.OnClickListe
 
         if(party.getStatus() == 2){
             imgLiveStart.setVisibility(View.GONE);
+            img_right.setVisibility(View.GONE);
         }
 
         View emptyView = getLayoutInflater().inflate(R.layout.layout_empty, null);

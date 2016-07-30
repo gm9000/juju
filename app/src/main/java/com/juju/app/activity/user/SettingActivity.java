@@ -17,6 +17,8 @@ import com.juju.app.bean.UserInfoBean;
 import com.juju.app.config.HttpConstants;
 import com.juju.app.entity.User;
 import com.juju.app.event.LoginEvent;
+import com.juju.app.event.UserInfoChangeEvent;
+import com.juju.app.event.notify.LiveEnterNotifyEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
@@ -35,6 +37,9 @@ import com.juju.app.view.dialog.WarnTipDialog;
 import com.nostra13.universalimageloader.utils.DiskCacheUtils;
 import com.nostra13.universalimageloader.utils.MemoryCacheUtils;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.xutils.common.Callback;
@@ -48,6 +53,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import de.hdodenhof.circleimageview.CircleImageView;
+
+import static com.juju.app.event.UserInfoChangeEvent.Type;
 
 @ContentView(R.layout.activity_setting)
 public class SettingActivity extends BaseActivity implements HttpCallBack {
@@ -106,6 +113,10 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         public void onIMServiceConnected() {
             logger.d("SettingActivity#onIMServiceConnected");
             imService = imServiceConnector.getIMService();
+            EventBus.getDefault().register(SettingActivity.this);
+            initParam();
+            initView();
+            loadUserInfo();
         }
 
         @Override
@@ -117,9 +128,6 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         imServiceConnector.connect(this);
-        initParam();
-        initView();
-        loadUserInfo();
     }
 
     private void initParam() {
@@ -140,6 +148,7 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
         Log.d(TAG, "onDestroy");
         updateUserInfo();
         imServiceConnector.disconnect(this);
+        EventBus.getDefault().unregister(SettingActivity.this);
 
     }
 
@@ -177,109 +186,12 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
             loadSelfUserInfo();
             ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }else{
-            try {
-                getUserVersion(targetNo);
-            } catch (DbException e) {
-                e.printStackTrace();
-            }
+            imService.getContactManager().updateContact(userNo);
+            loadLocalUserInfo(targetNo);
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + targetNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }
     }
 
-
-    private void getUserVersion(final String userNo) throws DbException {
-        final User user  = JujuDbUtils.getInstance().selector(User.class).where("user_no", "=", userNo).findFirst();
-        if(user == null){
-            ToastUtil.showShortToast(this,getString(R.string.load_user_info_fail),1);
-            return;
-        }
-
-        UserInfoBean userInfoBean = AppContext.getUserInfoBean();
-        Map<String, Object> valueMap = new HashMap<String, Object>();
-        valueMap.put("userNo", userInfoBean.getUserNo());
-        valueMap.put("token", userInfoBean.getToken());
-        valueMap.put("targetNo", userNo);
-        valueMap.put("version",user.getVersion());
-
-        JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<Map<String, Object>>(
-                R.id.txt_gender, HttpConstants.getUserUrl() + "/getUserVersion", new HttpCallBack4OK() {
-            @Override
-            public void onSuccess4OK(Object obj, int accessId, Object inputParameter) {
-                if(obj != null) {
-                    JSONObject jsonRoot = (JSONObject)obj;
-                    try {
-                        int status = jsonRoot.getInt("status");
-                        if(status == 0) {
-                            int flag = jsonRoot.getInt("flag");
-                            if(flag > 1){
-                                UserInfoBean userInfoBean = AppContext.getUserInfoBean();
-                                //  清除大头像缓存
-                                String imgUrl = HttpConstants.getUserUrl() + "/getPortrait?userNo=" + userInfoBean.getUserNo() + "&token=" + userInfoBean.getToken() + "&targetNo=" + userNo;
-                                MemoryCacheUtils.removeFromCache(imgUrl,ImageLoaderUtil.getImageLoaderInstance().getMemoryCache());
-                                DiskCacheUtils.removeFromCache(imgUrl,ImageLoaderUtil.getImageLoaderInstance().getDiskCache());
-                                //  清除小头像缓存
-                                String imgSmallUrl = HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo;
-                                MemoryCacheUtils.removeFromCache(imgSmallUrl,ImageLoaderUtil.getImageLoaderInstance().getMemoryCache());
-                                DiskCacheUtils.removeFromCache(imgSmallUrl,ImageLoaderUtil.getImageLoaderInstance().getDiskCache());
-                            }
-
-                            if(flag==1 || flag==3) {
-                                JSONObject userJson = jsonRoot.getJSONObject("user");
-                                //   "userNo":"100000001","nickName":"别名-1","userPhone":"13800000001","birthday":1451889752445,"gender":1,"createTime":1451889752445}
-                                user.setUserNo(userJson.getString("userNo"));
-                                user.setNickName(userJson.getString("nickName"));
-                                user.setUserPhone(userJson.getString("userPhone"));
-                                user.setGender(userJson.getInt("gender"));
-                                user.setVersion(userJson.getInt("version"));
-                                JujuDbUtils.saveOrUpdate(user);
-
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        txt_gender.setText(user.getGender() == 0 ? "女" : "男");
-                                        txt_jujuNo.setText(user.getUserNo());
-                                        txt_phoneNo.setText(user.getUserPhone());
-                                        txt_nickName.setText(user.getNickName());
-                                        txt_title.setText(user.getNickName());
-                                    }
-                                });
-
-                                //  更新缓存中的userInfo
-                                imService.getContactManager().getUserMap().put(userNo,user);
-                                ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
-                            }
-                            if(flag == 0 || flag==2){
-                                runOnUiThread(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        loadLocalUserInfo(userNo);
-                                        ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
-                                    }
-                                });
-
-                            }
-                        } else {
-                        }
-                    } catch (JSONException e) {
-                        Log.e(TAG, "回调解析失败", e);
-                        e.printStackTrace();
-                    }
-                }
-            }
-
-            @Override
-            public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
-
-            }
-        }, valueMap,
-                JSONObject.class);
-        try {
-            client.sendGet4OK();
-        } catch (UnsupportedEncodingException e) {
-            e.printStackTrace();
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-    }
 
     private void loadSelfUserInfo() {
         String userInfoStr = (String) SpfUtil.get(getApplicationContext(), Constants.USER_INFO, null);
@@ -359,16 +271,12 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     @Event(R.id.head)
     private void showHeadImg(View view){
-//        ActivityUtil.startActivityForResult(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY, new BasicNameValuePair(Constants.USER_NO, userNo));
         startActivityForResultNew(this, UploadPhotoActivity.class,UPDATE_PHOTO_ACTIVITY,
                 Constants.USER_NO, userNo);
     }
 
     @Event(R.id.layout_nick_name)
     private void modifyNickName(View view){
-//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_nick_name));
-//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_nickName.getText().toString());
-//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
         Map<String, Object> valueMap = new HashMap<String,Object>();
         valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_nick_name));
         valueMap.put(Constants.PROPERTY_VALUE, txt_nickName.getText().toString());
@@ -377,9 +285,6 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     @Event(R.id.layout_gender)
     private void modifyGender(View view){
-//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_gender));
-//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_gender.getText().toString());
-//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
         Map<String, Object> valueMap = new HashMap<>();
         valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_gender));
         valueMap.put(Constants.PROPERTY_VALUE, txt_gender.getText().toString());
@@ -388,9 +293,6 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     @Event(R.id.layout_phone)
     private void modifyPhone(View view){
-//        BasicNameValuePair typeValue = new BasicNameValuePair(Constants.PROPERTY_TYPE,String.valueOf(R.id.txt_phoneNo));
-//        BasicNameValuePair valueValue = new BasicNameValuePair(Constants.PROPERTY_VALUE,txt_phoneNo.getText().toString());
-//        ActivityUtil.startActivity(this, PropertiesSettingActivity.class, typeValue, valueValue);
         Map<String, Object> valueMap = new HashMap<>();
         valueMap.put(Constants.PROPERTY_TYPE, String.valueOf(R.id.txt_phoneNo));
         valueMap.put(Constants.PROPERTY_VALUE, txt_phoneNo.getText().toString());
@@ -606,5 +508,34 @@ public class SettingActivity extends BaseActivity implements HttpCallBack {
 
     }
 
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEventUserUpdate(UserInfoChangeEvent event) {
+        if(!event.getUserNo().equals(userNo)){
+            return;
+        }
+
+        User userInfo = imService.getContactManager().findContact(userNo);
+        switch (event.getChangeType()) {
+            case BASIC_INFO_CHANGE:
+                txt_gender.setText(userInfo.getGender() == 0 ? "女" : "男");
+                txt_jujuNo.setText(userInfo.getUserNo());
+                txt_phoneNo.setText(userInfo.getUserPhone());
+                txt_nickName.setText(userInfo.getNickName());
+                txt_title.setText(userInfo.getNickName());
+                break;
+            case PORTRAIT_CHANGE:
+                ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+                break;
+            case ALL_CHANGE:
+                txt_gender.setText(userInfo.getGender() == 0 ? "女" : "男");
+                txt_jujuNo.setText(userInfo.getUserNo());
+                txt_phoneNo.setText(userInfo.getUserPhone());
+                txt_nickName.setText(userInfo.getNickName());
+                txt_title.setText(userInfo.getNickName());
+                ImageLoaderUtil.getImageLoaderInstance().displayImage(HttpConstants.getUserUrl() + "/getPortraitSmall?targetNo=" + userNo,headImg,ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+                break;
+        }
+    }
 
 }

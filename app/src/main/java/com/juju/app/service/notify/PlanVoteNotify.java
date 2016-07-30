@@ -107,6 +107,7 @@ public class PlanVoteNotify extends BaseNotify<PlanVoteEvent.PlanVoteBean> {
                             planVoteBean.replyId = id;
                             planVoteBean.replyTime = replyTime;
                             imOtherManager.updateOtherMessage(id, replyTime);
+                            imOtherManager.updateGroupNotify(planVoteBean.getGroupId(),replyTime);
                             buildAndTriggerBusinessFlow4Send(PlanVoteEvent.BusinessFlow.SendParam
                                     .Send.SEND_PLAN_VOTE_MSERVER_OK, planVoteBean);
                         } else {
@@ -205,7 +206,7 @@ public class PlanVoteNotify extends BaseNotify<PlanVoteEvent.PlanVoteBean> {
             try {
                 int count = JujuDbUtils.getInstance().delete(PlanVote.class,whereBuilder);
                 if(count>0){
-                    plan.setAddtendNum(plan.getAddtendNum()-1);
+                    plan.setAddtendNum(plan.getAddtendNum()-count);
                     JujuDbUtils.saveOrUpdate(plan);
                 }
             } catch (DbException e) {
@@ -214,12 +215,20 @@ public class PlanVoteNotify extends BaseNotify<PlanVoteEvent.PlanVoteBean> {
                         .Recv.PROCESS_LOCAL_CACHE_DATA_FAILED, planVoteBean);
             }
         }else{
-            PlanVote planVote = new PlanVote();
-            planVote.setPlanId(planVoteBean.getPlanId());
-            planVote.setAttenderNo(planVoteBean.getUserNo());
-            JujuDbUtils.save(planVote);
-            plan.setAddtendNum(plan.getAddtendNum()+1);
-            JujuDbUtils.saveOrUpdate(plan);
+            PlanVote planVote = null;
+            try {
+                planVote = JujuDbUtils.getInstance().selector(PlanVote.class).where("attender_no", "=", planVoteBean.getUserNo()).and("plan_id", "=", planVoteBean.getPlanId()).findFirst();
+            } catch (DbException e) {
+                e.printStackTrace();
+            }
+            if(planVote == null) {
+                planVote = new PlanVote();
+                planVote.setPlanId(planVoteBean.getPlanId());
+                planVote.setAttenderNo(planVoteBean.getUserNo());
+                JujuDbUtils.save(planVote);
+                plan.setAddtendNum(plan.getAddtendNum() + 1);
+                JujuDbUtils.saveOrUpdate(plan);
+            }
 
         }
 

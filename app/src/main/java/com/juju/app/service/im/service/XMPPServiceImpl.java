@@ -370,6 +370,35 @@ public class XMPPServiceImpl implements
     }
 
 
+    @Override
+    public void findHisNotifys(final String command, final String to, final String minTime, final String maxTime,
+                                final String uuid,  final int offset,
+                                final int length,  XMPPServiceCallbackImpl listener) {
+        IQ iq = new IQ("request", "com:jlm:iq:redis") {
+            @Override
+            protected IQChildElementXmlStringBuilder getIQChildElementBuilder(
+                    IQChildElementXmlStringBuilder xml) {
+                xml.attribute("key", "3_"+to);
+                xml.attribute("command", command);
+                xml.attribute("min", minTime);
+                if(StringUtils.isNotBlank(maxTime)) {
+                    xml.attribute("max", maxTime);
+                }
+                xml.attribute("offset", offset);
+                xml.attribute("length", length);
+                xml.append(">");
+                return xml;
+            }
+        };
+        iq.setStanzaId(uuid);
+        if(listener.getType() == 0) {
+            sendStanzaAndBindListener(iq, uuid, listener);
+        } else {
+            sendStanzaAndBindFixListener(iq, uuid, listener);
+        }
+    }
+
+
     /**
      * 注册所有监听
      */

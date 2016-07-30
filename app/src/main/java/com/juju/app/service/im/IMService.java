@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.Parcel;
 import android.util.Log;
 
 import com.juju.app.entity.base.MessageEntity;
@@ -23,6 +24,7 @@ import com.juju.app.service.im.manager.IMOtherManager;
 import com.juju.app.service.im.manager.IMRecentSessionManager;
 import com.juju.app.service.im.manager.IMSessionManager;
 import com.juju.app.service.im.manager.IMUnreadMsgManager;
+import com.juju.app.service.im.manager.IMUnreadNotifyManager;
 import com.juju.app.service.im.sp.ConfigurationSp;
 import com.juju.app.ui.base.BaseApplication;
 import com.juju.app.utils.JacksonUtil;
@@ -55,8 +57,11 @@ public class IMService extends Service {
     private IMMessageManager messageMgr = IMMessageManager.instance();
     //会话服务管理器
     private IMSessionManager sessionMgr = IMSessionManager.instance();
-    //未读服务管理器
+    //未读消息服务管理器
     private IMUnreadMsgManager unReadMsgMgr = IMUnreadMsgManager.instance();
+
+    //未读通知服务管理器
+    private IMUnreadNotifyManager unReadNotifyMgr = IMUnreadNotifyManager.instance();
     //群组服务管理器
     private IMGroupManager groupMgr = IMGroupManager.instance();
 
@@ -87,12 +92,14 @@ public class IMService extends Service {
         messageMgr.onStartIMManager(ctx, this);
         sessionMgr.onStartIMManager(ctx, this);
         unReadMsgMgr.onStartIMManager(ctx, this);
+        unReadNotifyMgr.onStartIMManager(ctx,this);
         groupMgr.onStartIMManager(ctx, this);
         contactMgr.onStartIMManager(ctx, this);
         notificationMgr.onStartIMManager(ctx, this);
         otherManager.onStartIMManager(ctx, this);
 
-        startForeground((int) System.currentTimeMillis(), new Notification());
+        Notification notification = new Notification();
+        startForeground((int) System.currentTimeMillis(), notification);
     }
 
 
@@ -127,6 +134,7 @@ public class IMService extends Service {
 //        }
         handleLogout();
         super.onDestroy();
+        stopForeground(true);
     }
 
 
@@ -166,6 +174,7 @@ public class IMService extends Service {
         contactMgr.onNormalLoginOk();
         sessionMgr.onNormalLoginOk();
         unReadMsgMgr.onNormalLoginOk();
+        unReadNotifyMgr.onNormalLoginOk();
         messageMgr.onLoginSuccess();
         //消息通知栏状态
         notificationMgr.onLoginSuccess();
@@ -185,6 +194,7 @@ public class IMService extends Service {
         contactMgr.onLocalLoginOk();
         sessionMgr.onLocalLoginOk();
         unReadMsgMgr.onLocalLoginOk();
+        unReadNotifyMgr.onLocalLoginOk();
         otherManager.onLocalLoginOk();
 
         messageMgr.onLoginSuccess();
@@ -206,6 +216,7 @@ public class IMService extends Service {
         contactMgr.onLocalNetOk();
         sessionMgr.onLocalNetOk();
         unReadMsgMgr.onLocalNetOk();
+        unReadNotifyMgr.onLocalNetOk();
         otherManager.onLocalNetOk();
     }
 
@@ -226,6 +237,7 @@ public class IMService extends Service {
         messageMgr.reset();
         sessionMgr.reset();
         unReadMsgMgr.reset();
+        unReadNotifyMgr.reset();
         contactMgr.reset();
         notificationMgr.reset();
         otherManager.reset();
@@ -289,6 +301,10 @@ public class IMService extends Service {
 
     public IMUnreadMsgManager getUnReadMsgManager() {
         return unReadMsgMgr;
+    }
+
+    public IMUnreadNotifyManager getUnReadNotifyManager(){
+        return unReadNotifyMgr;
     }
 
     public IMMessageManager getMessageManager() {

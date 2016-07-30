@@ -51,10 +51,13 @@ public class LiveStopNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> {
     }
 
     @Override
-    public void executeCommand4Recv(LiveNotifyEvent.LiveNotifyBean LiveNotifyBean) {
-        synLocalLiveData(LiveNotifyBean);
+    public void executeCommand4Recv(LiveNotifyEvent.LiveNotifyBean liveNotifyBean) {
+
     }
 
+    public void executeCommand4Recv(LiveNotifyEvent.LiveNotifyBean LiveNotifyBean,long stopTime) {
+        endLocalLiveData(LiveNotifyBean,stopTime);
+    }
 
     public void stop() {
         super.stop();
@@ -66,15 +69,20 @@ public class LiveStopNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> {
     public void onEvent4BusinessFlowSendEvent(LiveNotifyEvent.BusinessFlow.SendParam sendParam) {
         switch (sendParam.send) {
             case SEND_LIVE_STOP_MSERVER_OK:
-//                LiveNotifyEvent externalEvent = new LiveNotifyEvent(LiveNotifyEvent.Event
-//                        .PARTY_RECRUIT_OK, sendParam.bean);
-//                triggerEvent(externalEvent);
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        ToastUtil.TextIntToast(context, R.string.live_stop_send_success, 0);
-                    }
-                });
+                LiveNotifyEvent.LiveNotifyBean liveNotifyBean = sendParam.bean;
+
+                VideoProgram videoProgram = null;
+                try {
+                    videoProgram = JujuDbUtils.getInstance().selector(VideoProgram.class).where("id","=",liveNotifyBean.getLiveId()).findFirst();
+                    videoProgram.setEndTime(new Date(liveNotifyBean.replyTime));
+                    videoProgram.setStatus(1);
+                    videoProgram.setVideoUrl(liveNotifyBean.getVideoUrl());
+                    JujuDbUtils.saveOrUpdate(videoProgram);
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+
+                triggerEvent(new LiveNotifyEvent(LiveNotifyEvent.Event.LIVE_STOP_OK,liveNotifyBean));
                 break;
             case SEND_LIVE_STOP_MSERVER_FAILED:
 //                LiveNotifyEvent failEvent = new LiveNotifyEvent(LiveNotifyEvent.Event
@@ -111,6 +119,7 @@ public class LiveStopNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> {
                             liveNotifyBean.replyId = id;
                             liveNotifyBean.replyTime = replyTime;
                             imOtherManager.updateOtherMessage(id, replyTime);
+                            imOtherManager.updateGroupNotify(liveNotifyBean.getGroupId(),replyTime);
                             buildAndTriggerBusinessFlow4Send(LiveNotifyEvent.BusinessFlow.SendParam
                                     .Send.SEND_LIVE_STOP_MSERVER_OK, liveNotifyBean);
                         } else {
@@ -174,17 +183,33 @@ public class LiveStopNotify extends BaseNotify<LiveNotifyEvent.LiveNotifyBean> {
     /**
      * 同步本地聚会方案数据
      */
-    public void synLocalLiveData(final LiveNotifyEvent.LiveNotifyBean liveNotifyBean) {
-
+    public void endLocalLiveData(final LiveNotifyEvent.LiveNotifyBean liveNotifyBean,final long stopTime) {
 
         VideoProgram videoProgram = null;
         try {
             videoProgram = JujuDbUtils.getInstance().selector(VideoProgram.class).where("id", "=", liveNotifyBean.getLiveId()).findFirst();
-            videoProgram.setEndTime(new Date());
-            videoProgram.setStatus(1);
-            videoProgram.setCaptureUrl(liveNotifyBean.getCaptureUrl());
-            videoProgram.setVideoUrl(liveNotifyBean.getVideoUrl());
-            JujuDbUtils.saveOrUpdate(videoProgram);
+            if(videoProgram == null){
+                if(videoProgram==null){
+                    LiveStartNotify.instance().addLocalLiveData(liveNotifyBean, false, new LiveStartNotify.CallBack() {
+                        @Override
+                        public void afterProcessSuccess() {
+                            endLocalLiveData(liveNotifyBean,stopTime);
+                        }
+
+                        @Override
+                        public void afterProcessFail() {
+                            buildAndTriggerBusinessFlow4Recv(LiveNotifyEvent.BusinessFlow.RecvParam
+                                    .Recv.PROCESS_LIVE_STOP_FAIL, liveNotifyBean);
+                        }
+                    });
+                }
+            }else {
+                videoProgram.setEndTime(new Date(stopTime));
+                videoProgram.setStatus(1);
+                videoProgram.setCaptureUrl(liveNotifyBean.getCaptureUrl());
+                videoProgram.setVideoUrl(liveNotifyBean.getVideoUrl());
+                JujuDbUtils.saveOrUpdate(videoProgram);
+            }
         } catch (DbException e) {
             e.printStackTrace();
             buildAndTriggerBusinessFlow4Recv(LiveNotifyEvent.BusinessFlow.RecvParam

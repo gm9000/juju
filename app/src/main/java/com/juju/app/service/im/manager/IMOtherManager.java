@@ -8,6 +8,7 @@ import com.juju.app.biz.impl.InviteDaoImpl;
 import com.juju.app.biz.impl.OtherMessageDaoImpl;
 import com.juju.app.entity.Invite;
 import com.juju.app.entity.chat.OtherMessageEntity;
+import com.juju.app.entity.notify.GroupNotifyEntity;
 import com.juju.app.event.NotificationMessageEvent;
 import com.juju.app.event.NotifyMessageEvent;
 import com.juju.app.event.notify.ApplyInGroupEvent;
@@ -26,6 +27,7 @@ import com.juju.app.event.notify.SeizeNotifyEvent;
 import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.IMBaseDefine;
+import com.juju.app.golobal.JujuDbUtils;
 import com.juju.app.service.im.service.SocketService;
 import com.juju.app.service.notify.ApplyInGroupNotify;
 import com.juju.app.service.notify.ExitGroupNotify;
@@ -55,6 +57,7 @@ import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
 import org.jivesoftware.smack.packet.Message;
+import org.xutils.ex.DbException;
 
 /**
  * 项目名称：juju
@@ -307,26 +310,31 @@ public class IMOtherManager extends IMManager {
                 PartyNotifyEvent.PartyNotifyBean partyRecruitBean = (PartyNotifyEvent.PartyNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_RECRUIT.getCls());
                 PartyRecruitNotify.instance().executeCommand4Recv(partyRecruitBean);
+                updateGroupNotify(partyRecruitBean.getGroupId(),otherMessageEntity.getUpdated());
                 break;
             case PARTY_CANCEL:
                 PartyNotifyEvent.PartyNotifyBean partyCancelBean = (PartyNotifyEvent.PartyNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_CANCEL.getCls());
                 PartyCancelNotify.instance().executeCommand4Recv(partyCancelBean);
+                updateGroupNotify(partyCancelBean.getGroupId(),otherMessageEntity.getUpdated());
                 break;
             case PARTY_CONFIRM:
                 PartyNotifyEvent.PartyNotifyBean partyConfirmBean = (PartyNotifyEvent.PartyNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_CONFIRM.getCls());
                 PartyConfirmNotify.instance().executeCommand4Recv(partyConfirmBean);
+                updateGroupNotify(partyConfirmBean.getGroupId(),otherMessageEntity.getUpdated());
                 break;
             case PARTY_END:
                 PartyNotifyEvent.PartyNotifyBean partyEndBean = (PartyNotifyEvent.PartyNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PARTY_END.getCls());
                 PartyEndNotify.instance().executeCommand4Recv(partyEndBean);
+                updateGroupNotify(partyEndBean.getGroupId(),otherMessageEntity.getUpdated());
                 break;
             case PLAN_VOTE:
                 PlanVoteEvent.PlanVoteBean planVoteBean = (PlanVoteEvent.PlanVoteBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.PLAN_VOTE.getCls());
                 PlanVoteNotify.instance().executeCommand4Recv(planVoteBean);
+                updateGroupNotify(planVoteBean.getGroupId(),otherMessageEntity.getUpdated());
                 break;
             case LOCATION_REPORT:
                 LocationReportEvent.LocationReportBean locationReportBean = (LocationReportEvent.LocationReportBean)
@@ -337,16 +345,19 @@ public class IMOtherManager extends IMManager {
                 LiveNotifyEvent.LiveNotifyBean liveNotifyBean = (LiveNotifyEvent.LiveNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_START.getCls());
                 LiveStartNotify.instance().executeCommand4Recv(liveNotifyBean);
+                updateGroupNotify(liveNotifyBean.getGroupId(),otherMessageEntity.getUpdated());
                 break;
             case LIVE_CAPTURE:
                 LiveNotifyEvent.LiveNotifyBean liveCaptureNotifyBean = (LiveNotifyEvent.LiveNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_CAPTURE.getCls());
                 LiveCaptureNotify.instance().executeCommand4Recv(liveCaptureNotifyBean);
+                updateGroupNotify(liveCaptureNotifyBean.getGroupId(),otherMessageEntity.getUpdated());
                 break;
             case LIVE_STOP:
                 LiveNotifyEvent.LiveNotifyBean liveStopNotifyBean = (LiveNotifyEvent.LiveNotifyBean)
                         JacksonUtil.turnString2Obj(otherMessageEntity.getContent(), IMBaseDefine.NotifyType.LIVE_STOP.getCls());
-                LiveStopNotify.instance().executeCommand4Recv(liveStopNotifyBean);
+                LiveStopNotify.instance().executeCommand4Recv(liveStopNotifyBean,otherMessageEntity.getUpdated());
+                updateGroupNotify(liveStopNotifyBean.getGroupId(),otherMessageEntity.getUpdated());
                 break;
             case LIVE_RELAY_START:
                 SeizeNotifyEvent.SeizeNotifyBean seizeStartNotifyBean = (SeizeNotifyEvent.SeizeNotifyBean)
@@ -376,6 +387,22 @@ public class IMOtherManager extends IMManager {
             default:
                 otherMessageDao.replaceInto(otherMessageEntity);
                 break;
+        }
+    }
+
+    public void updateGroupNotify(String groupId,long time){
+        try {
+            GroupNotifyEntity groupNotifyEntity = JujuDbUtils.getInstance().selector(GroupNotifyEntity.class).where("id","=",groupId).findFirst();
+            if(groupNotifyEntity == null){
+                groupNotifyEntity = new GroupNotifyEntity();
+                groupNotifyEntity.setId(groupId);
+            }
+            if(groupNotifyEntity.getTime()<time) {
+                groupNotifyEntity.setTime(time);
+                JujuDbUtils.getInstance().saveOrUpdate(groupNotifyEntity);
+            }
+        } catch (DbException e) {
+            e.printStackTrace();
         }
     }
 
