@@ -17,7 +17,6 @@ import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.SwipeLayoutView;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -68,24 +67,19 @@ public class MyPartyListAdapter extends BaseSwipeAdapter {
 
     @Override
     public View generateView(int position, ViewGroup parent) {
-        View convertView = renderDraftParty(position, null, parent);
-        return convertView;
+        return LayoutInflater.from(context).inflate(R.layout.my_party_item, parent, false);
     }
 
     @Override
     public void fillValues(int position, View convertView) {
-        renderDraftParty(position, convertView, null);
+        renderDraftParty(position, convertView);
     }
 
-    private View renderDraftParty(final int position, View view, ViewGroup parent) {
+    private void renderDraftParty(final int position, View view) {
 
         Party party = partyList.get(position);
 
-        if(view == null) {
-            view = LayoutInflater.from(context).inflate(R.layout.my_party_item, parent, false);
-        }
         SwipeLayoutView layout_swipe = ViewHolderUtil.get(view, R.id.swipe);
-
         if(party.getStatus() != -1) {
             layout_swipe.setSwipeEnabled(false);
         }
@@ -103,7 +97,7 @@ public class MyPartyListAdapter extends BaseSwipeAdapter {
             if (party.getCoverUrl().startsWith("http:")){
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             }else{
-                final int resId = ((BaseActivity) context).getResValue(party.getCoverUrl().toLowerCase(), "mipmap");
+                final int resId = ((BaseActivity) context).getResValue(party.getCoverUrl().toLowerCase(), "drawable");
                 imgPlanType.setImageResource(resId);
             }
         }else{
@@ -148,8 +142,6 @@ public class MyPartyListAdapter extends BaseSwipeAdapter {
                 mCallback.deleteParty(position);
             }
         });
-
-        return view;
     }
 
 }

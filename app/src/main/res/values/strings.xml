@@ -294,7 +294,7 @@
     <string name="attended"> 人报名</string>
     <string name="signup">报名</string>
     <string name="unsignup">取消报名</string>
-    <string name="nodescription">\t\t掌柜的很懒，没有留下任何描述！</string>
+    <string name="nodescription">掌柜的很懒，没有留下任何描述！</string>
     <string name="completed">已完成</string>
     <string name="published">已发布</string>
     <string name="drafts">草稿箱</string>
@@ -401,18 +401,18 @@
 
 
 <!-- 聚会活动类型  START -->
-    <string name="MEISHI">吃饭</string>
-    <string name="PASHAN">爬山</string>
-    <string name="JIAOYOU">郊游</string>
-    <string name="YOUYONG">运动</string>
+    <string name="JUCAN">聚餐</string>
     <string name="KTV">K歌</string>
-    <string name="DAPAI">打牌</string>
-    <string name="QIXING">骑行</string>
-    <string name="PAOBU">跑步</string>
-    <string name="YECHUI">野炊</string>
-    <string name="ZIJIAYOU">自驾游</string>
-    <string name="TUOZHAN">拓展</string>
-    <string name="TAIQIU">台球</string>
+    <string name="QIPAI">棋牌</string>
+    <string name="JIAOYOU">郊游</string>
+    <string name="DIANYING">看电影</string>
+    <string name="GUANGJIE">逛街</string>
+    <string name="YUNDONG">运动</string>
+    <string name="JIANSHEN">健身</string>
+    <string name="PAOBA">泡吧</string>
+    <string name="TUANJIAN">团建</string>
+    <string name="SHALONG">沙龙</string>
+    <string name="QITA">其他</string>
 <!-- 聚会活动类型  END -->
 
 

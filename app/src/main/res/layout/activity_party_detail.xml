@@ -9,14 +9,14 @@
     <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:scrollbars="none"
         android:layout_below="@+id/layout_party_bar"
         android:layout_marginTop="5dp"
         android:layout_marginBottom="80dp">
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:gravity="center_horizontal">
             <RelativeLayout
                 android:id="@+id/layout_party_info"
@@ -101,7 +101,7 @@
                 android:scrollbars="none"
                 android:layout_below="@id/layout_party_info"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginTop="5dp"
                 android:background="@color/white">
             </com.juju.app.view.scroll.NoScrollListView>

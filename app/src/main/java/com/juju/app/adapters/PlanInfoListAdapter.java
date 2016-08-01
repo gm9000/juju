@@ -16,7 +16,6 @@ import com.juju.app.activity.party.PartyDetailActivity;
 import com.juju.app.entity.Plan;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ImageLoaderUtil;
-import com.juju.app.utils.StringUtils;
 import com.juju.app.utils.ViewHolderUtil;
 import com.juju.app.view.SwipeLayoutView;
 
@@ -77,22 +76,18 @@ public class PlanInfoListAdapter extends BaseSwipeAdapter {
 
     @Override
     public View generateView(int position, ViewGroup parent) {
-        View convertView = renderPlan(position, null, parent);
-        return convertView;
+        return LayoutInflater.from(context).inflate(R.layout.plan_info_item,null);
     }
 
     @Override
     public void fillValues(int position, View convertView) {
-        renderPlan(position, convertView, null);
+        renderPlan(position, convertView);
     }
 
-    public View renderPlan(final int position, View convertView, ViewGroup parent) {
-        if(convertView == null) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.plan_info_item, parent, false);
-            SwipeLayoutView layout_swipe = ViewHolderUtil.get(convertView, R.id.swipe);
-            layout_swipe.setSwipeEnabled(canSwipe);
-        }
+    public void renderPlan(final int position, View convertView) {
+
+        SwipeLayoutView layout_swipe = ViewHolderUtil.get(convertView, R.id.swipe);
+        layout_swipe.setSwipeEnabled(canSwipe);
         ImageView imgPlanType = ViewHolderUtil.get(convertView,R.id.img_plan_type);
         TextView txt_time = ViewHolderUtil.get(convertView, R.id.txt_time);
         TextView txt_address = ViewHolderUtil.get(convertView, R.id.txt_address);
@@ -105,23 +100,22 @@ public class PlanInfoListAdapter extends BaseSwipeAdapter {
         TextView txt_distance = ViewHolderUtil.get(convertView, R.id.txt_distance);
 
 
-        final Plan plan = planList.get(position);
+        Plan plan = planList.get(position);
         txt_time.setText(dateFormat.format(plan.getStartTime()));
         txt_address.setText(plan.getAddress());
         txt_attendNum.setText(String.valueOf(plan.getAddtendNum()));
 
-
-        if(!StringUtils.empty(plan.getCoverUrl())) {
-            if (plan.getCoverUrl().startsWith("http:")){
-                ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
-            }else{
-                final int resId = ((BaseActivity) context).getResValue(plan.getCoverUrl().toLowerCase(), "mipmap");
-                imgPlanType.setImageResource(resId);
-            }
+        if (plan.getCoverUrl().startsWith("http:")){
+            ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
+        }else{
+            int resId = ((BaseActivity) context).getResValue(plan.getCoverUrl().toLowerCase(), "drawable");
+            ImageLoaderUtil.getImageLoaderInstance().displayImage("drawable://" + resId, imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }
 
         if(plan.getDesc()!=null && !plan.getDesc().equals("")) {
             txt_desc.setText(plan.getDesc());
+        }else{
+            txt_desc.setText(R.string.nodescription);
         }
 
         switch(plan.getStatus()){
@@ -165,7 +159,6 @@ public class PlanInfoListAdapter extends BaseSwipeAdapter {
                 ((PartyDetailActivity)context).operatePlan(position);
             }
         });
-        return convertView;
 
     }
 

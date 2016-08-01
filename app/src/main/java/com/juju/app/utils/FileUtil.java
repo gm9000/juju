@@ -150,6 +150,7 @@ public class FileUtil {
      * @return
      */
     public static boolean getSdAvailable() {
+
         return Environment.MEDIA_MOUNTED.equals(Environment.getExternalStorageState());
     }
 

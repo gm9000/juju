@@ -505,6 +505,7 @@ public class PlayVideoActivity extends BaseActivity implements SurfaceHolder.Cal
                 txtRelayCount.setClickable(true);
                 layoutCount.setVisibility(View.VISIBLE);
                 txtRelayCount.setVisibility(View.VISIBLE);
+                relayCount = 0;
                 txtRelayCount.setText(R.string.click_hint);
                 txtCount.setText(String.valueOf(bean.getSeconds()));
                 new TimeCount(bean.getSeconds() * 1000, 1000).start();

@@ -110,8 +110,8 @@ public class PartyListAdapter extends BaseAdapter {
         if(party.getCoverUrl().startsWith("http:")){
             ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), partyImage, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }else{
-            final int resId = ((BaseActivity)inflater.getContext()).getResValue(party.getCoverUrl().toLowerCase(),"mipmap");
-            partyImage.setImageResource(resId);
+            int resId = ((BaseActivity) inflater.getContext()).getResValue(party.getCoverUrl().toLowerCase(), "drawable");
+            ImageLoaderUtil.getImageLoaderInstance().displayImage("drawable://" + resId, partyImage, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
         }
 
         TextView txtUnRead = (TextView)view.findViewById(R.id.un_read);

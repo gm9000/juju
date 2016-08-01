@@ -2,8 +2,11 @@ package com.juju.app.ui.base;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
@@ -458,6 +461,13 @@ public abstract class BaseActivity extends AppCompatActivity {
         }
         if(resId == 0) resId = R.string.system_service_error;
         return resId;
+    }
+
+    public String getDrawablePath(String name, String... type) {
+        int resId = getResources().getIdentifier(name, type[0], "com.juju.app");
+        String drawablePath = getResources().getResourceTypeName(resId) + "://" + resId;
+//                + getResources().getResourceEntryName(resId);
+        return drawablePath;
     }
 
     @SuppressLint("NewApi")

@@ -154,17 +154,17 @@ public class Plan extends BaseEntity {
     }
 
     public enum Type{
-        MEISHI,
-        PASHAN,
-        JIAOYOU,
-        YOUYONG,
+        JUCAN,
         KTV,
-        DAPAI,
-        QIXING,
-        PAOBU,
-        YECHUI,
-        ZIJIAYOU,
-        TUOZHAN,
-        TAIQIU
+        QIPAI,
+        JIAOYOU,
+        DIANYING,
+        GUANGJIE,
+        YUNDONG,
+        JIANSHEN,
+        PAOBA,
+        TUANJIAN,
+        SHALONG,
+        QITA
     }
 }

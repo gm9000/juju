@@ -17,6 +17,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:adjustViewBounds="true"
+        android:scaleType="fitXY"
         android:src="@mipmap/live_start" />
     <!--顶部标题 -->
     <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>

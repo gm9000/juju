@@ -10,7 +10,7 @@
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
         android:adjustViewBounds="true"
-        android:src="@drawable/meishi"
+        android:scaleType="fitXY"
         />
     <TextView
         android:id="@+id/un_read"

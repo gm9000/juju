@@ -66,21 +66,17 @@ public class MyInviteListAdapter extends BaseSwipeAdapter {
 
     @Override
     public View generateView(int position, ViewGroup parent) {
-        View convertView = renderView(position, null, parent);
-        return convertView;
+        return LayoutInflater.from(context).inflate(R.layout.my_invite_item, parent, false);
     }
 
     @Override
     public void fillValues(int position, View convertView) {
-        renderView(position, convertView, null);
+        renderView(position, convertView);
     }
 
 
-    private View renderView(final int position, View convertView, ViewGroup parent) {
+    private void  renderView(final int position, View convertView) {
         Invite invite = inviteList.get(position);
-        if(convertView == null) {
-            convertView = LayoutInflater.from(context).inflate(R.layout.my_invite_item, parent, false);
-        }
         SwipeLayoutView layout_swipe = ViewHolderUtil.get(convertView, R.id.swipe);
         TextView waitingProcess = ViewHolderUtil.get(convertView, R.id.waiting_process);
         CircleImageView imgHead = ViewHolderUtil.get(convertView, R.id.img_head);
@@ -91,41 +87,6 @@ public class MyInviteListAdapter extends BaseSwipeAdapter {
         TextView txtPass = ViewHolderUtil.get(convertView, R.id.txt_pass);
         TextView txtNoPass = ViewHolderUtil.get(convertView, R.id.txt_no_pass);
         layout_swipe.close();
-
-//        switch(invite.getStatus()){
-//            case 0:
-//                layout_swipe.setSwipeEnabled(true);
-//                txtStatus.setText(R.string.unpass);
-//                txtPass.setText(R.string.delete);
-//                txtPass.setBackgroundColor(context.getResources().getColor(R.color.red));
-//                txtNoPass.setVisibility(View.GONE);
-//                waitingProcess.setVisibility(View.GONE);
-//                break;
-//            case 1:
-//                layout_swipe.setSwipeEnabled(true);
-//                txtStatus.setText(R.string.pass);
-//                txtPass.setText(R.string.delete);
-//                txtPass.setBackgroundColor(context.getResources().getColor(R.color.red));
-//                txtNoPass.setVisibility(View.GONE);
-//                waitingProcess.setVisibility(View.GONE);
-//                break;
-//            case -1:
-//                layout_swipe.setSwipeEnabled(true);
-//                if(invite.getFlag() == 0){
-//                    txtStatus.setText(R.string.uncheck);
-//                    txtPass.setText(R.string.delete);
-//                    txtPass.setBackgroundColor(context.getResources().getColor(R.color.red));
-//                    txtNoPass.setVisibility(View.GONE);
-//                }else{
-//                    txtStatus.setText(R.string.unprocess);
-//                    txtPass.setText(R.string.check_pass);
-//                    txtPass.setBackgroundColor(context.getResources().getColor(R.color.green));
-//                    txtNoPass.setText(R.string.check_fail);
-//                    txtNoPass.setBackgroundColor(context.getResources().getColor(R.color.blue1));
-//                    waitingProcess.setVisibility(View.VISIBLE);
-//                }
-//                break;
-//        }
 
         switch(invite.getStatus()) {
             //邀请加群
@@ -204,11 +165,7 @@ public class MyInviteListAdapter extends BaseSwipeAdapter {
                 mCallback.passOrDeleteInvite(position);
         }
         });
-
-        return convertView;
     }
-
-
 
 
 }

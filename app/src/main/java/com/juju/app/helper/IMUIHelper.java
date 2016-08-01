@@ -12,8 +12,8 @@ import android.widget.TextView;
 import android.widget.TextView.BufferType;
 
 import com.juju.app.R;
-import com.juju.app.entity.Party;
 import com.juju.app.adapter.SingleCheckAdapter;
+import com.juju.app.entity.Party;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SearchElement;

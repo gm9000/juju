@@ -199,7 +199,7 @@ public class PartyDetailActivity extends BaseActivity implements HttpCallBack, A
         partyId = getIntent().getStringExtra(Constants.PARTY_ID);
     }
 
-    @Event(R.id.txt_left)
+    @Event(R.id.txt_left|R.id.img_back)
     private void cancelOperation(View view) {
         ActivityUtil.finish(this);
     }
