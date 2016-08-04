@@ -306,7 +306,7 @@ public class PlanCreateActivity extends BaseActivity implements AdapterView.OnIt
                 Plan.Type planType = Plan.Type.values()[position];
                 txtPlanType.setText(getResValue(planType.name()));
                 txtPlanType.setTag(planType);
-                if(coverUrl == null) {
+                if(coverUrl == null || !coverUrl.startsWith("http://")) {
                     imgCover.setImageResource(getResValue(planType.name().toLowerCase(), "drawable"));
                 }else{
                     ImageLoaderUtil.getImageLoaderInstance().displayImage(coverUrl, imgCover, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);

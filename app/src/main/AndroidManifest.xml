@@ -235,6 +235,10 @@
             android:name=".activity.chat.PreviewMessageImagesActivity"
             android:screenOrientation="portrait">
         </activity>
+        <activity
+            android:name=".activity.party.CitySelectActivity"
+            android:screenOrientation="portrait">
+        </activity>
     </application>
 
 </manifest>

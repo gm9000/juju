@@ -258,6 +258,9 @@
 
 
     <!--聚会-->
+    <string name="choose_city">选择城市</string>
+    <string name="current_city">当前城市：</string>
+    <string name="city">城市</string>
     <string name="location">位置</string>
     <string name="live">直播</string>
     <string name="picture">照片</string>
