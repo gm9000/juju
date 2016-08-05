@@ -1,0 +1,7 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- 填充 -->
+    <solid android:color="@color/cc_line" />
+
+    
+</shape>

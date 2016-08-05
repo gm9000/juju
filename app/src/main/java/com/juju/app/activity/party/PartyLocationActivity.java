@@ -37,6 +37,8 @@ import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.navi.Location;
+import com.juju.app.navi.NativeDialog;
 import com.juju.app.service.notify.LocationReportNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
@@ -82,6 +84,9 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
     private ImageView imgMic;
     @ViewInject(R.id.img_locate)
     private ImageView imgLocate;
+
+    @ViewInject(R.id.img_navi)
+    private ImageView imgNavi;
 
     private BaiduMap mBaiduMap;
 
@@ -205,6 +210,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
         mBaiduMap.setOnMarkerClickListener(this);
         imgMic.setOnTouchListener(this);
         imgLocate.setOnClickListener(this);
+        imgNavi.setOnClickListener(this);
     }
 
     private void initView() {
@@ -246,6 +252,8 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
             mBaiduMap.addOverlay(oo);
 
             boundsBuilder.include(center);
+        }else{
+            imgNavi.setVisibility(View.GONE);
         }
 
         LatLngBounds bounds = boundsBuilder.build();
@@ -291,6 +299,18 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
                 }
                 MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(toLatLng);
                 mBaiduMap.animateMapStatus(u);
+                break;
+            case R.id.img_navi:
+                Location locStart = new Location();
+                locStart.setLat(myLatLng.latitude);
+                locStart.setLng(myLatLng.longitude);
+
+                Location locEnd = new Location();
+                locEnd.setLat(latitude);
+                locEnd.setLng(longitude);
+
+                NativeDialog msgDialog = new NativeDialog(this, locStart, locEnd);
+                msgDialog.show();
                 break;
         }
 

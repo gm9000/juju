@@ -123,6 +123,12 @@
     <color name="default_content_color">#ff000000</color>
     <color name="divide_line">#ffe3e3e3</color>
 
+    <color name="cc_orage">#fff08519</color>
+    <color name="cc_text_blank">#ff4b4b4b</color>
+    <color name="cc_text_dark">#ff7c7c7c</color>
+    <color name="cc_text_darklight">#ff9a9a9a</color>
+    <color name="cc_btn_off">#ffdedede</color>
+    <color name="cc_line">#11000000</color>
 
 
 </resources>

@@ -1,0 +1,14 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <!-- 填充 -->
+    <solid android:color="@color/cc_btn_off" />
+    <!-- 圆角 -->
+    <corners android:radius="5dp" />
+
+    <padding
+        android:bottom="5dp"
+        android:left="5dp"
+        android:right="5dp"
+        android:top="5dp" />
+
+</shape>
