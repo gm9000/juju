@@ -20,12 +20,6 @@ import com.baidu.mapapi.navi.BaiduMapNavigation;
 import com.baidu.mapapi.navi.NaviParaOption;
 import com.juju.app.R;
 
-/**
- * @Function: 自定义对话框
- * @Date: 2013-10-28
- * @Time: 下午12:37:43
- * @author Tom.Cai
- */
 public class NativeDialog extends Dialog {
 	private Context context;
 	
@@ -187,7 +181,7 @@ public class NativeDialog extends Dialog {
 				APPUtil.startNative_Baidu(context,loc_now, loc_end);
 				break;
 			case "com.autonavi.minimap":
-				APPUtil.startNative_Gaode(context,loc_end);
+				APPUtil.startNative_Gaode(context,loc_now,loc_end);
 				break;
 			}
         	NativeDialog.this.dismiss();

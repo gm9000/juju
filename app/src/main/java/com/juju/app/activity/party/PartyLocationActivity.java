@@ -92,6 +92,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
 
     private double latitude;
     private double longitude;
+    private String address;
     private String userNo;
     private float zoom = 18f;
 
@@ -194,6 +195,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
 
         latitude = plan.getLatitude();
         longitude = plan.getLongitude();
+        address = plan.getAddress();
 
         userNo = AppContext.getUserInfoBean().getUserNo();
 
@@ -308,6 +310,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
                 Location locEnd = new Location();
                 locEnd.setLat(latitude);
                 locEnd.setLng(longitude);
+                locEnd.setAddress(address);
 
                 NativeDialog msgDialog = new NativeDialog(this, locStart, locEnd);
                 msgDialog.show();

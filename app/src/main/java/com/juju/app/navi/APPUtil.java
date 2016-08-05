@@ -1,9 +1,5 @@
 package com.juju.app.navi;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -15,6 +11,10 @@ import android.widget.Toast;
 import com.baidu.mapapi.navi.BaiduMapAppNotSupportNaviException;
 import com.baidu.mapapi.navi.BaiduMapNavigation;
 import com.baidu.mapapi.navi.NaviParaOption;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 
 public class APPUtil {
 
@@ -36,7 +36,7 @@ public class APPUtil {
 			loc2.setAddress("目的地");
 		}
 		try {
-			Intent intent = Intent.getIntent("intent://map/direction?origin=latlng:"+loc1.getStringLatLng()+"|name:"+loc1.getAddress()+"&destination=latlng:"+loc2.getStringLatLng()+"|name:"+loc2.getAddress()+"&mode=driving&src=重庆快易科技|CC房车-车主#Intent;scheme=bdapp;package=com.baidu.BaiduMap;end");
+			Intent intent = Intent.parseUri("intent://map/direction?origin=latlng:"+loc1.getStringLatLng()+"|name:"+loc1.getAddress()+"&destination=latlng:"+loc2.getStringLatLng()+"|name:"+loc2.getAddress()+"&mode=driving&src=重庆快易科技|CC房车-车主#Intent;scheme=bdapp;package=com.baidu.BaiduMap;end",0);
 			context.startActivity(intent);
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -44,18 +44,27 @@ public class APPUtil {
 		}
 	}
 
-	public static void startNative_Gaode(Context context,Location loc){
-		if (loc==null) {
+	public static void startNative_Gaode(Context context,Location loc1,Location loc2){
+		if (loc1==null || loc2==null) {
 			return;
 		}
-		if (loc.getAddress()==null || "".equals(loc.getAddress())) {
-			loc.setAddress("目的地");
+		if (loc1.getAddress()==null || "".equals(loc1.getAddress())) {
+			loc1.setAddress("我的位置");
+		}
+		if (loc2.getAddress()==null || "".equals(loc2.getAddress())) {
+			loc2.setAddress("目的地");
 		}
 		try {
+//			Intent intent = new Intent("android.intent.action.VIEW",
+//					android.net.Uri.parse("androidamap://route?sourceApplication=聚了么&poiname=北京友聚科技&lat="+loc.getLat()+"&lon="+loc.getLng()+"&dev=1&style=2"));
+//			intent.setPackage("com.autonavi.minimap");
+//			context.startActivity(intent);
+
 			Intent intent = new Intent("android.intent.action.VIEW",
-					android.net.Uri.parse("androidamap://navi?sourceApplication=CC房车-车主&poiname=重庆快易科技&lat="+loc.getLat()+"&lon="+loc.getLng()+"&dev=1&style=2"));
+					android.net.Uri.parse("androidamap://route?sourceApplication=聚了么&slat="+loc1.getLat()+"&slon="+loc1.getLng()+"&sname="+loc1.getAddress()+"&dlat="+loc2.getLat()+"&dlon="+loc2.getLng()+"&dname="+loc2.getAddress()+"&dev=1&m=0&t=2"));
 			intent.setPackage("com.autonavi.minimap");
 			context.startActivity(intent);
+
 		} catch (Exception e) {
 			e.printStackTrace();
 			Toast.makeText(context, "地址解析错误", Toast.LENGTH_SHORT).show();
