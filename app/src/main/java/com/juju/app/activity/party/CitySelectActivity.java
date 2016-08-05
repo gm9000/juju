@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AbsListView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
@@ -17,7 +18,6 @@ import com.juju.app.R;
 import com.juju.app.adapters.CitySelectAdapter;
 import com.juju.app.annotation.CreateUI;
 import com.juju.app.bean.CityBean;
-import com.juju.app.entity.User;
 import com.juju.app.golobal.CityDataSource;
 import com.juju.app.golobal.Constants;
 import com.juju.app.ui.base.BaseActivity;
@@ -51,14 +51,19 @@ public class CitySelectActivity extends BaseActivity implements CreateUIHelper,
     private CitySelectAdapter adapter;
     private List<CityBean> cityList;
 
+    private LinearLayout layoutCurrentCity;
+    private LinearLayout layoutLocateCity;
     private TextView txtCurrentCity;
+    private TextView txtLocateCity;
     private ListView cityListView;
     private String currentCity;
+    private String locateCity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_PAN);
         currentCity = getIntent().getStringExtra(Constants.CITY);
+        locateCity = getIntent().getStringExtra(Constants.LOCATE_CITY);
         super.onCreate(savedInstanceState);
     }
 
@@ -130,14 +135,32 @@ public class CitySelectActivity extends BaseActivity implements CreateUIHelper,
         });
 
         txtCurrentCity = (TextView)findViewById(R.id.txt_current_city);
-
         if(currentCity != null){
             txtCurrentCity.setText(currentCity);
         }
 
-        txtCurrentCity.setOnClickListener(new View.OnClickListener() {
+        txtLocateCity = (TextView)findViewById(R.id.txt_locate_city);
+        if(locateCity != null){
+            txtLocateCity.setText(locateCity);
+        }
+
+        layoutCurrentCity = (LinearLayout)findViewById(R.id.layout_current_city);
+        layoutCurrentCity.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                ActivityUtil.finish(CitySelectActivity.this);
+            }
+        });
+
+        layoutLocateCity = (LinearLayout)findViewById(R.id.layout_locate_city);
+        layoutLocateCity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(locateCity != null) {
+                    Intent intent = getIntent();
+                    intent.putExtra(Constants.SELECTED_CITY, locateCity);
+                    CitySelectActivity.this.setResult(RESULT_OK, intent);
+                }
                 ActivityUtil.finish(CitySelectActivity.this);
             }
         });

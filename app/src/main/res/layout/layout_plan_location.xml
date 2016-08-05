@@ -70,8 +70,11 @@
             style="@style/GrayTxt18"
             android:gravity="center"
             android:layout_marginLeft="10dp"
-            android:layout_marginRight="10dp"
-            android:text="@string/city"/>
+            android:layout_marginRight="5dp"
+            android:text="@string/city"
+            android:drawablePadding="5dp"
+            android:background="@drawable/item_selector_bg_white"
+            android:drawableRight="@mipmap/down_arrow"/>
         <EditText
             android:id="@+id/txt_search"
             android:layout_width="match_parent"

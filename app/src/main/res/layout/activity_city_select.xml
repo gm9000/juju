@@ -2,10 +2,9 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
-    android:background="@android:color/white"
-    android:focusable="true"
-    android:focusableInTouchMode="true"
-    android:orientation="vertical" >
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
 
     <com.juju.app.view.SearchEditText
         android:id="@+id/filter_edit"
@@ -23,11 +22,14 @@
         android:textColorHint="@color/default_key_color"
         android:textSize="14sp" />
 
+
     <LinearLayout
+        android:id="@+id/layout_current_city"
         android:layout_width="match_parent"
         android:layout_height="30dp"
         android:gravity="center_vertical"
-        android:orientation="horizontal">
+        android:orientation="horizontal"
+        android:background="@drawable/item_selector_bg_white">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -36,6 +38,34 @@
             android:layout_marginLeft="10dp"/>
         <TextView
             android:id="@+id/txt_current_city"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BlackTxt16"
+            android:text="@string/un_location"
+            android:layout_marginLeft="10dp"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/default_line_color" />
+
+    <LinearLayout
+        android:id="@+id/layout_locate_city"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginTop="5dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:background="@drawable/item_selector_bg_white">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BlackTxt16"
+            android:text="@string/locate_city"
+            android:layout_marginLeft="10dp"/>
+        <TextView
+            android:id="@+id/txt_locate_city"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             style="@style/BlackTxt16"
@@ -76,7 +106,7 @@
             android:layout_width="30dp"
             android:layout_height="fill_parent"
             android:layout_gravity="right|center"
-            android:layout_marginBottom="95dp"
-            android:layout_marginTop="75dp" />
+            android:layout_marginBottom="30dp"
+            android:layout_marginTop="30dp" />
     </FrameLayout>
 </LinearLayout>

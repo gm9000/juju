@@ -1,5 +1,8 @@
 package com.juju.app.utils;
 
+import com.baidu.mapapi.model.LatLng;
+import com.baidu.mapapi.model.LatLngBounds;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -285,5 +288,22 @@ public class MapUtils {
         }
         paras.append("}");
         return paras.toString();
+    }
+
+    public static boolean suitableInBounds(final LatLngBounds latLngBounds, final LatLng point){
+        LatLng northEast = latLngBounds.northeast;
+        LatLng southWest = latLngBounds.southwest;
+        double topLatitude = southWest.latitude + (northEast.latitude - southWest.latitude) * 0.9;
+        double topLongitude = northEast.longitude + (southWest.longitude - northEast.longitude) * 0.1;
+
+        double bottomLatitude = southWest.latitude + (northEast.latitude - southWest.latitude) * 0.1;
+        double bottomLongitude = northEast.longitude + (southWest.longitude - northEast.longitude) * 0.9;
+
+
+        if(latLngBounds == null || point == null) {
+            return false;
+        } else {
+            return point.latitude >= bottomLatitude && point.latitude <= topLatitude && point.longitude >= bottomLongitude && point.longitude <= topLongitude;
+        }
     }
 }

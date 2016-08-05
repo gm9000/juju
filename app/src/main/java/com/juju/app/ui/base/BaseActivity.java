@@ -235,6 +235,8 @@ public abstract class BaseActivity extends AppCompatActivity {
     }
 
 
+
+
 //    /**
 //     * 打开Activity，带返回值
 //     * @param activity

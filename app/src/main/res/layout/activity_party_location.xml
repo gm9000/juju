@@ -48,16 +48,17 @@
             android:layout_alignParentBottom="true"
             android:layout_marginBottom="10dp"
             android:adjustViewBounds="true"
+            android:visibility="gone"
             android:src="@mipmap/navi"/>
 
         <ImageView
             android:id="@+id/img_locate"
             android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_marginLeft="10dp"
-            android:layout_marginBottom="5dp"
-            android:src="@mipmap/locate"
-            android:background="@color/transparent2"/>
+            android:layout_marginBottom="10dp"
+            android:visibility="gone"
+            android:src="@mipmap/locate"/>
     </RelativeLayout>
 </LinearLayout>

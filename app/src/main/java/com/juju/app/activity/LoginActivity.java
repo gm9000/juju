@@ -308,7 +308,6 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                 logger.d("####################LOCAL_LOGIN_SUCCESS################");
                 loginSuccess = true;
                 saveUserInfo();
-                startActivityNew(LoginActivity.this, MainActivity.class);
                 if(!imService.getLoginManager().isAuthenticated()) {
                     imService.getLoginManager().login();
                 }
@@ -317,17 +316,19 @@ public class LoginActivity extends BaseActivity implements CreateUIHelper, HttpC
                     triggerEvent4Sticky(new UnreadEvent(UnreadEvent.Event.UNREAD_MSG_LIST_OK));
                 }
                 finish(LoginActivity.this);
+                startActivityNew(LoginActivity.this, MainActivity.class);
+
                 break;
             case LOGIN_BSERVER_OK:
                 logger.d("####################LOGIN_BSERVER_OK################");
                 loginSuccess = true;
                 saveUserInfo();
-                startActivityNew(LoginActivity.this, MainActivity.class);
                 //登陆聊天服务
                 if(imService != null) {
                     imService.getLoginManager().login();
                 }
                 finish(LoginActivity.this);
+                startActivityNew(LoginActivity.this, MainActivity.class);
                 break;
             case LOGIN_AUTH_FAILED:
             case LOGIN_INNER_FAILED:

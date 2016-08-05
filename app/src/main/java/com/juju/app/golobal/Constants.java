@@ -152,6 +152,7 @@ public class Constants {
     public static final String LOCATION = "location";    //  我的位置
     public static final String EDIT_MODE = "edit_mode";    //  修改模式
     public static final String CITY = "city";
+    public static final String LOCATE_CITY = "locate_city";
     public static final String SELECTED_CITY = "selected_city";
 
     //message 每次拉取的条数
