@@ -12,8 +12,9 @@ import android.widget.TextView;
 import android.widget.TextView.BufferType;
 
 import com.juju.app.R;
-import com.juju.app.entity.Party;
 import com.juju.app.adapter.SingleCheckAdapter;
+import com.juju.app.bean.CityBean;
+import com.juju.app.entity.Party;
 import com.juju.app.entity.User;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.SearchElement;
@@ -95,6 +96,17 @@ public class IMUIHelper {
                 || handleTokenPinyinFullSearch(key, contact.getPinyinElement(), contact.getSearchElement())
                 || handleNameSearch(contact.getNickName(), key, contact.getSearchElement());
 
+    }
+
+    public static boolean handleCitySearch(String key, CityBean cityBean) {
+        if (TextUtils.isEmpty(key) || cityBean == null) {
+            return false;
+        }
+        cityBean.getSearchElement().reset();
+        if(handleNameSearch(cityBean.getCity(), key, cityBean.getSearchElement())){
+            return true;
+        }
+        return false;
     }
 
     public static boolean handleTokenFirstCharsSearch(String key, PinYinUtil.PinYinElement pinYinElement, SearchElement searchElement) {

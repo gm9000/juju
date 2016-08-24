@@ -6,55 +6,11 @@
     android:background="@color/background"
     android:fitsSystemWindows="true">
 
-
-
     <com.baidu.mapapi.map.MapView
         android:id="@+id/mapView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        />
-    <!--标题 -->
-    <include  android:id="@+id/layout_party_bar" layout="@layout/layout_title"/>
-
-    <RelativeLayout
-        android:id="@+id/layout_search"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="10dp"
-        android:layout_marginTop="50dp"
-        android:gravity="center">
-    <EditText
-        android:id="@+id/txt_search"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/text_input_border"
-        android:layout_marginRight="105dp"
-        android:layout_marginLeft="5dp"
-        android:layout_centerVertical="true"
-        android:paddingLeft="5dp"
-        android:height="40dp"
-        android:hint="请输入查询的地址"/>
-        <Button
-            android:id="@+id/btn_search"
-            style="?android:textAppearanceSmall"
-            android:layout_width="100dp"
-            android:layout_height="40dp"
-            android:enabled="true"
-            android:background="@color/blue"
-            android:text="@string/search"
-            android:textColor="@color/white"
-            android:layout_alignParentRight="true"
-            />
-    </RelativeLayout>
-
-
-    <ImageView
-        android:id="@+id/img_address"
-        android:layout_centerInParent="true"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:src="@mipmap/location_red"
         />
 
     <TextView
@@ -63,7 +19,6 @@
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:gravity="center_vertical"
-        android:text="正在获取位置信息..."
         android:drawableLeft="@mipmap/location_red_mini"
         android:paddingLeft="15dp"
         android:layout_alignParentBottom="true"
@@ -101,5 +56,61 @@
             android:textColor="@color/white"/>
 
     </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/layout_search"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:gravity="center_vertical"
+        android:background="@color/background">
+        <TextView
+            android:id="@+id/txt_city"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            style="@style/GrayTxt18"
+            android:gravity="center"
+            android:layout_marginLeft="10dp"
+            android:layout_marginRight="5dp"
+            android:text="@string/city"
+            android:drawablePadding="5dp"
+            android:background="@drawable/item_selector_bg_white"
+            android:drawableRight="@mipmap/down_arrow"/>
+        <EditText
+            android:id="@+id/txt_search"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:gravity="center_vertical"
+            style="@style/GrayTxt18"
+            android:background="@drawable/text_input_border"
+            android:layout_toRightOf="@+id/txt_city"
+            android:layout_toLeftOf="@+id/txt_reset"
+            android:paddingLeft="8dp"
+            android:layout_marginRight="5dp"
+            android:inputType="text"
+            android:focusable="true"
+            android:hint="请输入查询的地址"/>
+        <TextView
+            android:id="@+id/txt_reset"
+            android:layout_width="wrap_content"
+            android:layout_height="40dp"
+            android:layout_alignParentRight="true"
+            style="@style/GrayTxt18"
+            android:gravity="center"
+            android:layout_marginLeft="5dp"
+            android:layout_marginRight="5dp"
+            android:visibility="gone"
+            android:text="@string/cancel"/>
+    </RelativeLayout>
+
+    <ListView
+        android:id="@+id/listview_suggestion"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/layout_search"
+        android:layout_marginTop="2dp"
+        android:scrollbars="none"
+        android:visibility="gone"
+        android:background="@color/background">
+    </ListView>
 
 </RelativeLayout>

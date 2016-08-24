@@ -48,7 +48,7 @@
         android:theme="@style/AppTheme.NoActionBar">
         <meta-data
             android:name="com.baidu.lbsapi.API_KEY"
-            android:value="blzXUZqcDhBew5DgH7cds0P7M11FpeXY" />
+            android:value="sPYY3qswxjLVhGMZUxwU9cN8pZ9ikPMm" />
         <!-- 高德KEY：a8a66fb69891d4d71b4b8bbc56cc5cb0 -->
         <!-- 百度KEY：blzXUZqcDhBew5DgH7cds0P7M11FpeXY -->
         <activity
@@ -233,6 +233,10 @@
         </activity>
         <activity
             android:name=".activity.chat.PreviewMessageImagesActivity"
+            android:screenOrientation="portrait">
+        </activity>
+        <activity
+            android:name=".activity.party.CitySelectActivity"
             android:screenOrientation="portrait">
         </activity>
         <activity

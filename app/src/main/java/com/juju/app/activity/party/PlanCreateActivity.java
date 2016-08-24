@@ -177,7 +177,7 @@ public class PlanCreateActivity extends BaseActivity implements AdapterView.OnIt
             if(coverUrl!=null && coverUrl.startsWith("http:")){
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(coverUrl, imgCover, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             }else {
-                imgCover.setImageResource(getResValue(plan.getType().toLowerCase(), "mipmap"));
+                imgCover.setImageResource(getResValue(plan.getType().toLowerCase(), "drawable"));
             }
             txt_time.setText(dateFormat.format(plan.getStartTime()));
             txt_location.setText(plan.getAddress());
@@ -306,8 +306,8 @@ public class PlanCreateActivity extends BaseActivity implements AdapterView.OnIt
                 Plan.Type planType = Plan.Type.values()[position];
                 txtPlanType.setText(getResValue(planType.name()));
                 txtPlanType.setTag(planType);
-                if(coverUrl == null) {
-                    imgCover.setImageResource(getResValue(planType.name().toLowerCase(), "mipmap"));
+                if(coverUrl == null || !coverUrl.startsWith("http://")) {
+                    imgCover.setImageResource(getResValue(planType.name().toLowerCase(), "drawable"));
                 }else{
                     ImageLoaderUtil.getImageLoaderInstance().displayImage(coverUrl, imgCover, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
                 }
@@ -373,7 +373,7 @@ public class PlanCreateActivity extends BaseActivity implements AdapterView.OnIt
                         imgCover.setImageDrawable(null);
                     } else {
                         Plan.Type planType = (Plan.Type) txtPlanType.getTag();
-                        imgCover.setImageResource(getResValue(planType.name().toLowerCase(), "mipmap"));
+                        imgCover.setImageResource(getResValue(planType.name().toLowerCase(), "drawable"));
                     }
                     msgDialog.dismiss();
                 }

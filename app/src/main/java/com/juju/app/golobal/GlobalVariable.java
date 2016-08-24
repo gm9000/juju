@@ -27,6 +27,8 @@ public final class GlobalVariable {
     public static final String TRACKER_SERVER1 = "219.143.237.229:22122";
     public static final String GROUPNAME1 = "group1";
 
+    public static final String defaultCity = "北京市";
+
 
 //    public static boolean isAlive = false;
 

@@ -1,6 +1,7 @@
 package com.juju.app.activity.party;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,7 +18,9 @@ import com.baidu.location.LocationClientOption;
 import com.baidu.mapapi.map.BaiduMap;
 import com.baidu.mapapi.map.BitmapDescriptor;
 import com.baidu.mapapi.map.BitmapDescriptorFactory;
+import com.baidu.mapapi.map.InfoWindow;
 import com.baidu.mapapi.map.LogoPosition;
+import com.baidu.mapapi.map.MapStatus;
 import com.baidu.mapapi.map.MapStatusUpdate;
 import com.baidu.mapapi.map.MapStatusUpdateFactory;
 import com.baidu.mapapi.map.MapView;
@@ -37,10 +40,13 @@ import com.juju.app.golobal.AppContext;
 import com.juju.app.golobal.BitmapUtilFactory;
 import com.juju.app.golobal.Constants;
 import com.juju.app.golobal.JujuDbUtils;
+import com.juju.app.navi.Location;
+import com.juju.app.navi.NativeDialog;
 import com.juju.app.service.notify.LocationReportNotify;
 import com.juju.app.ui.base.BaseActivity;
 import com.juju.app.utils.ActivityUtil;
 import com.juju.app.utils.ImageLoaderUtil;
+import com.juju.app.utils.MapUtils;
 import com.juju.app.view.LocationImageView;
 import com.rey.material.app.BottomSheetDialog;
 import com.skyfishjy.library.RippleBackground;
@@ -59,7 +65,7 @@ import java.util.HashMap;
 import de.hdodenhof.circleimageview.CircleImageView;
 
 @ContentView(R.layout.activity_party_location)
-public class PartyLocationActivity extends BaseActivity implements View.OnClickListener, BaiduMap.OnMarkerClickListener, View.OnTouchListener{
+public class PartyLocationActivity extends BaseActivity implements View.OnClickListener, BaiduMap.OnMarkerClickListener, View.OnTouchListener, BaiduMap.OnMapStatusChangeListener {
 
     private static final String TAG = "PartyLocationActivity";
 
@@ -83,10 +89,14 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
     @ViewInject(R.id.img_locate)
     private ImageView imgLocate;
 
+    @ViewInject(R.id.img_navi)
+    private ImageView imgNavi;
+
     private BaiduMap mBaiduMap;
 
     private double latitude;
     private double longitude;
+    private String address;
     private String userNo;
     private float zoom = 18f;
 
@@ -189,6 +199,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
 
         latitude = plan.getLatitude();
         longitude = plan.getLongitude();
+        address = plan.getAddress();
 
         userNo = AppContext.getUserInfoBean().getUserNo();
 
@@ -203,8 +214,10 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
         txt_left.setOnClickListener(this);
 
         mBaiduMap.setOnMarkerClickListener(this);
+        mBaiduMap.setOnMapStatusChangeListener(this);
         imgMic.setOnTouchListener(this);
         imgLocate.setOnClickListener(this);
+        imgNavi.setOnClickListener(this);
     }
 
     private void initView() {
@@ -220,7 +233,7 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
         mBaiduMap.setMapType(BaiduMap.MAP_TYPE_NORMAL);
 
         mapView.showZoomControls(false);
-        mapView.setLogoPosition(LogoPosition.logoPostionCenterBottom);
+        mapView.setLogoPosition(LogoPosition.logoPostionRightBottom);
 
         initOverlay();
 
@@ -244,6 +257,13 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
             BitmapDescriptor bd = BitmapDescriptorFactory.fromResource(R.mipmap.party_location);
             OverlayOptions oo = new MarkerOptions().icon(bd).position(center).zIndex(10);
             mBaiduMap.addOverlay(oo);
+
+            TextView targetAddress = new TextView(context);
+            targetAddress.setText(address);
+            targetAddress.setBackgroundColor(Color.parseColor("#90FFFFFF"));
+            targetAddress.setPadding(5,0,5,0);
+            InfoWindow infoWindow = new InfoWindow(targetAddress, center, 30);
+            mBaiduMap.showInfoWindow(infoWindow);
 
             boundsBuilder.include(center);
         }
@@ -291,6 +311,20 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
                 }
                 MapStatusUpdate u = MapStatusUpdateFactory.newLatLng(toLatLng);
                 mBaiduMap.animateMapStatus(u);
+                imgLocate.setVisibility(View.GONE);
+                break;
+            case R.id.img_navi:
+                Location locStart = new Location();
+                locStart.setLat(myLatLng.latitude);
+                locStart.setLng(myLatLng.longitude);
+
+                Location locEnd = new Location();
+                locEnd.setLat(latitude);
+                locEnd.setLng(longitude);
+                locEnd.setAddress(address);
+
+                NativeDialog msgDialog = new NativeDialog(this, locStart, locEnd);
+                msgDialog.show();
                 break;
         }
 
@@ -356,6 +390,42 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
         return true;
     }
 
+    @Override
+    public void onMapStatusChangeStart(MapStatus mapStatus) {
+
+    }
+
+    @Override
+    public void onMapStatusChange(MapStatus mapStatus) {
+
+    }
+
+    @Override
+    public void onMapStatusChangeFinish(MapStatus mapStatus) {
+
+        if(latitude!=0){
+            if(MapUtils.suitableInBounds(mapStatus.bound,new LatLng(latitude,longitude))){
+                imgLocate.setVisibility(View.GONE);
+                return;
+            }else{
+                imgLocate.setVisibility(View.VISIBLE);
+                return;
+            }
+        }
+        if(latitude==0){
+            if(myLatLng == null){
+                imgLocate.setVisibility(View.GONE);
+                return;
+            }
+            if(MapUtils.suitableInBounds(mapStatus.bound,myLatLng)) {
+                imgLocate.setVisibility(View.GONE);
+            }else{
+                imgLocate.setVisibility(View.VISIBLE);
+            }
+        }
+
+    }
+
     /**
      * 定位SDK监听函数
      */
@@ -369,6 +439,9 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
             }
 
             myLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+            if(latitude !=0){
+                imgNavi.setVisibility(View.VISIBLE);
+            }
 
             if (isFirstLoc || userMarkerMap.get(userNo)==null) {
                 isFirstLoc = false;
@@ -378,7 +451,6 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
                 mBaiduMap.animateMapStatus(MapStatusUpdateFactory.newLatLngBounds(boundsBuilder.build()));
             }else{
                 userMarkerMap.get(userNo).setPosition(myLatLng);
-                mBaiduMap.hideInfoWindow();
             }
 
             double distance = 0;
@@ -475,7 +547,6 @@ public class PartyLocationActivity extends BaseActivity implements View.OnClickL
 
                 }else{
                     userMarkerMap.get(locationReportBean.getUserNo()).setPosition(new LatLng(locationReportBean.getLatitude(),locationReportBean.getLongitude()));
-                    mBaiduMap.hideInfoWindow();
                 }
                 break;
         }

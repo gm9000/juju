@@ -30,7 +30,8 @@
             app:rb_radius="40dp"
             app:rb_rippleAmount="3"
             app:rb_duration="1000"
-            app:rb_scale="2">
+            app:rb_scale="2"
+            android:visibility="gone">
             <ImageView
                 android:id="@+id/img_mic"
                 android:layout_width="80dp"
@@ -38,14 +39,26 @@
                 android:layout_centerInParent="true"
                 android:src="@mipmap/mic"/>
         </com.skyfishjy.library.RippleBackground>
+
+        <ImageView
+            android:id="@+id/img_navi"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="10dp"
+            android:adjustViewBounds="true"
+            android:visibility="gone"
+            android:src="@mipmap/navi"/>
+
         <ImageView
             android:id="@+id/img_locate"
             android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_marginLeft="10dp"
-            android:layout_marginBottom="5dp"
-            android:src="@mipmap/locate"
-            android:background="@color/transparent2"/>
+            android:layout_marginBottom="10dp"
+            android:visibility="gone"
+            android:src="@mipmap/locate"/>
     </RelativeLayout>
 </LinearLayout>

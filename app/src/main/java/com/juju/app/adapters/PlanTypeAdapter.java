@@ -44,7 +44,7 @@ public class PlanTypeAdapter extends BaseAdapter {
         }
 
         ImageView imgPlanType = (ImageView) view.findViewById(R.id.img_plan_type);
-        imgPlanType.setImageResource(((BaseActivity)mContext).getResValue(planType.name().toLowerCase()+"_icon","mipmap"));
+        imgPlanType.setImageResource(((BaseActivity)mContext).getResValue(planType.name().toLowerCase()+"_icon","drawable"));
 
         TextView txtPlanType = (TextView) view.findViewById(R.id.txt_plan_type);
         txtPlanType.setText(((BaseActivity)mContext).getResValue(planType.name()));

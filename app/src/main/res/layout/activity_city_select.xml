@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:fitsSystemWindows="true">
+
+    <com.juju.app.view.SearchEditText
+        android:id="@+id/filter_edit"
+        android:layout_width="fill_parent"
+        android:layout_height="30dp"
+        android:layout_margin="10dp"
+        android:background="@drawable/tt_search_edt_bk"
+        android:drawableLeft="@mipmap/tt_search"
+        android:drawablePadding="10dp"
+        android:gravity="left|center_vertical"
+        android:hint="@string/search"
+        android:paddingLeft="4dp"
+        android:singleLine="true"
+        android:textColor="@android:color/black"
+        android:textColorHint="@color/default_key_color"
+        android:textSize="14sp" />
+
+
+    <LinearLayout
+        android:id="@+id/layout_current_city"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:background="@drawable/item_selector_bg_white">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BlackTxt16"
+            android:text="@string/current_city"
+            android:layout_marginLeft="10dp"/>
+        <TextView
+            android:id="@+id/txt_current_city"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BlackTxt16"
+            android:text="@string/un_location"
+            android:layout_marginLeft="10dp"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/default_line_color" />
+
+    <LinearLayout
+        android:id="@+id/layout_locate_city"
+        android:layout_width="match_parent"
+        android:layout_height="30dp"
+        android:layout_marginTop="5dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:background="@drawable/item_selector_bg_white">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BlackTxt16"
+            android:text="@string/locate_city"
+            android:layout_marginLeft="10dp"/>
+        <TextView
+            android:id="@+id/txt_locate_city"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="@style/BlackTxt16"
+            android:text="@string/un_location"
+            android:layout_marginLeft="10dp"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="0.5dp"
+        android:background="@color/default_line_color" />
+
+    <FrameLayout
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:background="@color/contact_list_item_bk" >
+
+        <ListView
+            android:id="@+id/all_city_list"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_gravity="center"
+            android:divider="@null" />
+
+        <TextView
+            android:id="@+id/dialog"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            android:background="@drawable/tt_show_head_toast_bg"
+            android:gravity="center"
+            android:textColor="#ffffffff"
+            android:textSize="30dp"
+            android:visibility="invisible" />
+
+        <com.juju.app.view.SortSideBar
+            android:id="@+id/sidrbar"
+            android:layout_width="30dp"
+            android:layout_height="fill_parent"
+            android:layout_gravity="right|center"
+            android:layout_marginBottom="30dp"
+            android:layout_marginTop="30dp" />
+    </FrameLayout>
+</LinearLayout>

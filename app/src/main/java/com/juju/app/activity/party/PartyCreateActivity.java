@@ -521,7 +521,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                 if(plan.getCoverUrl()!=null && plan.getCoverUrl().startsWith("http:")){
                     ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlan1, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
                 }else {
-                    imgPlan1.setImageResource(getResValue(plan.getType().toLowerCase(), "mipmap"));
+                    imgPlan1.setImageResource(getResValue(plan.getType().toLowerCase(), "drawable"));
                 }
                 txtPlanDesc1.setText(plan.getDesc());
                 txtPlanLocation1.setText(plan.getAddress());
@@ -533,7 +533,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                 if(plan.getCoverUrl()!=null && plan.getCoverUrl().startsWith("http:")){
                     ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlan2, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
                 }else {
-                    imgPlan2.setImageResource(getResValue(plan.getType().toLowerCase(), "mipmap"));
+                    imgPlan2.setImageResource(getResValue(plan.getType().toLowerCase(), "drawable"));
                 }
                 txtPlanDesc2.setText(plan.getDesc());
                 txtPlanLocation2.setText(plan.getAddress());
@@ -546,7 +546,7 @@ public class PartyCreateActivity extends BaseActivity implements HttpCallBack{
                 if(plan.getCoverUrl()!=null && plan.getCoverUrl().startsWith("http:")){
                     ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlan3, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
                 }else {
-                    imgPlan3.setImageResource(getResValue(plan.getType().toLowerCase(), "mipmap"));
+                    imgPlan3.setImageResource(getResValue(plan.getType().toLowerCase(), "drawable"));
                 }
                 txtPlanDesc3.setText(plan.getDesc());
                 txtPlanLocation3.setText(plan.getAddress());

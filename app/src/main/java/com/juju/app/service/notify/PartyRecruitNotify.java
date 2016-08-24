@@ -38,6 +38,8 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
 
     private volatile static PartyRecruitNotify inst;
 
+    private static boolean isProcess = false;
+
     public static PartyRecruitNotify instance() {
         if(inst == null) {
             synchronized (PartyRecruitNotify.class) {
@@ -183,6 +185,12 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
      */
     public void synLocalPartyData(final PartyNotifyEvent.PartyNotifyBean partyNotifyBean, final boolean notify, final CallBack callBack) {
 
+        if(isProcess){
+            return;
+        }else{
+            isProcess = true;
+        }
+
         Map<String, Object> valueMap = HttpReqParamUtil.instance().buildMap("partyId", partyNotifyBean.getPartyId());
         CommandActionConstant.HttpReqParam httpReqParam = CommandActionConstant.HttpReqParam.GETPARTYINFO;
         JlmHttpClient<Map<String, Object>> client = new JlmHttpClient<>(httpReqParam.code(),
@@ -238,6 +246,7 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
                             }else{
                                 callBack.afterProcessSuccess();
                             }
+
                         }catch(JSONException e){
                             e.printStackTrace();
                             if(notify) {
@@ -256,9 +265,11 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
                         }
                     }
                 }
+                isProcess = false;
             }
             @Override
             public void onFailure4OK(Exception e, int accessId, Object inputParameter) {
+                isProcess = false;
                 if(notify) {
                     buildAndTriggerBusinessFlow4Recv(PartyNotifyEvent.BusinessFlow.RecvParam
                             .Recv.ADD_LOCAL_CACHE_DATA_FAILED, partyNotifyBean);
@@ -271,8 +282,12 @@ public class PartyRecruitNotify extends BaseNotify<PartyNotifyEvent.PartyNotifyB
             client.sendGet4OK();
         } catch (UnsupportedEncodingException e) {
             logger.error(e);
+            isProcess = false;
         } catch (JSONException e) {
             logger.error(e);
+            isProcess = false;
+        }catch (Exception e){
+            isProcess = false;
         }
     }
 

@@ -103,20 +103,16 @@ public class PartyListBackupAdapter extends BaseSwipeAdapter {
 
     @Override
     public View generateView(int position, ViewGroup parent) {
-        View convertView = renderParty(position, null, parent);
-        return convertView;
+        return inflater.inflate(R.layout.party_item_backup, parent, false);
     }
 
     @Override
     public void fillValues(int position, View convertView) {
-        renderParty(position, convertView, null);
+        renderParty(position, convertView);
     }
 
-    public View renderParty(int position, View view, ViewGroup parent) {
+    public void renderParty(int position, View view) {
         final Party party = matchPartyList.get(position);
-        if (view == null) {
-            view = inflater.inflate(R.layout.party_item_backup, parent, false);
-        }
         ImageView imgPlanType = (ImageView)view.findViewById(R.id.img_plan_type);
         imgPlanType.setColorFilter(Color.GRAY, PorterDuff.Mode.MULTIPLY);
 
@@ -161,7 +157,7 @@ public class PartyListBackupAdapter extends BaseSwipeAdapter {
             if (party.getCoverUrl().startsWith("http:")){
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(party.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             }else{
-                final int resId = ((BaseActivity) inflater.getContext()).getResValue(party.getCoverUrl().toLowerCase(), "mipmap");
+                final int resId = ((BaseActivity) inflater.getContext()).getResValue(party.getCoverUrl().toLowerCase(), "drawable");
                 imgPlanType.setImageResource(resId);
             }
         }
@@ -223,7 +219,6 @@ public class PartyListBackupAdapter extends BaseSwipeAdapter {
                 txtStatus.setText(R.string.finished);
                 break;
         }
-        return view;
     }
 
     public void recover() {

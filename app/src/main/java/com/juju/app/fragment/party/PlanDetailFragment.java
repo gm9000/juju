@@ -209,7 +209,7 @@ public class PlanDetailFragment extends BaseFragment implements CreateUIHelper,H
             if (plan.getCoverUrl().startsWith("http:")){
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             }else{
-                final int resId = activity.getResValue(plan.getCoverUrl().toLowerCase(), "mipmap");
+                final int resId = activity.getResValue(plan.getCoverUrl().toLowerCase(), "drawable");
                 imgPlanType.setImageResource(resId);
             }
         }

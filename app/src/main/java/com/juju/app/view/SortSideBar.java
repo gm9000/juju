@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.juju.app.R;
+import com.juju.app.utils.ScreenUtil;
 
 
 public class SortSideBar extends View {
@@ -28,6 +29,7 @@ public class SortSideBar extends View {
     private Paint paint = new Paint();
 
     private TextView textDialog;
+    private int textSize;
 
     public void setTextView(TextView textview) {
         this.textDialog = textview;
@@ -35,14 +37,17 @@ public class SortSideBar extends View {
 
     public SortSideBar(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        textSize = ScreenUtil.dip2px(context,14);
     }
 
     public SortSideBar(Context context, AttributeSet attrs) {
         super(context, attrs);
+        textSize = ScreenUtil.dip2px(context,14);
     }
 
     public SortSideBar(Context context) {
         super(context);
+        textSize = ScreenUtil.dip2px(context,14);
     }
 
     protected void onDraw(Canvas canvas) {
@@ -64,8 +69,9 @@ public class SortSideBar extends View {
             paint.setColor(Color.parseColor("#666666"));
             //paint.setTypeface(Typeface.DEFAULT_BOLD);
             paint.setAntiAlias(true);
-           
-            paint.setTextSize(21);
+
+
+            paint.setTextSize(textSize);
             // 选中的状态
             if (i == sel) {
                 paint.setColor(Color.WHITE);

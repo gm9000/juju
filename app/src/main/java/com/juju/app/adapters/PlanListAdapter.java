@@ -16,15 +16,6 @@ import com.juju.app.view.dialog.WarnTipDialog;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-//import com.juju.app.view.dialog.WarnTipDialog;
-
-/**
- * 项目名称：juju
- * 类描述：群聊列表数据源
- * 创建人：gm
- * 日期：2016/2/21 17:09
- * 版本：V1.0.0
- */
 public class PlanListAdapter extends BaseSwipeAdapter {
 
     private Context context;
@@ -76,25 +67,20 @@ public class PlanListAdapter extends BaseSwipeAdapter {
 
     @Override
     public View generateView(int position, ViewGroup parent) {
-        View convertView = renderPlanList(position, null, parent);
-        return convertView;
+        return  LayoutInflater.from(context).inflate(R.layout.plan_item, parent, false);
     }
 
     @Override
     public void fillValues(int position, View convertView) {
-        renderPlanList(position, convertView, null);
+        renderPlanList(position, convertView);
     }
 
-    public View renderPlanList(final int position, View convertView, ViewGroup parent) {
-        if(convertView == null) {
-            convertView = LayoutInflater.from(context).
-                    inflate(R.layout.plan_item, parent, false);
-        }
+    public void renderPlanList(final int position, View convertView) {
+
         TextView txt_time = ViewHolderUtil.get(convertView, R.id.txt_time);
         TextView txt_address = ViewHolderUtil.get(convertView, R.id.txt_address);
         TextView txt_description = ViewHolderUtil.get(convertView, R.id.txt_description);
         TextView txt_del = ViewHolderUtil.get(convertView, R.id.txt_del);
-
 
         final Plan plan = planList.get(position);
         txt_time.setText(dateFormat.format(plan.getStartTime()));
@@ -109,7 +95,6 @@ public class PlanListAdapter extends BaseSwipeAdapter {
                 tipdialog.show();
             }
         });
-        return convertView;
 
     }
 

@@ -198,42 +198,43 @@ public class PlanVoteNotify extends BaseNotify<PlanVoteEvent.PlanVoteBean> {
                             .Recv.SYNCHRONIZE_PARTY_DATA_FAILED, planVoteBean);
                 }
             });
-        }
+        }else {
 
-        if(planVoteBean.getVote()==0) {
-            WhereBuilder whereBuilder = WhereBuilder.b("attender_no", "=", planVoteBean.getUserNo());
-            whereBuilder.and("plan_id", "=", planVoteBean.getPlanId());
-            try {
-                int count = JujuDbUtils.getInstance().delete(PlanVote.class,whereBuilder);
-                if(count>0){
-                    plan.setAddtendNum(plan.getAddtendNum()-count);
+            if (planVoteBean.getVote() == 0) {
+                WhereBuilder whereBuilder = WhereBuilder.b("attender_no", "=", planVoteBean.getUserNo());
+                whereBuilder.and("plan_id", "=", planVoteBean.getPlanId());
+                try {
+                    int count = JujuDbUtils.getInstance().delete(PlanVote.class, whereBuilder);
+                    if (count > 0) {
+                        plan.setAddtendNum(plan.getAddtendNum() - 1);
+                        JujuDbUtils.saveOrUpdate(plan);
+                    }
+                } catch (DbException e) {
+                    e.printStackTrace();
+                    buildAndTriggerBusinessFlow4Recv(PlanVoteEvent.BusinessFlow.RecvParam
+                            .Recv.PROCESS_LOCAL_CACHE_DATA_FAILED, planVoteBean);
+                }
+            } else {
+                PlanVote planVote = null;
+                try {
+                    planVote = JujuDbUtils.getInstance().selector(PlanVote.class).where("attender_no", "=", planVoteBean.getUserNo()).and("plan_id", "=", planVoteBean.getPlanId()).findFirst();
+                } catch (DbException e) {
+                    e.printStackTrace();
+                }
+                if (planVote == null) {
+                    planVote = new PlanVote();
+                    planVote.setPlanId(planVoteBean.getPlanId());
+                    planVote.setAttenderNo(planVoteBean.getUserNo());
+                    JujuDbUtils.save(planVote);
+                    plan.setAddtendNum(plan.getAddtendNum() + 1);
                     JujuDbUtils.saveOrUpdate(plan);
                 }
-            } catch (DbException e) {
-                e.printStackTrace();
-                buildAndTriggerBusinessFlow4Recv(PlanVoteEvent.BusinessFlow.RecvParam
-                        .Recv.PROCESS_LOCAL_CACHE_DATA_FAILED, planVoteBean);
-            }
-        }else{
-            PlanVote planVote = null;
-            try {
-                planVote = JujuDbUtils.getInstance().selector(PlanVote.class).where("attender_no", "=", planVoteBean.getUserNo()).and("plan_id", "=", planVoteBean.getPlanId()).findFirst();
-            } catch (DbException e) {
-                e.printStackTrace();
-            }
-            if(planVote == null) {
-                planVote = new PlanVote();
-                planVote.setPlanId(planVoteBean.getPlanId());
-                planVote.setAttenderNo(planVoteBean.getUserNo());
-                JujuDbUtils.save(planVote);
-                plan.setAddtendNum(plan.getAddtendNum() + 1);
-                JujuDbUtils.saveOrUpdate(plan);
+
             }
 
+            buildAndTriggerBusinessFlow4Recv(PlanVoteEvent.BusinessFlow.RecvParam
+                    .Recv.PROCESS_LOCAL_CACHE_DATA_OK, planVoteBean);
         }
-
-        buildAndTriggerBusinessFlow4Recv(PlanVoteEvent.BusinessFlow.RecvParam
-                        .Recv.PROCESS_LOCAL_CACHE_DATA_OK, planVoteBean);
     }
 
     private void buildAndTriggerBusinessFlow4Recv(PlanVoteEvent.BusinessFlow.RecvParam.Recv recv,PlanVoteEvent.PlanVoteBean PlanVoteBean) {
