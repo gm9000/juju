@@ -15,7 +15,9 @@ import com.facebook.stetho.inspector.database.SqliteDatabaseDriver;
 import com.facebook.stetho.inspector.protocol.ChromeDevtoolsDomain;
 import com.juju.app.config.CacheManager;
 import com.juju.app.golobal.AppContext;
+import com.juju.app.golobal.Constants;
 import com.juju.app.service.im.IMService;
+import com.juju.app.small.media.VCamera;
 import com.juju.app.utils.ImageLoaderUtil;
 import com.pili.pldroid.streaming.StreamingEnv;
 import com.rey.material.app.ThemeManager;
@@ -59,6 +61,7 @@ public class BaseApplication extends Application {
         initConfig();
         initDebug();
         initService();
+        initSdk();
         long end = System.currentTimeMillis();
         Log.d("BaseApplication","onCreate#costTime:"+(end-begin)+"ms");
     }
@@ -134,6 +137,14 @@ public class BaseApplication extends Application {
     //初始化系统服务
     private void initService() {
         startIMService();
+    }
+
+    private void initSdk() {
+        VCamera.setVideoCachePath(Constants.BASE_PATH+"/video/");
+        // 开启log输出,ffmpeg输出到logcat
+        VCamera.setDebugMode(true);
+        // 初始化拍摄SDK，必须
+        VCamera.initialize(this);
     }
 
 

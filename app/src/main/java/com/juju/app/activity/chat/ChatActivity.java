@@ -61,6 +61,7 @@ import com.juju.app.event.GroupEvent;
 import com.juju.app.event.MessageEvent;
 import com.juju.app.event.PriorityEvent;
 import com.juju.app.event.SelectEvent;
+import com.juju.app.event.SmallMediaEvent;
 import com.juju.app.event.notify.ApplyInGroupEvent;
 import com.juju.app.event.notify.ExitGroupEvent;
 import com.juju.app.event.notify.InviteInGroupEvent;
@@ -91,6 +92,7 @@ import com.juju.app.view.groupchat.YayaEmoGridView;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 
+import org.apache.commons.lang.StringUtils;
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
 import org.greenrobot.eventbus.ThreadMode;
@@ -155,10 +157,12 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     private ImageView keyboardInputImg;
     @ViewInject(R.id.add_others_panel)
     private View addOthersPanelView;
-    @ViewInject(R.id.take_photo_btn)
-    private View takePhotoBtn;
-    @ViewInject(R.id.take_camera_btn)
-    private View takeCameraBtn;
+//    @ViewInject(R.id.take_photo_btn)
+//    private View takePhotoBtn;
+//    @ViewInject(R.id.take_camera_btn)
+//    private View takeCameraBtn;
+//    @ViewInject(R.id.take_small_video)
+//    private View takeSmallVideoBtn;
     @ViewInject(R.id.emo_layout)
     private LinearLayout emoLayout;
     @ViewInject(R.id.tt_new_msg_tip)
@@ -436,6 +440,12 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         intent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(new File(takePhotoSavePath)));
         startActivityForResult(intent, Constants.CAMERA_WITH_DATA);
         addOthersPanelView.setVisibility(View.GONE);
+        scrollToBottomListItem();
+    }
+
+    @Event(R.id.take_small_video)
+    private void onClick4BtnTakeSmallVideo(View view) {
+        startActivityNew(ChatActivity.this, SmallMediaRecorderActivity.class);
         scrollToBottomListItem();
     }
 
@@ -1342,6 +1352,19 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         if (itemList != null || itemList.size() > 0)
             handleImagePickData(itemList);
     }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onEvent4SmallMedia(SmallMediaEvent event) {
+            handleSmallMedia(event);
+    }
+
+
+    private void handleSmallMedia(SmallMediaEvent event) {
+
+        //TODO 发送视频
+//        imService.getMessageManager().sendMsgImages(listMsg);
+    }
+
 
     private void handleImagePickData(List<ImageItem> list) {
         ArrayList<ImageMessage> listMsg = new ArrayList<>();

@@ -115,8 +115,10 @@ public class PlanInfoListAdapter extends BaseSwipeAdapter {
             if (plan.getCoverUrl().startsWith("http:")){
                 ImageLoaderUtil.getImageLoaderInstance().displayImage(plan.getCoverUrl(), imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             }else{
-                final int resId = ((BaseActivity) context).getResValue(plan.getCoverUrl().toLowerCase(), "mipmap");
-                imgPlanType.setImageResource(resId);
+                final int resId = ((BaseActivity) context).getResValue(plan.getCoverUrl().toLowerCase(), "drawable");
+//                imgPlanType.setImageResource(resId);
+                String defaultUri="drawable://" + resId;
+                ImageLoaderUtil.getImageLoaderInstance().displayImage(defaultUri, imgPlanType, ImageLoaderUtil.DISPLAY_IMAGE_OPTIONS);
             }
         }
 

@@ -589,6 +589,10 @@ public class IMMessageManager extends IMManager {
 //    }
 
 
+    /**
+     * 发送图片
+     * @param msgList
+     */
     public void sendMsgImages(List<ImageMessage> msgList) {
         if (isAuthenticated()) {
             for (final ImageMessage imageMessage : msgList) {
@@ -611,64 +615,6 @@ public class IMMessageManager extends IMManager {
                         loadImageIntent.putExtra(Constants.UPLOAD_IMAGE_INTENT_PARAMS, imageMessage);
                         ctx.startService(loadImageIntent);
                         break;
-//                    case MessageConstant.IMAGE_LOADED_SUCCESS:
-//                        try {
-//                            socketService.sendMessage(imageMessage.getFromId(), imageMessage.getToId(),
-//                                    imageMessage.getSendContent(), uuid, IMBaseDefine.MsgType.MSG_IMAGE,
-//                                    new XMPPServiceCallbackImpl() {
-//                                        @Override
-//                                        public void onSuccess(Object t) {
-//                                            //回复时间
-//                                            if (t instanceof XMPPServiceImpl.ReplayMessageTime) {
-//                                                XMPPServiceImpl.ReplayMessageTime messageTime =
-//                                                        (XMPPServiceImpl.ReplayMessageTime) t;
-//                                                String id = messageTime.getId();
-//                                                String time = messageTime.getTime();
-//                                                if (dbMessage != null) {
-//                                                    dbMessage.setStatus(MessageConstant.MSG_SUCCESS);
-//                                                    //通知消息
-//                                                    imageMessage.setStatus(MessageConstant.MSG_SUCCESS);
-//                                                    if (NumberUtils.isNumber(time)) {
-//                                                        int msgId = SequenceNumberMaker.getInstance()
-//                                                                .makelocalUniqueMsgId(Long.parseLong(time));
-//                                                        //更新msgId
-//                                                        dbMessage.setMsgId(msgId);
-//                                                        dbMessage.setCreated(Long.parseLong(time));
-//                                                        dbMessage.setUpdated(Long.parseLong(time));
-//                                                    }
-//
-//                                                    //更新会话
-//                                                    sessionManager.updateSession(dbMessage, true);
-//                                                    triggerEvent(new MessageEvent(MessageEvent.Event
-//                                                            .ACK_SEND_MESSAGE_OK, imageMessage));
-//                                                    messageDao.saveOrUpdate(dbMessage);
-//                                                }
-//                                            }
-//                                        }
-//
-//                                        @Override
-//                                        public void onFailed() {
-//                                            //消息发送失败
-//                                            dbMessage.setStatus(MessageConstant.MSG_FAILURE);
-//                                            messageDao.saveOrUpdate(dbMessage);
-//                                            imageMessage.setStatus(MessageConstant.MSG_FAILURE);
-//                                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
-//                                        }
-//
-//                                        @Override
-//                                        public void onTimeout() {
-//                                            //消息发送超时
-//                                            dbMessage.setStatus(MessageConstant.MSG_FAILURE);
-//                                            messageDao.saveOrUpdate(dbMessage);
-//                                            imageMessage.setStatus(MessageConstant.MSG_FAILURE);
-//                                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
-//                                        }
-//                                    });
-//                        } catch (SmackException.NotConnectedException e) {
-//                            Log.e(TAG, "sendText:", e);
-//                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, imageMessage));
-//                        }
-//                        break;
                     default:
                         throw new RuntimeException("sendImages#status不可能出现的状态");
                 }

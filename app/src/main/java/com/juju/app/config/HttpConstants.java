@@ -29,6 +29,8 @@ public class HttpConstants {
 
     private static String PORTRAIT_URL = "";
 
+    public static String APP_DOWN_URL="http://app.julema.cn:8080/juju/download/index";
+
     public static void initURL() {
         USER_URL = "http://" + GlobalVariable.serverIp + ":" + GlobalVariable.serverPort
                 + "/juju/bServer/user";

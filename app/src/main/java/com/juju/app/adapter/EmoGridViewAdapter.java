@@ -102,9 +102,9 @@ public class EmoGridViewAdapter extends BaseAdapter {
                 layoutView.setLayoutParams(layoutParams);
                 layoutView.setOrientation(LinearLayout.VERTICAL);
                 layoutView.setGravity(Gravity.CENTER);
+                int width = CommonUtil.getElementSzie(context) + 10;
                 LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                        CommonUtil.getElementSzie(context),
-                        CommonUtil.getElementSzie(context));
+                        width, width);
                 params.gravity = Gravity.CENTER;
                 layoutView.addView(faceIv, params);
             } catch (Exception e) {

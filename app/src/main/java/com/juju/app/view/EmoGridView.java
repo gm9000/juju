@@ -88,9 +88,9 @@ public class EmoGridView extends LinearLayout {
                 for (int i = 0; i < viewPager_size; i++) {
                     ImageView image = new ImageView(_context);
                     image.setTag(i);
-                    // LinearLayout.LayoutParams params = new
-                    // LinearLayout.LayoutParams(
-                    // 20, 20);
+//                     LinearLayout.LayoutParams params = new
+//                     LinearLayout.LayoutParams(
+//                     20, 20);
                     LayoutParams params = new LayoutParams(
                             LayoutParams.WRAP_CONTENT,
                             LayoutParams.WRAP_CONTENT);

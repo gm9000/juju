@@ -88,6 +88,7 @@
     <string name="no_sdcard">没有SD卡</string>
     <string name="take_camera_btn_text">拍照</string>
     <string name="take_photo_btn_text">照片</string>
+    <string name="take_small_video_text">小视频</string>
     <string name="not_found_album">没有找到可用的相册！</string>
     <string name="loading">加载中&#8230;</string>
     <string name="refresh_over">刷新完成</string>
@@ -132,6 +133,7 @@
     <string name="message_receive_loading">收取中...</string>
 
 
+
     <!-- 消息 -->
     <string name="call_mode">听筒模式</string>
     <string name="speaker_mode">扬声器模式</string>
@@ -165,6 +167,14 @@
     <string name="unavailable_image_file">该文件已损坏</string>
     <string name="need_choose_images">请选择图片～</string>
 
+
+    <!--小视频 -->
+    <string name="hint">提示</string>
+    <string name="record_camera_exit_dialog_message">是否放弃这段视频？</string>
+    <string name="record_camera_cancel_dialog_yes">确定</string>
+    <string name="record_camera_cancel_dialog_no">取消</string>
+    <string name="record_camera_progress_message">正在转码…</string>
+    <string name="record_video_transcoding_faild">视频转码失败</string>
 
 
 
@@ -255,6 +265,10 @@
     <string name="notfound_audio_file">该语音文件已丢失</string>
     <string name="audio_in_call">已经为您切换到听筒模式</string>
     <string name="audio_in_speeker">已经为您切换到扬声器模式</string>
+
+
+    <!--小视频 -->
+    <string name="imageview_content_description"></string>
 
 
     <!--聚会-->
@@ -365,6 +379,8 @@
     <string name="phone_same">您输入的手机号与当前的手机号相同</string>
     <string name="join_group_failed">加入群组失败</string>
     <string name="upload_head_hint">提示：长按可更改头像</string>
+
+
 
 
     <!-- TODO: Remove or change this placeholder text -->

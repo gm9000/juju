@@ -154,7 +154,7 @@ public class QrFragment extends BaseFragment implements CreateUIHelper {
                 JSONObject jsonObject = new JSONObject();
                 String content = null;
                 if(StringUtils.isBlank(groupEntity.getQrCode())) {
-                    content = HttpConstants.getUserUrl();
+                    content = HttpConstants.APP_DOWN_URL;
                 } else {
                     String token = "";
                     try {

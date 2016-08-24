@@ -351,4 +351,26 @@ public class StringUtils {
 	public static String[] split(final String str, final String separatorChars, final int max) {
 		return org.apache.commons.lang.StringUtils.split(str, separatorChars, max);
 	}
+
+	public static boolean isNotEmpty(String str) {
+		return org.apache.commons.lang.StringUtils.isNotEmpty(str);
+	}
+
+	/**
+	 *
+	 * @param str
+	 * @return
+	 */
+	public static String trim(String str) {
+		return str == null ? "" : str.trim();
+	}
+
+	/**
+	 * Helper function for making null strings safe for comparisons, etc.
+	 *
+	 * @return (s == null) ? "" : s;
+	 */
+	public static String makeSafe(String s) {
+		return (s == null) ? "" : s;
+	}
 }
