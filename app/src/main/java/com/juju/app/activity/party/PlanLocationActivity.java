@@ -197,7 +197,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetPoiSearch
                 targetAddress.setText(address);
                 targetAddress.setBackgroundColor(Color.parseColor("#90FFFFFF"));
                 targetAddress.setPadding(5,0,5,0);
-                InfoWindow infoWindow = new InfoWindow(targetAddress, p, ScreenUtil.px2dp(this,40));
+                InfoWindow infoWindow = new InfoWindow(targetAddress, p, ScreenUtil.dip2px(this,20));
                 mBaiduMap.showInfoWindow(infoWindow);
             }
 
@@ -413,7 +413,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetPoiSearch
             targetAddress.setText(result.getName());
             targetAddress.setBackgroundColor(Color.parseColor("#90FFFFFF"));
             targetAddress.setPadding(5,0,5,0);
-            InfoWindow infoWindow = new InfoWindow(targetAddress, target, ScreenUtil.px2dp(this,40));
+            InfoWindow infoWindow = new InfoWindow(targetAddress, target, ScreenUtil.dip2px(this,20));
             mBaiduMap.showInfoWindow(infoWindow);
 
             originBitmapDescriptor = clickMarker.getIcon();
@@ -502,7 +502,7 @@ public class PlanLocationActivity extends BaseActivity implements OnGetPoiSearch
             targetAddress.setText(bean.getKey());
             targetAddress.setBackgroundColor(Color.parseColor("#90FFFFFF"));
             targetAddress.setPadding(5,0,5,0);
-            InfoWindow infoWindow = new InfoWindow(targetAddress, target, ScreenUtil.px2dp(this,40));
+            InfoWindow infoWindow = new InfoWindow(targetAddress, target, ScreenUtil.dip2px(this,20));
             mBaiduMap.showInfoWindow(infoWindow);
 
             txt_address.setText(bean.getKey());
