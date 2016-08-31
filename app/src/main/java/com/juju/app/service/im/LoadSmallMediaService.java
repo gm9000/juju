@@ -3,10 +3,9 @@ package com.juju.app.service.im;
 import android.app.IntentService;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.text.TextUtils;
-
 
 import com.juju.app.entity.chat.ImageMessage;
+import com.juju.app.entity.chat.SmallMediaMessage;
 import com.juju.app.event.MessageEvent;
 import com.juju.app.fastdfs.StorePath;
 import com.juju.app.fastdfs.callback.ProgressCallback;
@@ -17,32 +16,32 @@ import com.juju.app.golobal.GlobalVariable;
 import com.juju.app.helper.PhotoHelper;
 import com.juju.app.utils.FileUtil;
 import com.juju.app.utils.Logger;
-import com.juju.app.utils.SystemConfigSp;
 
 import org.greenrobot.eventbus.EventBus;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.UUID;
 
 
 /**
  * 项目名称：juju
- * 类描述：异步图片服务
+ * 类描述：异步小视频服务
  * 创建人：gm
- * 日期：2016/7/22 16:18
+ * 日期：2016/8/25 10:18
  * 版本：V1.0.0
  */
-public class LoadImageService extends IntentService {
+public class LoadSmallMediaService extends IntentService {
 
-    private static Logger logger = Logger.getLogger(LoadImageService.class);
+    private static Logger logger = Logger.getLogger(LoadSmallMediaService.class);
 
-    public LoadImageService(){
-        super("LoadImageService");
+    public LoadSmallMediaService(){
+        super("LoadSmallMediaService");
     }
 
-    public LoadImageService(String name) {
+    public LoadSmallMediaService(String name) {
         super(name);
     }
 
@@ -56,20 +55,18 @@ public class LoadImageService extends IntentService {
      * so you should not call {@link #stopSelf}.
      *
      * @param intent The value passed to {@link
-     *               android.content.Context#startService(android.content.Intent)}.
+     *               android.content.Context#startService(Intent)}.
      */
     @Override
     protected void onHandleIntent(Intent intent) {
-        final ImageMessage messageInfo = (ImageMessage)intent.getSerializableExtra(Constants.UPLOAD_IMAGE_INTENT_PARAMS);
-            final String result = null;
-            Bitmap bitmap;
+        final SmallMediaMessage messageInfo = (SmallMediaMessage)intent.getSerializableExtra(Constants.UPLOAD_SMALL_MEDIA_INTENT_PARAMS);
+//            final String result = null;
+//            Bitmap bitmap;
             try {
-                File file= new File(messageInfo.getPath());
-                bitmap = PhotoHelper.revitionImage(messageInfo.getPath());
-                if (null != bitmap) {
-                    byte[] bytes = PhotoHelper.getBytes(bitmap);
+                File file = new File(messageInfo.getPath());
+                if (null != file) {
                     String uuid = UUID.randomUUID().toString();
-                    StorageClientService.instance().uploadFile(uuid, GlobalVariable.GROUPNAME1, new ByteArrayInputStream(bytes), bytes.length,
+                    StorageClientService.instance().uploadFile(uuid, GlobalVariable.GROUPNAME1, new FileInputStream(file), file.length(),
                             FileUtil.getExtensionName(messageInfo.getPath()).toLowerCase(), new ProgressCallback<StorePath>() {
 
                                 @Override
@@ -78,7 +75,7 @@ public class LoadImageService extends IntentService {
                                     double d = (double)current/total;
                                     logger.d("上传百分百："+(d*100));
                                     EventBus.getDefault().post(new MessageEvent(MessageEvent.Event
-                                            .IMAGE_UPLOAD_PROGRESSING, messageInfo, Double.valueOf(d*100).intValue()));
+                                            .SMALL_MEDIA_UPLOAD_PROGRESSING, messageInfo, Double.valueOf(d*100).intValue()));
                                 }
 
                                 @Override
@@ -86,14 +83,14 @@ public class LoadImageService extends IntentService {
                                     logger.e("uploadFile#sendError is error");
                                     e.printStackTrace();
                                     EventBus.getDefault().post(new MessageEvent(MessageEvent.Event
-                                            .IMAGE_UPLOAD_FAILD, messageInfo));
+                                            .SMALL_MEDIA_UPLOAD_FAILD, messageInfo));
                                 }
 
                                 @Override
                                 public void recvError(String id, FdfsIOException e) {
                                     logger.e("uploadFile#recvError is error");
                                     e.printStackTrace();
-                                    EventBus.getDefault().post(new MessageEvent(MessageEvent.Event.IMAGE_UPLOAD_FAILD
+                                    EventBus.getDefault().post(new MessageEvent(MessageEvent.Event.SMALL_MEDIA_UPLOAD_FAILD
                                             ,messageInfo));
                                 }
 
@@ -104,7 +101,7 @@ public class LoadImageService extends IntentService {
                                     String imageUrl = storePath.getUrl();
                                     messageInfo.setUrl(imageUrl);
                                     EventBus.getDefault().post(new MessageEvent(MessageEvent.Event
-                                            .IMAGE_UPLOAD_SUCCESS, messageInfo));
+                                            .SMALL_MEDIA_UPLOAD_SUCCESS, messageInfo));
                                 }
                             });
                 }

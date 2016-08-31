@@ -12,7 +12,7 @@ import android.widget.ImageView;
 import com.juju.app.R;
 import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
-import com.juju.app.entity.chat.ImageMessage;
+import com.juju.app.entity.chat.SmallMediaMessage;
 import com.juju.app.golobal.MessageConstant;
 import com.juju.app.utils.FileUtil;
 import com.juju.app.utils.Logger;
@@ -41,12 +41,14 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
     /** 图片状态指示*/
     private MGProgressbar imageProgress;
 
+    private ImageView play_big_icon;
+
     public SmallMediaRenderView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
     public static SmallMediaRenderView inflater(Context context, ViewGroup viewGroup, boolean isMine){
-        int resource = isMine?R.layout.tt_mine_image_message_item: R.layout.tt_other_image_message_item;
+        int resource = isMine?R.layout.tt_mine_small_media_message_item: R.layout.tt_other_small_media_message_item;
         SmallMediaRenderView imageRenderView = (SmallMediaRenderView) LayoutInflater.from(context).inflate(resource, viewGroup, false);
         imageRenderView.setMine(isMine);
         imageRenderView.setParentView(viewGroup);
@@ -59,6 +61,7 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
         messageLayout = findViewById(R.id.message_layout);
         messageImage = (BubbleImageView) findViewById(R.id.message_image);
         imageProgress = (MGProgressbar) findViewById(R.id.tt_image_progress);
+        play_big_icon = (ImageView) findViewById(R.id.play_big_icon);
         imageProgress.setShowText(false);
     }
 
@@ -102,12 +105,12 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
                 btnImageListener.onMsgFailure();
             }
         });
-        if(FileUtil.isFileExist(((ImageMessage)entity).getPath()))
+        if(FileUtil.isFileExist(((SmallMediaMessage)entity).getThumbnailLocalPath()))
         {
-            messageImage.setImageUrl("file://"+((ImageMessage)entity).getPath());
+            messageImage.setImageUrl("file://"+((SmallMediaMessage)entity).getThumbnailLocalPath());
         }
         else{
-            messageImage.setImageUrl(((ImageMessage)entity).getUrl());
+            messageImage.setImageUrl(((SmallMediaMessage)entity).getThumbnailLocalUrl());
         }
         imageProgress.hideProgress();
     }
@@ -129,7 +132,7 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
     public void msgSendinging(final MessageEntity entity) {
         if(isMine())
         {
-            if(FileUtil.isFileExist(((ImageMessage)entity).getPath()))
+            if(FileUtil.isFileExist(((SmallMediaMessage)entity).getThumbnailLocalPath()))
             {
 
                 messageImage.setImageLoaddingCallback(new BubbleImageView.ImageLoaddingCallback() {
@@ -140,13 +143,10 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
 
                     @Override
                     public void onLoadingStarted(String imageUri, View view) {
+                        play_big_icon.setVisibility(View.GONE);
                         imageProgress.showProgress();
                         imageProgress.setShowText(true);
-                        imageProgress.setText(((ImageMessage) entity).getProgress()+"%");
-
-//                        Bitmap image = ((BitmapDrawable)messageImage.getDrawable()).getBitmap();
-//                        logger.d("msgSuccess#width -> %d", image.getWidth());
-//                        logger.d("msgSuccess#height -> %d", image.getHeight());
+                        imageProgress.setText(((SmallMediaMessage) entity).getProgress()+"%");
                     }
 
                     @Override
@@ -159,7 +159,7 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
                         imageProgress.hideProgress();
                     }
                 });
-                messageImage.setImageUrl("file://"+((ImageMessage)entity).getPath());
+                messageImage.setImageUrl("file://"+((SmallMediaMessage)entity).getThumbnailLocalPath());
             }
             else
             {
@@ -179,18 +179,20 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
     @Override
     public void msgSuccess(final MessageEntity entity) {
         super.msgSuccess(entity);
-        ImageMessage imageMessage = (ImageMessage)entity;
-        final String imagePath = imageMessage.getPath();
-        final String url = imageMessage.getUrl();
+        SmallMediaMessage imageMessage = (SmallMediaMessage) entity;
+        final String imagePath = imageMessage.getThumbnailLocalPath();
+        final String url = imageMessage.getThumbnailLocalUrl();
         int loadStatus = imageMessage.getLoadStatus();
-        if(TextUtils.isEmpty(url)){
+
+        if(TextUtils.isEmpty(imagePath)
+                && TextUtils.isEmpty(url)){
             /**消息状态异常*/
             msgStatusError(entity);
             return;
         }
 
         switch (loadStatus) {
-            case MessageConstant.IMAGE_UNLOAD:{
+            case MessageConstant.SMALL_MEDIA_UNLOAD:{
                 messageImage.setImageLoaddingCallback(new BubbleImageView.ImageLoaddingCallback() {
                     @Override
                     public void onLoadingComplete(String imageUri, View view, Bitmap bitmap) {
@@ -219,6 +221,7 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
                     public void onLoadingFailed(String imageUri, View view) {
                         getImageProgress().hideProgress();
                         imageLoadListener.onLoadFailed();
+
                     }
                 });
 
@@ -238,19 +241,22 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
                 }
             }break;
 
-            case MessageConstant.IMAGE_LOADING:{
+            case MessageConstant.SMALL_MEDIA_LOADING:{
 
             }break;
 
-            case MessageConstant.IMAGE_LOADED_SUCCESS:{
+            case MessageConstant.SMALL_MEDIA_LOADED_SUCCESS:{
                 messageImage.setImageLoaddingCallback(new BubbleImageView.ImageLoaddingCallback() {
                     @Override
                     public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                         imageProgress.hideProgress();
+                        play_big_icon.setVisibility(View.VISIBLE);
+
                     }
 
                     @Override
                     public void onLoadingStarted(String imageUri, View view) {
+                        play_big_icon.setVisibility(View.GONE);
                         imageProgress.showProgress();
                     }
 
@@ -261,6 +267,7 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
 
                     @Override
                     public void onLoadingFailed(String imageUri, View view) {
+                        play_big_icon.setVisibility(View.GONE);
                         imageProgress.showProgress();
                     }
                 });
@@ -292,7 +299,7 @@ public class SmallMediaRenderView extends BaseMsgRenderView {
             }break;
 
             //todo 图像失败了，允许点击之后重新下载
-            case MessageConstant.IMAGE_LOADED_FAILURE:{
+            case MessageConstant.SMALL_MEDIA_LOADED_FAILURE:{
 //                msgStatusError(imageMessage);
 //                getImageProgress().hideProgress();
                 messageImage.setImageLoaddingCallback(new BubbleImageView.ImageLoaddingCallback() {

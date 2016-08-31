@@ -141,6 +141,9 @@
 
         <service android:name=".service.im.LoadImageService" />
 
+        <service android:name=".service.im.LoadSmallMediaService" />
+
+
         <activity
             android:name=".activity.user.PropertiesSettingActivity"
             android:label="@string/title_activity_properties_setting"

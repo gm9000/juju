@@ -55,6 +55,7 @@ import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.GroupEntity;
 import com.juju.app.entity.chat.ImageMessage;
 import com.juju.app.entity.chat.PeerEntity;
+import com.juju.app.entity.chat.SmallMediaMessage;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.GroupEvent;
@@ -206,6 +207,8 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
 
     private String takePhotoSavePath = "";
 
+    private String smallMediaSavePath = "";
+
 
 
 
@@ -235,6 +238,10 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
             case Constants.ALBUM_BACK_DATA:
                 logger.d("pic#ALBUM_BACK_DATA");
                 setIntent(data);
+                break;
+            case Constants.SMALL_MEDIA_BACK_DATA:
+                logger.d("file#SMALL_MEDIA_BACK_DATA");
+                handleTakePhotoData(data);
                 break;
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -443,9 +450,18 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
         scrollToBottomListItem();
     }
 
+    /**
+     * 单击小视频
+     * @param view
+     */
     @Event(R.id.take_small_video)
     private void onClick4BtnTakeSmallVideo(View view) {
-        startActivityNew(ChatActivity.this, SmallMediaRecorderActivity.class);
+//        startActivityNew(ChatActivity.this, SmallMediaRecorderActivity.class);
+        // 选择图片的时候要将session的整个会话 传过来
+        Intent intent = new Intent(ChatActivity.this, SmallMediaRecorderActivity.class);
+        intent.putExtra(IntentConstant.KEY_SESSION_KEY, currentSessionKey);
+        startActivityForResult(intent, Constants.SMALL_MEDIA_BACK_DATA);
+        messageEdt.clearFocus();//切记清除焦点
         scrollToBottomListItem();
     }
 
@@ -1359,10 +1375,16 @@ public class ChatActivity extends BaseActivity implements CreateUIHelper,
     }
 
 
+    /**
+     * 小视频回调
+     * @param event
+     */
     private void handleSmallMedia(SmallMediaEvent event) {
-
+        SmallMediaMessage msg = SmallMediaMessage.buildForSend(event.smallMediaItem,
+                loginUser, peerEntity);
+        pushList(msg);
         //TODO 发送视频
-//        imService.getMessageManager().sendMsgImages(listMsg);
+        imService.getMessageManager().sendMsgSmallMedia(msg);
     }
 
 

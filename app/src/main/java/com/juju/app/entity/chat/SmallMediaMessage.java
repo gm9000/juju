@@ -4,8 +4,8 @@ package com.juju.app.entity.chat;
 import android.graphics.Bitmap;
 import android.util.Base64;
 
-import com.juju.app.adapter.album.ImageItem;
 import com.juju.app.entity.base.MessageEntity;
+import com.juju.app.event.SmallMediaEvent;
 import com.juju.app.golobal.DBConstant;
 import com.juju.app.golobal.MessageConstant;
 import com.juju.app.helper.chat.SequenceNumberMaker;
@@ -36,12 +36,21 @@ import java.util.Comparator;
  */
 public class SmallMediaMessage extends MessageEntity implements Serializable {
 
-
     /**本地保存的path*/
     private String path = "";
 
-    /**图片的网络地址*/
+    /**小视频的网络地址*/
     private String url = "";
+
+    private String thumbnailLocalPath = "";
+    /**
+     * 截图地址
+     */
+    private String thumbnailLocalUrl = "";
+
+    private int duration;
+
+    private int size;
 
     private int loadStatus;
 
@@ -49,19 +58,20 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
     private int progress;
 
     //存储图片消息
-    private static java.util.HashMap<String, SmallMediaMessage> imageMessageMap = new java.util.HashMap<>();
-    private static ArrayList<SmallMediaMessage> imageList=null;
+    private static java.util.HashMap<String, SmallMediaMessage> smallMediaMessageMap = new java.util.HashMap<>();
+    private static ArrayList<SmallMediaMessage> smallMediaList = null;
     /**
      * 添加一条图片消息
      * @param msg
      */
-    public static synchronized void addToImageMessageList(SmallMediaMessage msg){
+    public static synchronized void addToSmallMediaMessageList(SmallMediaMessage msg){
         try {
             if(msg !=null && StringUtils.isNotBlank(msg.getId()))
             {
-                imageMessageMap.put(msg.getId(), msg);
+                smallMediaMessageMap.put(msg.getId(), msg);
             }
         }catch (Exception e){
+            e.printStackTrace();
         }
     }
 
@@ -70,12 +80,12 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
      * @return
      */
     public static ArrayList<SmallMediaMessage> getImageMessageList(){
-        imageList = new ArrayList<>();
-        java.util.Iterator it = imageMessageMap.keySet().iterator();
+        smallMediaList = new ArrayList<>();
+        java.util.Iterator it = smallMediaMessageMap.keySet().iterator();
         while (it.hasNext()) {
-            imageList.add(imageMessageMap.get(it.next()));
+            smallMediaList.add(smallMediaMessageMap.get(it.next()));
         }
-        Collections.sort(imageList, new Comparator<SmallMediaMessage>(){
+        Collections.sort(smallMediaList, new Comparator<SmallMediaMessage>(){
             public int compare(SmallMediaMessage image1, SmallMediaMessage image2) {
                 Long a =  image1.getUpdated();
                 Long b = image2.getUpdated();
@@ -89,14 +99,14 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
                 return b.compareTo(a);
             }
         });
-        return imageList;
+        return smallMediaList;
     }
 
     /**
      * 清除图片列表
      */
     public static synchronized void clearImageMessageList(){
-        imageMessageMap.clear();
+        smallMediaMessageMap.clear();
     }
 
 
@@ -113,7 +123,7 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
          msgId  = entity.getMsgId();
          fromId = entity.getFromId();
          toId   = entity.getToId();
-        sessionKey = entity.getSessionKey();
+         sessionKey = entity.getSessionKey();
          content=entity.getContent();
          msgType=entity.getMsgType();
          displayType=entity.getDisplayType();
@@ -154,8 +164,8 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
 
 
     public static SmallMediaMessage parseFromDB(MessageEntity entity)  {
-        if(entity.getDisplayType() != DBConstant.SHOW_IMAGE_TYPE){
-            throw new RuntimeException("#ImageMessage# parseFromDB,not SHOW_IMAGE_TYPE");
+        if(entity.getDisplayType() != DBConstant.SHOW_SMALL_MEDIA_TYPE){
+            throw new RuntimeException("#ImageMessage# parseFromDB,not SHOW_SMALL_MEDIA_TYPE");
         }
         SmallMediaMessage imageMessage = new SmallMediaMessage(entity);
         String originContent = entity.getContent();
@@ -164,6 +174,8 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
             extraContent = new JSONObject(originContent);
             imageMessage.setPath(extraContent.getString("path"));
             imageMessage.setUrl(extraContent.getString("url"));
+            imageMessage.setThumbnailLocalUrl(extraContent.getString("thumbnailLocalUrl"));
+            imageMessage.setThumbnailLocalPath(extraContent.getString("thumbnailLocalPath"));
             int loadStatus = extraContent.getInt("loadStatus");
 
             //todo temp solution
@@ -179,57 +191,35 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
     }
 
     // 消息页面，发送图片消息
-    public static SmallMediaMessage buildForSend(ImageItem item, UserEntity fromUser, PeerEntity peerEntity){
+    public static SmallMediaMessage buildForSend(SmallMediaEvent.SmallMediaItem item, UserEntity fromUser,
+                                                 PeerEntity peerEntity){
         SmallMediaMessage msg = new SmallMediaMessage();
-        if (new File(item.getImagePath()).exists()) {
-            msg.setPath(item.getImagePath());
-        } else {
-            if (new File(item.getThumbnailPath()).exists()) {
-                msg.setPath(item.getThumbnailPath());
-            } else {
-                // 找不到图片路径时使用加载失败的图片展示
-                msg.setPath(null);
-            }
+        if (new File(item.mVideoPath).exists()) {
+            msg.setPath(item.mVideoPath);
         }
+        if(new File(item.mPicPath).exists()) {
+            msg.setThumbnailLocalPath(item.mPicPath);
+        }
+
         // 将图片发送至服务器
         long nowTime = System.currentTimeMillis();
-
         msg.setFromId(fromUser.getPeerId());
         msg.setToId(peerEntity.getPeerId());
         msg.setCreated(nowTime);
         msg.setUpdated(nowTime);
-        msg.setDisplayType(DBConstant.SHOW_IMAGE_TYPE);
+        msg.setDisplayType(DBConstant.SHOW_SMALL_MEDIA_TYPE);
         // content 自动生成的
         int peerType = peerEntity.getType();
         int msgType = peerType == DBConstant.SESSION_TYPE_GROUP ? DBConstant.MSG_TYPE_GROUP_TEXT :
                 DBConstant.MSG_TYPE_SINGLE_TEXT;
         msg.setMsgType(msgType);
-
         msg.setStatus(MessageConstant.MSG_SENDING);
-        msg.setLoadStatus(MessageConstant.IMAGE_UNLOAD);
+        msg.setLoadStatus(MessageConstant.SMALL_MEDIA_UNLOAD);
         msg.buildSessionKey(true);
         return msg;
     }
 
-    public static SmallMediaMessage buildForSend(String takePhotoSavePath, UserEntity fromUser, PeerEntity peerEntity){
-        SmallMediaMessage imageMessage = new SmallMediaMessage();
-        long nowTime = System.currentTimeMillis();
-        imageMessage.setFromId(fromUser.getPeerId());
-        imageMessage.setToId(peerEntity.getPeerId());
-        imageMessage.setUpdated(nowTime);
-        imageMessage.setCreated(nowTime);
-        imageMessage.setDisplayType(DBConstant.SHOW_IMAGE_TYPE);
-        imageMessage.setPath(takePhotoSavePath);
-        int peerType = peerEntity.getType();
-        int msgType = peerType == DBConstant.SESSION_TYPE_GROUP ? DBConstant.MSG_TYPE_GROUP_TEXT
-                : DBConstant.MSG_TYPE_SINGLE_TEXT;
-        imageMessage.setMsgType(msgType);
 
-        imageMessage.setStatus(MessageConstant.MSG_SENDING);
-        imageMessage.setLoadStatus(MessageConstant.IMAGE_UNLOAD);
-        imageMessage.buildSessionKey(true);
-        return imageMessage;
-    }
 
     public static SmallMediaMessage buildForReceive(Message message, String fromId, String toId)
             throws JSONException, UnsupportedEncodingException {
@@ -281,6 +271,8 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
         try {
             extraContent.put("path",path);
             extraContent.put("url",url);
+            extraContent.put("thumbnailLocalPath", thumbnailLocalPath);
+            extraContent.put("thumbnailLocalUrl", thumbnailLocalUrl);
             extraContent.put("loadStatus",loadStatus);
             String imageContent = extraContent.toString();
             return imageContent;
@@ -293,17 +285,24 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
     @Override
     public String getSendContent() {
         Bitmap bitmap = ImageLoaderUtil.getImageLoaderInstance()
-                .loadImageSync("file://"+path, new ImageSize(480, 480));
+                .loadImageSync("file://"+thumbnailLocalPath, new ImageSize(480, 480));
         String small =  BitmapUtils.bitmapToBase64(bitmap);
-//        MsgSmallMediaContent msgSmallMediaContent = MsgSmallMediaContent
-//                .valueOf(480, 480, small, small, "", url);
-
-//        int width, int height, String capture, int duration,
+        //格式==============
+        //        {
+//            “width”:320,
+//            “height”:240,
+//            “capture”:”视频缩略图Base64加密值”,
+//            “duration”:30,  // 时长，单位：秒
+//            “size”:2346,   // 大小，单位byte
+//            “url”:”视频片段地址”
+//        }
+        //    int width, int height, String capture, int duration,
 //        int size, String url
-
-//        String sendContent = JacksonUtil.turnObj2String(msgImageContent);
-        System.out.println("getSendContent -> content.length():"+content.length());
-        return null;
+        MsgSmallMediaContent msgSmallMediaContent = MsgSmallMediaContent
+                .valueOf(480, 480, small, duration, size, url);
+        String sendContent = JacksonUtil.turnObj2String(msgSmallMediaContent);
+        System.out.println("getSendContent -> content.length():"+sendContent.length());
+        return sendContent;
     }
 
     /**-----------------------set/get------------------------*/
@@ -323,6 +322,14 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
         this.url = url;
     }
 
+    public String getThumbnailLocalUrl() {
+        return thumbnailLocalUrl;
+    }
+
+    public void setThumbnailLocalUrl(String thumbnailLocalUrl) {
+        this.thumbnailLocalUrl = thumbnailLocalUrl;
+    }
+
     public int getLoadStatus() {
         return loadStatus;
     }
@@ -339,6 +346,29 @@ public class SmallMediaMessage extends MessageEntity implements Serializable {
         this.progress = progress;
     }
 
+    public String getThumbnailLocalPath() {
+        return thumbnailLocalPath;
+    }
+
+    public void setThumbnailLocalPath(String thumbnailLocalPath) {
+        this.thumbnailLocalPath = thumbnailLocalPath;
+    }
+
+    public int getDuration() {
+        return duration;
+    }
+
+    public void setDuration(int duration) {
+        this.duration = duration;
+    }
+
+    public int getSize() {
+        return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
+    }
 
     public static class MsgSmallMediaContent {
 

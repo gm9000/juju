@@ -14,6 +14,12 @@ public interface MessageConstant {
     public final int IMAGE_LOADED_SUCCESS =3;
     public final int IMAGE_LOADED_FAILURE =4;
 
+    /**小视频消息状态，表示下载到本地、上传到服务器的状态*/
+    public final int SMALL_MEDIA_UNLOAD=1;
+    public final int SMALL_MEDIA_LOADING=2;
+    public final int SMALL_MEDIA_LOADED_SUCCESS =3;
+    public final int SMALL_MEDIA_LOADED_FAILURE =4;
+
 
     /**语音状态，未读与已读*/
     public final int   AUDIO_UNREAD =1;

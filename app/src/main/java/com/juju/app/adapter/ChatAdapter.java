@@ -26,6 +26,7 @@ import com.juju.app.entity.User;
 import com.juju.app.entity.base.MessageEntity;
 import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.ImageMessage;
+import com.juju.app.entity.chat.SmallMediaMessage;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.enums.RenderType;
@@ -46,6 +47,7 @@ import com.juju.app.view.groupchat.AudioRenderView;
 import com.juju.app.view.groupchat.ImageRenderView;
 import com.juju.app.view.groupchat.MessageOperatePopup;
 import com.juju.app.view.groupchat.NormalNotifyRenderView;
+import com.juju.app.view.groupchat.SmallMediaRenderView;
 import com.juju.app.view.groupchat.TextRenderView;
 import com.juju.app.view.groupchat.TimeRenderView;
 
@@ -154,6 +156,12 @@ public class ChatAdapter extends BaseAdapter {
                 case MESSAGE_TYPE_NORMAL_NOTIFY:
                     convertView = normalNotifyRender(position, convertView, parent);
                     break;
+                case MESSAGE_TYPE_MINE_SMALL_MEDIA:
+                    convertView = smallMediaMsgRender(position, convertView, parent, true);
+                    break;
+                case MESSAGE_TYPE_OTHER_SMALL_MEDIA:
+                    convertView = smallMediaMsgRender(position, convertView, parent, false);
+                    break;
             }
             return convertView;
         } catch (Exception e) {
@@ -201,6 +209,12 @@ public class ChatAdapter extends BaseAdapter {
                     case DBConstant.SHOW_MIX_TEXT:
                         //
                         logger.e("混合的消息类型%s", obj);
+                        break;
+                    case DBConstant.SHOW_SMALL_MEDIA_TYPE:
+//                        SmallMediaMessage smallMediaMessage = (SmallMediaMessage) info;
+                        type = isMine ? RenderType.MESSAGE_TYPE_MINE_SMALL_MEDIA
+                                : RenderType.MESSAGE_TYPE_OTHER_SMALL_MEDIA;
+                        break;
                     default:
                         break;
                 }
@@ -250,6 +264,8 @@ public class ChatAdapter extends BaseAdapter {
 //        }
         if (msg instanceof ImageMessage) {
             ImageMessage.addToImageMessageList((ImageMessage) msg);
+        } else if (msg instanceof SmallMediaMessage) {
+            SmallMediaMessage.addToSmallMediaMessageList((SmallMediaMessage) msg);
         }
         msgObjectList.add(msg);
         logger.d("#messageAdapter#addItem");
@@ -424,6 +440,8 @@ public class ChatAdapter extends BaseAdapter {
     }
 
 
+
+
     /**
      * 1.头像事件
      * mine:事件 other事件
@@ -535,6 +553,119 @@ public class ChatAdapter extends BaseAdapter {
         imageRenderView.render(imageMessage, userEntity, ctx);
 
         return imageRenderView;
+    }
+
+
+    /**
+     * 1.头像事件
+     * mine:事件 other事件
+     * 小视频的状态  消息收到，没收到，图片展示成功，没有成功
+     * 触发图片的事件  【长按】
+     * <p/>
+     * 小视频消息类型的render
+     *
+     * @param position
+     * @param convertView
+     * @param parent
+     * @param isMine
+     * @return
+     */
+    private View smallMediaMsgRender(final int position, View convertView, final ViewGroup parent, final boolean isMine) {
+        SmallMediaRenderView smallMediaRenderView;
+        final SmallMediaMessage smallMediaMessage = (SmallMediaMessage) msgObjectList.get(position);
+        User userEntity = imService.getContactManager().findContactByFormId(smallMediaMessage.getFromId());
+
+        if (null == convertView) {
+            smallMediaRenderView = SmallMediaRenderView.inflater(ctx, parent, isMine);
+        } else {
+            //需要优化
+            if(convertView instanceof SmallMediaRenderView
+                    && (isMine == ((SmallMediaRenderView) convertView).isMine())) {
+                smallMediaRenderView = (SmallMediaRenderView) convertView;
+            } else {
+                smallMediaRenderView = SmallMediaRenderView.inflater(ctx, parent, isMine);
+            }
+//            imageRenderView = ImageRenderView.inflater(ctx, parent, isMine);
+        }
+
+        final ImageView messageImage = smallMediaRenderView.getMessageImage();
+        final int msgId = smallMediaMessage.getMsgId();
+        smallMediaRenderView.setBtnImageListener(new SmallMediaRenderView.BtnImageListener() {
+            @Override
+            public void onMsgFailure() {
+                /**
+                 * 多端同步也不会拉到本地失败的数据
+                 * 只有isMine才有的状态，消息发送失败
+                 * 1. 图片上传失败。点击图片重新上传??[也是重新发送]
+                 * 2. 图片上传成功，但是发送失败。 点击重新发送??
+                 */
+                if (FileUtil.isSdCardAvailuable()) {
+                    smallMediaMessage.setStatus(MessageConstant.MSG_SENDING);
+                    if (imService != null) {
+                        imService.getMessageManager().resendMessage(smallMediaMessage);
+                    }
+                    updateItemState(msgId, smallMediaMessage);
+                } else {
+                    Toast.makeText(ctx, ctx.getString(R.string.sdcard_unavaluable), Toast.LENGTH_LONG).show();
+                }
+            }
+
+            @Override
+            public void onMsgSuccess() {
+                Intent i = new Intent(ctx, PreviewMessageImagesActivity.class);
+                Bundle bundle = new Bundle();
+                bundle.putSerializable(IntentConstant.CUR_MESSAGE, smallMediaMessage);
+                i.putExtras(bundle);
+                ctx.startActivity(i);
+                ((Activity) ctx).overridePendingTransition(R.anim.tt_image_enter, R.anim.tt_stay);
+            }
+        });
+
+        // 设定触发loadImage的事件
+        smallMediaRenderView.setImageLoadListener(new SmallMediaRenderView.ImageLoadListener() {
+
+            @Override
+            public void onLoadComplete(String loaclPath) {
+                logger.d("chat#pic#save image ok");
+                logger.d("pic#setsavepath:%s", loaclPath);
+                smallMediaMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_SUCCESS);
+                updateItemState(smallMediaMessage);
+
+            }
+
+            @Override
+            public void onLoadFailed() {
+                logger.d("chat#pic#onBitmapFailed");
+                smallMediaMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_FAILURE);
+                updateItemState(smallMediaMessage);
+                logger.d("download failed");
+            }
+        });
+
+        final View messageLayout = smallMediaRenderView.getMessageLayout();
+        messageImage.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // 创建一个pop对象，然后 分支判断状态，然后显示需要的内容
+                MessageOperatePopup popup = getPopMenu(parent, new OperateItemClickListener(smallMediaMessage, position));
+                boolean bResend = (smallMediaMessage.getStatus() == MessageConstant.MSG_FAILURE)
+                        || (smallMediaMessage.getLoadStatus() == MessageConstant.IMAGE_UNLOAD);
+                popup.show(messageLayout, DBConstant.SHOW_IMAGE_TYPE, bResend, isMine);
+                return true;
+            }
+        });
+
+        /**父类控件中的发送失败view*/
+        smallMediaRenderView.getMessageFailed().setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View arg0) {
+                // 重发或者重新加载
+                MessageOperatePopup popup = getPopMenu(parent, new OperateItemClickListener(smallMediaMessage, position));
+                popup.show(messageLayout, DBConstant.SHOW_IMAGE_TYPE, true, isMine);
+            }
+        });
+        smallMediaRenderView.render(smallMediaMessage, userEntity, ctx);
+        return smallMediaRenderView;
     }
 
     /**

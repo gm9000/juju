@@ -16,6 +16,10 @@ public enum RenderType {
     MESSAGE_TYPE_MINE_GIF_IMAGE,
     //我的语音
     MESSAGE_TYPE_MINE_AUDIO,
+
+    //我的语音
+    MESSAGE_TYPE_MINE_SMALL_MEDIA,
+
     //其他人的文本消息
     MESSAGE_TYPE_OTHER_TEXT,
     //其他人的GIF
@@ -26,8 +30,13 @@ public enum RenderType {
     MESSAGE_TYPE_OTHER_GIF_IMAGE,
     //其他人的语音
     MESSAGE_TYPE_OTHER_AUDIO,
+
+    //其他人短视频
+    MESSAGE_TYPE_OTHER_SMALL_MEDIA,
+
     //时间
     MESSAGE_TYPE_TIME_TITLE,
     //普通通知
     MESSAGE_TYPE_NORMAL_NOTIFY
+
 }

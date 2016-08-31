@@ -167,9 +167,13 @@ public class Constants {
     // resultCode 返回值
     public static final int ALBUM_PREVIEW_BACK = 3;
     public static final int ALBUM_BACK_DATA = 5;
+    public static final int SMALL_MEDIA_BACK_DATA = 7;
+
     public static final int CAMERA_WITH_DATA = 3023;
 
     public static final String UPLOAD_IMAGE_INTENT_PARAMS = "com.juju.app.upload.image.intent";
+    public static final String UPLOAD_SMALL_MEDIA_INTENT_PARAMS = "com.juju.app.upload.small.media.intent";
+
 
 
 }

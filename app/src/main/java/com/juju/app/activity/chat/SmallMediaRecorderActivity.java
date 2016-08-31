@@ -145,7 +145,7 @@ public class SmallMediaRecorderActivity extends BaseActivity implements
     private CheckBox mRecordLed;
 
     /** 导出视频，导出封面 */
-    private String mVideoPath, mCoverPath;
+    private String mVideoPath, mThumbnailPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -246,7 +246,7 @@ public class SmallMediaRecorderActivity extends BaseActivity implements
                 VCamera.getVideoCachePath() + key);
         mVideoPath = mMediaObject.getOutputVideoPath();
         if (StringUtils.isNotEmpty(mVideoPath)) {
-            mCoverPath = mVideoPath.replace(".mp4", ".jpg");
+            mThumbnailPath = mVideoPath.replace(".mp4", ".jpg");
         }
         mMediaRecorder.setSurfaceHolder(mSurfaceView.getHolder());
         mMediaRecorder.prepare();
@@ -670,10 +670,13 @@ public class SmallMediaRecorderActivity extends BaseActivity implements
     public void onEncodeComplete() {
         hideProgress();
         //截图
-        FFMpegUtils.captureThumbnails(mVideoPath, mCoverPath, "480x480");
-
-        EventBus.getDefault().post(new SmallMediaEvent(mVideoPath, mCoverPath,
-                mMediaObject.getDuration(), FileUtil.getFileSize(new File(mVideoPath))));
+        FFMpegUtils.captureThumbnails(mVideoPath, mThumbnailPath, "480x480");
+//        ImageGridActivity.this.setResult(RESULT_OK, null);
+//        ImageGridActivity.this.finish();
+        SmallMediaEvent event = new SmallMediaEvent();
+        event.smallMediaItem = new SmallMediaEvent.SmallMediaItem(mVideoPath, mThumbnailPath,
+                mMediaObject.getDuration(), FileUtil.getFileSize(new File(mVideoPath)));
+        EventBus.getDefault().post(event);
         finish(SmallMediaRecorderActivity.this);
         // overridePendingTransition(R.anim.push_bottom_in,
         // R.anim.push_bottom_out);

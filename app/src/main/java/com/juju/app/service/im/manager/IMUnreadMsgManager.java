@@ -506,6 +506,10 @@ public class IMUnreadMsgManager extends IMManager {
                 else if(IMBaseDefine.MsgType.MSG_IMAGE.code().equals(code)) {
                     unreadEntity.setLatestMsgData(DBConstant.DISPLAY_FOR_IMAGE);
                 }
+
+                else if(IMBaseDefine.MsgType.MSG_VIDEO.code().equals(code)) {
+                    unreadEntity.setLatestMsgData(DBConstant.DISPLAY_FOR_SMALL_MEDIA);
+                }
                 unreadEntity.setPeerId(to);
                 unreadEntity.setLaststMsgId(laststMsgId);
                 //消息服务+本地数据库

@@ -13,6 +13,7 @@ import com.juju.app.entity.chat.AudioMessage;
 import com.juju.app.entity.chat.ImageMessage;
 import com.juju.app.entity.chat.PeerEntity;
 import com.juju.app.entity.chat.SessionEntity;
+import com.juju.app.entity.chat.SmallMediaMessage;
 import com.juju.app.entity.chat.TextMessage;
 import com.juju.app.entity.chat.UserEntity;
 import com.juju.app.event.MessageEvent;
@@ -24,6 +25,7 @@ import com.juju.app.golobal.IMBaseDefine;
 import com.juju.app.golobal.MessageConstant;
 import com.juju.app.helper.chat.SequenceNumberMaker;
 import com.juju.app.service.im.LoadImageService;
+import com.juju.app.service.im.LoadSmallMediaService;
 import com.juju.app.service.im.callback.XMPPServiceCallbackImpl;
 import com.juju.app.service.im.iq.RedisResIQ;
 import com.juju.app.service.im.service.XMPPServiceImpl;
@@ -755,17 +757,33 @@ public class IMMessageManager extends IMManager {
             case IMAGE_UPLOAD_PROGRESSING:
                 onImageLoadProgress(event);
                 break;
+            case SMALL_MEDIA_UPLOAD_SUCCESS:
+                onSmallMediaUploadFinish(event);
+                break;
+            case SMALL_MEDIA_UPLOAD_PROGRESSING:
+                onSmallMediaLoadProgress(event);
+                break;
         }
     }
 
 
-    //上传下载进度
+    //上传图片下载进度
     private void onImageLoadProgress(MessageEvent imageEvent) {
         logger.d("pic#onImageLoadProgress");
         final ImageMessage imageMessage = (ImageMessage)imageEvent.getMessageEntity();
         imageMessage.setProgress(imageEvent.getProgress());
         triggerEvent(new MessageEvent(MessageEvent.Event
                 .ACK_SEND_MESSAGE_OK, imageMessage));
+    }
+
+    //上传小视频下载进度
+    private void onSmallMediaLoadProgress(MessageEvent smallMediaEvent) {
+        logger.d("pic#onSmallMediaLoadProgress");
+        final SmallMediaMessage smallMediaMessage = (SmallMediaMessage)smallMediaEvent.getMessageEntity();
+        smallMediaMessage.setProgress(smallMediaEvent.getProgress());
+        //更新视图
+        triggerEvent(new MessageEvent(MessageEvent.Event
+                .ACK_SEND_MESSAGE_OK, smallMediaMessage));
     }
 
     private void onImageUploadFinish(MessageEvent imageEvent){
@@ -856,6 +874,95 @@ public class IMMessageManager extends IMManager {
         }
     }
 
+
+    private void onSmallMediaUploadFinish(MessageEvent smallMediaEvent){
+        final SmallMediaMessage smallMediaMessage = (SmallMediaMessage)smallMediaEvent.getMessageEntity();
+        logger.d("pic#onImageUploadFinish");
+        String imageUrl = smallMediaMessage.getUrl();
+        logger.d("pic#imageUrl:%s", imageUrl);
+        String realImageURL = "";
+        try {
+            realImageURL = URLDecoder.decode(imageUrl, "utf-8");
+            logger.d("pic#realImageUrl:%s", realImageURL);
+        } catch (UnsupportedEncodingException e) {
+            logger.e(e.toString());
+        }
+
+        smallMediaMessage.setUrl(realImageURL);
+        smallMediaMessage.setStatus(MessageConstant.MSG_SUCCESS);
+        smallMediaMessage.setLoadStatus(MessageConstant.IMAGE_LOADED_SUCCESS);
+        final MessageEntity dbMessage = smallMediaMessage.clone();
+//        dbInterface.insertOrUpdateMessage(imageMessage);
+        messageDao.replaceInto(dbMessage);
+
+        /**通知Activity层 成功 ， 事件通知*/
+        smallMediaEvent.setEvent(MessageEvent.Event.HANDLER_IMAGE_UPLOAD_SUCCESS);
+        smallMediaEvent.setMessageEntity(smallMediaMessage);
+        triggerEvent(smallMediaEvent);
+
+//        smallMediaMessage.setContent(MessageConstant.IMAGE_MSG_START
+//                + realImageURL + MessageConstant.IMAGE_MSG_END);
+
+        String uuid = UUID.randomUUID().toString();
+        try {
+            socketService.sendMessage(smallMediaMessage.getFromId(), smallMediaMessage.getToId(),
+                    smallMediaMessage.getSendContent(), uuid, IMBaseDefine.MsgType.MSG_VIDEO,
+                    new XMPPServiceCallbackImpl() {
+                        @Override
+                        public void onSuccess(Object t) {
+                            //回复时间
+                            if (t instanceof XMPPServiceImpl.ReplayMessageTime) {
+                                XMPPServiceImpl.ReplayMessageTime messageTime =
+                                        (XMPPServiceImpl.ReplayMessageTime) t;
+                                String id = messageTime.getId();
+                                String time = messageTime.getTime();
+                                if (dbMessage != null) {
+                                    dbMessage.setStatus(MessageConstant.MSG_SUCCESS);
+                                    //通知消息
+                                    smallMediaMessage.setStatus(MessageConstant.MSG_SUCCESS);
+                                    if (NumberUtils.isNumber(time)) {
+                                        int msgId = SequenceNumberMaker.getInstance()
+                                                .makelocalUniqueMsgId(Long.parseLong(time));
+                                        //更新msgId
+                                        dbMessage.setMsgId(msgId);
+                                        dbMessage.setCreated(Long.parseLong(time));
+                                        dbMessage.setUpdated(Long.parseLong(time));
+                                    }
+
+                                    //更新会话
+                                    sessionManager.updateSession(dbMessage, true);
+                                    triggerEvent(new MessageEvent(MessageEvent.Event
+                                            .ACK_SEND_MESSAGE_OK, smallMediaMessage));
+                                    messageDao.replaceInto(dbMessage);
+                                }
+                            }
+                        }
+
+                        @Override
+                        public void onFailed() {
+                            //消息发送失败
+                            dbMessage.setStatus(MessageConstant.MSG_FAILURE);
+                            messageDao.replaceInto(dbMessage);
+                            smallMediaMessage.setStatus(MessageConstant.MSG_FAILURE);
+                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, smallMediaMessage));
+                        }
+
+                        @Override
+                        public void onTimeout() {
+                            //消息发送超时
+                            dbMessage.setStatus(MessageConstant.MSG_FAILURE);
+                            messageDao.replaceInto(dbMessage);
+                            smallMediaMessage.setStatus(MessageConstant.MSG_FAILURE);
+                            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, smallMediaMessage));
+                        }
+                    });
+        } catch (SmackException.NotConnectedException e) {
+            Log.e(TAG, "sendText:", e);
+            triggerEvent(new MessageEvent(MessageEvent.Event.ACK_SEND_MESSAGE_FAILURE, smallMediaMessage));
+        }
+    }
+
+
     /**
      * 重新发送 message数据包
      * 1.检测DB状态
@@ -894,17 +1001,57 @@ public class IMMessageManager extends IMManager {
                 sendMsgImage((ImageMessage) msgInfo);
                 break;
             case DBConstant.SHOW_AUDIO_TYPE:
-                sendMsgAudio((AudioMessage)msgInfo); break;
+                sendMsgAudio((AudioMessage)msgInfo);
+                break;
+            case DBConstant.SHOW_SMALL_MEDIA_TYPE:
+                sendMsgSmallMedia((SmallMediaMessage)msgInfo);
+                break;
             default:
                 throw new IllegalArgumentException("#resendMessage#enum type is wrong!!,cause by displayType"+msgType);
         }
     }
 
 
+    /**
+     * 发送图片
+     * @param msg
+     */
     public void sendMsgImage(ImageMessage msg){
-        logger.d("ImMessageManager#sendImage ");
+        logger.d("ImMessageManager#sendMsgImage ");
         ArrayList<ImageMessage> msgList = new ArrayList<>();
         msgList.add(msg);
         sendMsgImages(msgList);
     }
+
+    public void sendMsgSmallMedia(SmallMediaMessage msg) {
+        logger.d("ImMessageManager#sendMsgSmallMedia ");
+        if (isAuthenticated()) {
+            String uuid = UUID.randomUUID().toString();
+            logger.d("chat#pic#sendMsgSmallMedia  msg:%s",msg);
+            // image message would wrapped as a text message after uploading
+            int loadStatus = msg.getLoadStatus();
+            msg.setStatus(MessageConstant.MSG_SENDING);
+            msg.setId(uuid);
+            //插入本地数据库
+            final MessageEntity dbMessage = msg.clone();
+            messageDao.saveOrUpdate(dbMessage);
+
+            switch (loadStatus){
+                case MessageConstant.SMALL_MEDIA_LOADED_FAILURE:
+                case MessageConstant.SMALL_MEDIA_UNLOAD:
+                case MessageConstant.SMALL_MEDIA_LOADING:
+                    msg.setLoadStatus(MessageConstant.SMALL_MEDIA_LOADING);
+                    Intent loadImageIntent = new Intent(ctx, LoadSmallMediaService.class);
+                    loadImageIntent.putExtra(Constants.UPLOAD_SMALL_MEDIA_INTENT_PARAMS, msg);
+                    ctx.startService(loadImageIntent);
+                    break;
+                default:
+                    throw new RuntimeException("sendMsgSmallMedia#status不可能出现的状态");
+            }
+        } else {
+            //TODO ChatActivity提示未验证通过
+        }
+
+    }
+
 }

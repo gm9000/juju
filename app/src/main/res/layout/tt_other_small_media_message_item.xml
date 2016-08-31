@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.juju.app.view.groupchat.ImageRenderView
+<com.juju.app.view.groupchat.SmallMediaRenderView
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="fill_parent"
     android:layout_height="fill_parent"
@@ -103,4 +103,4 @@
         android:contentDescription="@string/imageview_content_description"
         android:src="@mipmap/play_big"
         android:visibility="gone" />
-</com.juju.app.view.groupchat.ImageRenderView>
+</com.juju.app.view.groupchat.SmallMediaRenderView>

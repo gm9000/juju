@@ -415,6 +415,10 @@ public class IMSessionManager extends IMManager {
             else if(IMBaseDefine.MsgType.MSG_IMAGE.code().equals(code)) {
                 sessionEntity.setLatestMsgData(DBConstant.DISPLAY_FOR_IMAGE);
             }
+            else if(IMBaseDefine.MsgType.MSG_VIDEO.code().equals(code)) {
+                sessionEntity.setLatestMsgData(DBConstant.DISPLAY_FOR_SMALL_MEDIA);
+
+            }
             sessionEntity.setUpdated(Long.valueOf(thread));
             sessionEntity.setCreated(Long.valueOf(thread));
             return sessionEntity;
